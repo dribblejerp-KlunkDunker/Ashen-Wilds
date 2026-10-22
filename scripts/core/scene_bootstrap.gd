@@ -25,7 +25,7 @@ func _ready() -> void:
 	_build_blackfen_test_yard()
 
 	_player = PlayerController.new()
-	_player.global_position = _shelter_spawn
+	_player.position = _shelter_spawn
 	_player.camera_rig = _camera_rig
 	_player.audio = _audio
 	add_child(_player)
@@ -218,7 +218,7 @@ func _create_static_box(
 
 func _spawn_all_archetype_encounters() -> void:
 	var goblin_yard := EnemyGoblinScavenger.new()
-	goblin_yard.global_position = Vector3(-1.2, 0.0, -3.2)
+	goblin_yard.position = Vector3(-1.2, 0.0, -3.2)
 	goblin_yard.player_ref = _player
 	goblin_yard.audio = _audio
 	goblin_yard.coordinator = _coordinator
@@ -227,7 +227,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_yard.goblin_alert_sound.connect(_on_goblin_unseen_noise)
 
 	var goblin_inside := EnemyGoblinScavenger.new()
-	goblin_inside.global_position = Vector3(5.2, 0.0, -3.2)
+	goblin_inside.position = Vector3(5.2, 0.0, -3.2)
 	goblin_inside.player_ref = _player
 	goblin_inside.audio = _audio
 	goblin_inside.coordinator = _coordinator
@@ -237,7 +237,7 @@ func _spawn_all_archetype_encounters() -> void:
 
 	var ork_shield := EnemyOrkWarrior.new()
 	ork_shield.has_shield = true
-	ork_shield.global_position = Vector3(12.2, 0.0, 8.2)
+	ork_shield.position = Vector3(12.2, 0.0, 8.2)
 	ork_shield.player_ref = _player
 	ork_shield.audio = _audio
 	ork_shield.coordinator = _coordinator
@@ -250,7 +250,7 @@ func _spawn_all_archetype_encounters() -> void:
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
-	ork_cleaver.global_position = Vector3(14.0, 0.0, 9.8)
+	ork_cleaver.position = Vector3(14.0, 0.0, 9.8)
 	ork_cleaver.player_ref = _player
 	ork_cleaver.audio = _audio
 	ork_cleaver.coordinator = _coordinator
@@ -258,7 +258,7 @@ func _spawn_all_archetype_encounters() -> void:
 	add_child(ork_cleaver)
 
 	var ogre := EnemyOgreBrute.new()
-	ogre.global_position = Vector3(-13.5, 0.0, -11.5)
+	ogre.position = Vector3(-13.5, 0.0, -11.5)
 	ogre.player_ref = _player
 	ogre.audio = _audio
 	ogre.coordinator = _coordinator

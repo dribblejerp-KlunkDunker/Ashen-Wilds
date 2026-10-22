@@ -71,5 +71,5 @@ func _fill_buffer() -> void:
 			if _burst_metallic:
 				tone = (tone + 0.6 * sin(_phase * TAU * 2.41) + 0.4 * sin(_phase * TAU * 3.83)) * 0.5
 			var noise: float = (randf() * 2.0 - 1.0)
-			sample = mix(tone, noise, _burst_noise_mix) * env * 0.48
+			sample = lerpf(tone, noise, _burst_noise_mix) * env * 0.48
 		_playback.push_frame(Vector2(sample + wind, sample + wind))
