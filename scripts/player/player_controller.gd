@@ -1072,13 +1072,16 @@ func _build_survivor_visuals_and_colliders() -> void:
 	_aim_arc_mesh.position = Vector3(0.0, 0.04, -0.95)
 	_visual_root.add_child(_aim_arc_mesh)
 
+	# The light lives at the flame in the off-hand. (It used to sit at the body's
+	# centre, inside the torso mesh, which self-shadowed the survivor black and
+	# threw a huge dark wedge across rooms.)
 	_torch_light = OmniLight3D.new()
 	_torch_light.light_color = Color(0.95, 0.62, 0.28)
 	_torch_light.light_energy = 1.35
 	_torch_light.omni_range = 7.5
 	_torch_light.shadow_enabled = true
-	_torch_light.position = Vector3(0.0, 1.35, 0.0)
-	add_child(_torch_light)
+	_torch_light.position = Vector3(0.0, 0.48, 0.0)
+	_torch_root.add_child(_torch_light)
 
 	_hitbox = HitboxComponent.new()
 	_hitbox.owner_entity = self

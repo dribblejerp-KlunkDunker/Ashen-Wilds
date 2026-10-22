@@ -160,7 +160,9 @@ func _build_blackfen_test_yard() -> void:
 
 	var stone_col := Color(0.28, 0.27, 0.25)
 	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, false, false)
+	# East wall faces the camera (rig sits on the +X/+Z side), so it needs the
+	# cutaway too or it hides the eastern half of the watchhouse interior.
+	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, true, false)
 
 	# West Foreground Wall with 1.35m doorway at Z = -2.675 (Blocks 1.70m Ogre)
 	_create_static_box(Vector3(1.0, 1.6, -5.175), Vector3(0.4, 3.2, 3.65), stone_col, cutaway_shader, true, false)
@@ -293,25 +295,25 @@ func _on_goblin_unseen_noise(_pos: Vector3) -> void:
 func _spawn_scavenge_containers() -> void:
 	# Your own stash by the shelter fire: already known, opens instantly.
 	var stash := _spawn_container(
-		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.30, 0.22, 0.15), 0.0,
+		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.40, 0.29, 0.19), 0.0,
 		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1)]
 	)
 	stash.searched = true
 
 	_spawn_container(
-		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.27, 0.21, 0.15), 2.0,
+		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.38, 0.29, 0.19), 2.0,
 		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1)]
 	)
 	_spawn_container(
-		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.25, 0.19, 0.14), 3.0,
+		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.36, 0.27, 0.18), 3.0,
 		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
 	)
 	_spawn_container(
-		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.24, 0.20, 0.17), 2.5,
+		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.34, 0.28, 0.22), 2.5,
 		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
 	)
 	_spawn_container(
-		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.42, 0.38, 0.32), 3.5,
+		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.46, 0.42, 0.35), 3.5,
 		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
 	)
 
