@@ -171,6 +171,12 @@ func _build_blackfen_test_yard() -> void:
 
 	_create_static_box(Vector3(5.0, 1.6, 1.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, true, false)
 
+	# Milestone 5: a 1.7 m-wide entry hall running in from the west doorway.
+	# Sweeping blades clang off these walls; thrusts work.
+	var hall_col := Color(0.25, 0.24, 0.22)
+	_create_static_box(Vector3(2.9, 1.2, -3.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(2.9, 1.2, -1.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
+
 	_create_static_box(
 		Vector3(5.0, 3.35, -3.0),
 		Vector3(8.4, 0.3, 8.4),
@@ -244,7 +250,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_inside.player_ref = _player
 	goblin_inside.audio = _audio
 	goblin_inside.coordinator = _coordinator
-	goblin_inside.patrol_points = [Vector3(3.2, 0.0, -5.0), Vector3(6.8, 0.0, -1.8)]
+	goblin_inside.patrol_points = [Vector3(6.8, 0.0, -5.2), Vector3(6.8, 0.0, -1.4)]
 	add_child(goblin_inside)
 	goblin_inside.goblin_alert_sound.connect(_on_goblin_unseen_noise)
 

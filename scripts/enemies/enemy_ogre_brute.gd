@@ -178,6 +178,12 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
+func is_dead() -> bool:
+	return state == AIState.DEAD
+
+func is_staggered() -> bool:
+	return state == AIState.STAGGER
+
 func _begin_committed_attack(dir_to_player: Vector3) -> void:
 	if coordinator:
 		coordinator.request_attack_token(self, true)

@@ -76,10 +76,10 @@ func _run() -> void:
 
 	# 2. Torchlight inside the watchhouse: roof cutaway + interior goblin.
 	_equip_now("pitch_torch")
-	_place(Vector3(4.4, 0.0, -3.6), Vector3(-2.2, 0, 1.0))
+	_place(Vector3(6.6, 0.0, -4.6), Vector3(-1.6, 0, 1.6))
 	var inside_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[1]
-	inside_goblin.global_position = Vector3(2.2, 0.0, -2.6)
-	inside_goblin._face_direction((Vector3(4.4, 0.0, -3.6) - inside_goblin.global_position).normalized(), 50.0, 1.0)
+	inside_goblin.global_position = Vector3(5.1, 0.0, -3.0)
+	inside_goblin._face_direction((Vector3(6.6, 0.0, -4.6) - inside_goblin.global_position).normalized(), 50.0, 1.0)
 	inside_goblin.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
 	inside_goblin._update_visual_telegraph()
 	inside_goblin._visual_root.visible = true # in the player's line of sight
@@ -132,5 +132,22 @@ func _run() -> void:
 	ogre._update_visual_telegraph()
 	await _frames(40)
 	await _shot("06_ogre_lair.png")
+
+	# 7. Entry hall: a sword slash clangs off the stone (Milestone 5).
+	ogre._slam_ring.visible = false
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	_place(Vector3(2.4, 0.0, -2.675), Vector3(1, 0, 0))
+	await _frames(30)
+	_player.stamina = _player.max_stamina
+	_player._start_attack(false)
+	while _player.current_state != PlayerController.ActionState.RECOIL:
+		await physics_frame
+	# Software rendering runs at a few fps, so slow time or the ~0.4 s sparks
+	# finish between frames.
+	Engine.time_scale = 0.05
+	await _frames(3)
+	await _shot("07_entry_hall_clang.png")
+	Engine.time_scale = 1.0
 
 	quit(0)

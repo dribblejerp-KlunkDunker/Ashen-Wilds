@@ -247,6 +247,12 @@ func _process_ai_state(delta: float) -> void:
 				guard_stamina = max_guard_stamina * 0.6
 				state = AIState.PURSUE
 
+func is_dead() -> bool:
+	return state == AIState.DEAD
+
+func is_staggered() -> bool:
+	return state in [AIState.STAGGER, AIState.GUARD_BROKEN]
+
 func _try_begin_combo() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
 		return false

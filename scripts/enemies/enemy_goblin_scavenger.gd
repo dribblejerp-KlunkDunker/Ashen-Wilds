@@ -274,6 +274,12 @@ func _process_ai_state(delta: float) -> void:
 				state = AIState.RECOVER_VULNERABLE
 				_state_timer = 0.35
 
+func is_dead() -> bool:
+	return state == AIState.DEAD
+
+func is_staggered() -> bool:
+	return state in [AIState.STAGGER, AIState.RECOVER_VULNERABLE]
+
 func _try_begin_attack_windup() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
 		return false

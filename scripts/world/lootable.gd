@@ -10,6 +10,9 @@ signal contents_changed
 @export var search_duration: float = 2.5
 @export var interact_radius: float = 1.8
 @export var remove_when_empty: bool = false
+## Wording for the prompt and progress bar ("Search" / "Searching").
+@export var search_verb: String = "Search"
+@export var search_verb_progressive: String = "Searching"
 
 var items: Array[ItemInstance] = []
 var searched: bool = false
@@ -19,7 +22,7 @@ func _ready() -> void:
 
 func get_prompt() -> String:
 	if not searched:
-		return "[E] Search %s (%.1fs)" % [display_name, search_duration]
+		return "[E] %s %s (%.1fs)" % [search_verb, display_name, search_duration]
 	if items.is_empty():
 		return "%s — picked clean" % display_name
 	return "[E] Open %s (%d)" % [display_name, items.size()]
@@ -50,6 +53,40 @@ static func attach_corpse(body: Node3D, label: String, loot: Array[ItemInstance]
 	l.interact_radius = 2.0
 	l.items = loot
 	body.add_child.call_deferred(l)
+	return l
+
+## A weapon left stuck in a body (or the ground) after a lodged heavy blow.
+## Takes a moment to work loose.
+static func spawn_lodged_weapon(parent: Node, world_pos: Vector3, inst: ItemInstance, host: String) -> Lootable:
+	var l := Lootable.new()
+	l.name = "LodgedWeapon"
+	l.display_name = "%s (lodged in %s)" % [inst.data.display_name, host]
+	l.search_duration = 1.2
+	l.search_verb = "Work loose"
+	l.search_verb_progressive = "Working loose"
+	l.remove_when_empty = true
+	l.interact_radius = 1.8
+	l.items.append(inst)
+
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	var length: float = 1.2
+	if inst.data.weapon != null:
+		length = inst.data.weapon.reach_meters * 0.76
+	var head: float = 0.22 if inst.data.weapon_class == ItemData.WeaponClass.AXE else 0.08
+	box.size = Vector3(0.08, head, length)
+	mesh.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.56, 0.52, 0.48)
+	mat.metallic = 0.6
+	mat.roughness = 0.5
+	mesh.material_override = mat
+	mesh.rotation_degrees = Vector3(-55.0, 30.0, 0.0) # jutting up at an angle
+	mesh.position = Vector3(0.0, length * 0.32, 0.0)
+	l.add_child(mesh)
+
+	parent.add_child(l)
+	l.global_position = world_pos
 	return l
 
 ## Drops an item on the ground as a tiny, instantly-openable pile.

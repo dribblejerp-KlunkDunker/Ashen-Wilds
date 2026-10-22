@@ -65,8 +65,8 @@ func _ready() -> void:
 	root.add_child(help_panel)
 
 	var help_lbl := _make_label(
-		"ASHEN WILDS — MILESTONE 4: SCAVENGING & EQUIPMENT (THE BLACKFEN OUTSKIRTS)\n" +
-		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step\n" +
+		"ASHEN WILDS — MILESTONE 5: CRAMPED QUARTERS (THE BLACKFEN OUTSKIRTS)\n" +
+		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
 		"[E] Search / Open   [Tab] Pack   [B] Bandage   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
 		"[F1/F2/F3] Teleport Encounters   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
 		13, Color(0.68, 0.65, 0.60)
@@ -191,6 +191,10 @@ func update_stats(data: Dictionary) -> void:
 		flags += "  [EXHAUSTED: REGEN DELAYED]"
 	if data["bleeding"]:
 		flags += "  [BLEEDING: -HP & SLOW STAMINA]"
+	if data.get("cramped", false):
+		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
+	if data.get("lodged", false):
+		flags += "  [LODGED: SPACE TO LET GO]"
 	_status_label.text = "ACTION: %s%s" % [data["state"], flags]
 
 	_prompt_label.text = String(data["prompt"])

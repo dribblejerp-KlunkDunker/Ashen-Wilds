@@ -36,6 +36,16 @@ extends Resource
 @export var block_stamina_efficiency: float = 0.55
 @export var block_angle_degrees: float = 130.0
 
+# Milestone 5 — swing geometry & lodging
+## Thrusts never clang off walls; sweeps do when the arc is cramped.
+@export var light_is_thrust: bool = false
+@export var heavy_is_thrust: bool = true
+## Chance that a heavy hit which kills or staggers lodges the blade (0 = never).
+@export var heavy_lodge_chance: float = 0.0
+
+func is_thrust(heavy: bool) -> bool:
+	return heavy_is_thrust if heavy else light_is_thrust
+
 func get_swing_arc(heavy: bool) -> float:
 	if heavy and heavy_swing_arc_degrees > 0.0:
 		return heavy_swing_arc_degrees

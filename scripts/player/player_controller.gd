@@ -19,6 +19,8 @@ enum ActionState {
 	DODGE,
 	STAGGER,
 	CHANNEL,
+	RECOIL,
+	LODGED,
 	DEAD
 }
 
@@ -51,6 +53,12 @@ const NEUTRAL_STATES: Array[ActionState] = [
 @export var channel_move_grace: float = 0.15
 @export var dodge_stamina_cost: float = 22.0
 @export var burdened_dodge_extra_cost: float = 6.0
+
+# Milestone 5 — wall deflection & weapon lodging
+@export var wall_recoil_time: float = 0.5
+## Condition lost by a clang, as a multiple of a normal hit's wear.
+@export var wall_clang_wear_mult: float = 3.0
+@export var lodge_tug_time: float = 0.35
 
 var health: float = 100.0
 var stamina: float = 100.0
@@ -89,6 +97,8 @@ var _channel_unequip: bool = false
 var _nearest_lootable: Lootable = null
 var _last_load: Inventory.Load = Inventory.Load.NORMAL
 var _torch_flicker_t: float = 0.0
+var _cramped: bool = false
+var _lodged_target: Node3D = null
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
@@ -136,6 +146,7 @@ func _physics_process(delta: float) -> void:
 	_update_visual_pose(delta)
 	move_and_slide()
 	_update_interaction_target()
+	_cramped = current_state in NEUTRAL_STATES and not _sweep_obstruction(false).is_empty()
 	_emit_stats()
 
 # ------------------------------------------------------------------------------
@@ -164,6 +175,8 @@ func _make_fists() -> WeaponData:
 	f.swing_arc_degrees = 70.0
 	f.light_knockback = 1.6
 	f.heavy_knockback = 3.2
+	f.light_is_thrust = true # a punch never clangs off a wall
+	f.heavy_is_thrust = true
 	return f
 
 func _give_starting_loadout() -> void:
@@ -400,7 +413,9 @@ func _cancel_channel(reason: String) -> void:
 func _channel_label() -> String:
 	match _channel_kind:
 		ChannelKind.SCAVENGE:
-			return "Searching %s" % (_channel_lootable.display_name if is_instance_valid(_channel_lootable) else "")
+			if not is_instance_valid(_channel_lootable):
+				return "Searching"
+			return "%s %s" % [_channel_lootable.search_verb_progressive, _channel_lootable.display_name]
 		ChannelKind.BANDAGE:
 			return "Binding wound"
 		ChannelKind.EQUIP_SWAP:
@@ -616,7 +631,7 @@ func _update_mouse_aim(delta: float) -> void:
 		var turn_rate: float = rotation_speed
 		if current_state in [ActionState.ATTACK_STARTUP, ActionState.ATTACK_ACTIVE]:
 			turn_rate = attack_commit_rotation_speed
-		elif current_state in [ActionState.DODGE, ActionState.STAGGER]:
+		elif current_state in [ActionState.DODGE, ActionState.STAGGER, ActionState.RECOIL, ActionState.LODGED]:
 			turn_rate = 0.0
 		if turn_rate > 0.0:
 			_aim_direction = _aim_direction.slerp(desired_dir, 1.0 - exp(-turn_rate * delta)).normalized()
@@ -708,6 +723,26 @@ func _process_state_machine(delta: float) -> void:
 			if _state_timer <= 0.0:
 				current_state = ActionState.IDLE
 
+		ActionState.RECOIL:
+			_state_timer -= delta
+			velocity = _knockback_velocity
+			if _state_timer <= 0.0:
+				current_state = ActionState.IDLE
+
+		ActionState.LODGED:
+			_state_timer -= delta
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if not ui_capture and Input.is_action_just_pressed("dodge"):
+				var lost: String = inventory.main_hand.data.display_name if inventory.main_hand else "weapon"
+				_release_lodged_weapon("You let go of the %s and leap clear" % lost)
+				current_state = ActionState.IDLE
+				_dodge_cooldown = 0.0
+				_try_start_dodge(move_dir)
+				return
+			if _state_timer <= 0.0:
+				_finish_lodge_tug()
+
 	if not is_on_floor():
 		velocity.y -= 24.0 * delta
 	else:
@@ -794,6 +829,10 @@ func _start_attack(heavy: bool) -> void:
 	_state_timer = weapon.heavy_startup_time if heavy else weapon.light_startup_time
 
 func _enter_attack_active() -> void:
+	var obstruction: Dictionary = _sweep_obstruction(_is_current_attack_heavy)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	current_state = ActionState.ATTACK_ACTIVE
 	_state_timer = weapon.heavy_active_time if _is_current_attack_heavy else weapon.light_active_time
 	if audio:
@@ -852,6 +891,10 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state == ActionState.CHANNEL:
 		_cancel_channel("%s — interrupted!" % _channel_label())
 	ui_force_close.emit()
+	if current_state == ActionState.LODGED:
+		var torn: String = inventory.main_hand.data.display_name if inventory.main_hand else "weapon"
+		_release_lodged_weapon("The %s is torn from your grip!" % torn)
+		current_state = ActionState.IDLE
 
 	var to_attacker: Vector3 = (payload.attacker_origin - global_position)
 	to_attacker.y = 0.0
@@ -916,6 +959,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 func respawn_at_shelter(spawn_pos: Vector3) -> void:
 	_clear_channel()
 	_hitbox.end_swing()
+	_lodged_target = null
 	global_position = spawn_pos
 	health = max_health
 	stamina = max_stamina
@@ -950,10 +994,21 @@ func _update_visual_pose(_delta: float) -> void:
 			_weapon_pivot.rotation_degrees = Vector3(38.0, 25.0, 0.0)
 			_shield_mesh.position = Vector3(-0.42, 0.98, -0.05)
 			_aim_arc_mat.albedo_color = Color(0.55, 0.52, 0.45, 0.10)
+		ActionState.RECOIL:
+			_weapon_pivot.rotation_degrees = Vector3(-35.0, 70.0, -20.0)
+			_shield_mesh.position = Vector3(-0.44, 1.0, 0.0)
+			_aim_arc_mat.albedo_color = Color(0.95, 0.55, 0.15, 0.45)
+		ActionState.LODGED:
+			_weapon_pivot.rotation_degrees = Vector3(28.0, -30.0, 0.0)
+			_aim_arc_mat.albedo_color = Color(0.70, 0.30, 0.22, 0.35)
 		_:
 			_weapon_pivot.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_shield_mesh.position = Vector3(-0.36, 1.05, -0.22)
-			_aim_arc_mat.albedo_color = Color(0.65, 0.62, 0.55, 0.24)
+			if _cramped:
+				# Your next sweep will hit the wall: warn before you commit.
+				_aim_arc_mat.albedo_color = Color(0.86, 0.45, 0.16, 0.34)
+			else:
+				_aim_arc_mat.albedo_color = Color(0.65, 0.62, 0.55, 0.24)
 
 func _build_survivor_visuals_and_colliders() -> void:
 	collision_layer = 2
@@ -1109,7 +1164,7 @@ func _build_survivor_visuals_and_colliders() -> void:
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
 
-func _on_confirmed_hit_landed(_target: Node3D, payload: CombatPayload) -> void:
+func _on_confirmed_hit_landed(target: Node3D, payload: CombatPayload) -> void:
 	if audio:
 		audio.play_flesh_hit()
 	if camera_rig:
@@ -1120,6 +1175,17 @@ func _on_confirmed_hit_landed(_target: Node3D, payload: CombatPayload) -> void:
 		if main.wear(amount):
 			combat_banner_message.emit("Your %s has BROKEN" % main.data.display_name, Color(0.92, 0.36, 0.22))
 			inventory.notify_changed()
+
+	# Over-commitment: a heavy blow that kills or staggers may bite too deep.
+	if (
+		payload.is_heavy
+		and current_state == ActionState.ATTACK_ACTIVE
+		and main != null
+		and weapon.heavy_lodge_chance > 0.0
+		and _target_dead_or_staggered(target)
+		and randf() < weapon.heavy_lodge_chance
+	):
+		_enter_lodged(target)
 
 func _emit_stats() -> void:
 	var main: ItemInstance = inventory.main_hand
@@ -1148,5 +1214,156 @@ func _emit_stats() -> void:
 		"bandages": inventory.count_of("clean_rag_bandage"),
 		"channel_label": _channel_label() if current_state == ActionState.CHANNEL else "",
 		"channel_progress": get_channel_progress(),
-		"prompt": prompt
+		"prompt": prompt,
+		"cramped": _cramped,
+		"lodged": current_state == ActionState.LODGED
 	})
+
+# ------------------------------------------------------------------------------
+# Milestone 5 — wall & corridor deflection
+# ------------------------------------------------------------------------------
+## Raycasts across the swing arc at blade height. Returns the first wall hit
+## (a PhysicsDirectSpaceState3D ray result) or {} if the arc is clear.
+## Thrusts never clang.
+func _sweep_obstruction(heavy: bool) -> Dictionary:
+	if weapon == null or weapon.is_thrust(heavy) or not is_inside_tree():
+		return {}
+	var arc: float = minf(weapon.get_swing_arc(heavy), 180.0)
+	var half: float = deg_to_rad(arc * 0.5)
+	var steps: int = clampi(int(ceil(arc / 20.0)) + 1, 3, 9)
+	var origin: Vector3 = global_position + Vector3(0.0, 1.05, 0.0)
+	var length: float = weapon.reach_meters * 0.9 + 0.25
+	var aim: Vector3 = Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
+	var space := get_world_3d().direct_space_state
+	for i in range(steps):
+		var t: float = -half + (2.0 * half) * float(i) / float(steps - 1)
+		var dir: Vector3 = aim.rotated(Vector3.UP, t)
+		var q := PhysicsRayQueryParameters3D.create(origin, origin + dir * length, 1)
+		q.exclude = [get_rid()]
+		var hit: Dictionary = space.intersect_ray(q)
+		if not hit.is_empty():
+			return hit
+	return {}
+
+func is_cramped() -> bool:
+	return _cramped
+
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	_queued_light_attack = false
+	current_state = ActionState.RECOIL
+	_state_timer = wall_recoil_time
+
+	var normal: Vector3 = hit.get("normal", -_aim_direction)
+	normal.y = 0.0
+	if normal.length_squared() < 0.001:
+		normal = -_aim_direction
+	_knockback_velocity = normal.normalized() * 2.2
+
+	var main: ItemInstance = inventory.main_hand
+	var name_text: String = main.data.display_name if main else "fist"
+	var broke: bool = false
+	if main != null and main.data.has_durability():
+		var amount: float = wall_clang_wear_mult * main.data.wear_per_hit * (2.0 if _is_current_attack_heavy else 1.0)
+		broke = main.wear(amount)
+	if broke:
+		combat_banner_message.emit("Your %s clangs off the wall and BREAKS" % name_text, Color(0.92, 0.36, 0.22))
+		inventory.notify_changed()
+	else:
+		combat_banner_message.emit("Your %s clangs off the wall — too cramped to swing" % name_text, Color(0.92, 0.62, 0.30))
+
+	if audio:
+		audio.play_wall_clang()
+	if camera_rig:
+		camera_rig.add_trauma(0.32)
+	_spawn_sparks(hit.get("position", global_position + _aim_direction), normal)
+
+func _spawn_sparks(at: Vector3, normal: Vector3) -> void:
+	# Hand-animated shards rather than a particle system: renders identically on
+	# every backend (including software Vulkan) and is easy to test.
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	var burst := Node3D.new()
+	burst.name = "WallSparks"
+	parent.add_child(burst)
+	burst.global_position = at + normal * 0.12
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(1.0, 0.74, 0.32)
+	var shard_mesh := BoxMesh.new()
+	shard_mesh.size = Vector3(0.07, 0.07, 0.07)
+	var base_dir: Vector3 = normal if normal.length_squared() > 0.001 else Vector3.UP
+	var tween := burst.create_tween().set_parallel(true)
+	for i in range(14):
+		var shard := MeshInstance3D.new()
+		shard.mesh = shard_mesh
+		shard.material_override = mat
+		burst.add_child(shard)
+		var spray: Vector3 = (base_dir + Vector3(randf_range(-0.9, 0.9), randf_range(0.0, 1.1), randf_range(-0.9, 0.9))).normalized()
+		var dist: float = randf_range(0.35, 0.85)
+		var end_pos: Vector3 = spray * dist + Vector3(0.0, -0.35, 0.0)
+		var life: float = randf_range(0.28, 0.45)
+		tween.tween_property(shard, "position", end_pos, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(shard, "scale", Vector3.ONE * 0.15, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(burst.queue_free)
+
+# ------------------------------------------------------------------------------
+# Milestone 5 — weapon lodging
+# ------------------------------------------------------------------------------
+func _target_dead_or_staggered(target: Node3D) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	if target.has_method("is_dead") and target.is_dead():
+		return true
+	return target.has_method("is_staggered") and target.is_staggered()
+
+func _enter_lodged(target: Node3D) -> void:
+	_hitbox.end_swing()
+	_lodged_target = target
+	current_state = ActionState.LODGED
+	_state_timer = lodge_tug_time
+	var host: String = "it"
+	if target.get("enemy_name") != null:
+		host = "the " + String(target.get("enemy_name"))
+	if audio:
+		audio.play_lodge_thud()
+	combat_banner_message.emit(
+		"Your %s lodges in %s — wrenching free…  [Space] let go" % [inventory.main_hand.data.display_name, host],
+		Color(0.92, 0.58, 0.30)
+	)
+
+func get_lodged_target() -> Node3D:
+	return _lodged_target if current_state == ActionState.LODGED else null
+
+func _finish_lodge_tug() -> void:
+	_lodged_target = null
+	var main: ItemInstance = inventory.main_hand
+	if main != null and main.wear(main.data.wear_per_hit):
+		combat_banner_message.emit("You wrench the %s free — it snaps" % main.data.display_name, Color(0.92, 0.36, 0.22))
+		inventory.notify_changed()
+	current_state = ActionState.ATTACK_RECOVERY
+	_state_timer = weapon.heavy_recovery_time * 0.5
+
+## Leaves the main-hand weapon stuck in the target (or on the ground) as a
+## lootable you can work loose later.
+func _release_lodged_weapon(message: String) -> void:
+	var target: Node3D = _lodged_target
+	_lodged_target = null
+	var main: ItemInstance = inventory.main_hand
+	if main == null:
+		return
+	var host: String = "the ground"
+	var pos: Vector3 = global_position + _aim_direction * 1.2
+	if target != null and is_instance_valid(target):
+		pos = target.global_position
+		if target.get("enemy_name") != null:
+			host = "a " + String(target.get("enemy_name"))
+	var toward_player: Vector3 = global_position - pos
+	toward_player.y = 0.0
+	if toward_player.length() > 0.6:
+		pos += toward_player.normalized() * 0.4
+	pos.y = global_position.y
+	var removed: ItemInstance = inventory.remove(main)
+	Lootable.spawn_lodged_weapon(get_parent(), pos, removed, host)
+	combat_banner_message.emit(message, Color(0.92, 0.48, 0.26))

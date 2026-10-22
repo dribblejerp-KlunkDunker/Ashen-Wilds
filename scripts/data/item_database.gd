@@ -66,6 +66,9 @@ static func _build() -> void:
 	sword_w.weapon_id = "arming_sword"
 	sword_w.display_name = "Tarnished Arming Sword"
 	sword_w.heavy_swing_arc_degrees = 50.0 # committed lunging thrust
+	sword_w.light_is_thrust = false        # diagonal slash: clangs in hallways
+	sword_w.heavy_is_thrust = true
+	sword_w.heavy_lodge_chance = 0.15      # thrust can bind in bone
 
 	var sword := ItemData.new()
 	sword.item_id = "arming_sword"
@@ -101,6 +104,9 @@ static func _build() -> void:
 	spear_w.heavy_swing_arc_degrees = 150.0
 	spear_w.light_knockback = 2.0
 	spear_w.heavy_knockback = 7.0
+	spear_w.light_is_thrust = true         # safe in hallways
+	spear_w.heavy_is_thrust = false        # the shaft-sweep still clangs
+	spear_w.heavy_lodge_chance = 0.0       # the lugs exist to stop over-penetration
 
 	var spear := ItemData.new()
 	spear.item_id = "boar_spear"
@@ -136,6 +142,9 @@ static func _build() -> void:
 	axe_w.swing_arc_degrees = 135.0
 	axe_w.light_knockback = 3.0
 	axe_w.heavy_knockback = 5.6
+	axe_w.light_is_thrust = false
+	axe_w.heavy_is_thrust = false
+	axe_w.heavy_lodge_chance = 0.40        # heavy blade bites deep
 
 	var axe := ItemData.new()
 	axe.item_id = "woodsmans_broadaxe"

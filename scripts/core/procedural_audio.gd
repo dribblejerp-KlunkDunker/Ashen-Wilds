@@ -48,6 +48,12 @@ func play_unseen_threat_cue() -> void:
 func play_ogre_ground_slam() -> void:
 	_trigger_sound(0.48, 52.0, 0.78, false)
 
+func play_wall_clang() -> void:
+	_trigger_sound(0.20, 560.0, 0.30, true)
+
+func play_lodge_thud() -> void:
+	_trigger_sound(0.18, 88.0, 0.55, false)
+
 func play_ogre_roar() -> void:
 	_trigger_sound(0.42, 74.0, 0.45, false)
 
