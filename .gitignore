@@ -1,0 +1,18 @@
+# Godot 4+ local cache, imported assets, and shader cache
+.godot/
+
+# OS-specific metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Exported builds and local crash logs
+builds/
+export/
+*.log
+*.tmp
+
+# Local editor/IDE settings
+.vscode/
+.idea/
+*.swp
