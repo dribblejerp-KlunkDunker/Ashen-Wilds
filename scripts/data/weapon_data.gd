@@ -26,5 +26,17 @@ extends Resource
 # Geometry & Reach
 @export var reach_meters: float = 1.65
 @export var swing_arc_degrees: float = 105.0
+# Heavy attack arc; <= 0 means "same as light".
+@export var heavy_swing_arc_degrees: float = -1.0
+@export var light_knockback: float = 2.4
+@export var heavy_knockback: float = 4.8
+
+# Legacy (Milestones 1-3). Since Milestone 4, blocking uses the equipped
+# shield's ItemData (block_stamina_efficiency / block_angle_degrees).
 @export var block_stamina_efficiency: float = 0.55
 @export var block_angle_degrees: float = 130.0
+
+func get_swing_arc(heavy: bool) -> float:
+	if heavy and heavy_swing_arc_degrees > 0.0:
+		return heavy_swing_arc_degrees
+	return swing_arc_degrees

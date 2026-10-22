@@ -118,13 +118,18 @@ func _evaluate_senses(delta: float) -> void:
 			if space_state.intersect_ray(q).is_empty():
 				can_see = true
 
+	# A burdened pack clatters, stretching every hearing radius.
+	var noise_mult: float = player_ref.get_noise_multiplier()
 	var can_hear: bool = false
 	if player_ref.current_state in [
 		PlayerController.ActionState.SPRINT,
 		PlayerController.ActionState.ATTACK_ACTIVE
-	] and dist <= 9.0:
+	] and dist <= 9.0 * noise_mult:
 		can_hear = true
-	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5:
+	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * noise_mult:
+		can_hear = true
+	elif player_ref.is_scavenging() and dist <= 4.5:
+		# Rummaging through crates and corpses is never quiet.
 		can_hear = true
 
 	if can_see:
@@ -327,6 +332,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_visual_root.rotation_degrees.x = -85.0
 		_visual_root.position.y = 0.2
 		_status_pip.visible = false
+		Lootable.attach_corpse(self, "%s Corpse" % enemy_name, ItemDatabase.roll_goblin_loot(), 2.6)
 		return
 
 	if poise_damage >= max_poise or payload.is_heavy:

@@ -34,24 +34,25 @@ func _ready() -> void:
 
 	_spawn_all_archetype_encounters()
 
+	_spawn_scavenge_containers()
+
 	_hud = TacticalHUD.new()
 	add_child(_hud)
-	_player.stats_changed.connect(_hud.update_stats)
-	_player.combat_banner_message.connect(_hud.show_banner)
-	_hud.show_banner("MILESTONE 3 — [1] Goblin Watchhouse  [2] Ork Choke Point  [3] Ogre Lair", Color(0.82, 0.76, 0.65))
+	_hud.bind_player(_player)
+	_hud.show_banner("MILESTONE 4 — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_R:
 				_player.respawn_at_shelter(_shelter_spawn)
-			KEY_1:
+			KEY_F1:
 				_player.global_position = Vector3(-2.5, 0.0, -2.5)
 				_hud.show_banner("Teleported: Ruined Watchhouse (Goblin Pack & Doorway Test)", Color(0.75, 0.82, 0.68))
-			KEY_2:
+			KEY_F2:
 				_player.global_position = Vector3(8.5, 0.0, 8.5)
 				_hud.show_banner("Teleported: East Choke Point (Shielded Ork & Vanguard)", Color(0.85, 0.68, 0.45))
-			KEY_3:
+			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
 			KEY_BRACKETLEFT:
@@ -77,17 +78,27 @@ func _ensure_input_bindings() -> void:
 	_bind_key("attack_heavy", KEY_Q)
 	_bind_mouse("attack_light", MOUSE_BUTTON_LEFT)
 	_bind_mouse("block", MOUSE_BUTTON_RIGHT)
+	# Milestone 4
+	_bind_key("interact", KEY_E)
+	_bind_key("inventory", KEY_TAB)
+	_bind_key("bandage", KEY_B)
+	_bind_key("equip_slot_1", KEY_1)
+	_bind_key("equip_slot_2", KEY_2)
+	_bind_key("equip_slot_3", KEY_3)
+	_bind_key("equip_slot_4", KEY_4)
 
 func _bind_key(action: String, key: Key) -> void:
-	if not InputMap.has_action(action):
-		InputMap.add_action(action)
+	if InputMap.has_action(action):
+		return
+	InputMap.add_action(action)
 	var ev := InputEventKey.new()
 	ev.keycode = key
 	InputMap.action_add_event(action, ev)
 
 func _bind_mouse(action: String, btn: MouseButton) -> void:
-	if not InputMap.has_action(action):
-		InputMap.add_action(action)
+	if InputMap.has_action(action):
+		return
+	InputMap.add_action(action)
 	var ev := InputEventMouseButton.new()
 	ev.button_index = btn
 	InputMap.action_add_event(action, ev)
@@ -275,3 +286,65 @@ func _spawn_all_archetype_encounters() -> void:
 func _on_goblin_unseen_noise(_pos: Vector3) -> void:
 	if _hud:
 		_hud.show_banner("Scraping footsteps echo from behind the stone wall...", Color(0.75, 0.68, 0.52))
+
+# ------------------------------------------------------------------------------
+# Milestone 4 — scavenging containers
+# ------------------------------------------------------------------------------
+func _spawn_scavenge_containers() -> void:
+	# Your own stash by the shelter fire: already known, opens instantly.
+	var stash := _spawn_container(
+		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.30, 0.22, 0.15), 0.0,
+		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1)]
+	)
+	stash.searched = true
+
+	_spawn_container(
+		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.27, 0.21, 0.15), 2.0,
+		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1)]
+	)
+	_spawn_container(
+		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.25, 0.19, 0.14), 3.0,
+		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
+	)
+	_spawn_container(
+		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.24, 0.20, 0.17), 2.5,
+		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
+	)
+	_spawn_container(
+		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.42, 0.38, 0.32), 3.5,
+		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
+	)
+
+func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
+	var body := StaticBody3D.new()
+	body.name = label.replace(" ", "")
+	body.position = ground_pos + Vector3(0.0, size.y * 0.5, 0.0)
+	body.collision_layer = 1
+	body.collision_mask = 0
+	add_child(body)
+
+	var cshape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	cshape.shape = box
+	body.add_child(cshape)
+
+	var mesh := MeshInstance3D.new()
+	var bmesh := BoxMesh.new()
+	bmesh.size = size
+	mesh.mesh = bmesh
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = col
+	mat.roughness = 0.92
+	mesh.material_override = mat
+	body.add_child(mesh)
+
+	var loot := Lootable.new()
+	loot.display_name = label
+	loot.search_duration = search_time
+	loot.position = Vector3(0.0, -size.y * 0.5, 0.0)
+	for inst: Variant in contents:
+		if inst is ItemInstance:
+			loot.items.append(inst)
+	body.add_child(loot)
+	return loot

@@ -3,6 +3,9 @@ extends CharacterBody3D
 
 signal stats_changed(state_data: Dictionary)
 signal combat_banner_message(text: String, color: Color)
+signal loot_opened(lootable: Lootable)
+signal ui_force_close
+signal inventory_changed
 
 enum ActionState {
 	IDLE,
@@ -15,8 +18,16 @@ enum ActionState {
 	BLOCK_IMPACT,
 	DODGE,
 	STAGGER,
+	CHANNEL,
 	DEAD
 }
+
+## Timed, cancellable actions that share the CHANNEL state.
+enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP }
+
+const NEUTRAL_STATES: Array[ActionState] = [
+	ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK
+]
 
 @export var move_speed: float = 4.2
 @export var sprint_speed: float = 6.3
@@ -33,6 +44,14 @@ enum ActionState {
 @export var max_poise: float = 35.0
 @export var poise_reset_time: float = 3.0
 
+# Milestone 4 — scavenging, equipment & encumbrance
+@export var carry_capacity_kg: float = 18.0
+@export var equip_swap_time: float = 0.55
+## Movement in the first moments of a search/bandage doesn't cancel it.
+@export var channel_move_grace: float = 0.15
+@export var dodge_stamina_cost: float = 22.0
+@export var burdened_dodge_extra_cost: float = 6.0
+
 var health: float = 100.0
 var stamina: float = 100.0
 var poise_damage_taken: float = 0.0
@@ -41,9 +60,13 @@ var is_bleeding: bool = false
 var bleed_timer: float = 0.0
 
 var current_state: ActionState = ActionState.IDLE
+## Derived from the main-hand item; falls back to bare fists.
 var weapon: WeaponData
+var inventory: Inventory
 var camera_rig: IsoCameraRig
 var audio: ProceduralAudio
+## True while a pack/loot window is open: combat inputs are ignored.
+var ui_capture: bool = false
 
 var _state_timer: float = 0.0
 var _stamina_delay_timer: float = 0.0
@@ -54,33 +77,507 @@ var _queued_light_attack: bool = false
 var _aim_direction: Vector3 = Vector3.FORWARD
 var _dodge_direction: Vector3 = Vector3.FORWARD
 var _knockback_velocity: Vector3 = Vector3.ZERO
+var _ui_release_timer: float = 0.0
+
+var _fists: WeaponData
+var _channel_kind: ChannelKind = ChannelKind.NONE
+var _channel_elapsed: float = 0.0
+var _channel_total: float = 0.0
+var _channel_lootable: Lootable = null
+var _channel_item: ItemInstance = null
+var _channel_unequip: bool = false
+var _nearest_lootable: Lootable = null
+var _last_load: Inventory.Load = Inventory.Load.NORMAL
+var _torch_flicker_t: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
+var _weapon_mesh: MeshInstance3D
+var _weapon_box: BoxMesh
+var _blade_mat: StandardMaterial3D
 var _shield_mesh: MeshInstance3D
+var _shield_mat: StandardMaterial3D
+var _torch_root: Node3D
+var _torch_flame: MeshInstance3D
 var _aim_arc_mesh: MeshInstance3D
 var _aim_arc_mat: StandardMaterial3D
 var _hitbox: HitboxComponent
+var _hitbox_col: CollisionShape3D
+var _hitbox_shape: BoxShape3D
 var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
 
 func _ready() -> void:
-	if weapon == null:
-		weapon = WeaponData.new()
+	_fists = _make_fists()
+	if inventory == null:
+		inventory = Inventory.new()
+		inventory.capacity_kg = carry_capacity_kg
+		_give_starting_loadout()
+	weapon = _current_weapon_data()
 	_build_survivor_visuals_and_colliders()
+	inventory.changed.connect(_on_inventory_changed)
+	_apply_equipment()
+	_last_load = inventory.get_load()
 	_emit_stats()
 
 func _physics_process(delta: float) -> void:
 	if current_state == ActionState.DEAD:
 		return
 
+	if _ui_release_timer > 0.0:
+		_ui_release_timer = maxf(0.0, _ui_release_timer - delta)
+		if _ui_release_timer == 0.0:
+			ui_capture = false
+
 	_update_timers_and_conditions(delta)
+	_update_torch(delta)
 	_update_mouse_aim(delta)
 	_process_state_machine(delta)
 	_update_visual_pose(delta)
 	move_and_slide()
+	_update_interaction_target()
 	_emit_stats()
 
+# ------------------------------------------------------------------------------
+# Loadout & equipment
+# ------------------------------------------------------------------------------
+func _make_fists() -> WeaponData:
+	var f := WeaponData.new()
+	f.weapon_id = "bare_fists"
+	f.display_name = "Bare Fists"
+	f.light_startup_time = 0.18
+	f.light_active_time = 0.10
+	f.light_recovery_time = 0.28
+	f.light_stamina_cost = 10.0
+	f.light_damage = 7.0
+	f.light_poise_damage = 8.0
+	f.light_step_impulse = 2.4
+	f.heavy_startup_time = 0.42
+	f.heavy_active_time = 0.14
+	f.heavy_recovery_time = 0.50
+	f.heavy_stamina_cost = 20.0
+	f.heavy_damage = 12.0
+	f.heavy_poise_damage = 18.0
+	f.heavy_step_impulse = 3.4
+	f.heavy_bleed_chance = 0.0
+	f.reach_meters = 1.0
+	f.swing_arc_degrees = 70.0
+	f.light_knockback = 1.6
+	f.heavy_knockback = 3.2
+	return f
+
+func _give_starting_loadout() -> void:
+	var sword := ItemDatabase.make("arming_sword", 1, 88.0)
+	var targe := ItemDatabase.make("wooden_targe")
+	var torch := ItemDatabase.make("pitch_torch", 1, 180.0)
+	inventory.add(sword)
+	inventory.add(targe)
+	inventory.add(torch)
+	inventory.add(ItemDatabase.make("clean_rag_bandage", 2))
+	inventory.main_hand = sword
+	inventory.off_hand = targe
+
+func _current_weapon_data() -> WeaponData:
+	var main: ItemInstance = inventory.main_hand if inventory else null
+	if main != null and main.data.weapon != null:
+		return main.data.weapon
+	return _fists
+
+func _offhand_active() -> bool:
+	if inventory == null or inventory.off_hand == null:
+		return false
+	return not (inventory.main_hand != null and inventory.main_hand.data.two_handed)
+
+func _has_ready_shield() -> bool:
+	return (
+		_offhand_active()
+		and inventory.off_hand.data.category == ItemData.Category.SHIELD
+		and not inventory.off_hand.is_broken()
+	)
+
+func _has_lit_torch() -> bool:
+	return (
+		_offhand_active()
+		and inventory.off_hand.data.category == ItemData.Category.TORCH
+		and inventory.off_hand.condition > 0.0
+	)
+
+func _weapon_condition_multiplier() -> float:
+	var main: ItemInstance = inventory.main_hand
+	if main == null or not main.data.has_durability():
+		return 1.0
+	if main.is_broken():
+		return 0.4
+	return lerpf(0.6, 1.0, clampf(main.condition_ratio() / 0.5, 0.0, 1.0))
+
+func _apply_equipment() -> void:
+	var is_attacking: bool = current_state in [
+		ActionState.ATTACK_STARTUP, ActionState.ATTACK_ACTIVE, ActionState.ATTACK_RECOVERY
+	]
+	weapon = _current_weapon_data()
+	if _hitbox_shape != null and not is_attacking:
+		_configure_hitbox(weapon.swing_arc_degrees)
+	_update_weapon_mesh()
+
+	var off: ItemInstance = inventory.off_hand
+	var off_active: bool = _offhand_active()
+	if _shield_mesh:
+		_shield_mesh.visible = off_active and off.data.category == ItemData.Category.SHIELD
+		if off != null and off.data.category == ItemData.Category.SHIELD and off.is_broken():
+			_shield_mat.albedo_color = Color(0.20, 0.15, 0.11)
+		else:
+			_shield_mat.albedo_color = Color(0.32, 0.23, 0.16)
+	if _torch_root:
+		_torch_root.visible = off_active and off.data.category == ItemData.Category.TORCH
+	var lit: bool = _has_lit_torch()
+	if _torch_light:
+		_torch_light.visible = lit
+	if _torch_flame:
+		_torch_flame.visible = lit
+	if current_state == ActionState.BLOCK and not _has_ready_shield():
+		current_state = ActionState.IDLE
+
+## Box hitbox sized to the weapon's reach and swing arc.
+func _configure_hitbox(arc_degrees: float) -> void:
+	var reach: float = weapon.reach_meters
+	var half_arc: float = deg_to_rad(minf(arc_degrees, 180.0) * 0.5)
+	var width: float = clampf(reach * sin(half_arc) * 1.1, 0.45, 1.9)
+	_hitbox_shape.size = Vector3(width, 1.2, reach)
+	_hitbox_col.position = Vector3(0.0, 1.0, -(reach * 0.5 + 0.25))
+
+func get_hitbox_size() -> Vector3:
+	return _hitbox_shape.size if _hitbox_shape else Vector3.ZERO
+
+func _update_weapon_mesh() -> void:
+	if _weapon_mesh == null:
+		return
+	if weapon == _fists:
+		_weapon_mesh.visible = false
+		return
+	_weapon_mesh.visible = true
+	var main: ItemInstance = inventory.main_hand
+	var length: float = weapon.reach_meters * 0.76
+	var thickness: float = 0.08
+	if main and main.data.weapon_class == ItemData.WeaponClass.AXE:
+		thickness = 0.24
+	elif main and main.data.weapon_class == ItemData.WeaponClass.POLEARM:
+		thickness = 0.06
+	_weapon_box.size = Vector3(0.08, thickness, length)
+	_weapon_mesh.position = Vector3(0.0, 0.0, -length * 0.55)
+	if main and main.is_broken():
+		_blade_mat.albedo_color = Color(0.36, 0.24, 0.16)
+	else:
+		_blade_mat.albedo_color = Color(0.52, 0.50, 0.48)
+
+func _on_inventory_changed() -> void:
+	_apply_equipment()
+	var load_state: Inventory.Load = inventory.get_load()
+	if load_state != _last_load:
+		match load_state:
+			Inventory.Load.NORMAL:
+				combat_banner_message.emit("Pack weight manageable", Color(0.72, 0.80, 0.66))
+			Inventory.Load.BURDENED:
+				combat_banner_message.emit("Burdened — your pack clatters when you sprint or dodge", Color(0.86, 0.70, 0.38))
+			Inventory.Load.OVERBURDENED:
+				combat_banner_message.emit("Overburdened — cannot sprint or dodge", Color(0.90, 0.40, 0.25))
+		_last_load = load_state
+	inventory_changed.emit()
+
+func get_noise_multiplier() -> float:
+	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
+
+func is_scavenging() -> bool:
+	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
+
+func _encumbrance_speed_mult() -> float:
+	match inventory.get_load():
+		Inventory.Load.BURDENED:
+			return 0.92
+		Inventory.Load.OVERBURDENED:
+			return 0.62
+	return 1.0
+
+# ------------------------------------------------------------------------------
+# Public API used by the HUD / inventory UI
+# ------------------------------------------------------------------------------
+func set_ui_capture(active: bool) -> void:
+	if active:
+		ui_capture = true
+		_ui_release_timer = 0.0
+		if current_state == ActionState.BLOCK:
+			current_state = ActionState.IDLE
+	elif ui_capture:
+		# Release a moment later so the click that closed a window isn't read as an attack.
+		_ui_release_timer = 0.12
+
+func request_equip(inst: ItemInstance) -> bool:
+	if not (current_state in NEUTRAL_STATES):
+		return false
+	if not inventory.has_item(inst) or not inst.data.is_equippable():
+		return false
+	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time, null, inst, inventory.is_equipped(inst))
+	return true
+
+func use_item(inst: ItemInstance) -> bool:
+	if not inventory.has_item(inst):
+		return false
+	if inst.data.item_id == "clean_rag_bandage":
+		return start_bandage()
+	combat_banner_message.emit("You can't use %s here" % inst.data.display_name, Color(0.7, 0.68, 0.62))
+	return false
+
+func start_bandage() -> bool:
+	if not (current_state in NEUTRAL_STATES):
+		return false
+	if inventory.count_of("clean_rag_bandage") <= 0:
+		combat_banner_message.emit("No clean bandages left", Color(0.86, 0.55, 0.30))
+		return false
+	if not is_bleeding and health >= max_health - 0.5:
+		combat_banner_message.emit("No wound to dress", Color(0.7, 0.68, 0.62))
+		return false
+	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration)
+	return true
+
+func drop_item(inst: ItemInstance) -> bool:
+	if not inventory.has_item(inst):
+		return false
+	if not (current_state in NEUTRAL_STATES or current_state == ActionState.CHANNEL):
+		return false
+	if current_state == ActionState.CHANNEL and _channel_item == inst:
+		_cancel_channel("Swap abandoned")
+	var removed: ItemInstance = inventory.remove(inst)
+	var drop_pos: Vector3 = global_position + _aim_direction * 0.7
+	drop_pos.y = global_position.y
+	Lootable.spawn_ground_pile(get_parent(), drop_pos, removed)
+	combat_banner_message.emit("Dropped %s" % removed.data.display_name, Color(0.72, 0.68, 0.60))
+	return true
+
+func take_from(lootable: Lootable, inst: ItemInstance) -> bool:
+	if not is_instance_valid(lootable) or not lootable.items.has(inst):
+		return false
+	if not inventory.add(inst):
+		combat_banner_message.emit(
+			"Too heavy — %.1f kg would exceed your %.1f kg limit" % [
+				inventory.total_weight() + inst.total_weight(), inventory.hard_limit_kg()
+			],
+			Color(0.90, 0.42, 0.26)
+		)
+		return false
+	lootable.take(inst)
+	return true
+
+func get_nearest_lootable() -> Lootable:
+	return _nearest_lootable
+
+# ------------------------------------------------------------------------------
+# Channelled actions (scavenge / bandage / equip swap)
+# ------------------------------------------------------------------------------
+func _start_channel(kind: ChannelKind, duration: float, lootable: Lootable = null, item: ItemInstance = null, unequip: bool = false) -> void:
+	_channel_kind = kind
+	_channel_total = maxf(duration, 0.01)
+	_channel_elapsed = 0.0
+	_channel_lootable = lootable
+	_channel_item = item
+	_channel_unequip = unequip
+	current_state = ActionState.CHANNEL
+
+func _clear_channel() -> void:
+	_channel_kind = ChannelKind.NONE
+	_channel_elapsed = 0.0
+	_channel_total = 0.0
+	_channel_lootable = null
+	_channel_item = null
+	_channel_unequip = false
+
+func _cancel_channel(reason: String) -> void:
+	if current_state != ActionState.CHANNEL:
+		return
+	_clear_channel()
+	current_state = ActionState.IDLE
+	if reason != "":
+		combat_banner_message.emit(reason, Color(0.84, 0.62, 0.38))
+
+func _channel_label() -> String:
+	match _channel_kind:
+		ChannelKind.SCAVENGE:
+			return "Searching %s" % (_channel_lootable.display_name if is_instance_valid(_channel_lootable) else "")
+		ChannelKind.BANDAGE:
+			return "Binding wound"
+		ChannelKind.EQUIP_SWAP:
+			if _channel_item == null:
+				return "Changing grip"
+			return ("Stowing %s" if _channel_unequip else "Readying %s") % _channel_item.data.display_name
+	return ""
+
+func get_channel_progress() -> float:
+	if current_state != ActionState.CHANNEL:
+		return 0.0
+	return clampf(_channel_elapsed / _channel_total, 0.0, 1.0)
+
+func get_channel_kind() -> ChannelKind:
+	return _channel_kind if current_state == ActionState.CHANNEL else ChannelKind.NONE
+
+func _process_channel(move_dir: Vector3, delta: float) -> void:
+	_channel_elapsed += delta
+
+	if not ui_capture and (
+		Input.is_action_just_pressed("dodge")
+		or Input.is_action_just_pressed("attack_light")
+		or Input.is_action_just_pressed("attack_heavy")
+	):
+		_cancel_channel("%s — interrupted" % _channel_label())
+		return
+
+	if _channel_kind == ChannelKind.EQUIP_SWAP:
+		# You can shuffle while changing grip, slowly.
+		var spd: float = move_speed * 0.55 * _encumbrance_speed_mult()
+		velocity.x = move_dir.x * spd + _knockback_velocity.x
+		velocity.z = move_dir.z * spd + _knockback_velocity.z
+	else:
+		velocity.x = _knockback_velocity.x
+		velocity.z = _knockback_velocity.z
+		if _channel_elapsed > channel_move_grace and move_dir.length_squared() > 0.01:
+			_cancel_channel("%s — interrupted (moved)" % _channel_label())
+			return
+		if _channel_kind == ChannelKind.SCAVENGE:
+			if not is_instance_valid(_channel_lootable):
+				_cancel_channel("")
+				return
+			if not ui_capture and Input.is_action_just_pressed("interact"):
+				_cancel_channel("Stopped searching")
+				return
+
+	if _channel_elapsed >= _channel_total:
+		_complete_channel()
+
+func _complete_channel() -> void:
+	var kind: ChannelKind = _channel_kind
+	var lootable: Lootable = _channel_lootable
+	var item: ItemInstance = _channel_item
+	var unequip: bool = _channel_unequip
+	_clear_channel()
+	current_state = ActionState.IDLE
+
+	match kind:
+		ChannelKind.SCAVENGE:
+			if is_instance_valid(lootable):
+				lootable.searched = true
+				if lootable.items.is_empty():
+					combat_banner_message.emit("%s — nothing worth taking" % lootable.display_name, Color(0.66, 0.62, 0.56))
+				loot_opened.emit(lootable)
+		ChannelKind.BANDAGE:
+			if inventory.consume("clean_rag_bandage", 1):
+				is_bleeding = false
+				bleed_timer = 0.0
+				health = minf(max_health, health + 8.0)
+				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
+		ChannelKind.EQUIP_SWAP:
+			if item != null and inventory.has_item(item):
+				if unequip:
+					inventory.unequip(item)
+					combat_banner_message.emit("Stowed %s" % item.data.display_name, Color(0.72, 0.70, 0.64))
+				else:
+					inventory.equip(item)
+					var note: String = ""
+					if item.data.two_handed and inventory.off_hand != null:
+						note = " — two-handed grip, %s stowed" % inventory.off_hand.data.display_name
+					elif item.is_broken():
+						note = " — it's broken"
+					combat_banner_message.emit("Readied %s%s" % [item.data.display_name, note], Color(0.78, 0.74, 0.62))
+
+func _try_interact() -> bool:
+	var l: Lootable = _nearest_lootable
+	if l == null or not is_instance_valid(l):
+		return false
+	if l.searched or l.search_duration <= 0.0:
+		l.searched = true
+		loot_opened.emit(l)
+		return true
+	_start_channel(ChannelKind.SCAVENGE, l.search_duration, l)
+	return true
+
+func _update_interaction_target() -> void:
+	_nearest_lootable = null
+	var best: float = INF
+	for n: Node in get_tree().get_nodes_in_group("lootable"):
+		var l := n as Lootable
+		if l == null or l.is_queued_for_deletion() or not l.is_inside_tree():
+			continue
+		var d: float = Vector2(l.global_position.x - global_position.x, l.global_position.z - global_position.z).length()
+		if d <= l.interact_radius and d < best:
+			best = d
+			_nearest_lootable = l
+
+func _on_slot_key(slot: int) -> void:
+	if slot <= 3:
+		var classes: Array[ItemData.WeaponClass] = [
+			ItemData.WeaponClass.BLADE, ItemData.WeaponClass.POLEARM, ItemData.WeaponClass.AXE
+		]
+		var names: Array[String] = ["blade", "polearm", "axe"]
+		var candidate: ItemInstance = inventory.find_weapon_of_class(classes[slot - 1])
+		if candidate == null:
+			combat_banner_message.emit("No %s in your pack" % names[slot - 1], Color(0.70, 0.66, 0.60))
+			return
+		if candidate == inventory.main_hand:
+			return
+		request_equip(candidate)
+		return
+
+	var shield: ItemInstance = inventory.find_first_of_category(ItemData.Category.SHIELD)
+	var torch: ItemInstance = inventory.find_first_of_category(ItemData.Category.TORCH)
+	var off: ItemInstance = inventory.off_hand
+	var target: ItemInstance = null
+	if off != null and off.data.category == ItemData.Category.SHIELD:
+		target = torch
+	elif off != null and off.data.category == ItemData.Category.TORCH:
+		target = shield
+	else:
+		target = shield if shield != null else torch
+	if target == null:
+		combat_banner_message.emit("Nothing else to ready in your off-hand", Color(0.70, 0.66, 0.60))
+		return
+	request_equip(target)
+
+func _block_unavailable_reason() -> String:
+	var off: ItemInstance = inventory.off_hand
+	if inventory.main_hand != null and inventory.main_hand.data.two_handed and off != null:
+		return "Two-handed grip — shield stowed"
+	if off == null:
+		return "No shield readied"
+	if off.data.category == ItemData.Category.TORCH:
+		return "Torch in your off-hand — no shield to raise"
+	if off.is_broken():
+		return "Your shield is splintered"
+	return "Cannot block"
+
+# ------------------------------------------------------------------------------
+# Torch
+# ------------------------------------------------------------------------------
+func _update_torch(delta: float) -> void:
+	var lit: bool = _has_lit_torch()
+	_torch_light.visible = lit
+	_torch_flame.visible = lit
+	if not lit:
+		return
+	var torch: ItemInstance = inventory.off_hand
+	if torch.wear(delta):
+		_torch_light.visible = false
+		_torch_flame.visible = false
+		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
+		inventory.notify_changed()
+		return
+	_torch_flicker_t += delta
+	var flicker: float = 0.9 + 0.06 * sin(_torch_flicker_t * 13.0) + 0.04 * sin(_torch_flicker_t * 29.0 + 1.3)
+	var fuel_fade: float = clampf(torch.condition_ratio() / 0.2, 0.35, 1.0)
+	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade
+	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade)
+
+func is_torch_lit() -> bool:
+	return _torch_light != null and _torch_light.visible
+
+# ------------------------------------------------------------------------------
+# Core loop (Milestones 1-3, extended)
+# ------------------------------------------------------------------------------
 func _update_timers_and_conditions(delta: float) -> void:
 	if _dodge_cooldown > 0.0:
 		_dodge_cooldown = maxf(0.0, _dodge_cooldown - delta)
@@ -95,16 +592,15 @@ func _update_timers_and_conditions(delta: float) -> void:
 		health = maxf(1.0, health - 1.8 * delta)
 		if bleed_timer <= 0.0:
 			is_bleeding = false
-		if Input.is_key_pressed(KEY_B):
-			is_bleeding = false
-			combat_banner_message.emit("Applied Clean Rag Bandage — Bleeding Stopped", Color(0.75, 0.82, 0.68))
 
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
-	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK]:
+	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
 		var rate: float = stamina_regen_rate * (0.38 if current_state == ActionState.BLOCK else 1.0)
 		if is_bleeding:
 			rate *= 0.75
+		if inventory.get_load() == Inventory.Load.OVERBURDENED:
+			rate *= 0.7
 		stamina = minf(max_stamina, stamina + rate * delta)
 		if is_exhausted and stamina >= 18.0:
 			is_exhausted = false
@@ -153,8 +649,11 @@ func _process_state_machine(delta: float) -> void:
 	match current_state:
 		ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK:
 			_handle_neutral_combat_inputs(move_dir)
-			if current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK]:
+			if current_state in NEUTRAL_STATES:
 				_apply_locomotion(move_dir, delta)
+
+		ActionState.CHANNEL:
+			_process_channel(move_dir, delta)
 
 		ActionState.ATTACK_STARTUP:
 			_state_timer -= delta
@@ -177,7 +676,7 @@ func _process_state_machine(delta: float) -> void:
 			_state_timer -= delta
 			velocity = velocity.move_toward(Vector3.ZERO, 16.0 * delta) + _knockback_velocity
 			var total_rec: float = weapon.heavy_recovery_time if _is_current_attack_heavy else weapon.light_recovery_time
-			if _state_timer < (total_rec * 0.25) and Input.is_action_just_pressed("attack_light"):
+			if _state_timer < (total_rec * 0.25) and Input.is_action_just_pressed("attack_light") and not ui_capture:
 				_queued_light_attack = true
 			if _state_timer <= 0.0:
 				if _queued_light_attack and not is_exhausted and stamina > 4.0:
@@ -200,7 +699,8 @@ func _process_state_machine(delta: float) -> void:
 			_state_timer -= delta
 			velocity = _knockback_velocity
 			if _state_timer <= 0.0:
-				current_state = ActionState.BLOCK if Input.is_action_pressed("block") else ActionState.IDLE
+				var keep_block: bool = Input.is_action_pressed("block") and _has_ready_shield() and not ui_capture
+				current_state = ActionState.BLOCK if keep_block else ActionState.IDLE
 
 		ActionState.STAGGER:
 			_state_timer -= delta
@@ -214,6 +714,25 @@ func _process_state_machine(delta: float) -> void:
 		velocity.y = -0.1
 
 func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
+	if ui_capture:
+		if current_state == ActionState.BLOCK:
+			current_state = ActionState.IDLE
+		return
+
+	if Input.is_action_just_pressed("interact"):
+		if _try_interact():
+			return
+
+	if Input.is_action_just_pressed("bandage"):
+		if start_bandage():
+			return
+
+	for slot: int in range(1, 5):
+		if Input.is_action_just_pressed("equip_slot_%d" % slot):
+			_on_slot_key(slot)
+			if current_state == ActionState.CHANNEL:
+				return
+
 	if Input.is_action_just_pressed("dodge"):
 		if _try_start_dodge(move_dir):
 			return
@@ -229,28 +748,36 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 		_start_attack(false)
 		return
 
-	if Input.is_action_pressed("block") and not is_exhausted:
+	if Input.is_action_pressed("block") and not is_exhausted and _has_ready_shield():
 		current_state = ActionState.BLOCK
-	elif current_state == ActionState.BLOCK:
-		current_state = ActionState.IDLE
+	else:
+		if current_state == ActionState.BLOCK:
+			current_state = ActionState.IDLE
+		if Input.is_action_just_pressed("block") and not _has_ready_shield():
+			combat_banner_message.emit(_block_unavailable_reason(), Color(0.74, 0.66, 0.56))
 
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
+	var load_mult: float = _encumbrance_speed_mult()
 	if current_state == ActionState.BLOCK:
-		velocity.x = move_dir.x * block_move_speed * exh_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * block_move_speed * exh_mult + _knockback_velocity.z
+		velocity.x = move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x
+		velocity.z = move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z
 		return
 
-	var wants_sprint: bool = Input.is_action_pressed("sprint") and move_dir.length_squared() > 0.1 and not is_exhausted
+	var overburdened: bool = inventory.get_load() == Inventory.Load.OVERBURDENED
+	var wants_sprint: bool = (
+		Input.is_action_pressed("sprint") and move_dir.length_squared() > 0.1
+		and not is_exhausted and not overburdened
+	)
 	if wants_sprint and stamina > 1.0:
 		current_state = ActionState.SPRINT
 		_consume_stamina(13.5 * delta)
-		velocity.x = move_dir.x * sprint_speed + _knockback_velocity.x
-		velocity.z = move_dir.z * sprint_speed + _knockback_velocity.z
+		velocity.x = move_dir.x * sprint_speed * load_mult + _knockback_velocity.x
+		velocity.z = move_dir.z * sprint_speed * load_mult + _knockback_velocity.z
 	elif move_dir.length_squared() > 0.01:
 		current_state = ActionState.MOVE
-		velocity.x = move_dir.x * move_speed * exh_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * move_speed * exh_mult + _knockback_velocity.z
+		velocity.x = move_dir.x * move_speed * exh_mult * load_mult + _knockback_velocity.x
+		velocity.z = move_dir.z * move_speed * exh_mult * load_mult + _knockback_velocity.z
 	else:
 		current_state = ActionState.IDLE
 		velocity.x = _knockback_velocity.x
@@ -272,15 +799,17 @@ func _enter_attack_active() -> void:
 	if audio:
 		audio.play_swing()
 
+	_configure_hitbox(weapon.get_swing_arc(_is_current_attack_heavy))
+	var mult: float = _weapon_condition_multiplier()
 	var payload := CombatPayload.new(
 		self,
 		global_position,
 		_aim_direction,
-		weapon.heavy_damage if _is_current_attack_heavy else weapon.light_damage,
-		weapon.heavy_poise_damage if _is_current_attack_heavy else weapon.light_poise_damage,
+		(weapon.heavy_damage if _is_current_attack_heavy else weapon.light_damage) * mult,
+		(weapon.heavy_poise_damage if _is_current_attack_heavy else weapon.light_poise_damage) * mult,
 		_is_current_attack_heavy and (randf() <= weapon.heavy_bleed_chance),
 		_is_current_attack_heavy,
-		4.8 if _is_current_attack_heavy else 2.4
+		weapon.heavy_knockback if _is_current_attack_heavy else weapon.light_knockback
 	)
 	_hitbox.begin_swing(payload)
 
@@ -290,10 +819,15 @@ func _enter_attack_recovery() -> void:
 	_state_timer = weapon.heavy_recovery_time if _is_current_attack_heavy else weapon.light_recovery_time
 
 func _try_start_dodge(move_dir: Vector3) -> bool:
+	var load_state: Inventory.Load = inventory.get_load()
+	if load_state == Inventory.Load.OVERBURDENED:
+		combat_banner_message.emit("Overburdened — too heavy to dodge", Color(0.90, 0.40, 0.25))
+		return false
+	var cost: float = dodge_stamina_cost + (burdened_dodge_extra_cost if load_state == Inventory.Load.BURDENED else 0.0)
 	if is_exhausted or stamina < 8.0 or _dodge_cooldown > 0.0:
 		return false
 	_hitbox.end_swing()
-	_consume_stamina(22.0)
+	_consume_stamina(cost)
 	_dodge_cooldown = 0.58
 	_dodge_direction = move_dir if move_dir.length_squared() > 0.01 else -_aim_direction
 	current_state = ActionState.DODGE
@@ -315,34 +849,43 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		combat_banner_message.emit("Evaded!", Color(0.75, 0.78, 0.82))
 		return
 
+	if current_state == ActionState.CHANNEL:
+		_cancel_channel("%s — interrupted!" % _channel_label())
+	ui_force_close.emit()
+
 	var to_attacker: Vector3 = (payload.attacker_origin - global_position)
 	to_attacker.y = 0.0
 	if to_attacker.length_squared() > 0.001:
 		to_attacker = to_attacker.normalized()
 
 	var facing_dot: float = _aim_direction.dot(to_attacker)
-	var block_cos: float = cos(deg_to_rad(weapon.block_angle_degrees * 0.5))
+	var shield: ItemInstance = inventory.off_hand
 
-	if current_state in [ActionState.BLOCK, ActionState.BLOCK_IMPACT] and facing_dot >= block_cos:
-		var stam_cost: float = payload.poise_damage * weapon.block_stamina_efficiency
-		_consume_stamina(stam_cost)
-		_knockback_velocity = -to_attacker * (payload.knockback_force * 0.7)
-		if is_exhausted:
-			if audio:
-				audio.play_guard_break()
-			if camera_rig:
-				camera_rig.add_trauma(0.65)
-			current_state = ActionState.STAGGER
-			_state_timer = 1.05
-			combat_banner_message.emit("GUARD BROKEN!", Color(0.92, 0.32, 0.22))
-		else:
-			if audio:
-				audio.play_shield_block()
-			if camera_rig:
-				camera_rig.add_trauma(0.28)
-			current_state = ActionState.BLOCK_IMPACT
-			_state_timer = 0.22
-		return
+	if current_state in [ActionState.BLOCK, ActionState.BLOCK_IMPACT] and _has_ready_shield():
+		var block_cos: float = cos(deg_to_rad(shield.data.block_angle_degrees * 0.5))
+		if facing_dot >= block_cos:
+			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency
+			_consume_stamina(stam_cost)
+			_knockback_velocity = -to_attacker * (payload.knockback_force * 0.7)
+			if shield.wear(payload.poise_damage * shield.data.block_wear_per_poise):
+				combat_banner_message.emit("Your %s splinters apart!" % shield.data.display_name, Color(0.92, 0.36, 0.22))
+				inventory.notify_changed()
+			if is_exhausted:
+				if audio:
+					audio.play_guard_break()
+				if camera_rig:
+					camera_rig.add_trauma(0.65)
+				current_state = ActionState.STAGGER
+				_state_timer = 1.05
+				combat_banner_message.emit("GUARD BROKEN!", Color(0.92, 0.32, 0.22))
+			else:
+				if audio:
+					audio.play_shield_block()
+				if camera_rig:
+					camera_rig.add_trauma(0.28)
+				current_state = ActionState.BLOCK_IMPACT
+				_state_timer = 0.22
+			return
 
 	_hitbox.end_swing()
 	health = maxf(0.0, health - payload.physical_damage)
@@ -371,6 +914,8 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_state_timer = 0.62
 
 func respawn_at_shelter(spawn_pos: Vector3) -> void:
+	_clear_channel()
+	_hitbox.end_swing()
 	global_position = spawn_pos
 	health = max_health
 	stamina = max_stamina
@@ -401,6 +946,10 @@ func _update_visual_pose(_delta: float) -> void:
 			_weapon_pivot.rotation_degrees = Vector3(35.0, 60.0, 25.0)
 			_shield_mesh.position = Vector3(-0.48, 0.95, 0.1)
 			_aim_arc_mat.albedo_color = Color(0.75, 0.22, 0.22, 0.35)
+		ActionState.CHANNEL:
+			_weapon_pivot.rotation_degrees = Vector3(38.0, 25.0, 0.0)
+			_shield_mesh.position = Vector3(-0.42, 0.98, -0.05)
+			_aim_arc_mat.albedo_color = Color(0.55, 0.52, 0.45, 0.10)
 		_:
 			_weapon_pivot.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_shield_mesh.position = Vector3(-0.36, 1.05, -0.22)
@@ -449,33 +998,65 @@ func _build_survivor_visuals_and_colliders() -> void:
 	helm.position = Vector3(0.0, 1.58, 0.0)
 	_visual_root.add_child(helm)
 
-	var shield_mat := StandardMaterial3D.new()
-	shield_mat.albedo_color = Color(0.32, 0.23, 0.16)
-	shield_mat.roughness = 0.9
+	_shield_mat = StandardMaterial3D.new()
+	_shield_mat.albedo_color = Color(0.32, 0.23, 0.16)
+	_shield_mat.roughness = 0.9
 	_shield_mesh = MeshInstance3D.new()
 	var s_box := BoxMesh.new()
 	s_box.size = Vector3(0.12, 0.62, 0.52)
 	_shield_mesh.mesh = s_box
-	_shield_mesh.material_override = shield_mat
+	_shield_mesh.material_override = _shield_mat
 	_shield_mesh.position = Vector3(-0.36, 1.05, -0.22)
 	_visual_root.add_child(_shield_mesh)
+
+	# Off-hand torch (handle + flame)
+	_torch_root = Node3D.new()
+	_torch_root.name = "TorchRoot"
+	_torch_root.position = Vector3(-0.36, 1.05, -0.30)
+	_torch_root.rotation_degrees = Vector3(-25.0, 0.0, 0.0)
+	_visual_root.add_child(_torch_root)
+	var handle_mat := StandardMaterial3D.new()
+	handle_mat.albedo_color = Color(0.22, 0.15, 0.10)
+	handle_mat.roughness = 0.95
+	var handle := MeshInstance3D.new()
+	var handle_mesh := CylinderMesh.new()
+	handle_mesh.top_radius = 0.045
+	handle_mesh.bottom_radius = 0.035
+	handle_mesh.height = 0.62
+	handle.mesh = handle_mesh
+	handle.material_override = handle_mat
+	_torch_root.add_child(handle)
+	var flame_mat := StandardMaterial3D.new()
+	flame_mat.albedo_color = Color(1.0, 0.62, 0.22)
+	flame_mat.emission_enabled = true
+	flame_mat.emission = Color(1.0, 0.55, 0.18)
+	flame_mat.emission_energy_multiplier = 3.0
+	flame_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_torch_flame = MeshInstance3D.new()
+	var flame_mesh := SphereMesh.new()
+	flame_mesh.radius = 0.09
+	flame_mesh.height = 0.22
+	_torch_flame.mesh = flame_mesh
+	_torch_flame.material_override = flame_mat
+	_torch_flame.position = Vector3(0.0, 0.38, 0.0)
+	_torch_root.add_child(_torch_flame)
 
 	_weapon_pivot = Node3D.new()
 	_weapon_pivot.position = Vector3(0.34, 1.05, -0.15)
 	_visual_root.add_child(_weapon_pivot)
 
-	var blade_mat := StandardMaterial3D.new()
-	blade_mat.albedo_color = Color(0.52, 0.50, 0.48)
-	blade_mat.metallic = 0.65
-	blade_mat.roughness = 0.52
+	_blade_mat = StandardMaterial3D.new()
+	_blade_mat.albedo_color = Color(0.52, 0.50, 0.48)
+	_blade_mat.metallic = 0.65
+	_blade_mat.roughness = 0.52
 
-	var sword := MeshInstance3D.new()
-	var sword_box := BoxMesh.new()
-	sword_box.size = Vector3(0.08, 0.08, 1.25)
-	sword.mesh = sword_box
-	sword.material_override = blade_mat
-	sword.position = Vector3(0.0, 0.0, -0.68)
-	_weapon_pivot.add_child(sword)
+	_weapon_mesh = MeshInstance3D.new()
+	_weapon_box = BoxMesh.new()
+	_weapon_box.size = Vector3(0.08, 0.08, 1.25)
+	_weapon_mesh.mesh = _weapon_box
+	_weapon_mesh.material_override = _blade_mat
+	_weapon_mesh.position = Vector3(0.0, 0.0, -0.68)
+	_weapon_pivot.add_child(_weapon_mesh)
 
 	_aim_arc_mat = StandardMaterial3D.new()
 	_aim_arc_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -503,13 +1084,12 @@ func _build_survivor_visuals_and_colliders() -> void:
 	_hitbox.owner_entity = self
 	_hitbox.collision_layer = 0
 	_hitbox.collision_mask = 16
-	var hb_shape := CollisionShape3D.new()
-	var hb_box := BoxShape3D.new()
-	hb_box.size = Vector3(1.45, 1.2, weapon.reach_meters)
-	hb_shape.shape = hb_box
-	hb_shape.position = Vector3(0.0, 1.0, -(weapon.reach_meters * 0.5 + 0.25))
-	_hitbox.add_child(hb_shape)
+	_hitbox_col = CollisionShape3D.new()
+	_hitbox_shape = BoxShape3D.new()
+	_hitbox_col.shape = _hitbox_shape
+	_hitbox.add_child(_hitbox_col)
 	_visual_root.add_child(_hitbox)
+	_configure_hitbox(weapon.swing_arc_degrees)
 	_hitbox.confirmed_hit.connect(_on_confirmed_hit_landed)
 
 	_hurtbox = HurtboxComponent.new()
@@ -531,8 +1111,19 @@ func _on_confirmed_hit_landed(_target: Node3D, payload: CombatPayload) -> void:
 		audio.play_flesh_hit()
 	if camera_rig:
 		camera_rig.add_trauma(0.38 if payload.is_heavy else 0.22)
+	var main: ItemInstance = inventory.main_hand
+	if main != null and main.data.has_durability():
+		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit
+		if main.wear(amount):
+			combat_banner_message.emit("Your %s has BROKEN" % main.data.display_name, Color(0.92, 0.36, 0.22))
+			inventory.notify_changed()
 
 func _emit_stats() -> void:
+	var main: ItemInstance = inventory.main_hand
+	var off: ItemInstance = inventory.off_hand
+	var prompt: String = ""
+	if _nearest_lootable != null and current_state in NEUTRAL_STATES and not ui_capture:
+		prompt = _nearest_lootable.get_prompt()
 	stats_changed.emit({
 		"health": health,
 		"max_health": max_health,
@@ -542,5 +1133,17 @@ func _emit_stats() -> void:
 		"max_poise": max_poise,
 		"state": ActionState.keys()[current_state],
 		"exhausted": is_exhausted,
-		"bleeding": is_bleeding
+		"bleeding": is_bleeding,
+		"main_label": main.get_label() if main else "Bare Fists",
+		"main_broken": main.is_broken() if main else false,
+		"off_label": off.get_label() if off else "— empty —",
+		"off_active": _offhand_active(),
+		"weight": inventory.total_weight(),
+		"capacity": inventory.capacity_kg,
+		"hard_limit": inventory.hard_limit_kg(),
+		"load": Inventory.Load.keys()[inventory.get_load()],
+		"bandages": inventory.count_of("clean_rag_bandage"),
+		"channel_label": _channel_label() if current_state == ActionState.CHANNEL else "",
+		"channel_progress": get_channel_progress(),
+		"prompt": prompt
 	})

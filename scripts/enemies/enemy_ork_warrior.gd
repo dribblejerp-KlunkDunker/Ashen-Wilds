@@ -115,7 +115,7 @@ func _evaluate_senses(delta: float) -> void:
 
 	var can_hear: bool = (
 		player_ref.current_state in [PlayerController.ActionState.SPRINT, PlayerController.ActionState.ATTACK_ACTIVE]
-		and dist <= 10.0
+		and dist <= 10.0 * player_ref.get_noise_multiplier()
 	)
 
 	if can_see or can_hear:
@@ -360,6 +360,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_hurtbox.set_deferred("monitorable", false)
 		_visual_root.rotation_degrees.x = -85.0
 		_visual_root.position.y = 0.25
+		Lootable.attach_corpse(self, "%s Corpse" % enemy_name, ItemDatabase.roll_ork_loot(), 3.0)
 		return
 
 	if poise_damage >= max_poise:

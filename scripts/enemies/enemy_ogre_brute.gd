@@ -257,6 +257,8 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_visual_root.rotation_degrees.x = -85.0
 		_visual_root.position.y = 0.45
 		ogre_event_banner.emit("THE BLACKFEN OGRE HAS FALLEN", Color(0.88, 0.74, 0.36))
+		var corpse := Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_ogre_loot(), 4.0)
+		corpse.interact_radius = 2.6
 		return
 
 	if poise_damage >= max_poise:
