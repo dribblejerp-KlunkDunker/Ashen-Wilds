@@ -84,7 +84,7 @@ func _ready() -> void:
 		"ASHEN WILDS — THE BLACKFEN OUTSKIRTS\n" +
 		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
 		"[E] Search / Open   [Tab] Pack   [B] Bandage   [G] Throw Stone   [T] Rest at Fire   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
-		"[F1/F2/F3/F5/F6] Teleport Encounters   [F4] Next Weather   [V] Vision Cone   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
+		"[F1–F3/F5–F7] Teleport   [F4] Next Weather   [V] Vision Cone   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
 		13, Color(0.68, 0.65, 0.60)
 	)
 	help_panel.add_child(help_lbl)
@@ -289,6 +289,8 @@ func update_stats(data: Dictionary) -> void:
 		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
 	if data.get("lodged", false):
 		flags += "  [LODGED: SPACE TO LET GO]"
+	if data.get("spore_sick", false):
+		flags += "  [SPORE-SICK: SLOW STAMINA, COUGHING]"
 	if data.get("coughing", false):
 		flags += "  [COUGHING: HEARD NEARBY]"
 	_status_label.text = "ACTION: %s%s" % [data["state"], flags]

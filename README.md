@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–15 complete · verified on Godot 4.3-stable (Forward+) · **361/361** headless regression checks passing
+> **Status:** Milestones 1–16 complete · verified on Godot 4.3-stable (Forward+) · **383/383** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -203,6 +203,12 @@ Finishing the three main objectives shows the **Act I complete** card (time spen
 
 ![Crows on the Old Gibbet; the Ghoul gnaws a goblin corpse](docs/screenshots/16_gibbet_crows_ghoul.png)
 
+### Blackfen Bestiary II: the Bog Bear & Rot Mounds (Milestone 16)
+- **The Bog Bear** lairs in the **Bear Wallow** in the west (**F7**). It's territorial: come within 11 m of its wallow and it charges, by scent, whichever way it's facing. It gives up past 18 m and lumbers home. It mauls with two swipes (sweeps, which clang off walls) and a bleeding bite. It **fears fire**: hold a lit torch toward it within 4.5 m and it rears back. That only works until it drops below half health and becomes enraged. It drops a **Bog Bear Pelt**.
+- **Rot Mounds** dot the marsh around the Drowned Barrow. Walk into one, strike it, or land a thrown stone next to it and it **bursts into spores**. Anyone within 3 m becomes **spore-sick** for 25 s: stamina regenerates at half speed and you cough every few seconds, loud enough for enemies to hear. A **torch held close burns a mound away safely**, a thrown stone pops it from range, and resting at the fire clears your lungs.
+
+![The Bog Bear rears back from a raised torch; a rot mound in the marsh](docs/screenshots/17_bog_bear_torch.png)
+
 ### Save & load (Milestone 14)
 **Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
 
@@ -229,7 +235,7 @@ Finishing the three main objectives shows the **Act I complete** card (time spen
 | **V** | Toggle the vision cone & memory map |
 | **T** | Rest at the shelter fire: heal & save |
 | **R** | Respawn at the shelter fire |
-| **F1 / F2 / F3 / F5 / F6** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow (dev) |
+| **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -262,7 +268,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), and the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), and the bog bear and rot mounds (territory, fire fear, enrage, maul, spores).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -297,10 +303,10 @@ scripts/
   world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
               weather_system.gd
   player/     player_controller.gd
-  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul
+  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (361 checks)
+  smoke_test.gd            Headless regression suite (383 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)

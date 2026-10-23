@@ -112,6 +112,7 @@ func _run() -> void:
 	await _test_quarry_troll()
 	await _test_armor()
 	await _test_bestiary_one()
+	await _test_bestiary_two()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -1717,6 +1718,170 @@ func _test_bestiary_one() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
+# Milestone 16 — the Bog Bear & rot mounds
+# ------------------------------------------------------------------------------
+func _spawn_dummy_bear(den: Vector3) -> EnemyBogBear:
+	var b := EnemyBogBear.new()
+	b.position = den
+	b.process_mode = Node.PROCESS_MODE_DISABLED
+	b.player_ref = _player
+	_main.add_child(b)
+	return b
+
+func _spawn_dummy_mound(pos: Vector3) -> EnemyRotMound:
+	var m := EnemyRotMound.new()
+	m.position = pos
+	m.process_mode = Node.PROCESS_MODE_DISABLED
+	m.player_ref = _player
+	_main.add_child(m)
+	return m
+
+func _test_bestiary_two() -> void:
+	_section("Bestiary II: the Bog Bear & rot mounds")
+	var B := EnemyBogBear.AIState
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_check(_children_of(func(n: Node) -> bool: return n is EnemyBogBear).size() == 1 and _children_of(func(n: Node) -> bool: return n is EnemyRotMound).size() == 5, "a bear in its wallow and five rot mounds in the marsh")
+
+	# Territory.
+	var den: Vector3 = OPEN + Vector3(0.0, 0.0, -14.0)
+	var bear := _spawn_dummy_bear(den)
+	_reset_player(OPEN)
+	_face(Vector3.FORWARD)
+	await _ticks(2)
+	bear._process_ai_state(0.05)
+	_check(bear.state == B.IDLE, "14 m from its wallow: the bear stays put")
+	_reset_player(den + Vector3(0.0, 0.0, 9.0))
+	await _ticks(1)
+	bear._process_ai_state(0.05)
+	_check(bear.state == B.CHARGE, "inside its 11 m territory: it charges (it doesn't need to see you)")
+
+	# Fire.
+	_equip_now("pitch_torch")
+	_player.inventory.off_hand.condition = 200.0
+	bear.global_position = _player.global_position + Vector3(0.0, 0.0, -3.0)
+	_face(Vector3.FORWARD)
+	await _ticks(3)
+	_check(_player.is_torch_lit() and bear.is_threatened_by_fire(), "a lit torch held toward it within 4.5 m threatens it")
+	bear._process_ai_state(0.05)
+	_check(bear.state == B.REAR, "...and it rears back from the flame")
+	bear._process_ai_state(1.6)
+	_check(bear.state == B.CHARGE and bear._fear_cooldown > 0.0, "then it comes again, after a moment")
+	_face(Vector3.BACK)
+	_check(not bear.is_threatened_by_fire(), "a torch held away from it doesn't scare it")
+	_face(Vector3.FORWARD)
+	bear.health = bear.max_health * 0.45
+	_check(bear.is_enraged() and not bear.is_threatened_by_fire(), "wounded below half: enraged, fire no longer holds it back")
+	bear.health = bear.max_health
+	_equip_now("wooden_targe")
+
+	# Leash.
+	bear.state = B.CHARGE
+	_reset_player(den + Vector3(0.0, 0.0, 19.0))
+	await _ticks(1)
+	bear._process_ai_state(0.05)
+	_check(bear.state == B.RETURN, "past 18 m from its wallow it gives up and goes home")
+
+	# The maul: swipe, swipe, bite.
+	var arena := _spawn_dummy_bear(OPEN + Vector3(30.0, 0, 0)) # far from walls
+	arena.global_position = OPEN + Vector3(3.0, 0, 6.0)
+	arena._facing_dir = Vector3.RIGHT
+	await _ticks(1)
+	var bites: Array = []
+	for i in range(3):
+		arena._combo_step = i
+		arena._enter_maul_active()
+		bites.append(arena._hitbox._active_payload.causes_bleed)
+		arena._hitbox.end_swing()
+	_check(arena.state == B.MAUL_ACTIVE and bites == [false, false, true], "maul: two swipes, then a bite that makes you bleed")
+	var hall_bear := _spawn_dummy_bear(HALL)
+	hall_bear._facing_dir = Vector3.RIGHT
+	await _ticks(1)
+	hall_bear._combo_step = 0
+	hall_bear._enter_maul_active()
+	_check(hall_bear.state == B.RECOIL, "in the entry hall its swipe clangs off the stone")
+	hall_bear._combo_step = 2
+	hall_bear.state = B.MAUL_LINK
+	hall_bear._enter_maul_active()
+	_check(hall_bear.state == B.MAUL_ACTIVE, "...but its bite doesn't")
+	hall_bear._hitbox.end_swing()
+
+	# Woken by noise; carcass.
+	var sleeper := _spawn_dummy_bear(OPEN + Vector3(0, 0, 30.0))
+	await _ticks(1)
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	field.emit_noise(OPEN + Vector3(0, 0, 21.0), 12.0, _player, "footstep")
+	_check(sleeper.state == B.CHARGE, "a loud noise near its wallow brings it out")
+	sleeper._on_hurtbox_hit_received(CombatPayload.new(_player, sleeper.global_position, Vector3.FORWARD, 9999.0, 1.0))
+	await _ticks(2)
+	var carcass: Lootable = null
+	for c: Node in sleeper.get_children():
+		if c is Lootable:
+			carcass = c
+	_check(carcass != null and carcass.count_of("bear_pelt") == 1, "a dead bear leaves its pelt")
+
+	# Rot mounds.
+	_reset_player(OPEN)
+	_player.cure_spores()
+	await _ticks(1)
+	var m1 := _spawn_dummy_mound(OPEN + Vector3(5.0, 0, 0))
+	await _ticks(1)
+	m1._physics_process(0.016)
+	_check(not m1.is_dead(), "a rot mound 5 m away sits there")
+	_reset_player(OPEN + Vector3(4.0, 0, 0))
+	await _ticks(1)
+	m1._physics_process(0.016)
+	_check(m1.is_dead() and _player.is_spore_sick(), "walk into one: it bursts and you're spore-sick")
+	var stamina_rate := func() -> float:
+		_player.stamina = 40.0
+		_player._stamina_delay_timer = 0.0
+		_player.current_state = PlayerController.ActionState.IDLE
+		_player._update_timers_and_conditions(0.1)
+		return (_player.stamina - 40.0) / 0.1
+	var sick_rate: float = stamina_rate.call()
+	_player.cure_spores()
+	var well_rate: float = stamina_rate.call()
+	_check(absf(sick_rate - well_rate * 0.5) < 0.5, "spore sickness halves stamina regen (%.1f vs %.1f /s)" % [sick_rate, well_rate])
+	_player.afflict_spores(10.0)
+	await _seconds(1.2)
+	_check(_player.is_coughing() or _player._spore_cough_timer > 3.0, "spore sickness makes you cough")
+	var m2 := _spawn_dummy_mound(OPEN + Vector3(-8.0, 0, 0))
+	_player.cure_spores()
+	await _ticks(1)
+	field.emit_noise(m2.global_position + Vector3(0.6, 0, 0), 10.0, _player, "thud")
+	_check(m2.is_dead() and not _player.is_spore_sick(), "a thrown stone pops one safely from range")
+	var m3 := _spawn_dummy_mound(OPEN + Vector3(0, 0, 4.0))
+	await _ticks(1)
+	m3._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.BACK, 5.0, 1.0))
+	_check(m3.is_dead(), "striking one bursts it")
+	_player.cure_spores()
+	_reset_player(OPEN)
+	_equip_now("pitch_torch")
+	var m4 := _spawn_dummy_mound(OPEN + Vector3(1.2, 0, -1.0))
+	await _ticks(3)
+	for i in range(20):
+		m4._physics_process(0.1)
+	_check(m4.is_dead() and not _player.is_spore_sick(), "a torch held close burns one away without spores")
+	_equip_now("wooden_targe")
+
+	# Resting at the fire clears the spores.
+	SaveGame.save_path = "user://smoke_test_save.json"
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	_player.afflict_spores(30.0)
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(1)
+	_player.afflict_spores(30.0)
+	boot.rest_at_fire()
+	_check(not _player.is_spore_sick(), "resting at the fire clears your lungs")
+	SaveGame.delete()
+
+	for n: Node in [bear, arena, hall_bear, sleeper, m1, m2, m3, m4]:
+		n.queue_free()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -1801,7 +1966,7 @@ func _test_save_load() -> void:
 	SaveGame.save_path = "user://smoke_test_save.json"
 	SaveGame.delete()
 	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_check(boot._all_enemies.size() == 12, "every enemy tracked for saving (%d)" % boot._all_enemies.size())
+	_check(boot._all_enemies.size() == 18, "every enemy tracked for saving (%d)" % boot._all_enemies.size())
 
 	# Build up some state worth saving.
 	_bg("peat_cutter")

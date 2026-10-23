@@ -273,6 +273,21 @@ func _run() -> void:
 	await _frames(40)
 	await _shot("16_gibbet_crows_ghoul.png")
 
+	# 17. Milestone 16: the Bog Bear rears from a raised torch; rot mounds nearby.
+	_equip_now("woodsmans_broadaxe")
+	_equip_now("pitch_torch")
+	var bear: EnemyBogBear = enemies.filter(func(e: Node) -> bool: return e is EnemyBogBear)[0]
+	var bear_spot := Vector3(-19.6, 0.0, 1.2)
+	var stand := bear_spot + Vector3(2.8, 0.0, -1.5)
+	_place(stand, (bear_spot - stand).normalized())
+	bear.global_position = bear_spot
+	bear._face_direction((stand - bear_spot).normalized(), 50.0, 1.0)
+	bear.state = EnemyBogBear.AIState.REAR
+	bear._update_visual_telegraph()
+	bear._visual_root.visible = true
+	await _frames(40)
+	await _shot("17_bog_bear_torch.png")
+
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
 	root.add_child(picker)

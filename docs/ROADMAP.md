@@ -16,7 +16,8 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 13 | Act I objectives & the shelter | ✅ shipped | M4 loot, M7 |
 | 14 | Save & load | ✅ shipped | everything above |
 | 15 | Blackfen Bestiary I: Carrion Crows & the Ghoul | ✅ shipped | M8, M10 |
-| — | More of the bestiary (bog bear, bog-bull, rot mounds…), companions, Acts II–III | later | design doc; consider Fable for companion AI |
+| 16 | Blackfen Bestiary II: Bog Bear & Rot Mounds | ✅ shipped | M4 torch, M10 |
+| — | More of the bestiary (bog-bull, skull-deer, fungus zombies…), companions, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
 
@@ -114,3 +115,8 @@ Two creatures from the bestiary sheet (`docs/art_reference/12_creatures_beasts.w
 
 - **Carrion Crows** perch in flocks at the Ogre's bone heap and at a new **Old Gibbet** south-east of the watchhouse. They're **sentinels**, not fighters. Come within 6 m in their sight, or make a noise that reaches them, and the flock bursts up **cawing**: a 14 m noise that goblins, Orks and the Quarry-Troll treat like a clang. They come back after about 25 s. A thrown stone that lands near them sets them off on purpose, which makes a loud distraction somewhere else. One blow kills a crow (no lodging in a crow).
 - **The Ghoul** lairs at a **Drowned Barrow** in the west. Between hunts it goes to the nearest corpse and **gnaws** it for 5 s, healing itself and spoiling the food, cloth and herbs on the body (metal survives). The crunching is audible and shows as a ripple. It **smells blood**: while you're bleeding it knows exactly where you are within 25 m, through walls. Fast, fragile (90 HP), and its two-claw rake causes bleeding often. Claws are thrusts, so it never clangs.
+
+## Milestone 16 — Blackfen Bestiary II
+
+- **Bog Bear** (Bear Wallow, west): territorial charge by scent within 11 m of its wallow, leash at 18 m. Two-swipe-and-bite maul (the swipes are sweeps that clang, the bite bleeds). **Fears a lit torch held toward it within 4.5 m** until enraged below half health. 220 HP, drops a pelt.
+- **Rot Mounds** (marsh): burst into spores when touched, struck or hit by a thrown stone. **Spore-sick** for 25 s within 3 m (stamina regen ×0.5, audible coughing). A torch held close burns one safely; resting at the fire cures it.

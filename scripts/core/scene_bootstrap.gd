@@ -115,6 +115,7 @@ func rest_at_fire() -> bool:
 	_player.health = _player.max_health
 	_player.is_bleeding = false
 	_player.bleed_timer = 0.0
+	_player.cure_spores()
 	var ok: bool = SaveGame.write(self)
 	_hud.show_banner("You rest by the fire. Wounds bound, the night survived — game saved." if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
 	return ok
@@ -149,6 +150,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F6:
 				_player.global_position = BARROW_POS + Vector3(6.0, 0.0, -4.0)
 				_hud.show_banner("Teleported: The Drowned Barrow (Ghoul) — don't bleed here", Color(0.70, 0.62, 0.58))
+			KEY_F7:
+				_player.global_position = WALLOW_POS + Vector3(13.0, 0.0, 2.0)
+				_hud.show_banner("Teleported: east of the Bear Wallow — keep a torch lit", Color(0.80, 0.62, 0.42))
 			KEY_F4:
 				_weather.advance()
 			KEY_V:
@@ -309,6 +313,12 @@ func _build_blackfen_test_yard() -> void:
 ## (the Ghoul) south-west.
 const GIBBET_POS := Vector3(8.0, 0.0, 15.0)
 const BARROW_POS := Vector3(-19.0, 0.0, 16.0)
+## Milestone 16: the Bear Wallow (west) and rot mounds in the marsh.
+const WALLOW_POS := Vector3(-22.0, 0.0, -1.0)
+const ROT_MOUND_SPOTS: Array[Vector3] = [
+	Vector3(-14.0, 0.0, 19.5), Vector3(-11.0, 0.0, 21.5), Vector3(-23.5, 0.0, 11.0),
+	Vector3(-16.5, 0.0, 9.5), Vector3(-9.5, 0.0, 17.5),
+]
 
 func _build_bestiary_landmarks(cutaway_shader: Shader) -> void:
 	var wood := Color(0.24, 0.18, 0.13)
@@ -318,6 +328,22 @@ func _build_bestiary_landmarks(cutaway_shader: Shader) -> void:
 	for off: Vector3 in [Vector3(-2.6, 0, -1.8), Vector3(2.4, 0, -2.2), Vector3(-2.2, 0, 2.6), Vector3(2.8, 0, 2.0)]:
 		_create_static_box(BARROW_POS + off + Vector3(0.0, 1.0, 0.0), Vector3(0.7, 2.0, 0.5), stone, cutaway_shader, false, false)
 	_create_static_box(BARROW_POS + Vector3(0.0, 0.25, -3.6), Vector3(3.6, 0.5, 1.4), stone, cutaway_shader, false, false)
+	# The Bear Wallow: a muddy hollow ringed by fallen logs.
+	var log_col := Color(0.20, 0.15, 0.10)
+	_create_static_box(WALLOW_POS + Vector3(0.0, 0.3, -3.2), Vector3(4.2, 0.6, 0.6), log_col, cutaway_shader, false, false)
+	_create_static_box(WALLOW_POS + Vector3(-3.0, 0.3, 0.4), Vector3(0.6, 0.6, 3.6), log_col, cutaway_shader, false, false)
+	var mud := MeshInstance3D.new()
+	var mud_mesh := CylinderMesh.new()
+	mud_mesh.top_radius = 3.0
+	mud_mesh.bottom_radius = 3.0
+	mud_mesh.height = 0.02
+	mud.mesh = mud_mesh
+	var mud_mat := StandardMaterial3D.new()
+	mud_mat.albedo_color = Color(0.13, 0.11, 0.08)
+	mud_mat.roughness = 0.35 # wet
+	mud.material_override = mud_mat
+	mud.position = WALLOW_POS + Vector3(0.0, 0.012, 0.0)
+	add_child(mud)
 
 ## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
 ## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
@@ -454,6 +480,28 @@ func _spawn_all_archetype_encounters() -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
 	)
+
+	# Milestone 16: the Bog Bear and the rot mounds.
+	var bear := EnemyBogBear.new()
+	bear.position = WALLOW_POS
+	bear.player_ref = _player
+	bear.audio = _audio
+	bear.coordinator = _coordinator
+	add_child(bear)
+	bear.bear_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+	for spot: Vector3 in ROT_MOUND_SPOTS:
+		var mound := EnemyRotMound.new()
+		mound.position = spot
+		mound.player_ref = _player
+		mound.audio = _audio
+		add_child(mound)
+		mound.mound_event_banner.connect(func(txt: String, col: Color) -> void:
+			if _hud:
+				_hud.show_banner(txt, col)
+		)
 
 	var troll := EnemyQuarryTroll.new()
 	troll.position = Vector3(16.0, 0.0, -15.5)

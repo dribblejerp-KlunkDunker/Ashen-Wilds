@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–15 are complete: combat core, six enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–16 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## Visual direction (read before any visual work)
 
@@ -50,7 +50,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **361 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **383 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -79,7 +79,8 @@ scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons),
                     weather_system.gd (profiles, blending, shelter, gusts, MultiMesh precipitation)
 scripts/player/     player_controller.gd (state machine, the largest file)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute, enemy_quarry_troll (blind, hunts sound),
-                    enemy_carrion_crow (sentinel, caws), enemy_ghoul (eats corpses, smells blood)
+                    enemy_carrion_crow (sentinel, caws), enemy_ghoul (eats corpses, smells blood),
+                    enemy_bog_bear (territorial, fears fire), enemy_rot_mound (spore hazard)
 scripts/ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd (start screen; pauses the tree)
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway), vision_memory.gdshader (full-screen cone/charcoal pass)
 tests/smoke_test.gd headless regression suite
@@ -98,6 +99,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Backgrounds:** `PlayerController._mods` is always a `SurvivorBackground`: the chosen one, or a neutral one. New player numbers that a trait could affect should multiply by a field on it. The bootstrap shows the picker unless `show_background_picker` is false. Tests and tools set that before `add_child`. Headless boots auto-pick the first survivor so the world isn't paused.
 - **Vision & noise:** enemies set `_visual_root.visible = player_ref.can_see_body(self)`; their own senses must not depend on that (the Ogre has `_sees_player()`). Anything that makes a sound calls `AcousticField.report()`. Enemies hear through `AcousticField.listen()` + `can_hear()` (walls muffle to 60%), never by polling the player's state. Player gait noise comes from `emit_gait_noise()`. Tests set `current_state` and call it directly. Enemy footsteps go through `AcousticField.step_cadence()`.
 - **Every enemy joins the `"enemy"` group in `_ready()`.** Saves (`_all_enemies`), the test freeze and the screenshot tool all find enemies by that group, so a new class must add itself or it'll wander into later checks and won't be saved. Set `can_lodge = false` on anything a weapon shouldn't stick in.
+- **Pose tilts:** rotating a `_visual_root` by +X raises its forward (−Z) end. The bear's rear pose was upside down until a screenshot showed it.
 - **Enemies steer in straight lines.** The Ghoul has a simple wall-follow (`_avoid_obstacles`) because it lives among standing stones. Copy it for any enemy whose home has obstacles.
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
 - **Art is being made separately** (sprites from another agent, to the brief in `docs/VISUAL_DIRECTION.md`). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
@@ -117,7 +119,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Godot renames duplicate sibling names** (a second `Ripple` becomes `@Node3D@N`). Find spawned nodes by group, not by `name.begins_with()`.
 - **Full-screen shader output is linear, pre-tonemap.** Constants that look tiny (0.016) come out light grey on screen. Compare against the scene with the overlay off (V) before tuning.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, F1–F3, F5 and F6 are dev teleports, V toggles the vision overlay, F4 advances the weather.
+- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, F1–F3 and F5–F7 are dev teleports, V toggles the vision overlay, F4 advances the weather.
 
 ### Writing tests (`tests/smoke_test.gd`)
 

@@ -50,6 +50,13 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("iron_skullcap", 1, randf_range(40.0, 80.0)))
 	return out
 
+static func roll_bear_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("bear_pelt", 1))
+	if randf() < 0.4:
+		out.append(make("clean_rag_bandage", 1))
+	return out
+
 static func roll_ghoul_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("iron_scrap", 1))
@@ -251,6 +258,7 @@ static func _build() -> void:
 	stone.weight_kg = 0.3
 	stone.max_stack = 10
 	_register(stone)
+	_register(_material("bear_pelt", "Bog Bear Pelt", 2.6, 2, "Matted with moss and marsh-water. Warm, if you can stand the smell."))
 	_register(_material("troll_hide", "Quarry-Troll Hide", 3.2, 2, "Thick as a cart-tarp and grey with stone dust."))
 
 	var pot := ItemData.new()

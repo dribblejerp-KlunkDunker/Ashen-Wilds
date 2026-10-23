@@ -133,6 +133,9 @@ var _base_stats: Dictionary = {}
 var _cough_timer: float = 0.0
 var _cough_noise_left: float = 0.0
 var _gait_noise_timer: float = 0.0
+## Milestone 16: spore sickness from a burst rot mound.
+var _spore_timer: float = 0.0
+var _spore_cough_timer: float = 0.0
 var _throw_cooldown_left: float = 0.0
 
 var _visual_root: Node3D
@@ -886,6 +889,14 @@ func _update_timers_and_conditions(delta: float) -> void:
 
 	if _cough_noise_left > 0.0:
 		_cough_noise_left = maxf(0.0, _cough_noise_left - delta)
+	if _spore_timer > 0.0:
+		_spore_timer = maxf(0.0, _spore_timer - delta)
+		_spore_cough_timer -= delta
+		if _spore_cough_timer <= 0.0 and _spore_timer > 0.0:
+			_spore_cough_timer = 5.0
+			_cough()
+		if _spore_timer == 0.0:
+			combat_banner_message.emit("Your lungs clear of the spores", Color(0.72, 0.80, 0.66))
 	if _mods.coughs:
 		_cough_timer -= delta
 		if _cough_timer <= 0.0:
@@ -895,6 +906,8 @@ func _update_timers_and_conditions(delta: float) -> void:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
 		var rate: float = stamina_regen_rate * _mods.stamina_regen_mult * WeatherSystem.factor(self, "stamina_regen") * (0.38 if current_state == ActionState.BLOCK else 1.0)
+		if is_spore_sick():
+			rate *= 0.5
 		if is_bleeding:
 			rate *= 0.75
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
@@ -1277,6 +1290,21 @@ func _armor_label() -> String:
 		parts.append(piece.data.display_name if piece else "—")
 	return " / ".join(parts)
 
+## Milestone 16: a rot mound's spores. Halves stamina regen and makes you
+## cough (audibly) every few seconds until it wears off or you rest at the fire.
+func afflict_spores(duration: float) -> void:
+	var fresh: bool = _spore_timer <= 0.0
+	_spore_timer = maxf(_spore_timer, duration)
+	if fresh:
+		_spore_cough_timer = 1.0
+		combat_banner_message.emit("You breathe in rot spores — your chest seizes (spore-sick)", Color(0.66, 0.74, 0.36))
+
+func is_spore_sick() -> bool:
+	return _spore_timer > 0.0
+
+func cure_spores() -> void:
+	_spore_timer = 0.0
+
 func _cough() -> void:
 	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
 	_cough_noise_left = 0.5
@@ -1547,6 +1575,7 @@ func _emit_stats() -> void:
 		"cramped": _cramped,
 		"lodged": current_state == ActionState.LODGED,
 		"coughing": is_coughing(),
+		"spore_sick": is_spore_sick(),
 		"armor": get_armor_protection(),
 		"armor_label": _armor_label(),
 		"background": background.display_name if background else ""
