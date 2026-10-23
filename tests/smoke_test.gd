@@ -105,6 +105,7 @@ func _run() -> void:
 	await _test_weapon_lodging()
 	await _test_enemy_clangs()
 	await _test_survivor_backgrounds()
+	await _test_vision_and_ripples()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -969,4 +970,114 @@ func _test_survivor_backgrounds() -> void:
 	_player.apply_background(null)
 	_check(absf(_player.inventory.total_weight() - 5.9) < 0.01 and is_equal_approx(_player.max_health, 100.0), "clearing the background restores the legacy loadout")
 	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 8 — vision cone, memory map, acoustic ripples
+# ------------------------------------------------------------------------------
+func _test_vision_and_ripples() -> void:
+	_section("Vision cone & acoustic ripples")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(3)
+	var p: Vector3 = _player.global_position + Vector3(0, 1.0, 0)
+
+	_check(_player.can_see_point(p + Vector3(6, 0, 0)), "sees a point 6 m ahead")
+	_check(_player.can_see_point(p + Vector3(5, 0, 4)), "sees 40° off the aim (inside the 130° cone)")
+	_check(not _player.can_see_point(p + Vector3(-6, 0, 0)), "can't see 6 m behind")
+	_check(not _player.can_see_point(p + Vector3(1, 0, 6)), "can't see 80° off the aim")
+	_check(_player.can_see_point(p + Vector3(-1.2, 0, 0)), "senses 1.2 m behind (sense radius)")
+	_check(not _player.can_see_point(p + Vector3(17, 0, 0)), "can't see past vision range")
+	# Walls block sight: from the yard west of the watchhouse, look east through the wall.
+	_reset_player(Vector3(-0.5, 0.0, -5.0))
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	_check(not _player.can_see_point(Vector3(3.0, 1.0, -5.0)), "a wall in the cone still blocks sight")
+
+	# Enemies outside the cone aren't drawn.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var ahead := _spawn_dummy_goblin(OPEN + Vector3(4.0, 0, 0))
+	var behind := _spawn_dummy_goblin(OPEN + Vector3(-4.0, 0, 0))
+	ahead.player_ref = _player
+	behind.player_ref = _player
+	await _ticks(2)
+	ahead._update_player_los_visibility(0.016)
+	behind._update_player_los_visibility(0.016)
+	_check(ahead._visual_root.visible, "goblin inside the cone is drawn")
+	_check(not behind._visual_root.visible, "goblin behind you is hidden")
+
+	# Exploration memory.
+	var vision: VisionCone = _children_of(func(n: Node) -> bool: return n is VisionCone)[0]
+	vision.update_now()
+	_check(vision.is_visible_now(OPEN + Vector3(6, 0, 0)), "cone marks ground ahead as visible")
+	_check(not vision.is_visible_now(OPEN + Vector3(-6, 0, 0)), "ground behind is not visible")
+	_check(vision.is_explored(OPEN + Vector3(6, 0, 0)), "ground ahead is now explored")
+	_face(Vector3.LEFT)
+	vision.update_now()
+	_check(not vision.is_visible_now(OPEN + Vector3(6, 0, 0)) and vision.is_explored(OPEN + Vector3(6, 0, 0)), "turning away: still explored (charcoal) but no longer visible")
+	_check(not vision.is_explored(Vector3(24.0, 0, -24.0)), "far corner never seen stays unexplored")
+	_reset_player(Vector3(-0.5, 0.0, -5.0))
+	_face(Vector3.RIGHT)
+	vision.update_now()
+	_check(not vision.is_visible_now(Vector3(4.0, 0.0, -5.0)), "cone rays stop at walls (interior stays unlit)")
+	_check(vision.overlay != null and vision.overlay.get_parent() is Camera3D, "memory overlay is attached to the camera")
+
+	# Noises and ripples.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var ripples: AcousticRipples = _children_of(func(n: Node) -> bool: return n is AcousticRipples)[0]
+	var heard: Array = []
+	var listener := func(_pos: Vector3, loud: float, _src: Node3D, kind: String) -> void: heard.append([kind, loud])
+	field.noise_emitted.connect(listener)
+
+	var r0: int = ripples.active_ripple_count()
+	field.emit_noise(behind.global_position, 6.0, behind, "footstep")
+	_check(ripples.active_ripple_count() == r0 + 1, "unseen goblin's footstep draws a ripple")
+	field.emit_noise(behind.global_position, 6.0, behind, "footstep")
+	_check(ripples.active_ripple_count() == r0 + 1, "one ripple per source per 0.28 s")
+	field.emit_noise(ahead.global_position, 6.0, ahead, "footstep")
+	_check(ripples.active_ripple_count() == r0 + 1, "a goblin you can see makes no ripple")
+	var far := _spawn_dummy_goblin(OPEN + Vector3(-12.0, 0, 0))
+	field.emit_noise(far.global_position, 6.0, far, "footstep")
+	_check(ripples.active_ripple_count() == r0 + 1, "a footstep beyond its reach isn't heard")
+	field.emit_noise(far.global_position, 18.0, far, "slam")
+	_check(ripples.active_ripple_count() == r0 + 2, "a loud slam at 12 m is heard")
+	field.emit_noise(_player.global_position, 9.0, _player, "cough")
+	_check(ripples.active_ripple_count() == r0 + 2, "your own noises make no ripple")
+	var rip: Node3D = ripples.get_children().back()
+	await _seconds(0.5)
+	_check(rip.get_child(0).scale.x > 0.6, "ripple ring expands (scale %.2f)" % rip.get_child(0).scale.x)
+	await _seconds(1.2)
+	_check(ripples.active_ripple_count() == r0, "ripples fade out and free themselves")
+
+	# Emitters.
+	heard.clear()
+	behind.velocity = Vector3(3.0, 0, 0)
+	var t: float = AcousticField.step_cadence(behind, 0.01, 0.05, 0.34, 4.5)
+	_check(heard.size() == 1 and heard[0][0] == "footstep" and is_equal_approx(t, 0.34), "moving goblin reports a footstep")
+	behind.velocity = Vector3.ZERO
+	heard.clear()
+	AcousticField.step_cadence(behind, 0.01, 0.05, 0.34, 4.5)
+	_check(heard.is_empty(), "a standing goblin makes no footsteps")
+	heard.clear()
+	var hall_ork := _spawn_dummy_ork(HALL, false, Vector3.RIGHT)
+	await _ticks(2)
+	hall_ork._enter_combo_1_active()
+	_check(heard.any(func(h: Array) -> bool: return h[0] == "clang"), "an ork clang is reported to the acoustic field")
+	heard.clear()
+	field.hearing_multiplier = 0.5
+	field.emit_noise(OPEN, 10.0, null, "test")
+	_check(heard.size() == 1 and is_equal_approx(float(heard[0][1]), 5.0), "hearing multiplier scales noise reach")
+	field.hearing_multiplier = 1.0
+
+	field.noise_emitted.disconnect(listener)
+	for n: Node in [ahead, behind, far, hall_ork]:
+		n.queue_free()
+	_player.camera_rig = rig
 	await _ticks(2)

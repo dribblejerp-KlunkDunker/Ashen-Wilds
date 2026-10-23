@@ -169,6 +169,30 @@ func _run() -> void:
 	Engine.time_scale = 1.0
 	await _frames(10)
 
+	# 10. Milestone 8: vision cone, charcoal memory and ripples. Sweep the cone
+	# around the yard to build memory, then face west, away from the
+	# watchhouse. The goblin inside and the Ogre to the north-west are heard,
+	# not seen.
+	_equip_now("wooden_targe")
+	var field: AcousticField = _find(func(n: Node) -> bool: return n is AcousticField)[0]
+	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0))
+	for a in range(0, 360, 15):
+		_player._aim_direction = Vector3.FORWARD.rotated(Vector3.UP, deg_to_rad(a))
+		await _frames(2)
+	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0.35))
+	await _frames(20)
+	inside_goblin.global_position = Vector3(4.6, 0.0, -4.4)
+	field.emit_noise(inside_goblin.global_position, 6.5, inside_goblin, "footstep")
+	var yard_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
+	yard_goblin.global_position = Vector3(-1.4, 0.0, -6.6)
+	yard_goblin._visual_root.visible = false # out of the cone
+	field.emit_noise(yard_goblin.global_position, 9.0, yard_goblin, "footstep")
+	Engine.time_scale = 0.12
+	await _frames(4)
+	await _shot("10_vision_cone_ripples.png")
+	Engine.time_scale = 1.0
+	await _frames(10)
+
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
 	root.add_child(picker)

@@ -49,6 +49,7 @@ var _memory_timer: float = 0.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _strafe_sign: float = 1.0
+var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
@@ -83,17 +84,12 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
+	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.42, 7.0)
 
 func _update_player_los_visibility() -> void:
 	if player_ref == null:
 		return
-	var space_state := get_world_3d().direct_space_state
-	var q := PhysicsRayQueryParameters3D.create(
-		player_ref.global_position + Vector3(0.0, 1.35, 0.0),
-		global_position + Vector3(0.0, 1.15, 0.0),
-		1
-	)
-	_visual_root.visible = space_state.intersect_ray(q).is_empty()
+	_visual_root.visible = player_ref.can_see_body(self)
 
 func _evaluate_senses(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -292,6 +288,7 @@ func _enter_combo_1_active() -> void:
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 8.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -309,6 +306,7 @@ func _enter_combo_2_active() -> void:
 	_state_timer = 0.18
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 8.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -331,6 +329,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_knockback_vel = normal * 2.0
 	if audio:
 		audio.play_wall_clang()
+	AcousticField.report(self, global_position, 13.0, "clang")
 	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
 	ork_combat_bark.emit("The %s's swing clangs off the wall — strike now!" % enemy_name)
 

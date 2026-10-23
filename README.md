@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–7 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
+> **Status:** Milestones 1–8 complete · verified on Godot 4.3-stable (Forward+) · **205/205** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -110,6 +110,22 @@ A new game opens on **"Who were you before the Smothering?"** Pick one of eight 
 
 ![The survivor picker](docs/screenshots/09_survivor_picker.png)
 
+### Acoustic ripples & vision cone (Milestone 8)
+- **You see what you face.** A 130° cone, 16 m deep, follows your aim. Enemies outside it, or behind a wall inside it, aren't drawn. Within 1.6 m you sense what's behind you.
+- **Charcoal memory map.** Outside the cone the world turns to a dim, desaturated charcoal sketch, but only where you've looked before. Places you've never seen stay black, so the map fills in as you explore. Walls cast sight-shadows: the cone's rays stop at stone.
+- **Acoustic ripples.** Every footstep, swing, clang, roar and slam is reported to a shared acoustic field. When you can hear a threat but can't see it, a dust-ring ripple spreads at its position, drawn over walls and roofs. Ripple size follows loudness and opacity follows distance.
+
+  | Noise | Reach |
+  |---|---|
+  | Goblin footstep / swing | 4.5 m / 6 m |
+  | Ork footstep / swing | 7 m / 8 m |
+  | Any clang | 13–14 m |
+  | Ogre footstep / sweep | 13 m / 12 m |
+  | Ogre slam / roar | 18 m / 20 m |
+- **V** toggles the cone and memory map (accessibility and debugging).
+
+![Facing west in the yard: the watchhouse behind you is charcoal memory, and a goblin's footsteps ripple over the roof](docs/screenshots/10_vision_cone_ripples.png)
+
 ---
 
 ## Controls
@@ -128,6 +144,7 @@ A new game opens on **"Who were you before the Smothering?"** Pick one of eight 
 | **B** | Bandage a wound |
 | **1 / 2 / 3** | Ready blade / polearm / axe |
 | **4** | Swap off-hand: shield ⇄ torch |
+| **V** | Toggle the vision cone & memory map |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3** | Teleport to Watchhouse / Ork choke point / Ogre lair (dev) |
 | **Mouse wheel** | Zoom |
@@ -162,7 +179,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), and every survivor's trait and flaw.
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, and when a noise does or doesn't make a ripple.
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -185,6 +202,7 @@ project.godot              Engine config, physics layer names
 main.tscn                  Single root node → scene_bootstrap.gd
 shaders/
   foreground_cutaway.gdshader   Bayer-dither wall/roof cutaway
+  vision_memory.gdshader        Vision cone + charcoal memory map (full-screen pass)
 scripts/
   core/       scene_bootstrap.gd (builds the level, input map, containers), procedural_audio.gd
   camera/     iso_camera_rig.gd
@@ -192,12 +210,12 @@ scripts/
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
               survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
-  world/      lootable.gd (crates, corpses, ground piles)
+  world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (177 checks)
+  smoke_test.gd            Headless regression suite (205 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -211,6 +229,8 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
 - **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
 - **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
+- **Vision:** `PlayerController.can_see_point()` is the cone test plus a line-of-sight ray, and enemies use it to decide whether they're drawn. `VisionCone` casts 96 rays across the cone every other tick into two byte grids over the 52 m yard: "visible now" and "seen ever". The `vision_memory` shader is a full-screen quad on the camera. It rebuilds each pixel's world position from the depth buffer, passes visible pixels through, and draws the rest as charcoal or black.
+- **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. `AcousticRipples` draws a ripple when the survivor is within reach and can't see the source.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
 ---
@@ -219,7 +239,6 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 The full plan, with proposed numbers, is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-- **Milestone 8: Acoustic ripples & vision cone.** Unseen threats appear as dust-ring ripples sized by noise. A 130° vision cone with a charcoal "memory map" outside it.
 - **Milestone 9: Weather & atmosphere.** Ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead Calm, each changing sight, hearing, fire and footing.
 - Later: armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
 

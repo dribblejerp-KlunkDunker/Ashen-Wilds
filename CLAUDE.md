@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–7 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds. The plan for Milestones 8–9 is in `docs/ROADMAP.md`; the design document (not in the repo) has the final say on specifics.
+Milestones 1–8 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples. The plan for Milestone 9 is in `docs/ROADMAP.md`; the design document (not in the repo) has the final say on specifics.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **177 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **205 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -69,11 +69,12 @@ scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
                     survivor_background + background_database (the eight starting survivors)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
-scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
+scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons),
+                    vision_cone.gd (cone rays + memory grids + overlay), acoustic_field.gd (noise bus), acoustic_ripples.gd
 scripts/player/     player_controller.gd (state machine, the largest file)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
 scripts/ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd (start screen; pauses the tree)
-shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
+shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway), vision_memory.gdshader (full-screen cone/charcoal pass)
 tests/smoke_test.gd headless regression suite
 tools/              capture_screenshots.gd
 ```
@@ -88,6 +89,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `SwingGeometry.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies call the same function for their sweeping strokes (Ork combo 1, Ogre sweep). A recoiling enemy must report `is_staggered()`.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
 - **Backgrounds:** `PlayerController._mods` is always a `SurvivorBackground`: the chosen one, or a neutral one. New player numbers that a trait could affect should multiply by a field on it. The bootstrap shows the picker unless `show_background_picker` is false. Tests and tools set that before `add_child`. Headless boots auto-pick the first survivor so the world isn't paused.
+- **Vision & noise:** enemies set `_visual_root.visible = player_ref.can_see_body(self)`; their own senses must not depend on that (the Ogre has `_sees_player()`). Anything that makes a sound calls `AcousticField.report()` so it can ripple. Footsteps go through `AcousticField.step_cadence()`.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
 ## Conventions and pitfalls (learned the hard way)
@@ -99,7 +101,9 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Lights must not sit inside meshes that cast shadows.** The torch light hangs off `_torch_root` at the flame. When it was at the torso's centre, it shadowed the survivor black.
 - **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors.
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports.
+- **Godot renames duplicate sibling names** (a second `Ripple` becomes `@Node3D@N`). Find spawned nodes by group, not by `name.begins_with()`.
+- **Full-screen shader output is linear, pre-tonemap.** Constants that look tiny (0.016) come out light grey on screen. Compare against the scene with the overlay off (V) before tuning.
+- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports, V toggles the vision overlay.
 
 ### Writing tests (`tests/smoke_test.gd`)
 

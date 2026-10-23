@@ -40,6 +40,7 @@ var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _home_pos: Vector3 = Vector3.ZERO
 var _blocked_by_narrow_gap_timer: float = 0.0
+var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _club_pivot: Node3D
@@ -71,17 +72,21 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
+	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.62, 13.0)
 
 func _update_player_los_visibility() -> void:
 	if player_ref == null:
 		return
-	var space_state := get_world_3d().direct_space_state
+	_visual_root.visible = player_ref.can_see_body(self)
+
+## The Ogre's own eyes (it doesn't care where the survivor is looking).
+func _sees_player() -> bool:
 	var q := PhysicsRayQueryParameters3D.create(
+		global_position + Vector3(0.0, 2.4, 0.0),
 		player_ref.global_position + Vector3(0.0, 1.35, 0.0),
-		global_position + Vector3(0.0, 1.85, 0.0),
 		1
 	)
-	_visual_root.visible = space_state.intersect_ray(q).is_empty()
+	return get_world_3d().direct_space_state.intersect_ray(q).is_empty()
 
 func _process_ai_state(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -98,9 +103,10 @@ func _process_ai_state(delta: float) -> void:
 		AIState.IDLE:
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
-			if dist <= 13.0 and _visual_root.visible:
+			if dist <= 13.0 and _sees_player():
 				if audio:
 					audio.play_ogre_roar()
+				AcousticField.report(self, global_position, 20.0, "roar")
 				ogre_event_banner.emit("The Blackfen Ogre Has Spotted You!", Color(0.92, 0.35, 0.20))
 				state = AIState.PURSUE
 
@@ -126,6 +132,7 @@ func _process_ai_state(delta: float) -> void:
 					_blocked_by_narrow_gap_timer = 0.0
 					if audio:
 						audio.play_ogre_roar()
+					AcousticField.report(self, global_position, 20.0, "roar")
 					ogre_event_banner.emit("The Ogre Is Too Massive To Fit Through The Doorway!", Color(0.85, 0.72, 0.38))
 					state = AIState.DOORWAY_FRUSTRATED
 					_state_timer = 2.2
@@ -217,6 +224,7 @@ func _enter_sweep_active() -> void:
 	_state_timer = 0.24
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 12.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -234,6 +242,7 @@ func _enter_slam_active() -> void:
 	_state_timer = 0.22
 	if audio:
 		audio.play_ogre_ground_slam()
+	AcousticField.report(self, global_position, 18.0, "slam")
 	ogre_ground_shockwave.emit(0.75)
 	var payload := CombatPayload.new(
 		self,
@@ -257,6 +266,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_knockback_vel = normal * 1.6
 	if audio:
 		audio.play_wall_clang()
+	AcousticField.report(self, global_position, 14.0, "clang")
 	ogre_ground_shockwave.emit(0.3)
 	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * 2.0), normal, 22)
 	ogre_event_banner.emit("The Ogre's club smashes into stone — strike now!", Color(0.48, 0.78, 0.92))

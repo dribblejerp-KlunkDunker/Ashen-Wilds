@@ -39,6 +39,7 @@ var _flank_sign: float = 1.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _unseen_cue_cooldown: float = 0.0
+var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
@@ -68,6 +69,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
+	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.34, 4.5)
 
 func _update_player_los_visibility(delta: float) -> void:
 	if player_ref == null:
@@ -82,7 +84,7 @@ func _update_player_los_visibility(delta: float) -> void:
 	var hit := space_state.intersect_ray(query)
 
 	var is_occluded_by_wall: bool = not hit.is_empty()
-	_visual_root.visible = not is_occluded_by_wall
+	_visual_root.visible = player_ref.can_see_body(self)
 
 	if is_occluded_by_wall and state != AIState.DEAD and velocity.length() > 0.5:
 		var dist: float = global_position.distance_to(player_ref.global_position)
@@ -296,6 +298,7 @@ func _enter_attack_active() -> void:
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 6.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,

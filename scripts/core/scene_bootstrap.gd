@@ -6,6 +6,9 @@ var _camera_rig: IsoCameraRig
 var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
+var _acoustics: AcousticField
+var _ripples: AcousticRipples
+var _vision: VisionCone
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
 ## Milestone 7: show the survivor picker on boot. Tests and tools turn this
 ## off before adding the scene, which keeps the legacy loadout.
@@ -19,6 +22,9 @@ func _ready() -> void:
 
 	_coordinator = EncounterCoordinator.new()
 	add_child(_coordinator)
+
+	_acoustics = AcousticField.new()
+	add_child(_acoustics)
 
 	var world_env := _build_atmosphere_and_lighting()
 	_camera_rig = IsoCameraRig.new()
@@ -34,6 +40,15 @@ func _ready() -> void:
 	add_child(_player)
 	_camera_rig.target = _player
 	_camera_rig.global_position = _shelter_spawn
+
+	# Milestone 8: vision cone + memory map, and ripples for unseen noises.
+	_vision = VisionCone.new()
+	_vision.player = _player
+	add_child(_vision)
+	_vision.attach_to_camera(_camera_rig.camera)
+	_ripples = AcousticRipples.new()
+	add_child(_ripples)
+	_ripples.bind(_acoustics, _player)
 
 	_spawn_all_archetype_encounters()
 
@@ -71,6 +86,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
+			KEY_V:
+				_vision.set_enabled(not _vision.enabled)
+				_hud.show_banner("Vision cone & memory map: %s" % ("ON" if _vision.enabled else "OFF"), Color(0.75, 0.75, 0.75))
 			KEY_BRACKETLEFT:
 				_camera_rig.adjust_brightness(-0.1)
 				_hud.show_banner("Brightness Decreased", Color(0.7, 0.7, 0.7))

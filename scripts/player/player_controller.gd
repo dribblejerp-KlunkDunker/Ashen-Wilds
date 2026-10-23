@@ -66,6 +66,12 @@ const NEUTRAL_STATES: Array[ActionState] = [
 ## How far an Ash-Lung cough carries to enemy ears.
 @export var cough_noise_radius: float = 9.0
 
+# Milestone 8 — vision cone
+@export var vision_half_angle_deg: float = 65.0
+@export var vision_range: float = 16.0
+## Inside this radius you sense things behind you (walls still block).
+@export var sense_radius: float = 1.6
+
 var health: float = 100.0
 var stamina: float = 100.0
 var poise_damage_taken: float = 0.0
@@ -654,6 +660,37 @@ func _update_torch(delta: float) -> void:
 	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade
 	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade)
 
+# ------------------------------------------------------------------------------
+# Milestone 8 — vision cone
+# ------------------------------------------------------------------------------
+func get_aim_direction() -> Vector3:
+	return Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
+
+func get_vision_range() -> float:
+	return vision_range
+
+## True if a world point is inside the cone (or the sense radius) with a clear
+## line of sight from eye height.
+func can_see_point(world: Vector3) -> bool:
+	if not is_inside_tree():
+		return false
+	var flat := Vector3(world.x - global_position.x, 0.0, world.z - global_position.z)
+	var dist: float = flat.length()
+	if dist > sense_radius:
+		if dist > get_vision_range():
+			return false
+		if get_aim_direction().dot(flat / dist) < cos(deg_to_rad(vision_half_angle_deg)):
+			return false
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 1.35, 0.0), world, 1)
+	q.exclude = [get_rid()]
+	return get_world_3d().direct_space_state.intersect_ray(q).is_empty()
+
+## Checks a body at chest and head height so short walls don't hide tall foes.
+func can_see_body(body: Node3D) -> bool:
+	if body == null or not is_instance_valid(body):
+		return false
+	return can_see_point(body.global_position + Vector3(0.0, 0.95, 0.0)) or can_see_point(body.global_position + Vector3(0.0, 1.7, 0.0))
+
 func is_torch_lit() -> bool:
 	return _torch_light != null and _torch_light.visible
 
@@ -1036,6 +1073,7 @@ func _cough() -> void:
 	_cough_noise_left = 0.5
 	if audio:
 		audio.play_cough()
+	AcousticField.report(self, global_position, cough_noise_radius, "cough")
 	combat_banner_message.emit("You double over coughing — ash in your lungs", Color(0.70, 0.66, 0.58))
 
 func respawn_at_shelter(spawn_pos: Vector3) -> void:
@@ -1341,6 +1379,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 
 	if audio:
 		audio.play_wall_clang()
+	AcousticField.report(self, global_position, 13.0, "clang")
 	if camera_rig:
 		camera_rig.add_trauma(0.32)
 	_spawn_sparks(hit.get("position", global_position + _aim_direction), normal)
