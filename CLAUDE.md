@@ -12,7 +12,7 @@ Milestones 1–19 are complete: combat core, eight enemy types, scavenging and e
 
 `.claude/skills/ashen-wilds-milestone/` is this repo's plan → test → code → debug → clean → commit loop, with helper scripts: `setup_godot.sh`, `verify.sh` (all four checks below; `--twice` for timing work) and `capture.sh` (screenshots). Use it for any feature or fix.
 
-For gated, autonomous runs, the Autonomous Project Master kit is in `.claude/apm/` (`verify.mjs`, `mission.mjs`, hooks, `selftest.mjs`), with the `evidence-reviewer` agent and this repo's gates (compile, suite, boot) in `.agent/master/config.json`. Its hooks only run once they're in `.claude/settings.json`, which the owner enables.
+For gated, autonomous runs, the Autonomous Project Master kit is in `.claude/apm/` (`verify.mjs`, `mission.mjs`, hooks, `selftest.mjs`), with the `evidence-reviewer` agent and this repo's gates (compile, suite, boot) in `.agent/master/config.json`. Its hooks are wired in `.claude/settings.json`. They do nothing unless a mission is running (`mission.mjs start`), so ordinary sessions are unaffected. Overwriting `tests/smoke_test.gd` wholesale asks the owner; adding tests doesn't.
 
 ## Visual direction (read before any visual work)
 
