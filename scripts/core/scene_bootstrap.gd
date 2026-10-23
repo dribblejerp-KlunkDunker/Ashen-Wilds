@@ -86,7 +86,7 @@ func _ready() -> void:
 	_hud.bind_player(_player)
 	_build_act_one_objectives()
 	for n: Node in get_children():
-		if n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll:
+		if n.is_in_group("enemy"):
 			_all_enemies.append(n)
 	_hud.show_banner("THE BLACKFEN OUTSKIRTS — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
@@ -146,6 +146,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F5:
 				_player.global_position = Vector3(7.8, 0.0, -15.0)
 				_hud.show_banner("Teleported: The Old Quarry (Blind Quarry-Troll) — make no sound", Color(0.78, 0.72, 0.58))
+			KEY_F6:
+				_player.global_position = BARROW_POS + Vector3(6.0, 0.0, -4.0)
+				_hud.show_banner("Teleported: The Drowned Barrow (Ghoul) — don't bleed here", Color(0.70, 0.62, 0.58))
 			KEY_F4:
 				_weather.advance()
 			KEY_V:
@@ -297,9 +300,24 @@ func _build_blackfen_test_yard() -> void:
 	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false)
 
 	_build_quarry(cutaway_shader)
+	_build_bestiary_landmarks(cutaway_shader)
 
 	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false)
 	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false)
+
+## Milestone 15: the Old Gibbet (crows) south-east, the Drowned Barrow
+## (the Ghoul) south-west.
+const GIBBET_POS := Vector3(8.0, 0.0, 15.0)
+const BARROW_POS := Vector3(-19.0, 0.0, 16.0)
+
+func _build_bestiary_landmarks(cutaway_shader: Shader) -> void:
+	var wood := Color(0.24, 0.18, 0.13)
+	_create_static_box(GIBBET_POS + Vector3(0.0, 1.5, 0.0), Vector3(0.3, 3.0, 0.3), wood, cutaway_shader, false, false)
+	_create_static_box(GIBBET_POS + Vector3(0.9, 2.85, 0.0), Vector3(2.0, 0.22, 0.22), wood, cutaway_shader, false, false)
+	var stone := Color(0.30, 0.31, 0.29)
+	for off: Vector3 in [Vector3(-2.6, 0, -1.8), Vector3(2.4, 0, -2.2), Vector3(-2.2, 0, 2.6), Vector3(2.8, 0, 2.0)]:
+		_create_static_box(BARROW_POS + off + Vector3(0.0, 1.0, 0.0), Vector3(0.7, 2.0, 0.5), stone, cutaway_shader, false, false)
+	_create_static_box(BARROW_POS + Vector3(0.0, 0.25, -3.6), Vector3(3.6, 0.5, 1.4), stone, cutaway_shader, false, false)
 
 ## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
 ## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
@@ -412,6 +430,31 @@ func _spawn_all_archetype_encounters() -> void:
 			_camera_rig.add_trauma(trauma)
 	)
 
+	# Milestone 15: crows on the gibbet and the Ogre's bone heap; the Ghoul.
+	var perches: Array[Vector3] = [
+		GIBBET_POS + Vector3(0.4, 2.96, 0.0), GIBBET_POS + Vector3(1.5, 2.96, 0.0), GIBBET_POS + Vector3(-0.8, 0.0, 1.0),
+		Vector3(-15.3, 0.45, -13.2), Vector3(-14.6, 0.45, -12.8),
+	]
+	for perch: Vector3 in perches:
+		var crow := EnemyCarrionCrow.new()
+		crow.position = perch
+		crow.rotation_degrees.y = randf_range(0.0, 360.0)
+		crow.player_ref = _player
+		crow.audio = _audio
+		add_child(crow)
+		crow.crow_alarm.connect(_on_crow_alarm)
+
+	var ghoul := EnemyGhoul.new()
+	ghoul.position = BARROW_POS + Vector3(0.0, 0.0, 0.5)
+	ghoul.player_ref = _player
+	ghoul.audio = _audio
+	ghoul.coordinator = _coordinator
+	add_child(ghoul)
+	ghoul.ghoul_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+
 	var troll := EnemyQuarryTroll.new()
 	troll.position = Vector3(16.0, 0.0, -15.5)
 	troll.player_ref = _player
@@ -469,6 +512,10 @@ func _shelter_progress() -> String:
 func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
 	if _hud:
 		_hud.show_banner("The weather turns: %s — %s" % [display_name.to_upper(), summary], Color(0.72, 0.78, 0.84))
+
+func _on_crow_alarm(_pos: Vector3) -> void:
+	if _hud:
+		_hud.show_banner("Crows burst up cawing — everything nearby heard that", Color(0.70, 0.68, 0.62))
 
 func _on_ork_bark(msg: String) -> void:
 	if _hud:

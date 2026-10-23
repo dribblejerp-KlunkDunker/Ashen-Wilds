@@ -59,6 +59,7 @@ var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	guard_stamina = max_guard_stamina
 	_strafe_sign = 1.0 if randf() > 0.5 else -1.0
@@ -131,7 +132,7 @@ func _alert_to(world_pos: Vector3) -> void:
 func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
 	if state == AIState.DEAD or source == self or not is_inside_tree():
 		return
-	if not (source is PlayerController or kind == "clang"):
+	if not (source is PlayerController or kind in ["clang", "caw"]):
 		return
 	if AcousticField.can_hear(self, world_pos, reach):
 		_alert_to(world_pos)

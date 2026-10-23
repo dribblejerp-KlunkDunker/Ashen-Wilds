@@ -91,7 +91,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll):
+	for e: Node in _children_of(func(n: Node) -> bool: return n.is_in_group("enemy")):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -111,6 +111,7 @@ func _run() -> void:
 	await _test_enemy_ears()
 	await _test_quarry_troll()
 	await _test_armor()
+	await _test_bestiary_one()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -1565,6 +1566,157 @@ func _emit_check_hud() -> void:
 	_check(lbl.text.begins_with("ARMOR ") and lbl.text.contains("%"), "HUD shows armor (%s)" % lbl.text)
 
 # ------------------------------------------------------------------------------
+# Milestone 15 — Carrion Crows & the Ghoul
+# ------------------------------------------------------------------------------
+func _spawn_dummy_crow(pos: Vector3) -> EnemyCarrionCrow:
+	var c := EnemyCarrionCrow.new()
+	c.position = pos
+	c.process_mode = Node.PROCESS_MODE_DISABLED
+	c.player_ref = _player
+	_main.add_child(c)
+	return c
+
+func _test_bestiary_one() -> void:
+	_section("Bestiary I: Carrion Crows & the Ghoul")
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var crows: Array = _children_of(func(n: Node) -> bool: return n is EnemyCarrionCrow)
+	var ghouls: Array = _children_of(func(n: Node) -> bool: return n is EnemyGhoul)
+	_check(crows.size() == 5 and ghouls.size() == 1, "five crows (gibbet & bone heap) and a ghoul in the world")
+	_check(crows.any(func(c: Node3D) -> bool: return c.global_position.y > 2.5), "some crows perch up on the gibbet beam")
+
+	# Crows: sentinels.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var crow := _spawn_dummy_crow(OPEN + Vector3(9.0, 0, 0))
+	var buddy := _spawn_dummy_crow(OPEN + Vector3(9.5, 0, 0.6))
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(14.0, 0, 6.0))
+	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	await _ticks(2)
+	crow._process_ai_state(0.05)
+	_check(crow.is_perched(), "9 m away and quiet: the crow stays put")
+	var caws: Array = []
+	var rec := func(pos: Vector3, _r: float, src: Node3D, kind: String) -> void:
+		if kind == "caw":
+			caws.append([pos, src])
+	field.noise_emitted.connect(rec)
+	_reset_player(OPEN + Vector3(4.5, 0, 0))
+	await _ticks(1)
+	crow._process_ai_state(0.05)
+	_check(not crow.is_perched() and caws.size() >= 1, "within 6 m in its sight: it bursts up cawing")
+	_check(not buddy.is_perched(), "one crow's caw sets off the flock")
+	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE and gob._last_known_player_pos.distance_to(OPEN + Vector3(9.0, 0, 0)) < 1.5, "a goblin 7 m off comes to see what the crows saw")
+	crow._process_ai_state(1.5)
+	crow._process_ai_state(crow.away_time + 0.1)
+	_check(crow.state == EnemyCarrionCrow.AIState.RETURNING, "the crow comes back after a while")
+	crow._process_ai_state(1.7)
+	_check(crow.is_perched(), "...and settles on its perch again")
+
+	# A thrown stone near a flock is a distraction.
+	_reset_player(OPEN)
+	await _ticks(1)
+	var c3 := _spawn_dummy_crow(OPEN + Vector3(-9.0, 0, 0))
+	await _ticks(1)
+	caws.clear()
+	field.emit_noise(OPEN + Vector3(-8.0, 0, 0), 10.0, _player, "thud")
+	_check(not c3.is_perched() and caws.any(func(c: Array) -> bool: return (c[0] as Vector3).distance_to(c3.global_position) < 2.0 or c[1] == c3), "a stone landing near crows sets them off (a distraction elsewhere)")
+	var troll := _spawn_dummy_troll(OPEN + Vector3(-9.0, 0, 9.0))
+	await _ticks(1)
+	field.emit_noise(OPEN + Vector3(-9.0, 0, 0), 14.0, c3, "caw")
+	_check(troll.state == EnemyQuarryTroll.AIState.CHARGE, "the Quarry-Troll charges at cawing")
+	field.noise_emitted.disconnect(rec)
+
+	# One blow kills a crow; nothing lodges in it.
+	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
+	var saved_chance: float = axe_w.heavy_lodge_chance
+	axe_w.heavy_lodge_chance = 1.0
+	_equip_now("woodsmans_broadaxe")
+	var c4 := _spawn_dummy_crow(OPEN + Vector3(1.0, 0, 0))
+	await _ticks(1)
+	_make_lodge(c4, true)
+	_check(c4.is_dead(), "a single blow kills a crow")
+	_check(_player.current_state != PlayerController.ActionState.LODGED, "weapons never lodge in a crow")
+	_player.current_state = PlayerController.ActionState.IDLE
+	axe_w.heavy_lodge_chance = saved_chance
+	_equip_now("arming_sword")
+
+	# The Ghoul: corpses and blood.
+	var G := EnemyGhoul.AIState
+	_reset_player(OPEN)
+	_player.is_bleeding = false
+	await _ticks(1)
+	var victim := _spawn_dummy_goblin(OPEN + Vector3(-6.0, 0, -6.0))
+	victim._on_hurtbox_hit_received(CombatPayload.new(_player, victim.global_position, Vector3.FORWARD, 999.0, 1.0))
+	await _ticks(2)
+	var corpse: Lootable = null
+	for c: Node in victim.get_children():
+		if c is Lootable:
+			corpse = c
+	corpse.items = [ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2), ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("iron_skullcap")] as Array[ItemInstance]
+	var ghoul := EnemyGhoul.new()
+	ghoul.position = OPEN + Vector3(-12.0, 0, -6.0)
+	ghoul.process_mode = Node.PROCESS_MODE_DISABLED
+	ghoul.player_ref = _player
+	_main.add_child(ghoul)
+	await _ticks(2)
+	_check(ghoul.find_nearest_corpse() == corpse, "the ghoul finds the nearest corpse")
+	ghoul._process_ai_state(0.05)
+	_check(ghoul.state == G.SEEK_CORPSE, "...and goes to eat it")
+	ghoul.global_position = corpse.global_position + Vector3(-1.0, 0, 0)
+	ghoul._process_ai_state(0.05)
+	_check(ghoul.is_eating(), "at the body it starts gnawing")
+	ghoul.health = 20.0
+	var gnaws: Array = []
+	var rec2 := func(_p: Vector3, _r: float, src: Node3D, kind: String) -> void:
+		if kind == "gnaw" and src == ghoul:
+			gnaws.append(true)
+	field.noise_emitted.connect(rec2)
+	for i in range(int(ghoul.eat_time / 0.1) + 2):
+		ghoul._process_ai_state(0.1)
+	field.noise_emitted.disconnect(rec2)
+	_check(gnaws.size() >= 3, "gnawing is audible (%d crunches)" % gnaws.size())
+	_check(is_equal_approx(ghoul.health, ghoul.max_health) and ghoul.state == G.WANDER, "eating heals it fully")
+	_check(corpse.count_of("clean_rag_bandage") == 0 and corpse.count_of("salt") == 0, "food and cloth on the body are spoiled")
+	_check(corpse.count_of("iron_scrap") == 2 and corpse.count_of("iron_skullcap") == 1, "metal survives")
+	_check(corpse.display_name.begins_with("Gnawed ") and ghoul.find_nearest_corpse() != corpse, "a gnawed corpse isn't eaten twice")
+
+	# Blood scent, through walls.
+	ghoul.global_position = Vector3(3.0, 0.0, -5.0) # inside the watchhouse
+	_reset_player(Vector3(-8.0, 0.0, -5.0))
+	await _ticks(1)
+	ghoul.state = G.WANDER
+	ghoul._evaluate_senses(0.016)
+	_check(ghoul.state == G.WANDER, "no blood, 11 m away behind stone: it doesn't know you're there")
+	_player.is_bleeding = true
+	_player.bleed_timer = 10.0
+	ghoul._evaluate_senses(0.016)
+	_check(ghoul.state == G.PURSUE and ghoul._target_pos.distance_to(_player.global_position) < 0.01, "bleeding: it smells exactly where you are, through walls")
+	_player.is_bleeding = false
+
+	# Claws never clang; they cause bleeding.
+	var hall_ghoul := EnemyGhoul.new()
+	hall_ghoul.position = HALL
+	hall_ghoul.process_mode = Node.PROCESS_MODE_DISABLED
+	_main.add_child(hall_ghoul)
+	hall_ghoul._facing_dir = Vector3.RIGHT
+	hall_ghoul.claw_bleed_chance = 1.0
+	await _ticks(1)
+	hall_ghoul._enter_attack_active()
+	_check(hall_ghoul.state == G.ATTACK_ACTIVE and hall_ghoul._hitbox._active_payload.causes_bleed, "in the entry hall its claws rake without clanging, and they open wounds")
+	hall_ghoul._hitbox.end_swing()
+	ghoul._on_hurtbox_hit_received(CombatPayload.new(_player, ghoul.global_position, Vector3.FORWARD, 999.0, 1.0))
+	await _ticks(2)
+	_check(ghoul.is_dead() and ghoul.get_children().any(func(c: Node) -> bool: return c is Lootable), "a dead ghoul leaves a searchable corpse")
+
+	for n: Node in [crow, buddy, gob, c3, troll, c4, victim, ghoul, hall_ghoul]:
+		n.queue_free()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -1649,7 +1801,7 @@ func _test_save_load() -> void:
 	SaveGame.save_path = "user://smoke_test_save.json"
 	SaveGame.delete()
 	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_check(boot._all_enemies.size() == 6, "six enemies tracked for saving")
+	_check(boot._all_enemies.size() == 12, "every enemy tracked for saving (%d)" % boot._all_enemies.size())
 
 	# Build up some state worth saving.
 	_bg("peat_cutter")

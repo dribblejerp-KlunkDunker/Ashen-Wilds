@@ -51,6 +51,7 @@ var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	_home_pos = global_position
 	_build_ogre_visuals_and_colliders()

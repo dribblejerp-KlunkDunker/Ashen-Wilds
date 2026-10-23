@@ -37,7 +37,7 @@ enum AIState {
 @export var search_time: float = 3.2
 @export var wall_recoil_time: float = 1.2
 
-const LOUD_KINDS: Array[String] = ["clang", "swing", "roar", "slam", "thud", "shield", "cough"]
+const LOUD_KINDS: Array[String] = ["clang", "swing", "roar", "slam", "thud", "shield", "cough", "caw"]
 
 var health: float = 360.0
 var poise_damage: float = 0.0
@@ -63,6 +63,7 @@ var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	_home_pos = global_position
 	_build_troll_visuals_and_colliders()

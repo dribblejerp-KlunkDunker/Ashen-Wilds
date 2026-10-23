@@ -87,7 +87,9 @@ static func collect(boot: AshenWildsBootstrap) -> Dictionary:
 	for e: Node3D in boot._all_enemies:
 		var entry: Dictionary = {"dead": true}
 		if is_instance_valid(e):
-			entry = {"dead": e.is_dead(), "pos": _v3(e.global_position), "health": float(e.get("health"))}
+			# A crow caught mid-flight is saved back on its perch.
+			var pos: Vector3 = e.get("_perch_pos") if e is EnemyCarrionCrow else e.global_position
+			entry = {"dead": e.is_dead(), "pos": _v3(pos), "health": float(e.get("health"))}
 			if e.is_dead():
 				for c: Node in e.get_children():
 					if c is Lootable:

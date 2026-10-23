@@ -50,6 +50,15 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("iron_skullcap", 1, randf_range(40.0, 80.0)))
 	return out
 
+static func roll_ghoul_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("iron_scrap", 1))
+	if randf() < 0.5:
+		out.append(make("clean_rag_bandage", 1))
+	if randf() < 0.25:
+		out.append(make("throwing_stone", 2))
+	return out
+
 static func roll_troll_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("troll_hide", 1))

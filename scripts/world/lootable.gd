@@ -57,6 +57,7 @@ func total_weight() -> float:
 static func attach_corpse(body: Node3D, label: String, loot: Array[ItemInstance], duration: float = 3.0) -> Lootable:
 	var l := Lootable.new()
 	l.name = "CorpseLoot"
+	l.set_meta("corpse", true)
 	l.display_name = label
 	l.search_duration = duration
 	l.interact_radius = 2.0

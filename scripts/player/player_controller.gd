@@ -1604,6 +1604,8 @@ func _spawn_sparks(at: Vector3, normal: Vector3) -> void:
 func _target_dead_or_staggered(target: Node3D) -> bool:
 	if target == null or not is_instance_valid(target):
 		return false
+	if target.get("can_lodge") == false:
+		return false
 	if target.has_method("is_dead") and target.is_dead():
 		return true
 	return target.has_method("is_staggered") and target.is_staggered()

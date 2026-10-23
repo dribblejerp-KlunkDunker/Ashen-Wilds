@@ -64,7 +64,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll)
+	var enemies: Array = _find(func(n: Node) -> bool: return n.is_in_group("enemy"))
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_rig.adjust_brightness(0.4)
@@ -250,6 +250,28 @@ func _run() -> void:
 	await _frames(4)
 	await _shot("15_act_one_complete.png")
 	_hud.close_act_complete()
+
+	# 16. Milestone 15: crows on the Old Gibbet; the Ghoul gnawing a corpse.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	var ghoul: EnemyGhoul = enemies.filter(func(e: Node) -> bool: return e is EnemyGhoul)[0]
+	var meal: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
+	meal.global_position = Vector3(10.6, 0.0, 16.4)
+	meal.state = EnemyGoblinScavenger.AIState.DEAD
+	meal._visual_root.rotation_degrees.x = -85.0
+	meal._visual_root.position.y = 0.2
+	meal._visual_root.visible = true
+	ghoul.global_position = Vector3(11.4, 0.0, 16.9)
+	ghoul._face_direction((meal.global_position - ghoul.global_position).normalized(), 50.0, 1.0)
+	ghoul.state = EnemyGhoul.AIState.EAT
+	ghoul._update_visual_telegraph()
+	ghoul._visual_root.visible = true
+	_place(Vector3(6.2, 0.0, 17.6), Vector3(1.0, 0, -0.25))
+	for e: Node in enemies:
+		if e is EnemyCarrionCrow:
+			e._visual_root.visible = true
+	await _frames(40)
+	await _shot("16_gibbet_crows_ghoul.png")
 
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
