@@ -104,7 +104,8 @@ func _evaluate_senses(delta: float) -> void:
 	var dir_p: Vector3 = to_player.normalized() if dist > 0.01 else Vector3.FORWARD
 
 	var can_see: bool = false
-	if dist <= 14.5:
+	var hear_mult: float = WeatherSystem.factor(self, "hearing")
+	if dist <= 14.5 * WeatherSystem.factor(self, "sight"):
 		if _facing_dir.dot(dir_p) >= cos(deg_to_rad(60.0)) or dist <= 3.0:
 			var space_state := get_world_3d().direct_space_state
 			var q := PhysicsRayQueryParameters3D.create(
@@ -117,8 +118,8 @@ func _evaluate_senses(delta: float) -> void:
 
 	var can_hear: bool = (
 		player_ref.current_state in [PlayerController.ActionState.SPRINT, PlayerController.ActionState.ATTACK_ACTIVE]
-		and dist <= 10.0 * player_ref.get_noise_multiplier()
-	) or (player_ref.is_coughing() and dist <= player_ref.cough_noise_radius)
+		and dist <= 10.0 * player_ref.get_noise_multiplier() * hear_mult
+	) or (player_ref.is_coughing() and dist <= player_ref.cough_noise_radius * hear_mult)
 
 	if can_see or can_hear:
 		_last_known_player_pos = player_ref.global_position

@@ -103,7 +103,7 @@ func _process_ai_state(delta: float) -> void:
 		AIState.IDLE:
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
-			if dist <= 13.0 and _sees_player():
+			if dist <= 13.0 * WeatherSystem.factor(self, "sight") and _sees_player():
 				if audio:
 					audio.play_ogre_roar()
 				AcousticField.report(self, global_position, 20.0, "roar")

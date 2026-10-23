@@ -80,6 +80,7 @@ func _reset_player(pos: Vector3) -> void:
 func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
+	_main.set("weather_cycle_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
 
@@ -106,6 +107,7 @@ func _run() -> void:
 	await _test_enemy_clangs()
 	await _test_survivor_backgrounds()
 	await _test_vision_and_ripples()
+	await _test_weather()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1081,3 +1083,149 @@ func _test_vision_and_ripples() -> void:
 		n.queue_free()
 	_player.camera_rig = rig
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 9 — weather & atmosphere
+# ------------------------------------------------------------------------------
+const INSIDE := Vector3(6.0, 0.0, -3.0) # watchhouse interior (sheltered)
+
+func _test_weather() -> void:
+	_section("Weather & atmosphere")
+	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var W := WeatherSystem.Weather
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_check(not weather.cycle_enabled and weather.current == W.OVERCAST, "starts Overcast (cycle off under test)")
+	var all_named: bool = true
+	for w: int in W.values():
+		if String(WeatherSystem.profile(w)["name"]) == "" or String(WeatherSystem.profile(w)["summary"]) == "":
+			all_named = false
+	_check(W.size() == 7 and all_named, "seven weathers, each named and described")
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var neutral: bool = true
+	for key: String in ["sight", "hearing", "torch_burn", "torch_light", "traction", "sprint", "stamina_regen"]:
+		if not is_equal_approx(WeatherSystem.factor(_player, key), 1.0):
+			neutral = false
+	_check(neutral and is_equal_approx(WeatherSystem.factor(_player, "dodge_extra"), 0.0), "Overcast is neutral")
+
+	var changes: Array = []
+	var on_change := func(_w: int, n: String, _s: String) -> void: changes.append(n)
+	weather.weather_changed.connect(on_change)
+	weather.advance(true)
+	_check(weather.current == W.ASHFALL and changes == ["Ashfall"], "F4 / advance() moves to the next weather and announces it")
+	_check(absf(_player.get_vision_range() - 12.0) < 0.01, "Ashfall: vision range 16 -> 12 m")
+	_check(absf(field.hearing_multiplier - 0.8) < 0.01, "Ashfall: noise reach x0.8")
+
+	# Miasma: sight halved for you and for goblins.
+	weather.set_weather(W.MIASMA, true)
+	_check(absf(_player.get_vision_range() - 8.0) < 0.01, "Miasma: vision range 8 m")
+	_check(not _player.can_see_point(_player.global_position + Vector3(10, 1, 0)), "Miasma: can't see 10 m ahead")
+	var watcher := _spawn_dummy_goblin(OPEN + Vector3(10.0, 0, 0))
+	watcher.player_ref = _player
+	watcher._facing_dir = Vector3.LEFT
+	watcher.state = EnemyGoblinScavenger.AIState.PATROL
+	_player.current_state = PlayerController.ActionState.IDLE
+	watcher._evaluate_senses(0.016)
+	_check(watcher.state == EnemyGoblinScavenger.AIState.PATROL, "Miasma: a goblin 10 m away can't see you")
+	weather.set_weather(W.OVERCAST, true)
+	watcher._evaluate_senses(0.016)
+	_check(watcher.state == EnemyGoblinScavenger.AIState.PURSUE, "Overcast: the same goblin spots you")
+	weather.set_weather(W.MIASMA, true)
+	_check(absf(WeatherSystem.factor(_player, "stamina_regen") - 0.75) < 0.01, "Miasma: stamina regen x0.75 (even indoors)")
+
+	# Dead Calm: sound carries.
+	weather.set_weather(W.DEAD_CALM, true)
+	watcher.global_position = OPEN + Vector3(-5.0, 0, 0)
+	watcher._facing_dir = Vector3.LEFT
+	watcher.state = EnemyGoblinScavenger.AIState.PATROL
+	_player.current_state = PlayerController.ActionState.MOVE
+	watcher._evaluate_senses(0.016)
+	_check(watcher.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "Dead Calm: footsteps carry 5 m to a goblin")
+	weather.set_weather(W.OVERCAST, true)
+	watcher.state = EnemyGoblinScavenger.AIState.PATROL
+	watcher._evaluate_senses(0.016)
+	_check(watcher.state == EnemyGoblinScavenger.AIState.PATROL, "Overcast: the same footsteps go unheard")
+	_player.current_state = PlayerController.ActionState.IDLE
+	watcher.queue_free()
+
+	# Sleet: torch burns faster outdoors only; dodges cost more.
+	weather.set_weather(W.SLEET, true)
+	_equip_now("pitch_torch")
+	await _ticks(2)
+	var torch: ItemInstance = _player.inventory.off_hand
+	var fuel: float = torch.condition
+	await _seconds(1.0)
+	var burned_out: float = fuel - torch.condition
+	_check(burned_out > 1.7 and burned_out < 2.4, "Sleet: torch burns ~2 s of fuel per second outdoors (%.2f)" % burned_out)
+	_reset_player(INSIDE)
+	await _ticks(2)
+	_check(weather.is_sheltered(_player.global_position), "the watchhouse interior is sheltered")
+	fuel = torch.condition
+	await _seconds(1.0)
+	var burned_in: float = fuel - torch.condition
+	_check(burned_in > 0.8 and burned_in < 1.3, "Sleet: indoors the torch burns normally (%.2f)" % burned_in)
+	_reset_player(OPEN)
+	await _ticks(2)
+	_ready_for_attack()
+	_player._try_start_dodge(Vector3.RIGHT)
+	_check(absf((_player.max_stamina - _player.stamina) - 26.0) < 0.01, "Sleet: dodge costs 26 stamina outdoors")
+	await _seconds(0.6)
+	_check(get_precip_ok(weather, WeatherSystem.Precip.SLEET), "Sleet: sleet streaks are falling")
+	_equip_now("wooden_targe")
+
+	# Hoarfrost: you slide.
+	weather.set_weather(W.HOARFROST, true)
+	_reset_player(OPEN)
+	await _ticks(2)
+	_player.velocity = Vector3.ZERO
+	_player.current_state = PlayerController.ActionState.MOVE
+	_player._apply_locomotion(Vector3.RIGHT, 1.0 / 60.0)
+	var icy: float = _player.velocity.x
+	weather.set_weather(W.OVERCAST, true)
+	_player.velocity = Vector3.ZERO
+	_player._apply_locomotion(Vector3.RIGHT, 1.0 / 60.0)
+	var firm: float = _player.velocity.x
+	_check(icy < firm * 0.25 and firm > 4.0, "Hoarfrost: ice slows your first step (%.2f vs %.2f m/s)" % [icy, firm])
+	weather.set_weather(W.HOARFROST, true)
+	_check(absf(field.hearing_multiplier - 1.25) < 0.01 and absf(_player.get_vision_range() - 18.4) < 0.01, "Hoarfrost: sound carries x1.25, sight 18.4 m")
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Cinder-squall: gusts shove you outdoors, not indoors.
+	weather.set_weather(W.CINDER_SQUALL, true)
+	_reset_player(OPEN)
+	await _ticks(1)
+	_player._knockback_velocity = Vector3.ZERO
+	_check(weather.trigger_gust() and _player._knockback_velocity.length() > 4.0, "Cinder-squall: an ember gust shoves you outdoors")
+	_reset_player(INSIDE)
+	await _ticks(1)
+	_player._knockback_velocity = Vector3.ZERO
+	_check(not weather.trigger_gust() and _player._knockback_velocity.length() < 0.01, "Cinder-squall: no gusts inside the watchhouse")
+	_check(WeatherSystem.factor(_player, "torch_light") <= 1.0 + 0.001, "torch flare doesn't apply indoors")
+	_reset_player(OPEN)
+	await _ticks(1)
+	_check(WeatherSystem.factor(_player, "torch_light") > 1.29, "Cinder-squall: torches flare outdoors")
+
+	# Smooth transitions.
+	weather.set_weather(W.OVERCAST, true)
+	var env: Environment = weather.environment
+	var d0: float = env.fog_density
+	weather.set_weather(W.MIASMA)
+	_check(weather.is_transitioning(), "a weather change blends in")
+	await _seconds(weather.transition_time * 0.5)
+	var mid: float = env.fog_density
+	_check(mid > d0 + 0.01 and mid < 0.075 - 0.01, "fog thickens gradually (%.3f mid-way)" % mid)
+	await _seconds(weather.transition_time * 0.6)
+	_check(not weather.is_transitioning() and absf(env.fog_density - 0.075) < 0.001, "blend completes at the new weather's fog")
+
+	weather.set_weather(W.OVERCAST, true)
+	await _ticks(3)
+	_check(weather.get_precip_visible_count() == 0, "Overcast: nothing falls")
+	weather.weather_changed.disconnect(on_change)
+	_player.camera_rig = rig
+	await _ticks(2)
+
+func get_precip_ok(weather: WeatherSystem, kind: WeatherSystem.Precip) -> bool:
+	return weather.get_active_precip() == kind and weather.get_precip_visible_count() > 100

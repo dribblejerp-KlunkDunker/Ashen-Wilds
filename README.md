@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–8 complete · verified on Godot 4.3-stable (Forward+) · **205/205** headless regression checks passing
+> **Status:** Milestones 1–9 complete · verified on Godot 4.3-stable (Forward+) · **233/233** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -124,7 +124,27 @@ A new game opens on **"Who were you before the Smothering?"** Pick one of eight 
   | Ogre slam / roar | 18 m / 20 m |
 - **V** toggles the cone and memory map (accessibility and debugging).
 
-![Facing west in the yard: the watchhouse behind you is charcoal memory, and a goblin's footsteps ripple over the roof](docs/screenshots/10_vision_cone_ripples.png)
+![Facing west in the yard: the watchhouse behind you is charcoal memory, and goblin footsteps ripple over the roof and the yard](docs/screenshots/10_vision_cone_ripples.png)
+
+### Weather & atmosphere (Milestone 9)
+The sky over the Blackfen changes every 2½–4 minutes. Each weather blends in over 8 seconds and is announced in a banner, and the HUD shows the current one. **F4** skips to the next. Weather changes four things: **sight** (fog, your cone's depth, enemy sight range), **hearing** (enemy ears and how far noises ripple), **fire** (torch fuel and light) and **footing**. Under the watchhouse roof you're *sheltered* from fire and footing effects, but fog, sound and miasma still get in.
+
+| Weather | Sight | Hearing | Fire | Footing / other |
+|---|---|---|---|---|
+| Overcast | — | — | — | — |
+| Ashfall | −25%, grey haze | ×0.8 | — | — |
+| Miasma Fog | −50%, green murk | — | — | stamina regen −25% |
+| Sleet | −15% | ×0.7 | torch burns 2× | sprint −10%, dodge +4 stamina |
+| Cinder-Squall | −10%, ember glow | ×0.6 | torch +30% light | ember gusts shove you outdoors |
+| Hoarfrost | +15%, crisp | ×1.25 | torch −20% light | ice: you slide when starting and stopping |
+| Dead Calm | — | ×1.6 | torch burns 0.8× | — |
+
+Ash, sleet, embers and frost glints are CPU-animated meshes around the survivor, and they don't fall through the roof.
+
+| | | |
+|---|---|---|
+| ![Ashfall](docs/screenshots/11_weather_ashfall.png) | ![Cinder-squall at the Ork choke](docs/screenshots/12_weather_cinder_squall.png) | ![Miasma fog in the Ogre's lair](docs/screenshots/13_weather_miasma.png) |
+| **Ashfall** | **Cinder-squall** at the Ork choke | **Miasma** in the Ogre's lair |
 
 ---
 
@@ -144,6 +164,7 @@ A new game opens on **"Who were you before the Smothering?"** Pick one of eight 
 | **B** | Bandage a wound |
 | **1 / 2 / 3** | Ready blade / polearm / axe |
 | **4** | Swap off-hand: shield ⇄ torch |
+| **F4** | Next weather (dev) |
 | **V** | Toggle the vision cone & memory map |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3** | Teleport to Watchhouse / Ork choke point / Ogre lair (dev) |
@@ -179,7 +200,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, and when a noise does or doesn't make a ripple.
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, and each weather's effect on sight, hearing, fire and footing, indoors and out.
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -210,12 +231,13 @@ scripts/
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
               survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
-  world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd
+  world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
+              weather_system.gd
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (205 checks)
+  smoke_test.gd            Headless regression suite (233 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -230,6 +252,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
 - **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
 - **Vision:** `PlayerController.can_see_point()` is the cone test plus a line-of-sight ray, and enemies use it to decide whether they're drawn. `VisionCone` casts 96 rays across the cone every other tick into two byte grids over the 52 m yard: "visible now" and "seen ever". The `vision_memory` shader is a full-screen quad on the camera. It rebuilds each pixel's world position from the depth buffer, passes visible pixels through, and draws the rest as charcoal or black.
+- **Weather:** `WeatherSystem` blends between profile dictionaries. Gameplay code asks `WeatherSystem.factor(node, "sight" | "hearing" | "torch_burn" | …)`, which returns the neutral value when there's no weather, or when the node is under a roof and the key is a fire or footing effect. It drives the fog, ambient and sun light, and the acoustic field's reach.
 - **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. `AcousticRipples` draws a ripple when the survivor is within reach and can't see the source.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
@@ -237,10 +260,11 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 ## Roadmap
 
-The full plan, with proposed numbers, is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- **Milestone 9: Weather & atmosphere.** Ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead Calm, each changing sight, hearing, fire and footing.
-- Later: armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
+- Armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
+- Enemy ears on the acoustic field (enemies currently poll the survivor's state to hear).
+- An art and audio pass, once the look is settled. See *Known limitations*.
 
 ---
 
@@ -249,7 +273,8 @@ The full plan, with proposed numbers, is in [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
-- The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
+- The test suite checks game logic, not feel. Swap times, light levels, charcoal contrast, ripple readability, ice handling and UI layout still need hands-on tuning.
+- Survivor, weather and noise numbers are first-pass proposals (see the roadmap). The design document has the final say.
 
 ---
 

@@ -9,7 +9,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 6 | Cramped for everyone: enemy wall clangs | ✅ shipped | M5 deflection |
 | 7 | Survivor backgrounds | ✅ shipped | M4 inventory |
 | 8 | Acoustic ripples & vision cone | ✅ shipped | M6 (clangs are loud), M7 (cough flaw) |
-| 9 | Weather & atmosphere | planned | M8 (weather scales sight & hearing) |
+| 9 | Weather & atmosphere | ✅ shipped | M8 (weather scales sight & hearing) |
 | — | Armor slots, companions, Blind Quarry-Troll, Acts II–III | later | — |
 
 ---

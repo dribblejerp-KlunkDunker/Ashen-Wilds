@@ -59,6 +59,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
+	_main.set("weather_cycle_enabled", false)
 	root.add_child(_main)
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
@@ -182,7 +183,7 @@ func _run() -> void:
 	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0.35))
 	await _frames(20)
 	inside_goblin.global_position = Vector3(4.6, 0.0, -4.4)
-	field.emit_noise(inside_goblin.global_position, 6.5, inside_goblin, "footstep")
+	field.emit_noise(inside_goblin.global_position, 8.0, inside_goblin, "footstep")
 	var yard_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
 	yard_goblin.global_position = Vector3(-1.4, 0.0, -6.6)
 	yard_goblin._visual_root.visible = false # out of the cone
@@ -192,6 +193,31 @@ func _run() -> void:
 	await _shot("10_vision_cone_ripples.png")
 	Engine.time_scale = 1.0
 	await _frames(10)
+
+	# 11-13. Milestone 9: weather. Each is set instantly and given a moment
+	# for the flakes to spread.
+	var weather: WeatherSystem = _find(func(n: Node) -> bool: return n is WeatherSystem)[0]
+	_equip_now("pitch_torch")
+	weather.set_weather(WeatherSystem.Weather.ASHFALL, true)
+	_place(Vector3(-5.2, 0.0, 3.2), Vector3(0.6, 0, -1))
+	await _frames(45)
+	await _shot("11_weather_ashfall.png")
+	weather.set_weather(WeatherSystem.Weather.CINDER_SQUALL, true)
+	_place(Vector3(10.6, 0.0, 9.6), Vector3(1.2, 0, -0.4))
+	for e: Node in enemies:
+		if e is EnemyOrkWarrior:
+			e._visual_root.visible = true
+	await _frames(45)
+	await _shot("12_weather_cinder_squall.png")
+	weather.set_weather(WeatherSystem.Weather.MIASMA, true)
+	_place(Vector3(-9.0, 0.0, -9.2), Vector3(-1.4, 0, -0.6))
+	ogre.state = EnemyOgreBrute.AIState.IDLE
+	ogre._update_visual_telegraph()
+	ogre._visual_root.visible = true
+	await _frames(45)
+	await _shot("13_weather_miasma.png")
+	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
+	await _frames(5)
 
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()

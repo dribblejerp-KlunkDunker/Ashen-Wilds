@@ -9,10 +9,16 @@ var _coordinator: EncounterCoordinator
 var _acoustics: AcousticField
 var _ripples: AcousticRipples
 var _vision: VisionCone
+var _weather: WeatherSystem
+var _sun: DirectionalLight3D
+## Milestone 9: tests and tools turn the weather cycle off before add_child.
+@export var weather_cycle_enabled: bool = true
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
 ## Milestone 7: show the survivor picker on boot. Tests and tools turn this
 ## off before adding the scene, which keeps the legacy loadout.
 @export var show_background_picker: bool = true
+
+const WATCHHOUSE_INTERIOR := AABB(Vector3(1.1, 0.0, -6.9), Vector3(7.8, 3.8, 7.8))
 
 func _ready() -> void:
 	_ensure_input_bindings()
@@ -50,6 +56,17 @@ func _ready() -> void:
 	add_child(_ripples)
 	_ripples.bind(_acoustics, _player)
 
+	# Milestone 9: weather.
+	_weather = WeatherSystem.new()
+	_weather.cycle_enabled = weather_cycle_enabled
+	_weather.player = _player
+	_weather.environment = world_env.environment
+	_weather.sun = _sun
+	_weather.acoustics = _acoustics
+	_weather.register_interior(WATCHHOUSE_INTERIOR)
+	add_child(_weather)
+	_weather.weather_changed.connect(_on_weather_changed)
+
 	_spawn_all_archetype_encounters()
 
 	_spawn_scavenge_containers()
@@ -86,6 +103,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
+			KEY_F4:
+				_weather.advance()
 			KEY_V:
 				_vision.set_enabled(not _vision.enabled)
 				_hud.show_banner("Vision cone & memory map: %s" % ("ON" if _vision.enabled else "OFF"), Color(0.75, 0.75, 0.75))
@@ -160,6 +179,7 @@ func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	sun.light_energy = 0.65
 	sun.shadow_enabled = true
 	add_child(sun)
+	_sun = sun
 	return world_env
 
 func _build_blackfen_test_yard() -> void:
@@ -190,7 +210,7 @@ func _build_blackfen_test_yard() -> void:
 	fire_light.shadow_enabled = true
 	add_child(fire_light)
 
-	_camera_rig.register_interior_aabb(AABB(Vector3(1.1, 0.0, -6.9), Vector3(7.8, 3.8, 7.8)))
+	_camera_rig.register_interior_aabb(WATCHHOUSE_INTERIOR)
 
 	var stone_col := Color(0.28, 0.27, 0.25)
 	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false)
@@ -323,6 +343,10 @@ func _spawn_all_archetype_encounters() -> void:
 		if _camera_rig:
 			_camera_rig.add_trauma(trauma)
 	)
+
+func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
+	if _hud:
+		_hud.show_banner("The weather turns: %s — %s" % [display_name.to_upper(), summary], Color(0.72, 0.78, 0.84))
 
 func _on_ork_bark(msg: String) -> void:
 	if _hud:

@@ -8,6 +8,7 @@ var _poise_bar: ColorRect
 var _weight_bar: ColorRect
 var _status_label: Label
 var _survivor_label: Label
+var _weather_label: Label
 var _main_label: Label
 var _off_label: Label
 var _weight_label: Label
@@ -52,6 +53,8 @@ func _ready() -> void:
 	_survivor_label = _make_label("", 12, Color(0.74, 0.68, 0.54))
 	_survivor_label.visible = false
 	vbox.add_child(_survivor_label)
+	_weather_label = _make_label("", 12, Color(0.62, 0.70, 0.76))
+	vbox.add_child(_weather_label)
 
 	_weight_label = _make_label("", 12, Color(0.66, 0.62, 0.56))
 	vbox.add_child(_weight_label)
@@ -73,7 +76,7 @@ func _ready() -> void:
 		"ASHEN WILDS — THE BLACKFEN OUTSKIRTS\n" +
 		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
 		"[E] Search / Open   [Tab] Pack   [B] Bandage   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
-		"[F1/F2/F3] Teleport Encounters   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
+		"[F1/F2/F3] Teleport Encounters   [F4] Next Weather   [V] Vision Cone   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
 		13, Color(0.68, 0.65, 0.60)
 	)
 	help_panel.add_child(help_lbl)
@@ -186,6 +189,12 @@ func update_stats(data: Dictionary) -> void:
 	_survivor_label.visible = bg_name != ""
 	if _survivor_label.visible and _player and _player.background:
 		_survivor_label.text = "%s  ·  %s  ·  %s" % [bg_name.to_upper(), _player.background.trait_name, _player.background.flaw_name]
+
+	var weather: WeatherSystem = WeatherSystem.find(_player) if _player else null
+	_weather_label.visible = weather != null
+	if weather:
+		var sheltered: bool = weather.is_sheltered(_player.global_position)
+		_weather_label.text = "WEATHER  %s%s" % [weather.get_display_name(), "  ·  sheltered" if sheltered else ""]
 
 	_main_label.text = "MAIN  %s" % data["main_label"]
 	_main_label.add_theme_color_override(

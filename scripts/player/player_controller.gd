@@ -648,7 +648,7 @@ func _update_torch(delta: float) -> void:
 	if not lit:
 		return
 	var torch: ItemInstance = inventory.off_hand
-	if torch.wear(delta * _mods.torch_burn_mult):
+	if torch.wear(delta * _mods.torch_burn_mult * WeatherSystem.factor(self, "torch_burn")):
 		_torch_light.visible = false
 		_torch_flame.visible = false
 		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
@@ -657,8 +657,9 @@ func _update_torch(delta: float) -> void:
 	_torch_flicker_t += delta
 	var flicker: float = 0.9 + 0.06 * sin(_torch_flicker_t * 13.0) + 0.04 * sin(_torch_flicker_t * 29.0 + 1.3)
 	var fuel_fade: float = clampf(torch.condition_ratio() / 0.2, 0.35, 1.0)
-	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade
-	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade)
+	var weather_light: float = WeatherSystem.factor(self, "torch_light")
+	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade * weather_light
+	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade) * lerpf(1.0, weather_light, 0.5)
 
 # ------------------------------------------------------------------------------
 # Milestone 8 — vision cone
@@ -667,7 +668,14 @@ func get_aim_direction() -> Vector3:
 	return Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
 
 func get_vision_range() -> float:
-	return vision_range
+	return vision_range * WeatherSystem.factor(self, "sight")
+
+## Milestone 9: a cinder-squall gust shoves you downwind.
+func apply_gust(impulse: Vector3) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_knockback_velocity += Vector3(impulse.x, 0.0, impulse.z)
+	combat_banner_message.emit("An ember gust staggers you", Color(0.95, 0.56, 0.28))
 
 ## True if a world point is inside the cone (or the sense radius) with a clear
 ## line of sight from eye height.
@@ -722,7 +730,7 @@ func _update_timers_and_conditions(delta: float) -> void:
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
-		var rate: float = stamina_regen_rate * _mods.stamina_regen_mult * (0.38 if current_state == ActionState.BLOCK else 1.0)
+		var rate: float = stamina_regen_rate * _mods.stamina_regen_mult * WeatherSystem.factor(self, "stamina_regen") * (0.38 if current_state == ActionState.BLOCK else 1.0)
 		if is_bleeding:
 			rate *= 0.75
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
@@ -902,12 +910,27 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 		if Input.is_action_just_pressed("block") and not _has_ready_shield():
 			combat_banner_message.emit(_block_unavailable_reason(), Color(0.74, 0.66, 0.56))
 
+## Sets horizontal velocity; on icy ground (traction < 1) it eases toward the
+## target instead, so you slide.
+func _set_planar_velocity(target_x: float, target_z: float, delta: float) -> void:
+	var traction: float = WeatherSystem.factor(self, "traction")
+	if traction >= 0.99:
+		velocity.x = target_x
+		velocity.z = target_z
+		return
+	var k: float = 1.0 - exp(-traction * 14.0 * delta)
+	velocity.x = lerpf(velocity.x, target_x, k)
+	velocity.z = lerpf(velocity.z, target_z, k)
+
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
 	var load_mult: float = _encumbrance_speed_mult()
 	if current_state == ActionState.BLOCK:
-		velocity.x = move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z
+		_set_planar_velocity(
+			move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x,
+			move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z,
+			delta
+		)
 		return
 
 	var overburdened: bool = inventory.get_load() == Inventory.Load.OVERBURDENED
@@ -918,17 +941,15 @@ func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	if wants_sprint and stamina > 1.0:
 		current_state = ActionState.SPRINT
 		_consume_stamina(13.5 * delta)
-		var spd: float = sprint_speed * _mods.sprint_speed_mult * load_mult
-		velocity.x = move_dir.x * spd + _knockback_velocity.x
-		velocity.z = move_dir.z * spd + _knockback_velocity.z
+		var spd: float = sprint_speed * _mods.sprint_speed_mult * WeatherSystem.factor(self, "sprint") * load_mult
+		_set_planar_velocity(move_dir.x * spd + _knockback_velocity.x, move_dir.z * spd + _knockback_velocity.z, delta)
 	elif move_dir.length_squared() > 0.01:
 		current_state = ActionState.MOVE
-		velocity.x = move_dir.x * move_speed * exh_mult * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * move_speed * exh_mult * load_mult + _knockback_velocity.z
+		var walk: float = move_speed * exh_mult * load_mult
+		_set_planar_velocity(move_dir.x * walk + _knockback_velocity.x, move_dir.z * walk + _knockback_velocity.z, delta)
 	else:
 		current_state = ActionState.IDLE
-		velocity.x = _knockback_velocity.x
-		velocity.z = _knockback_velocity.z
+		_set_planar_velocity(_knockback_velocity.x, _knockback_velocity.z, delta)
 
 func _start_attack(heavy: bool) -> void:
 	if is_exhausted or stamina < 4.0:
@@ -974,7 +995,11 @@ func _try_start_dodge(move_dir: Vector3) -> bool:
 	if load_state == Inventory.Load.OVERBURDENED:
 		combat_banner_message.emit("Overburdened — too heavy to dodge", Color(0.90, 0.40, 0.25))
 		return false
-	var cost: float = dodge_stamina_cost + (burdened_dodge_extra_cost if load_state == Inventory.Load.BURDENED else 0.0)
+	var cost: float = (
+		dodge_stamina_cost
+		+ (burdened_dodge_extra_cost if load_state == Inventory.Load.BURDENED else 0.0)
+		+ WeatherSystem.factor(self, "dodge_extra")
+	)
 	if is_exhausted or stamina < 8.0 or _dodge_cooldown > 0.0:
 		return false
 	_hitbox.end_swing()

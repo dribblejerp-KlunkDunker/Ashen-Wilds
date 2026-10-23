@@ -108,7 +108,8 @@ func _evaluate_senses(delta: float) -> void:
 	var dir_to_player: Vector3 = to_player.normalized() if dist > 0.01 else Vector3.FORWARD
 
 	var can_see: bool = false
-	if dist <= 13.5:
+	var hear_mult: float = WeatherSystem.factor(self, "hearing")
+	if dist <= 13.5 * WeatherSystem.factor(self, "sight"):
 		var dot: float = _facing_dir.dot(dir_to_player)
 		if dot >= cos(deg_to_rad(57.5)) or dist <= 2.8:
 			var space_state := get_world_3d().direct_space_state
@@ -126,13 +127,13 @@ func _evaluate_senses(delta: float) -> void:
 	if player_ref.current_state in [
 		PlayerController.ActionState.SPRINT,
 		PlayerController.ActionState.ATTACK_ACTIVE
-	] and dist <= 9.0 * noise_mult:
+	] and dist <= 9.0 * noise_mult * hear_mult:
 		can_hear = true
-	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * player_ref.get_footstep_noise_multiplier():
+	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * player_ref.get_footstep_noise_multiplier() * hear_mult:
 		can_hear = true
-	elif player_ref.is_coughing() and dist <= player_ref.cough_noise_radius:
+	elif player_ref.is_coughing() and dist <= player_ref.cough_noise_radius * hear_mult:
 		can_hear = true
-	elif player_ref.is_scavenging() and dist <= 4.5:
+	elif player_ref.is_scavenging() and dist <= 4.5 * hear_mult:
 		# Rummaging through crates and corpses is never quiet.
 		can_hear = true
 
