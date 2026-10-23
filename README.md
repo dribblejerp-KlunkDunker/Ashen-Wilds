@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–9 complete · verified on Godot 4.3-stable (Forward+) · **233/233** headless regression checks passing
+> **Status:** Milestones 1–10 complete · verified on Godot 4.3-stable (Forward+) · **249/249** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -146,6 +146,20 @@ Ash, sleet, embers and frost glints are CPU-animated meshes around the survivor,
 | ![Ashfall](docs/screenshots/11_weather_ashfall.png) | ![Cinder-squall at the Ork choke](docs/screenshots/12_weather_cinder_squall.png) | ![Miasma fog in the Ogre's lair](docs/screenshots/13_weather_miasma.png) |
 | **Ashfall** | **Cinder-squall** at the Ork choke | **Miasma** in the Ogre's lair |
 
+### Enemy ears (Milestone 10)
+Enemies hear what you actually do, through the same acoustic field that draws ripples, so weather affects their hearing too. **Walls muffle sound to 60%.**
+
+| Your noise | Reach |
+|---|---|
+| Walking | 3.5 m (Light Step 2.1 m) |
+| Sprinting | 9 m |
+| Swinging | 9 m |
+| Rummaging in a container | 4.5 m |
+| Blocking a blow | 8 m |
+| Burdened dodge | 6 m |
+
+A burdened pack makes sprints, swings and dodges carry ×1.35. Goblins creep up to investigate where a sound came from, Orks advance on it shield-first, and a sleeping Ogre wakes up. Enemies ignore each other's footsteps but come running to a clang.
+
 ---
 
 ## Controls
@@ -200,7 +214,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, and each weather's effect on sight, hearing, fire and footing, indoors and out.
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, and what each enemy hears (and doesn't) through walls.
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -237,7 +251,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (233 checks)
+  smoke_test.gd            Headless regression suite (249 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -253,7 +267,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
 - **Vision:** `PlayerController.can_see_point()` is the cone test plus a line-of-sight ray, and enemies use it to decide whether they're drawn. `VisionCone` casts 96 rays across the cone every other tick into two byte grids over the 52 m yard: "visible now" and "seen ever". The `vision_memory` shader is a full-screen quad on the camera. It rebuilds each pixel's world position from the depth buffer, passes visible pixels through, and draws the rest as charcoal or black.
 - **Weather:** `WeatherSystem` blends between profile dictionaries. Gameplay code asks `WeatherSystem.factor(node, "sight" | "hearing" | "torch_burn" | …)`, which returns the neutral value when there's no weather, or when the node is under a roof and the key is a fire or footing effect. It drives the fog, ambient and sun light, and the acoustic field's reach.
-- **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. `AcousticRipples` draws a ripple when the survivor is within reach and can't see the source.
+- **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. Listeners connect with `AcousticField.listen()` and test `AcousticField.can_hear()`, which cuts the reach to 60% when a wall is in the way. Enemies hear the survivor (and any clang) that way, and `AcousticRipples` draws a ripple when the survivor hears something it can't see.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
 ---
@@ -262,8 +276,8 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
-- Enemy ears on the acoustic field (enemies currently poll the survivor's state to hear).
+- Milestones 11–14 (planned in the roadmap): the Blind Quarry-Troll, armor slots, Act I objectives and the shelter, save & load.
+- Later: companions, the rest of the bestiary, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 
 ---

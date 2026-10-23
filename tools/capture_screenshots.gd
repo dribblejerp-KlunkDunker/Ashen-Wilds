@@ -183,7 +183,7 @@ func _run() -> void:
 	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0.35))
 	await _frames(20)
 	inside_goblin.global_position = Vector3(4.6, 0.0, -4.4)
-	field.emit_noise(inside_goblin.global_position, 8.0, inside_goblin, "footstep")
+	field.emit_noise(inside_goblin.global_position, 12.5, inside_goblin, "footstep")
 	var yard_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
 	yard_goblin.global_position = Vector3(-1.4, 0.0, -6.6)
 	yard_goblin._visual_root.visible = false # out of the cone

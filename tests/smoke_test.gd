@@ -108,6 +108,7 @@ func _run() -> void:
 	await _test_survivor_backgrounds()
 	await _test_vision_and_ripples()
 	await _test_weather()
+	await _test_enemy_ears()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -874,11 +875,12 @@ func _test_survivor_backgrounds() -> void:
 	listener._facing_dir = Vector3.RIGHT # facing away: can't see you
 	listener.state = EnemyGoblinScavenger.AIState.PATROL
 	_player.current_state = PlayerController.ActionState.MOVE
+	_player.emit_gait_noise()
 	listener._evaluate_senses(0.016)
 	_check(listener.state == EnemyGoblinScavenger.AIState.PATROL, "Light Step: a goblin 3.1 m away doesn't hear you walk")
 	_bg("citadel_deserter")
 	_player.current_state = PlayerController.ActionState.MOVE
-	listener._evaluate_senses(0.016)
+	_player.emit_gait_noise()
 	_check(listener.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "...but it hears an ordinary survivor")
 	_player.current_state = PlayerController.ActionState.IDLE
 
@@ -1142,11 +1144,11 @@ func _test_weather() -> void:
 	watcher._facing_dir = Vector3.LEFT
 	watcher.state = EnemyGoblinScavenger.AIState.PATROL
 	_player.current_state = PlayerController.ActionState.MOVE
-	watcher._evaluate_senses(0.016)
+	_player.emit_gait_noise()
 	_check(watcher.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "Dead Calm: footsteps carry 5 m to a goblin")
 	weather.set_weather(W.OVERCAST, true)
 	watcher.state = EnemyGoblinScavenger.AIState.PATROL
-	watcher._evaluate_senses(0.016)
+	_player.emit_gait_noise()
 	_check(watcher.state == EnemyGoblinScavenger.AIState.PATROL, "Overcast: the same footsteps go unheard")
 	_player.current_state = PlayerController.ActionState.IDLE
 	watcher.queue_free()
@@ -1229,3 +1231,101 @@ func _test_weather() -> void:
 
 func get_precip_ok(weather: WeatherSystem, kind: WeatherSystem.Precip) -> bool:
 	return weather.get_active_precip() == kind and weather.get_precip_visible_count() > 100
+
+# ------------------------------------------------------------------------------
+# Milestone 10 — enemy ears
+# ------------------------------------------------------------------------------
+func _test_enemy_ears() -> void:
+	_section("Enemy ears")
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var heard: Array = []
+	var rec := func(_pos: Vector3, reach: float, src: Node3D, kind: String) -> void:
+		if src == _player:
+			heard.append([kind, reach])
+	field.noise_emitted.connect(rec)
+
+	# The survivor's own noises.
+	_reset_player(OPEN)
+	await _ticks(2)
+	Input.action_press("move_right")
+	await _seconds(1.0)
+	Input.action_release("move_right")
+	await _ticks(2)
+	var steps: Array = heard.filter(func(h: Array) -> bool: return h[0] == "footstep")
+	_check(steps.size() >= 2 and absf(float(steps[0][1]) - 3.5) < 0.01, "walking reports 3.5 m footsteps (%d in 1 s)" % steps.size())
+	heard.clear()
+	_player.current_state = PlayerController.ActionState.SPRINT
+	_check(absf(_player.emit_gait_noise() - 9.0) < 0.01, "sprinting carries 9 m")
+	var timber := ItemDatabase.make("timber", 6)
+	_player.inventory.add(timber)
+	_check(absf(_player.emit_gait_noise() - 9.0 * 1.35) < 0.01, "a burdened pack clatters: sprint carries 12.2 m")
+	_player.inventory.remove(timber)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(is_equal_approx(_player.emit_gait_noise(), 0.0), "standing still is silent")
+	heard.clear()
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	_ready_for_attack()
+	_player._start_attack(false)
+	await _seconds(_player.weapon.light_startup_time + 0.05)
+	_check(heard.any(func(h: Array) -> bool: return h[0] == "swing"), "a swing is heard")
+	await _seconds(0.8)
+	heard.clear()
+	var cache := _make_test_lootable(OPEN + Vector3(0.8, 0, 0), 2.0, [ItemDatabase.make("salt", 1)])
+	await _ticks(2)
+	_player._try_interact()
+	await _seconds(1.2)
+	_check(heard.any(func(h: Array) -> bool: return h[0] == "rummage"), "rummaging through a container is heard")
+	_player._cancel_channel("")
+	cache.queue_free()
+
+	# Walls muffle.
+	var inside := _spawn_dummy_goblin(Vector3(3.0, 0.0, -5.0))
+	await _ticks(2)
+	_check(absf(AcousticField.muffled_reach(inside, Vector3(-0.5, 0, -5.0), 10.0) - 6.0) < 0.01, "a wall cuts a noise's reach to 60%")
+	_check(absf(AcousticField.muffled_reach(inside, Vector3(5.5, 0, -5.0), 10.0) - 10.0) < 0.01, "no wall, full reach")
+
+	# Goblins investigate where the sound came from.
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(-6.0, 0, 0))
+	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	await _ticks(1)
+	field.emit_noise(OPEN, 5.0, _player, "footstep")
+	_check(gob.state == EnemyGoblinScavenger.AIState.PATROL, "a 5 m footstep doesn't reach a goblin 6 m away")
+	field.emit_noise(OPEN, 9.0, _player, "footstep")
+	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE and gob._last_known_player_pos.distance_to(OPEN) < 0.01, "a 9 m sprint does: it investigates the spot")
+	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	field.emit_noise(OPEN, 9.0, inside, "footstep")
+	_check(gob.state == EnemyGoblinScavenger.AIState.PATROL, "goblins ignore other creatures' footsteps")
+	field.emit_noise(OPEN, 13.0, inside, "clang")
+	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "...but come to see what clanged")
+	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	field.emit_noise(Vector3(3.0, 0, -5.0) + Vector3(-7.0, 0, 0), 9.0, _player, "footstep")
+	_check(inside.state != EnemyGoblinScavenger.AIState.INVESTIGATE, "the goblin indoors doesn't hear a 9 m sprint 7 m away through the wall")
+
+	# Orks come straight for a sound; the Ogre wakes.
+	var ork := _spawn_dummy_ork(OPEN + Vector3(0, 0, -6.0), true, Vector3.FORWARD)
+	ork.state = EnemyOrkWarrior.AIState.PATROL
+	field.emit_noise(OPEN, 9.0, _player, "swing")
+	_check(ork.state == EnemyOrkWarrior.AIState.SHIELD_ADVANCE, "a shielded ork advances on a sound it hears")
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.global_position = OPEN + Vector3(8.0, 0, 0)
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre.player_ref = _player
+	await _ticks(1)
+	field.emit_noise(OPEN, 9.0, _player, "footstep")
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE, "a sleeping Ogre wakes to the survivor's noise")
+	field.hearing_multiplier = 0.6
+	ogre.state = EnemyOgreBrute.AIState.IDLE
+	field.emit_noise(OPEN, 9.0, _player, "footstep")
+	_check(ogre.state == EnemyOgreBrute.AIState.IDLE, "weather that muffles sound (x0.6) lets it sleep")
+	field.hearing_multiplier = 1.0
+
+	field.noise_emitted.disconnect(rec)
+	for n: Node in [inside, gob, ork, ogre]:
+		n.queue_free()
+	_player.camera_rig = rig
+	await _ticks(2)

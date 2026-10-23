@@ -52,6 +52,7 @@ func _ready() -> void:
 	health = max_health
 	_flank_sign = 1.0 if randf() > 0.5 else -1.0
 	_build_goblin_visuals_and_colliders()
+	AcousticField.listen(self, _on_noise_heard)
 
 func _physics_process(delta: float) -> void:
 	_update_player_los_visibility(delta)
@@ -108,7 +109,6 @@ func _evaluate_senses(delta: float) -> void:
 	var dir_to_player: Vector3 = to_player.normalized() if dist > 0.01 else Vector3.FORWARD
 
 	var can_see: bool = false
-	var hear_mult: float = WeatherSystem.factor(self, "hearing")
 	if dist <= 13.5 * WeatherSystem.factor(self, "sight"):
 		var dot: float = _facing_dir.dot(dir_to_player)
 		if dot >= cos(deg_to_rad(57.5)) or dist <= 2.8:
@@ -121,30 +121,24 @@ func _evaluate_senses(delta: float) -> void:
 			if space_state.intersect_ray(q).is_empty():
 				can_see = true
 
-	# A burdened pack clatters, stretching every hearing radius.
-	var noise_mult: float = player_ref.get_noise_multiplier()
-	var can_hear: bool = false
-	if player_ref.current_state in [
-		PlayerController.ActionState.SPRINT,
-		PlayerController.ActionState.ATTACK_ACTIVE
-	] and dist <= 9.0 * noise_mult * hear_mult:
-		can_hear = true
-	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * player_ref.get_footstep_noise_multiplier() * hear_mult:
-		can_hear = true
-	elif player_ref.is_coughing() and dist <= player_ref.cough_noise_radius * hear_mult:
-		can_hear = true
-	elif player_ref.is_scavenging() and dist <= 4.5 * hear_mult:
-		# Rummaging through crates and corpses is never quiet.
-		can_hear = true
-
 	if can_see:
 		_last_known_player_pos = player_ref.global_position
 		_has_last_known_pos = true
 		_memory_timer = 7.5
 		if state in [AIState.IDLE, AIState.PATROL, AIState.INVESTIGATE]:
 			state = AIState.PURSUE
-	elif can_hear and state in [AIState.IDLE, AIState.PATROL]:
-		_last_known_player_pos = player_ref.global_position
+
+## Milestone 10: goblin ears. The survivor's noises (and any clang) within
+## reach send it to investigate where the sound came from.
+func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
+	if state == AIState.DEAD or source == self or not is_inside_tree():
+		return
+	if not (source is PlayerController or kind == "clang"):
+		return
+	if not AcousticField.can_hear(self, world_pos, reach):
+		return
+	if state in [AIState.IDLE, AIState.PATROL]:
+		_last_known_player_pos = world_pos
 		_has_last_known_pos = true
 		_memory_timer = 5.0
 		state = AIState.INVESTIGATE

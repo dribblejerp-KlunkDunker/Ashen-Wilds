@@ -10,7 +10,12 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 7 | Survivor backgrounds | ✅ shipped | M4 inventory |
 | 8 | Acoustic ripples & vision cone | ✅ shipped | M6 (clangs are loud), M7 (cough flaw) |
 | 9 | Weather & atmosphere | ✅ shipped | M8 (weather scales sight & hearing) |
-| — | Armor slots, companions, Blind Quarry-Troll, Acts II–III | later | — |
+| 10 | Enemy ears | ✅ shipped | M8 acoustic field |
+| 11 | The Blind Quarry-Troll | planned | M10 |
+| 12 | Armor slots | planned | M4 inventory, M10 (armor is noisy) |
+| 13 | Act I objectives & the shelter | planned | M4 loot, M7 |
+| 14 | Save & load | planned | everything above |
+| — | Companions, the rest of the bestiary, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
 
@@ -68,3 +73,36 @@ One `WeatherSystem` holds the current weather. It cycles every few minutes with 
 | Dead Calm | — | silence carries ×1.6 | torch burns 0.8× | — |
 
 *(Multipliers proposed.)*
+
+---
+
+## Milestone 10 — Enemy ears
+
+Enemies stop polling the survivor's state and listen to the `AcousticField` instead, so sight and sound share one model and weather affects both.
+
+- **The survivor reports real noises:** footsteps (walk 3.5 m, sprint 9 m, ×1.35 when burdened, Light Step ×0.6), swings (9 m), rummaging (4.5 m), shield blocks (8 m), a burdened dodge's clatter (6 m), coughs and clangs.
+- **Walls muffle:** a noise heard through stone carries 60% as far.
+- **Who reacts:** goblins creep up to investigate the spot. Orks advance on it, shield first. A sleeping Ogre wakes. Enemies ignore each other's footsteps but come to see what clanged.
+
+## Milestone 11 — The Blind Quarry-Troll *(proposed)*
+
+A sightless troll in a new quarry pit east of the Ogre lair. It has no eyes, so the vision cone can't hide you from it and walls don't help: only silence does.
+- It hunts the **last noise it heard**, sprinting to it and sweeping the spot. Quiet survivors (walking, Light Step) can pass within a few metres.
+- Loud events (clangs, the Ogre's roar) pull it across the map. Throwing a noise elsewhere lures it.
+- Hits like the Ogre but is slower to turn. Tough hide: light blows glance off unless it's staggered.
+
+## Milestone 12 — Armor slots *(proposed)*
+
+Head, body and legs slots. Each piece adds **protection** (damage reduction), **weight**, and sometimes **noise** (mail jingles: footstep reach ×) and **stamina** cost. Loot new pieces from corpses and containers.
+
+## Milestone 13 — Act I objectives & the shelter *(proposed)*
+
+Turns the slice into a loop:
+1. **Secure the Wayfarer's Watchhouse**: kill or drive off both goblins.
+2. **Stock the shelter**: deposit the Cast-Iron Cooking Pot, timber and salt at the shelter fire.
+3. **Break the Ork choke point** on the Old Causeway: both Orks dead.
+An objective tracker on the HUD, and an Act I complete screen.
+
+## Milestone 14 — Save & load
+
+Save at the shelter fire: background, pack, world containers, dead enemies, objectives, weather and the exploration memory. Load from the start screen.

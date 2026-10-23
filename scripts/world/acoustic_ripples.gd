@@ -20,8 +20,8 @@ func _on_noise(world_pos: Vector3, loudness: float, source: Node3D, _kind: Strin
 	if player == null or source == player:
 		return
 	var dist: float = Vector2(world_pos.x - player.global_position.x, world_pos.z - player.global_position.z).length()
-	if dist > loudness:
-		return # too far to hear
+	if not AcousticField.can_hear(player, world_pos, loudness):
+		return # too far to hear (walls muffle)
 	if source != null and is_instance_valid(source) and player.can_see_body(source):
 		return # you can see it; no need to hear it
 	var now: float = Time.get_ticks_msec() / 1000.0

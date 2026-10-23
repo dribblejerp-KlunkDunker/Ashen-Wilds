@@ -54,6 +54,7 @@ func _ready() -> void:
 	health = max_health
 	_home_pos = global_position
 	_build_ogre_visuals_and_colliders()
+	AcousticField.listen(self, _on_noise_heard)
 
 func _physics_process(delta: float) -> void:
 	_update_player_los_visibility()
@@ -197,6 +198,18 @@ func _process_ai_state(delta: float) -> void:
 			velocity.z = _knockback_vel.z
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
+
+## Milestone 10: a sleeping Ogre wakes to the survivor's noise.
+func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, _kind: String) -> void:
+	if state != AIState.IDLE or not (source is PlayerController) or not is_inside_tree():
+		return
+	if not AcousticField.can_hear(self, world_pos, reach):
+		return
+	if audio:
+		audio.play_ogre_roar()
+	AcousticField.report(self, global_position, 20.0, "roar")
+	ogre_event_banner.emit("The Blackfen Ogre heard you!", Color(0.92, 0.35, 0.20))
+	state = AIState.PURSUE
 
 func is_dead() -> bool:
 	return state == AIState.DEAD

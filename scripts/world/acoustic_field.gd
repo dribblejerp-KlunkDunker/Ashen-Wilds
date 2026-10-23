@@ -10,6 +10,9 @@ signal noise_emitted(world_pos: Vector3, loudness: float, source: Node3D, kind: 
 ## Scales every noise's reach; Milestone 9 weather sets it.
 var hearing_multiplier: float = 1.0
 
+## Milestone 10: a wall between noise and listener cuts the reach to this.
+const WALL_MUFFLE: float = 0.6
+
 func _ready() -> void:
 	add_to_group("acoustic_field")
 
@@ -23,6 +26,33 @@ static func report(emitter: Node, world_pos: Vector3, loudness: float, kind: Str
 	var field := emitter.get_tree().get_first_node_in_group("acoustic_field") as AcousticField
 	if field:
 		field.emit_noise(world_pos, loudness, emitter as Node3D, kind)
+
+## Connects a listener (an enemy's ear) to the field, if one exists.
+static func listen(listener: Node, callback: Callable) -> void:
+	if listener == null or not listener.is_inside_tree():
+		return
+	var field := listener.get_tree().get_first_node_in_group("acoustic_field") as AcousticField
+	if field and not field.noise_emitted.is_connected(callback):
+		field.noise_emitted.connect(callback)
+
+## The reach of a noise at this listener: stone between them muffles it.
+static func muffled_reach(listener: Node3D, noise_pos: Vector3, reach: float) -> float:
+	if listener == null or not listener.is_inside_tree():
+		return reach
+	var from: Vector3 = listener.global_position + Vector3(0.0, 1.2, 0.0)
+	var q := PhysicsRayQueryParameters3D.create(from, noise_pos + Vector3(0.0, 1.0, 0.0), 1)
+	if listener is CollisionObject3D:
+		q.exclude = [(listener as CollisionObject3D).get_rid()]
+	var blocked: bool = not listener.get_world_3d().direct_space_state.intersect_ray(q).is_empty()
+	return reach * (WALL_MUFFLE if blocked else 1.0)
+
+## True if the listener is close enough to hear a noise (flat distance,
+## walls muffle).
+static func can_hear(listener: Node3D, noise_pos: Vector3, reach: float) -> bool:
+	var flat := Vector2(noise_pos.x - listener.global_position.x, noise_pos.z - listener.global_position.z)
+	if flat.length() > reach:
+		return false
+	return flat.length() <= muffled_reach(listener, noise_pos, reach)
 
 ## Footstep cadence helper shared by the enemies: returns the new timer value
 ## and reports a footstep when it runs out while the body is moving.

@@ -66,6 +66,13 @@ const NEUTRAL_STATES: Array[ActionState] = [
 ## How far an Ash-Lung cough carries to enemy ears.
 @export var cough_noise_radius: float = 9.0
 
+# Milestone 10 — the noises you make (heard through the acoustic field)
+@export var walk_noise_reach: float = 3.5
+@export var sprint_noise_reach: float = 9.0
+@export var swing_noise_reach: float = 9.0
+@export var rummage_noise_reach: float = 4.5
+@export var shield_noise_reach: float = 8.0
+
 # Milestone 8 — vision cone
 @export var vision_half_angle_deg: float = 65.0
 @export var vision_range: float = 16.0
@@ -118,6 +125,7 @@ var _mods: SurvivorBackground = SurvivorBackground.new()
 var _base_stats: Dictionary = {}
 var _cough_timer: float = 0.0
 var _cough_noise_left: float = 0.0
+var _gait_noise_timer: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
@@ -170,6 +178,7 @@ func _physics_process(delta: float) -> void:
 	_process_state_machine(delta)
 	_update_visual_pose(delta)
 	move_and_slide()
+	_update_gait_noise(delta)
 	_update_interaction_target()
 	_cramped = current_state in NEUTRAL_STATES and not _sweep_obstruction(false).is_empty()
 	_emit_stats()
@@ -251,6 +260,45 @@ func apply_background(bg: SurvivorBackground) -> void:
 	_last_load = inventory.get_load()
 	inventory.notify_changed()
 	_emit_stats()
+
+## Footsteps, sprinting and rummaging, reported at their cadence.
+func _update_gait_noise(delta: float) -> void:
+	var interval: float = _gait_interval()
+	if interval <= 0.0:
+		_gait_noise_timer = minf(_gait_noise_timer, 0.05)
+		return
+	_gait_noise_timer -= delta
+	if _gait_noise_timer <= 0.0:
+		_gait_noise_timer = interval
+		emit_gait_noise()
+
+func _gait_interval() -> float:
+	match current_state:
+		ActionState.SPRINT:
+			return 0.3
+		ActionState.MOVE:
+			return 0.45
+		ActionState.CHANNEL:
+			return 0.5 if _channel_kind == ChannelKind.SCAVENGE else 0.0
+	return 0.0
+
+## Reports the noise your current gait makes right now. Returns its reach
+## (0 when standing still or doing something quiet).
+func emit_gait_noise() -> float:
+	var reach: float = 0.0
+	var kind: String = "footstep"
+	match current_state:
+		ActionState.SPRINT:
+			reach = sprint_noise_reach * get_noise_multiplier()
+		ActionState.MOVE:
+			reach = walk_noise_reach * get_footstep_noise_multiplier()
+		ActionState.CHANNEL:
+			if _channel_kind == ChannelKind.SCAVENGE:
+				reach = rummage_noise_reach
+				kind = "rummage"
+	if reach > 0.0:
+		AcousticField.report(self, global_position, reach, kind)
+	return reach
 
 func get_modifiers() -> SurvivorBackground:
 	return _mods
@@ -970,6 +1018,7 @@ func _enter_attack_active() -> void:
 	_state_timer = weapon.heavy_active_time if _is_current_attack_heavy else weapon.light_active_time
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, swing_noise_reach * get_noise_multiplier(), "swing")
 
 	_configure_hitbox(weapon.get_swing_arc(_is_current_attack_heavy))
 	var mult: float = _weapon_condition_multiplier()
@@ -1007,6 +1056,8 @@ func _try_start_dodge(move_dir: Vector3) -> bool:
 	_dodge_cooldown = 0.58
 	_dodge_direction = move_dir if move_dir.length_squared() > 0.01 else -_aim_direction
 	current_state = ActionState.DODGE
+	if load_state == Inventory.Load.BURDENED:
+		AcousticField.report(self, global_position, 6.0 * get_noise_multiplier(), "clatter")
 	_state_timer = 0.36
 	return true
 
@@ -1061,6 +1112,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			else:
 				if audio:
 					audio.play_shield_block()
+				AcousticField.report(self, global_position, shield_noise_reach, "shield")
 				if camera_rig:
 					camera_rig.add_trauma(0.28)
 				current_state = ActionState.BLOCK_IMPACT

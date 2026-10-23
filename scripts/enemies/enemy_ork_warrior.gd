@@ -63,6 +63,7 @@ func _ready() -> void:
 	guard_stamina = max_guard_stamina
 	_strafe_sign = 1.0 if randf() > 0.5 else -1.0
 	_build_ork_visuals_and_colliders()
+	AcousticField.listen(self, _on_noise_heard)
 
 func _physics_process(delta: float) -> void:
 	_update_player_los_visibility()
@@ -104,7 +105,6 @@ func _evaluate_senses(delta: float) -> void:
 	var dir_p: Vector3 = to_player.normalized() if dist > 0.01 else Vector3.FORWARD
 
 	var can_see: bool = false
-	var hear_mult: float = WeatherSystem.factor(self, "hearing")
 	if dist <= 14.5 * WeatherSystem.factor(self, "sight"):
 		if _facing_dir.dot(dir_p) >= cos(deg_to_rad(60.0)) or dist <= 3.0:
 			var space_state := get_world_3d().direct_space_state
@@ -116,17 +116,25 @@ func _evaluate_senses(delta: float) -> void:
 			if space_state.intersect_ray(q).is_empty():
 				can_see = true
 
-	var can_hear: bool = (
-		player_ref.current_state in [PlayerController.ActionState.SPRINT, PlayerController.ActionState.ATTACK_ACTIVE]
-		and dist <= 10.0 * player_ref.get_noise_multiplier() * hear_mult
-	) or (player_ref.is_coughing() and dist <= player_ref.cough_noise_radius * hear_mult)
+	if can_see:
+		_alert_to(player_ref.global_position)
 
-	if can_see or can_hear:
-		_last_known_player_pos = player_ref.global_position
-		_has_last_known_pos = true
-		_memory_timer = 9.0
-		if state in [AIState.IDLE, AIState.PATROL, AIState.INVESTIGATE]:
-			state = AIState.SHIELD_ADVANCE if has_shield else AIState.PURSUE
+func _alert_to(world_pos: Vector3) -> void:
+	_last_known_player_pos = world_pos
+	_has_last_known_pos = true
+	_memory_timer = 9.0
+	if state in [AIState.IDLE, AIState.PATROL, AIState.INVESTIGATE]:
+		state = AIState.SHIELD_ADVANCE if has_shield else AIState.PURSUE
+
+## Milestone 10: ork ears. Orks don't creep up to investigate: they come
+## straight for a sound, shield first.
+func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
+	if state == AIState.DEAD or source == self or not is_inside_tree():
+		return
+	if not (source is PlayerController or kind == "clang"):
+		return
+	if AcousticField.can_hear(self, world_pos, reach):
+		_alert_to(world_pos)
 
 func _process_ai_state(delta: float) -> void:
 	match state:
