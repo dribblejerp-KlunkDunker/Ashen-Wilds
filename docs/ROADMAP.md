@@ -11,7 +11,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 8 | Acoustic ripples & vision cone | ✅ shipped | M6 (clangs are loud), M7 (cough flaw) |
 | 9 | Weather & atmosphere | ✅ shipped | M8 (weather scales sight & hearing) |
 | 10 | Enemy ears | ✅ shipped | M8 acoustic field |
-| 11 | The Blind Quarry-Troll | planned | M10 |
+| 11 | The Blind Quarry-Troll | ✅ shipped | M10 |
 | 12 | Armor slots | planned | M4 inventory, M10 (armor is noisy) |
 | 13 | Act I objectives & the shelter | planned | M4 loot, M7 |
 | 14 | Save & load | planned | everything above |
@@ -84,12 +84,12 @@ Enemies stop polling the survivor's state and listen to the `AcousticField` inst
 - **Walls muffle:** a noise heard through stone carries 60% as far.
 - **Who reacts:** goblins creep up to investigate the spot. Orks advance on it, shield first. A sleeping Ogre wakes. Enemies ignore each other's footsteps but come to see what clanged.
 
-## Milestone 11 — The Blind Quarry-Troll *(proposed)*
+## Milestone 11 — The Blind Quarry-Troll
 
 A sightless troll in a new quarry pit east of the Ogre lair. It has no eyes, so the vision cone can't hide you from it and walls don't help: only silence does.
 - It hunts the **last noise it heard**, sprinting to it and sweeping the spot. Quiet survivors (walking, Light Step) can pass within a few metres.
-- Loud events (clangs, the Ogre's roar) pull it across the map. Throwing a noise elsewhere lures it.
-- Hits like the Ogre but is slower to turn. Tough hide: light blows glance off unless it's staggered.
+- Loud events (clangs, swings, blocks) make it charge. **Thrown stones (G)** thud down where you aim, so you can lure it away, and goblins and Orks investigate the landing spot too.
+- Hits like the Ogre but turns slowly. Tough hide: light blows deal 35% unless it's staggered or recoiling. Its club clangs off the quarry walls. It drops a hide for M12's armor.
 
 ## Milestone 12 — Armor slots *(proposed)*
 

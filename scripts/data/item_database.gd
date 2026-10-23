@@ -46,6 +46,13 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("lamp_oil", 1))
 	return out
 
+static func roll_troll_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("troll_hide", 1))
+	out.append(make("iron_scrap", 2))
+	out.append(make("throwing_stone", 4))
+	return out
+
 static func roll_ogre_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("salt", 3))
@@ -196,6 +203,17 @@ static func _build() -> void:
 	_register(_material("salt", "Salt Ration", 0.4, 20, "Preserves meat through the Smothering."))
 	_register(_material("timber", "Seasoned Timber", 1.5, 10, "Dry enough to burn or build with."))
 	_register(_material("lamp_oil", "Flask of Lamp Oil", 0.9, 5, "Refuels lanterns; douses rags for fire."))
+
+	# Milestone 11
+	var stone := ItemData.new()
+	stone.item_id = "throwing_stone"
+	stone.display_name = "Fist-Sized Stone"
+	stone.description = "Throw it with [G] to make a noise where it lands. Lures the blind and distracts the sighted."
+	stone.category = ItemData.Category.TOOL
+	stone.weight_kg = 0.3
+	stone.max_stack = 10
+	_register(stone)
+	_register(_material("troll_hide", "Quarry-Troll Hide", 3.2, 2, "Thick as a cart-tarp and grey with stone dust."))
 
 	var pot := ItemData.new()
 	pot.item_id = "cooking_pot"

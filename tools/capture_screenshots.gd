@@ -64,7 +64,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_rig.adjust_brightness(0.4)
@@ -217,6 +217,24 @@ func _run() -> void:
 	await _frames(45)
 	await _shot("13_weather_miasma.png")
 	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
+	await _frames(5)
+
+	# 14. Milestone 11: the Blind Quarry-Troll stalks a thrown stone's thud.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	var troll: EnemyQuarryTroll = enemies.filter(func(e: Node) -> bool: return e is EnemyQuarryTroll)[0]
+	_place(Vector3(11.6, 0.0, -13.0), Vector3(1.0, 0, -0.9))
+	troll.global_position = Vector3(15.6, 0.0, -16.2)
+	troll._face_direction(Vector3(-0.3, 0, 1).normalized(), 50.0, 1.0)
+	troll.state = EnemyQuarryTroll.AIState.STALK
+	troll._update_visual_telegraph()
+	troll._visual_root.visible = true
+	await _frames(30)
+	field.emit_noise(Vector3(14.6, 0.0, -13.4), 10.0, troll, "thud")
+	Engine.time_scale = 0.12
+	await _frames(4)
+	await _shot("14_quarry_troll.png")
+	Engine.time_scale = 1.0
 	await _frames(5)
 
 	# 9. Milestone 7: the survivor picker.

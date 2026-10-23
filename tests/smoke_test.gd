@@ -91,7 +91,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -109,6 +109,7 @@ func _run() -> void:
 	await _test_vision_and_ripples()
 	await _test_weather()
 	await _test_enemy_ears()
+	await _test_quarry_troll()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1326,6 +1327,126 @@ func _test_enemy_ears() -> void:
 
 	field.noise_emitted.disconnect(rec)
 	for n: Node in [inside, gob, ork, ogre]:
+		n.queue_free()
+	_player.camera_rig = rig
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 11 — the Blind Quarry-Troll and thrown stones
+# ------------------------------------------------------------------------------
+func _spawn_dummy_troll(pos: Vector3) -> EnemyQuarryTroll:
+	var t := EnemyQuarryTroll.new()
+	t.position = pos
+	t.process_mode = Node.PROCESS_MODE_DISABLED
+	t.player_ref = _player
+	_main.add_child(t)
+	return t
+
+func _test_quarry_troll() -> void:
+	_section("Blind Quarry-Troll & thrown stones")
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var world_troll: Array = _children_of(func(n: Node) -> bool: return n is EnemyQuarryTroll)
+	_check(world_troll.size() == 1 and world_troll[0].global_position.distance_to(Vector3(16, 0, -15.5)) < 2.0, "the troll lairs in the Old Quarry")
+	var names: Array = get_nodes_in_group("lootable").map(func(l: Lootable) -> String: return l.display_name)
+	_check(names.has("Quarry Rubble Pile"), "the quarry has a rubble pile to search")
+
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var T := EnemyQuarryTroll.AIState
+	var troll := _spawn_dummy_troll(OPEN + Vector3(4.0, 0, 0))
+	troll._facing_dir = Vector3.LEFT
+	await _ticks(2)
+	for i in range(5):
+		troll._process_ai_state(0.1)
+	_check(troll.state == T.IDLE, "a silent survivor 4 m in front of it goes unnoticed (it's blind)")
+
+	field.emit_noise(OPEN + Vector3(1.0, 0, 0), 3.5, _player, "footstep")
+	_check(troll.state == T.STALK and troll.get_target().distance_to(OPEN + Vector3(1.0, troll.global_position.y, 0)) < 0.01, "a footstep 3 m off: it stalks toward the sound")
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(6.0, 0, 2.0))
+	troll.state = T.IDLE
+	troll._has_target = false
+	field.emit_noise(gob.global_position, 4.5, gob, "footstep")
+	_check(troll.state == T.IDLE, "it ignores other creatures' footsteps")
+	field.emit_noise(OPEN + Vector3(-6.0, 0, 0), 13.0, gob, "clang")
+	_check(troll.state == T.CHARGE, "a clang 10 m away: it charges")
+	var clang_spot: Vector3 = troll.get_target()
+	field.emit_noise(OPEN + Vector3(2.5, 0, 0), 3.5, _player, "footstep")
+	_check(troll.get_target().distance_to(clang_spot) < 0.01, "a fainter fresh sound doesn't pull it off the louder one")
+	troll._target_age = 2.0
+	field.emit_noise(OPEN + Vector3(2.5, 0, 0), 3.5, _player, "footstep")
+	_check(troll.get_target().distance_to(clang_spot) > 1.0, "...once the old sound is stale, it turns to the new one")
+
+	# Arriving where nobody is: it searches, then gives up.
+	troll._target_pos = troll.global_position + Vector3(0, 0, 1.0)
+	troll.state = T.STALK
+	troll._process_ai_state(0.05)
+	_check(troll.state == T.SEARCH, "arriving at an empty spot: it feels around")
+	troll._process_ai_state(troll.search_time + 0.1)
+	_check(troll.state == T.IDLE, "...and gives up after a few seconds")
+
+	# Touch and pain give you away.
+	_reset_player(troll.global_position + Vector3(-1.2, 0, 0))
+	await _ticks(1)
+	troll._process_ai_state(0.05)
+	_check(troll.state == T.SWEEP_STARTUP, "brushing within 1.5 m of it: it swings")
+	_reset_player(OPEN)
+	await _ticks(1)
+	troll.state = T.IDLE
+	var hp: float = troll.health
+	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 10.0, false, false))
+	_check(absf((hp - troll.health) - 7.0) < 0.01, "light blows skid off its hide (20 -> 7)")
+	_check(troll.state == T.SWEEP_STARTUP and troll.get_target().distance_to(Vector3(OPEN.x, troll.global_position.y, OPEN.z)) < 0.01, "pain tells it where you are: it swings back")
+	hp = troll.health
+	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 10.0, false, true))
+	_check(absf((hp - troll.health) - 20.0) < 0.01, "heavy blows land in full")
+	troll.state = T.STAGGER
+	hp = troll.health
+	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 1.0, false, false))
+	_check(absf((hp - troll.health) - 20.0) < 0.01 and troll.is_staggered(), "a staggered troll takes light blows in full")
+
+	# Its club clangs off the quarry walls.
+	var pit_troll := _spawn_dummy_troll(Vector3(16.0, 0.0, -19.2))
+	pit_troll._facing_dir = Vector3.FORWARD
+	await _ticks(2)
+	pit_troll._enter_sweep_active()
+	_check(pit_troll.state == T.RECOIL, "its club cracks against the quarry wall (RECOIL)")
+
+	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 999.0, 1.0, false, true))
+	await _ticks(2)
+	var corpse: Lootable = null
+	for c: Node in troll.get_children():
+		if c is Lootable:
+			corpse = c
+	_check(troll.is_dead() and corpse != null and corpse.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "troll_hide"), "a dead troll leaves its hide")
+
+	# Thrown stones.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	_player._throw_cooldown_left = 0.0
+	_check(not _player.throw_stone(), "no stones, no throw")
+	_player.inventory.add(ItemDatabase.make("throwing_stone", 2))
+	var thuds: Array = []
+	var rec := func(pos: Vector3, _reach: float, src: Node3D, kind: String) -> void:
+		if kind == "thud":
+			thuds.append([pos, src])
+	field.noise_emitted.connect(rec)
+	var lure := _spawn_dummy_goblin(OPEN + Vector3(7.2, 0, 5.0))
+	lure.state = EnemyGoblinScavenger.AIState.PATROL
+	_check(_player.throw_stone() and _player.inventory.count_of("throwing_stone") == 1, "[G] throws a stone")
+	_check(not _player.throw_stone(), "throwing has a short cooldown")
+	await _seconds(0.6)
+	_check(thuds.size() == 1 and thuds[0][1] == _player and (thuds[0][0] as Vector3).distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.3, "it thuds down ~7 m ahead, credited to you")
+	_check(lure.state == EnemyGoblinScavenger.AIState.INVESTIGATE and lure._last_known_player_pos.distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.3, "a goblin goes to look where it landed, not where you are")
+	var piles: Array = get_nodes_in_group("lootable").filter(func(l: Lootable) -> bool: return l.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "throwing_stone") and l.global_position.distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.5)
+	_check(piles.size() == 1, "the stone stays where it landed, to pick up again")
+	field.noise_emitted.disconnect(rec)
+	_player.inventory.consume("throwing_stone", _player.inventory.count_of("throwing_stone"))
+
+	for n: Node in [troll, gob, pit_troll, lure] + piles:
 		n.queue_free()
 	_player.camera_rig = rig
 	await _ticks(2)

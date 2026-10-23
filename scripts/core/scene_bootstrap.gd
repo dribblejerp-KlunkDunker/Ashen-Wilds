@@ -103,6 +103,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
+			KEY_F5:
+				_player.global_position = Vector3(7.8, 0.0, -15.0)
+				_hud.show_banner("Teleported: The Old Quarry (Blind Quarry-Troll) — make no sound", Color(0.78, 0.72, 0.58))
 			KEY_F4:
 				_weather.advance()
 			KEY_V:
@@ -139,6 +142,8 @@ func _ensure_input_bindings() -> void:
 	_bind_key("equip_slot_2", KEY_2)
 	_bind_key("equip_slot_3", KEY_3)
 	_bind_key("equip_slot_4", KEY_4)
+	# Milestone 11
+	_bind_key("throw", KEY_G)
 
 func _bind_key(action: String, key: Key) -> void:
 	if InputMap.has_action(action):
@@ -250,8 +255,25 @@ func _build_blackfen_test_yard() -> void:
 	_create_static_box(Vector3(11.0, 1.4, 5.5), Vector3(4.5, 2.8, 0.6), stone_col, cutaway_shader, false, false)
 	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false)
 
+	_build_quarry(cutaway_shader)
+
 	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false)
 	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false)
+
+## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
+## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
+func _build_quarry(cutaway_shader: Shader) -> void:
+	var q_col := Color(0.33, 0.31, 0.28)
+	# North and west walls face away from the camera; south and east need the cutaway.
+	_create_static_box(Vector3(16.0, 1.3, -21.0), Vector3(12.4, 2.6, 0.6), q_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(10.0, 1.3, -18.85), Vector3(0.6, 2.6, 4.9), q_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(10.0, 1.3, -11.15), Vector3(0.6, 2.6, 4.9), q_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(22.0, 1.3, -15.0), Vector3(0.6, 2.6, 12.4), q_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(16.0, 1.3, -9.0), Vector3(12.4, 2.6, 0.6), q_col, cutaway_shader, true, false)
+	# Cut blocks and rubble.
+	_create_static_box(Vector3(14.0, 0.7, -18.0), Vector3(1.8, 1.4, 1.2), q_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(18.5, 0.9, -12.5), Vector3(1.4, 1.8, 1.4), q_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(19.0, 0.5, -18.6), Vector3(2.2, 1.0, 1.0), q_col, cutaway_shader, false, false)
 
 func _create_static_box(
 	pos: Vector3,
@@ -344,6 +366,17 @@ func _spawn_all_archetype_encounters() -> void:
 			_camera_rig.add_trauma(trauma)
 	)
 
+	var troll := EnemyQuarryTroll.new()
+	troll.position = Vector3(16.0, 0.0, -15.5)
+	troll.player_ref = _player
+	troll.audio = _audio
+	troll.coordinator = _coordinator
+	add_child(troll)
+	troll.troll_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+
 func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
 	if _hud:
 		_hud.show_banner("The weather turns: %s — %s" % [display_name.to_upper(), summary], Color(0.72, 0.78, 0.84))
@@ -363,7 +396,7 @@ func _spawn_scavenge_containers() -> void:
 	# Your own stash by the shelter fire: already known, opens instantly.
 	var stash := _spawn_container(
 		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.40, 0.29, 0.19), 0.0,
-		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1)]
+		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("throwing_stone", 3)]
 	)
 	stash.searched = true
 
@@ -382,6 +415,10 @@ func _spawn_scavenge_containers() -> void:
 	_spawn_container(
 		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.46, 0.42, 0.35), 3.5,
 		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
+	)
+	_spawn_container(
+		"Quarry Rubble Pile", Vector3(12.2, 0.0, -10.4), Vector3(1.0, 0.4, 0.8), Color(0.38, 0.36, 0.33), 2.5,
+		[ItemDatabase.make("throwing_stone", 5), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
 	)
 
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:

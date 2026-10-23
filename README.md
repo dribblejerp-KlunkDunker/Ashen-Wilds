@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–10 complete · verified on Godot 4.3-stable (Forward+) · **249/249** headless regression checks passing
+> **Status:** Milestones 1–11 complete · verified on Godot 4.3-stable (Forward+) · **272/272** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -160,6 +160,17 @@ Enemies hear what you actually do, through the same acoustic field that draws ri
 
 A burdened pack makes sprints, swings and dodges carry ×1.35. Goblins creep up to investigate where a sound came from, Orks advance on it shield-first, and a sleeping Ogre wakes up. Enemies ignore each other's footsteps but come running to a clang.
 
+### The Blind Quarry-Troll (Milestone 11)
+North-east of the watchhouse lies the **Old Quarry** (**F5**), a walled pit with one way in. The **Blind Quarry-Troll** lives there. It has no eyes, so darkness, the cone and walls don't hide you from it. Only silence does.
+- **It hunts sound.** A faint noise makes it stalk toward the spot. A loud one (a clang, a swing, a thrown stone, a block) makes it charge. Once it reaches the spot it swings if you're there and feels around if you're not. A fainter new sound won't pull it off a louder fresh one.
+- **Touch and pain give you away.** Come within 1.5 m of it and it swings, and any blow tells it exactly where you are.
+- **Thick hide.** Light blows deal 35% unless it's staggered or recoiling. Its stone club clangs off the quarry walls, which is your opening.
+- It drops a **Quarry-Troll Hide**.
+
+**Thrown stones (G).** Throw a Fist-Sized Stone toward the cursor, up to 9 m. It thuds down with a 10 m noise and stays where it landed for you to pick up. The troll charges the thud, and goblins and Orks go to look **where it landed, not where you are**. You start with 3 in your shelter stash, and the Quarry Rubble Pile holds more.
+
+![The Blind Quarry-Troll in the Old Quarry](docs/screenshots/14_quarry_troll.png)
+
 ---
 
 ## Controls
@@ -176,12 +187,13 @@ A burdened pack makes sprints, swings and dodges carry ×1.35. Goblins creep up 
 | **E** | Search / open a container or corpse, or work a lodged weapon loose (press again to stop) |
 | **Tab** | Open/close pack · **Esc** closes windows |
 | **B** | Bandage a wound |
+| **G** | Throw a stone (makes a noise where it lands) |
 | **1 / 2 / 3** | Ready blade / polearm / axe |
 | **4** | Swap off-hand: shield ⇄ torch |
 | **F4** | Next weather (dev) |
 | **V** | Toggle the vision cone & memory map |
 | **R** | Respawn at the shelter fire |
-| **F1 / F2 / F3** | Teleport to Watchhouse / Ork choke point / Ogre lair (dev) |
+| **F1 / F2 / F3 / F5** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry (dev) |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -214,7 +226,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, and what each enemy hears (and doesn't) through walls.
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, and thrown stones as lures.
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -248,10 +260,10 @@ scripts/
   world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
               weather_system.gd
   player/     player_controller.gd
-  enemies/    goblin scavenger, ork warrior, ogre brute
+  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (249 checks)
+  smoke_test.gd            Headless regression suite (272 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -276,7 +288,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Milestones 11–14 (planned in the roadmap): the Blind Quarry-Troll, armor slots, Act I objectives and the shelter, save & load.
+- Milestones 12–14 (planned in the roadmap): armor slots, Act I objectives and the shelter, save & load.
 - Later: companions, the rest of the bestiary, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 

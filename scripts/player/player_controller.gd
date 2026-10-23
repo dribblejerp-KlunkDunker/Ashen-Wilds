@@ -73,6 +73,11 @@ const NEUTRAL_STATES: Array[ActionState] = [
 @export var rummage_noise_reach: float = 4.5
 @export var shield_noise_reach: float = 8.0
 
+# Milestone 11 — thrown stones
+@export var throw_range: float = 9.0
+@export var throw_noise_reach: float = 10.0
+@export var throw_cooldown: float = 0.8
+
 # Milestone 8 — vision cone
 @export var vision_half_angle_deg: float = 65.0
 @export var vision_range: float = 16.0
@@ -126,6 +131,7 @@ var _base_stats: Dictionary = {}
 var _cough_timer: float = 0.0
 var _cough_noise_left: float = 0.0
 var _gait_noise_timer: float = 0.0
+var _throw_cooldown_left: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
@@ -299,6 +305,56 @@ func emit_gait_noise() -> float:
 	if reach > 0.0:
 		AcousticField.report(self, global_position, reach, kind)
 	return reach
+
+## Milestone 11: lob a stone toward the cursor (or straight ahead without a
+## camera). It makes a noise where it lands and stays there to pick up.
+func throw_stone() -> bool:
+	if _throw_cooldown_left > 0.0 or not (current_state in NEUTRAL_STATES):
+		return false
+	var stone: ItemInstance = inventory.find_first("throwing_stone")
+	if stone == null:
+		combat_banner_message.emit("No stones to throw", Color(0.70, 0.66, 0.60))
+		return false
+	var target: Vector3 = global_position + get_aim_direction() * throw_range * 0.8
+	if camera_rig:
+		target = camera_rig.get_mouse_ground_position(global_position.y)
+	var flat: Vector3 = target - global_position
+	flat.y = 0.0
+	if flat.length() > throw_range:
+		flat = flat.normalized() * throw_range
+	var landing: Vector3 = global_position + flat
+	var thrown: ItemInstance = inventory.remove(stone, 1)
+	_throw_cooldown_left = throw_cooldown
+	_consume_stamina(4.0)
+	if audio:
+		audio.play_swing()
+	_launch_stone(landing, thrown)
+	return true
+
+func _launch_stone(landing: Vector3, thrown: ItemInstance) -> void:
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	var rock := MeshInstance3D.new()
+	rock.name = "ThrownStone"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.12, 0.1, 0.12)
+	rock.mesh = mesh
+	parent.add_child(rock)
+	var start: Vector3 = global_position + Vector3(0.0, 1.4, 0.0)
+	rock.global_position = start
+	var flight: float = 0.45
+	var tween := rock.create_tween()
+	tween.tween_method(func(t: float) -> void:
+		var p: Vector3 = start.lerp(landing, t)
+		p.y = lerpf(start.y, landing.y + 0.06, t) + sin(t * PI) * 1.6
+		rock.global_position = p
+	, 0.0, 1.0, flight)
+	tween.tween_callback(func() -> void:
+		AcousticField.report_as(rock, self, landing, throw_noise_reach, "thud")
+		Lootable.spawn_ground_pile(parent, landing, thrown)
+		rock.queue_free()
+	)
 
 func get_modifiers() -> SurvivorBackground:
 	return _mods
@@ -756,6 +812,8 @@ func is_torch_lit() -> bool:
 func _update_timers_and_conditions(delta: float) -> void:
 	if _dodge_cooldown > 0.0:
 		_dodge_cooldown = maxf(0.0, _dodge_cooldown - delta)
+	if _throw_cooldown_left > 0.0:
+		_throw_cooldown_left = maxf(0.0, _throw_cooldown_left - delta)
 
 	if _poise_timer > 0.0:
 		_poise_timer = maxf(0.0, _poise_timer - delta)
@@ -927,6 +985,10 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 
 	if Input.is_action_just_pressed("bandage"):
 		if start_bandage():
+			return
+
+	if Input.is_action_just_pressed("throw"):
+		if throw_stone():
 			return
 
 	for slot: int in range(1, 5):

@@ -27,6 +27,15 @@ static func report(emitter: Node, world_pos: Vector3, loudness: float, kind: Str
 	if field:
 		field.emit_noise(world_pos, loudness, emitter as Node3D, kind)
 
+## Like report(), but credits the noise to `source` (a thrown stone's thud
+## belongs to whoever threw it).
+static func report_as(emitter: Node, source: Node3D, world_pos: Vector3, loudness: float, kind: String) -> void:
+	if emitter == null or not emitter.is_inside_tree():
+		return
+	var field := emitter.get_tree().get_first_node_in_group("acoustic_field") as AcousticField
+	if field:
+		field.emit_noise(world_pos, loudness, source, kind)
+
 ## Connects a listener (an enemy's ear) to the field, if one exists.
 static func listen(listener: Node, callback: Callable) -> void:
 	if listener == null or not listener.is_inside_tree():
