@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–16 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–17 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## Visual direction (read before any visual work)
 
@@ -50,7 +50,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **383 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **411 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -61,6 +61,8 @@ sudo apt-get install -y mesa-vulkan-drivers   # once; xvfb is usually present
 xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulkan \
   --script res://tools/capture_screenshots.gd
 ```
+
+**The owner wants the screenshots to grow with the game: every push that adds or changes something visible adds a new shot (or updates the relevant one) and puts it in the README section for that feature.** Re-commit older shots only when their content really changed (HUD, lighting); otherwise `git checkout` them so render noise doesn't churn the repo.
 
 **Look at every image after rendering** (open the PNGs). The script poses enemies and freezes them, and the shots have exposed real bugs before: torch self-shadowing, and an occluding wall without the cutaway. `docs/.gdignore` keeps the images out of Godot's import pipeline.
 
@@ -104,6 +106,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
 - **Art is being made separately** (sprites from another agent, to the brief in `docs/VISUAL_DIRECTION.md`). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
 - **Weather:** read effects via `WeatherSystem.factor(node, key)`, never by checking `current`. Fire and footing keys (`SHELTERED_KEYS`) are neutral under a roof. Register new interiors with both the camera rig and `WeatherSystem.register_interior()`. Tests and tools set `weather_cycle_enabled = false` before `add_child` so the weather can't change mid-check.
+- **Survival (cold & hunger):** `PlayerController.survival_enabled` gates all draining. Tests and tools set the bootstrap's `survival_enabled = false` before `add_child`, so long runs can't freeze or starve the survivor. The survival test turns it on locally and calls `_update_survival(dt)` directly. Heat sources are nodes in the `heat_source` group with a `heat_radius` meta. Stamina regen and max stamina go through `_survival_regen_mult()` and `get_stamina_cap()`.
 - **Objectives** are callables in `_build_act_one_objectives()`, re-checked twice a second. Once done they stay done. Smoke tests that kill an encounter's enemies (the corpse test kills the yard goblin and the Ork Cleaver) change objective state, so the Act I test runs last and counts on that.
 - **Saving:** `SaveGame.collect()` / `apply()`. World containers are identified by display name, enemies by spawn order (`_all_enemies`), dropped and lodged piles by the `save_kind` meta. New persistent state needs a line in both functions and in the save test. `apply()` is a coroutine (corpses attach a frame after death), so `await` it. The save test runs last because it frees the world and boots a new one. Tests point `SaveGame.save_path` at a throwaway file.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.

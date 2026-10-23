@@ -172,7 +172,7 @@ func _rebuild_inventory() -> void:
 		if inst.data.is_equippable():
 			_add_button(row, "Unequip" if inv.is_equipped(inst) else "Equip", func() -> void: _player.request_equip(inst))
 		elif inst.data.category == ItemData.Category.CONSUMABLE:
-			_add_button(row, "Use", func() -> void: _player.use_item(inst))
+			_add_button(row, "Eat" if inst.data.food_value > 0.0 else "Use", func() -> void: _player.use_item(inst))
 		_add_button(row, "Drop", func() -> void: _player.drop_item(inst))
 		_inv_list.add_child(row)
 

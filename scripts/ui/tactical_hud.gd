@@ -6,6 +6,8 @@ var _health_bar: ColorRect
 var _stamina_bar: ColorRect
 var _poise_bar: ColorRect
 var _weight_bar: ColorRect
+var _warmth_bar: ColorRect
+var _food_bar: ColorRect
 var _status_label: Label
 var _survivor_label: Label
 var _weather_label: Label
@@ -55,6 +57,8 @@ func _ready() -> void:
 	_stamina_bar = _create_bar_row(vbox, "STAMINA", Color(0.76, 0.58, 0.22))
 	_poise_bar = _create_bar_row(vbox, "POISE", Color(0.46, 0.50, 0.54))
 	_weight_bar = _create_bar_row(vbox, "PACK", Color(0.48, 0.56, 0.40))
+	_warmth_bar = _create_bar_row(vbox, "WARMTH", Color(0.86, 0.52, 0.24))
+	_food_bar = _create_bar_row(vbox, "FOOD", Color(0.62, 0.52, 0.32))
 
 	_survivor_label = _make_label("", 12, Color(0.74, 0.68, 0.54))
 	_survivor_label.visible = false
@@ -289,6 +293,19 @@ func update_stats(data: Dictionary) -> void:
 		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
 	if data.get("lodged", false):
 		flags += "  [LODGED: SPACE TO LET GO]"
+	if data.has("warmth"):
+		_warmth_bar.size.x = BAR_W * clampf(float(data["warmth"]) / float(data["max_warmth"]), 0.0, 1.0)
+		_warmth_bar.color = Color(0.40, 0.60, 0.86) if data["freezing"] else (Color(0.62, 0.66, 0.78) if data["chilled"] else Color(0.86, 0.52, 0.24))
+		_food_bar.size.x = BAR_W * clampf(float(data["satiety"]) / float(data["max_satiety"]), 0.0, 1.0)
+		_food_bar.color = Color(0.84, 0.30, 0.20) if data["starving"] else (Color(0.80, 0.62, 0.26) if data["hungry"] else Color(0.62, 0.52, 0.32))
+	if data.get("freezing", false):
+		flags += "  [FREEZING: GET TO A FIRE]"
+	elif data.get("chilled", false):
+		flags += "  [CHILLED]"
+	if data.get("starving", false):
+		flags += "  [STARVING]"
+	elif data.get("hungry", false):
+		flags += "  [HUNGRY]"
 	if data.get("spore_sick", false):
 		flags += "  [SPORE-SICK: SLOW STAMINA, COUGHING]"
 	if data.get("coughing", false):

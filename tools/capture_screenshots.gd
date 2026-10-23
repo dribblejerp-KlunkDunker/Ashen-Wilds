@@ -60,6 +60,7 @@ func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
@@ -287,6 +288,21 @@ func _run() -> void:
 	bear._visual_root.visible = true
 	await _frames(40)
 	await _shot("17_bog_bear_torch.png")
+
+	# 18. Milestone 17: freezing and hungry, out in the hoarfrost.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	weather.set_weather(WeatherSystem.Weather.HOARFROST, true)
+	_place(Vector3(-3.0, 0.0, 12.5), Vector3(-1.0, 0, -0.6))
+	_player.warmth = 11.0
+	_player.satiety = 24.0
+	_player.stamina = 55.0
+	await _frames(45)
+	await _shot("18_survival_freezing.png")
+	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
+	_player.warmth = _player.max_warmth
+	_player.satiety = 80.0
+	await _frames(5)
 
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()

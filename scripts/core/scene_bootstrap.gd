@@ -23,6 +23,8 @@ const REST_RADIUS: float = 2.6
 var _sun: DirectionalLight3D
 ## Milestone 9: tests and tools turn the weather cycle off before add_child.
 @export var weather_cycle_enabled: bool = true
+## Milestone 17: tests and tools turn cold & hunger off before add_child.
+@export var survival_enabled: bool = true
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
 ## Milestone 7: show the survivor picker on boot. Tests and tools turn this
 ## off before adding the scene, which keeps the legacy loadout.
@@ -53,6 +55,7 @@ func _ready() -> void:
 	_player.position = _shelter_spawn
 	_player.camera_rig = _camera_rig
 	_player.audio = _audio
+	_player.survival_enabled = survival_enabled
 	add_child(_player)
 	_camera_rig.target = _player
 	_camera_rig.global_position = _shelter_spawn
@@ -116,6 +119,7 @@ func rest_at_fire() -> bool:
 	_player.is_bleeding = false
 	_player.bleed_timer = 0.0
 	_player.cure_spores()
+	_player.warmth = _player.max_warmth
 	var ok: bool = SaveGame.write(self)
 	_hud.show_banner("You rest by the fire. Wounds bound, the night survived — game saved." if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
 	return ok
@@ -262,6 +266,13 @@ func _build_blackfen_test_yard() -> void:
 	fire_light.omni_range = 9.0
 	fire_light.shadow_enabled = true
 	add_child(fire_light)
+	# Milestone 17: the fire warms anyone within 4 m.
+	var heat := Node3D.new()
+	heat.name = "ShelterFireHeat"
+	heat.position = Vector3(-6.5, 0.0, 4.8)
+	heat.set_meta("heat_radius", 4.0)
+	heat.add_to_group("heat_source")
+	add_child(heat)
 
 	_camera_rig.register_interior_aabb(WATCHHOUSE_INTERIOR)
 
@@ -580,7 +591,7 @@ func _spawn_scavenge_containers() -> void:
 	# Your own stash by the shelter fire: already known, opens instantly.
 	var stash := _spawn_container(
 		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.40, 0.29, 0.19), 0.0,
-		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("throwing_stone", 3)]
+		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("throwing_stone", 3), ItemDatabase.make("hardtack", 3)]
 	)
 	stash.searched = true
 	stash.accepts_deposits = true
@@ -588,7 +599,7 @@ func _spawn_scavenge_containers() -> void:
 
 	_spawn_container(
 		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.38, 0.29, 0.19), 2.0,
-		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1)]
+		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1), ItemDatabase.make("hardtack", 2)]
 	)
 	_spawn_container(
 		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.36, 0.27, 0.18), 3.0,

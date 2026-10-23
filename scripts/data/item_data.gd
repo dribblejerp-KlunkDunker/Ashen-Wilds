@@ -36,6 +36,14 @@ enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 # Consumable
 @export var use_duration: float = 1.6
 
+# Food & warmth (Milestone 17)
+## Satiety restored when eaten (0 = not food).
+@export var food_value: float = 0.0
+## Warmth restored when eaten (a hot stew warms you).
+@export var warmth_value: float = 0.0
+## Armor: how much it slows the loss of warmth (summed across worn pieces).
+@export var insulation: float = 0.0
+
 # Armor (Milestone 12)
 @export var armor_slot: ArmorSlot = ArmorSlot.NONE
 ## Fraction of physical damage this piece absorbs while unbroken.

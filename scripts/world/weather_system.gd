@@ -86,6 +86,7 @@ static func _p(display: String, summary: String, values: Dictionary) -> Dictiona
 		"ambient_color": Color(0.16, 0.17, 0.19),
 		"sun_color": Color(0.58, 0.62, 0.68),
 		"sun_energy": 0.65,
+		"cold": 1.0,
 	}
 	d.merge(values, true)
 	return d
@@ -98,27 +99,27 @@ static func _build_profiles() -> void:
 		"ambient_color": Color(0.17, 0.16, 0.15), "sun_energy": 0.45,
 	})
 	_profiles[Weather.MIASMA] = _p("Miasma Fog", "Bog-rot fog. Sight halved; every breath tires you (stamina regen −25%).", {
-		"sight": 0.5, "stamina_regen": 0.75,
+		"sight": 0.5, "stamina_regen": 0.75, "cold": 1.1,
 		"fog_color": Color(0.10, 0.14, 0.08), "fog_density": 0.075,
 		"ambient_color": Color(0.13, 0.17, 0.12), "sun_color": Color(0.50, 0.60, 0.42), "sun_energy": 0.35,
 	})
 	_profiles[Weather.SLEET] = _p("Sleet", "Sleet hiss masks noise (×0.7). Torches burn 2× faster; slick footing: sprint −10%, dodges +4 stamina.", {
-		"sight": 0.85, "hearing": 0.7, "torch_burn": 2.0, "sprint": 0.9, "dodge_extra": 4.0, "precip": Precip.SLEET,
+		"sight": 0.85, "hearing": 0.7, "torch_burn": 2.0, "sprint": 0.9, "dodge_extra": 4.0, "precip": Precip.SLEET, "cold": 2.2,
 		"fog_color": Color(0.12, 0.13, 0.155), "fog_density": 0.026,
 		"ambient_color": Color(0.14, 0.16, 0.19), "sun_energy": 0.45,
 	})
 	_profiles[Weather.CINDER_SQUALL] = _p("Cinder-Squall", "Wind roar drowns sound (×0.6). Torches flare (+30% light). Ember gusts shove you about outdoors.", {
-		"sight": 0.9, "hearing": 0.6, "torch_light": 1.3, "gusts": 1.0, "precip": Precip.EMBERS,
+		"sight": 0.9, "hearing": 0.6, "torch_light": 1.3, "gusts": 1.0, "precip": Precip.EMBERS, "cold": 0.6,
 		"fog_color": Color(0.22, 0.11, 0.05), "fog_density": 0.02,
 		"ambient_color": Color(0.22, 0.14, 0.10), "sun_color": Color(0.85, 0.48, 0.28), "sun_energy": 0.55,
 	})
 	_profiles[Weather.HOARFROST] = _p("Hoarfrost", "Crisp air: sight +15%, and sound carries (×1.25). Torches burn low (−20% light). Ice underfoot: you slide.", {
-		"sight": 1.15, "hearing": 1.25, "torch_light": 0.8, "traction": 0.22, "precip": Precip.FROST,
+		"sight": 1.15, "hearing": 1.25, "torch_light": 0.8, "traction": 0.22, "precip": Precip.FROST, "cold": 2.8,
 		"fog_color": Color(0.15, 0.17, 0.21), "fog_density": 0.007,
 		"ambient_color": Color(0.17, 0.19, 0.24), "sun_color": Color(0.68, 0.76, 0.88), "sun_energy": 0.8,
 	})
 	_profiles[Weather.DEAD_CALM] = _p("Dead Calm", "No wind at all. Every sound carries (×1.6). Torches burn steady and slow (×0.8).", {
-		"hearing": 1.6, "torch_burn": 0.8,
+		"hearing": 1.6, "torch_burn": 0.8, "cold": 1.2,
 		"fog_color": Color(0.09, 0.09, 0.095), "fog_density": 0.016,
 		"ambient_color": Color(0.14, 0.14, 0.15), "sun_energy": 0.55,
 	})

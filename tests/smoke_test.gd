@@ -81,6 +81,7 @@ func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
 
@@ -113,6 +114,7 @@ func _run() -> void:
 	await _test_armor()
 	await _test_bestiary_one()
 	await _test_bestiary_two()
+	await _test_survival()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -1882,6 +1884,121 @@ func _test_bestiary_two() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
+# Milestone 17 — survival: cold & hunger
+# ------------------------------------------------------------------------------
+func _test_survival() -> void:
+	_section("Survival: cold & hunger")
+	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
+	var W := WeatherSystem.Weather
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_check(not _player.survival_enabled, "(survival is off for the rest of the suite)")
+	var foods: Array = ["hardtack", "dried_meat", "raw_bear_meat"].filter(func(id: String) -> bool: return ItemDatabase.get_item(id).food_value > 0.0)
+	_check(foods.size() == 3, "three foods: hardtack, dried meat, raw bear meat")
+	_check(ItemDatabase.get_item("quilted_gambeson").insulation > 0.2 and ItemDatabase.get_item("riveted_mail").insulation == 0.0, "padding insulates; mail doesn't")
+	var stash: Lootable = null
+	for l: Lootable in get_nodes_in_group("lootable"):
+		if l.display_name == "Shelter Stash":
+			stash = l
+	_check(stash != null and stash.count_of("hardtack") >= 3, "the shelter stash holds hardtack")
+	_check(ItemDatabase.roll_ork_loot().any(func(i: ItemInstance) -> bool: return i.data.item_id == "dried_meat"), "orks carry dried meat")
+
+	_equip_now("wooden_targe")
+	_reset_player(OPEN)
+	await _ticks(2)
+	weather.set_weather(W.OVERCAST, true)
+	_check(absf(_player.warmth_rate() + 0.2) < 0.001, "outdoors in Overcast you lose 0.2 warmth/s (%.3f)" % _player.warmth_rate())
+	weather.set_weather(W.SLEET, true)
+	_check(absf(_player.warmth_rate() + 0.44) < 0.001, "Sleet: x2.2 colder")
+	weather.set_weather(W.HOARFROST, true)
+	_check(absf(_player.warmth_rate() + 0.56) < 0.001, "Hoarfrost: x2.8 colder")
+	weather.set_weather(W.CINDER_SQUALL, true)
+	_check(absf(_player.warmth_rate() + 0.12) < 0.001, "Cinder-squall embers: only x0.6")
+	weather.set_weather(W.OVERCAST, true)
+	_reset_player(INSIDE)
+	await _ticks(1)
+	_check(absf(_player.warmth_rate() + 0.05) < 0.001, "under the watchhouse roof: a quarter of the drain")
+	_reset_player(OPEN)
+	_equip_now("pitch_torch")
+	await _ticks(3)
+	_check(_player.is_torch_lit() and absf(_player.warmth_rate() + 0.08) < 0.001, "a lit torch cuts the drain by 60%")
+	_equip_now("wooden_targe")
+	var gamb := ItemDatabase.make("quilted_gambeson")
+	_player.inventory.add(gamb)
+	_player.inventory.equip(gamb)
+	await _ticks(2)
+	_check(absf(_player.warmth_rate() + 0.15) < 0.001, "a gambeson insulates (x0.75)")
+	_player.drop_item(gamb)
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(2.5, 0, 1.0))
+	await _ticks(1)
+	_check(is_equal_approx(_player.warmth_rate(), 4.0), "by the shelter fire you warm up (+4/s)")
+	_reset_player(OPEN)
+	await _ticks(1)
+
+	# Thresholds.
+	_player.survival_enabled = true
+	_player.warmth = 30.0
+	_player.satiety = 80.0
+	_check(_player.is_chilled() and is_equal_approx(_player._survival_regen_mult(), 0.75), "below 40 warmth: chilled, stamina regen x0.75")
+	_player.warmth = 10.0
+	_check(_player.is_freezing() and is_equal_approx(_player.get_stamina_cap(), 60.0) and is_equal_approx(_player._survival_regen_mult(), 0.5), "below 15: freezing, max stamina 60, regen x0.5")
+	var hp: float = _player.health
+	_player._update_survival(1.0)
+	_check(absf((hp - _player.health) - 0.4) < 0.02, "freezing costs 0.4 health/s")
+	_check(_player.stamina <= 60.0, "...and stamina is held to the cap")
+	_player.warmth = 80.0
+	_player.satiety = 20.0
+	_check(_player.is_hungry() and is_equal_approx(_player.get_stamina_cap(), 85.0) and is_equal_approx(_player._survival_regen_mult(), 0.8), "below 30 food: hungry, -15 max stamina, regen x0.8")
+	var sat: float = _player.satiety
+	_player._update_survival(10.0)
+	_check(absf((sat - _player.satiety) - 0.8) < 0.01, "food drains 0.08/s")
+	_player.satiety = 5.0
+	hp = _player.health
+	_player._update_survival(1.0)
+	_check(_player.is_starving() and absf((hp - _player.health) - 0.3) < 0.02, "starving costs 0.3 health/s")
+	_player.warmth = 0.0
+	_player.satiety = 80.0
+	_player.health = 1.0
+	_player._update_survival(1.0)
+	_check(_player.current_state == PlayerController.ActionState.DEAD, "at zero warmth you can freeze to death")
+	_reset_player(OPEN)
+	_check(is_equal_approx(_player.warmth, _player.max_warmth) and _player.current_state == PlayerController.ActionState.IDLE, "waking at the fire: warm again")
+
+	# Eating.
+	_player.satiety = 40.0
+	var tack := ItemDatabase.make("hardtack", 2)
+	_player.inventory.add(tack)
+	await _ticks(1)
+	_check(_player.use_item(tack) and _player.get_channel_kind() == PlayerController.ChannelKind.EAT, "eating is a short channel")
+	await _seconds(1.35)
+	_check(absf(_player.satiety - 65.0) < 1.0 and _player.inventory.count_of("hardtack") == 1, "hardtack restores 25 food and is used up")
+	_player.satiety = _player.max_satiety
+	_check(not _player.use_item(_player.inventory.find_first("hardtack")), "you can't eat when full")
+	_player.inventory.consume("hardtack", 1)
+
+	# Rest, save, off-switch.
+	SaveGame.save_path = "user://smoke_test_save.json"
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(1)
+	_player.warmth = 20.0
+	boot.rest_at_fire()
+	_check(is_equal_approx(_player.warmth, _player.max_warmth), "resting at the fire warms you through")
+	_player.satiety = 33.0
+	var saved: Dictionary = SaveGame.collect(boot)
+	_check(absf(float(saved["player"]["warmth"]) - _player.max_warmth) < 0.01 and absf(float(saved["player"]["satiety"]) - 33.0) < 0.01, "warmth and food are saved")
+	SaveGame.delete()
+	_player.survival_enabled = false
+	_player.warmth = 5.0
+	_player._update_survival(5.0)
+	_check(is_equal_approx(_player.warmth, 5.0), "with survival off nothing drains")
+	_player.warmth = _player.max_warmth
+	_player.satiety = 80.0
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -2020,6 +2137,7 @@ func _test_save_load() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
 	boot = _main as AshenWildsBootstrap

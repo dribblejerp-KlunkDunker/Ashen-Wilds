@@ -25,7 +25,7 @@ enum ActionState {
 }
 
 ## Timed, cancellable actions that share the CHANNEL state.
-enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP }
+enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP, EAT }
 
 const NEUTRAL_STATES: Array[ActionState] = [
 	ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK
@@ -73,6 +73,22 @@ const NEUTRAL_STATES: Array[ActionState] = [
 @export var rummage_noise_reach: float = 4.5
 @export var shield_noise_reach: float = 8.0
 
+# Milestone 17 — survival: cold & hunger
+## Off in tests and tools so long runs don't freeze or starve the survivor.
+var survival_enabled: bool = true
+@export var max_warmth: float = 100.0
+## Warmth lost per second outdoors in Overcast, before weather and gear.
+@export var warmth_drain: float = 0.2
+@export var sheltered_warmth_mult: float = 0.25
+@export var torch_warmth_mult: float = 0.4
+@export var max_satiety: float = 100.0
+## Satiety lost per second.
+@export var satiety_drain: float = 0.08
+const CHILLED_BELOW: float = 40.0
+const FREEZING_BELOW: float = 15.0
+const HUNGRY_BELOW: float = 30.0
+const STARVING_BELOW: float = 10.0
+
 # Milestone 11 — thrown stones
 @export var throw_range: float = 9.0
 @export var throw_noise_reach: float = 10.0
@@ -86,6 +102,8 @@ const NEUTRAL_STATES: Array[ActionState] = [
 
 var health: float = 100.0
 var stamina: float = 100.0
+var warmth: float = 100.0
+var satiety: float = 80.0
 var poise_damage_taken: float = 0.0
 var is_exhausted: bool = false
 var is_bleeding: bool = false
@@ -558,6 +576,8 @@ func use_item(inst: ItemInstance) -> bool:
 		return false
 	if inst.data.item_id == "clean_rag_bandage":
 		return start_bandage()
+	if inst.data.food_value > 0.0:
+		return start_eating(inst)
 	combat_banner_message.emit("You can't use %s here" % inst.data.display_name, Color(0.7, 0.68, 0.62))
 	return false
 
@@ -652,6 +672,8 @@ func _channel_label() -> String:
 			return "%s %s" % [_channel_lootable.search_verb_progressive, _channel_lootable.display_name]
 		ChannelKind.BANDAGE:
 			return "Binding wound"
+		ChannelKind.EAT:
+			return "Eating %s" % (_channel_item.data.display_name if _channel_item else "")
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
@@ -722,6 +744,13 @@ func _complete_channel() -> void:
 				bleed_timer = 0.0
 				health = minf(max_health, health + 8.0 + _mods.bandage_heal_bonus)
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
+		ChannelKind.EAT:
+			if item != null and inventory.has_item(item):
+				var food: ItemData = item.data
+				inventory.remove(item, 1)
+				satiety = minf(max_satiety, satiety + food.food_value)
+				warmth = minf(max_warmth, warmth + food.warmth_value)
+				combat_banner_message.emit("You eat the %s" % food.display_name.to_lower(), Color(0.78, 0.74, 0.58))
 		ChannelKind.EQUIP_SWAP:
 			if item != null and inventory.has_item(item):
 				if unequip:
@@ -902,6 +931,8 @@ func _update_timers_and_conditions(delta: float) -> void:
 		if _cough_timer <= 0.0:
 			_cough()
 
+	_update_survival(delta)
+
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
@@ -912,7 +943,8 @@ func _update_timers_and_conditions(delta: float) -> void:
 			rate *= 0.75
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
 			rate *= 0.7
-		stamina = minf(max_stamina, stamina + rate * delta)
+		rate *= _survival_regen_mult()
+		stamina = minf(get_stamina_cap(), stamina + rate * delta)
 		if is_exhausted and stamina >= 18.0:
 			is_exhausted = false
 
@@ -1292,6 +1324,105 @@ func _armor_label() -> String:
 
 ## Milestone 16: a rot mound's spores. Halves stamina regen and makes you
 ## cough (audibly) every few seconds until it wears off or you rest at the fire.
+# ------------------------------------------------------------------------------
+# Milestone 17 — survival: cold & hunger
+# ------------------------------------------------------------------------------
+func is_chilled() -> bool:
+	return warmth < CHILLED_BELOW
+
+func is_freezing() -> bool:
+	return warmth < FREEZING_BELOW
+
+func is_hungry() -> bool:
+	return satiety < HUNGRY_BELOW
+
+func is_starving() -> bool:
+	return satiety < STARVING_BELOW
+
+## Total insulation from worn armor (0..0.7, slows the loss of warmth).
+func get_insulation() -> float:
+	var total: float = 0.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		if not piece.is_broken():
+			total += piece.data.insulation
+	return minf(total, 0.7)
+
+## True when standing by a heat source (the shelter fire).
+func _near_heat() -> bool:
+	if not is_inside_tree():
+		return false
+	for n: Node in get_tree().get_nodes_in_group("heat_source"):
+		var h := n as Node3D
+		if h and Vector2(h.global_position.x - global_position.x, h.global_position.z - global_position.z).length() <= float(h.get_meta("heat_radius", 4.0)):
+			return true
+	return false
+
+## Warmth change per second right now (negative = getting colder).
+func warmth_rate() -> float:
+	if _near_heat():
+		return 4.0
+	var drain: float = warmth_drain * WeatherSystem.factor(self, "cold") * (1.0 - get_insulation())
+	var weather: WeatherSystem = WeatherSystem.find(self)
+	if weather and weather.is_sheltered(global_position):
+		drain *= sheltered_warmth_mult
+	if _has_lit_torch():
+		drain *= torch_warmth_mult
+	return -drain
+
+func _update_survival(delta: float) -> void:
+	if not survival_enabled:
+		return
+	warmth = clampf(warmth + warmth_rate() * delta, 0.0, max_warmth)
+	satiety = clampf(satiety - satiety_drain * delta, 0.0, max_satiety)
+	var hp_loss: float = 0.0
+	if warmth <= 0.0:
+		hp_loss += 1.5
+	elif is_freezing():
+		hp_loss += 0.4
+	if is_starving():
+		hp_loss += 0.3
+	if hp_loss > 0.0:
+		health = maxf(0.0, health - hp_loss * delta)
+		if health <= 0.0:
+			_die("YOU %s IN THE ASHEN WILDS — Press R to Respawn at Shelter" % ("FROZE" if warmth < FREEZING_BELOW else "STARVED"))
+	stamina = minf(stamina, get_stamina_cap())
+
+func _survival_regen_mult() -> float:
+	var m: float = 1.0
+	if is_freezing():
+		m *= 0.5
+	elif is_chilled():
+		m *= 0.75
+	if is_hungry():
+		m *= 0.8
+	return m
+
+## Max stamina after cold and hunger.
+func get_stamina_cap() -> float:
+	var cap: float = max_stamina
+	if is_hungry():
+		cap -= 15.0
+	if is_freezing():
+		cap = minf(cap, 60.0)
+	return maxf(cap, 10.0)
+
+func _die(message: String) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_clear_channel()
+	_hitbox.end_swing()
+	current_state = ActionState.DEAD
+	combat_banner_message.emit(message, Color(0.9, 0.18, 0.18))
+
+func start_eating(inst: ItemInstance) -> bool:
+	if not (current_state in NEUTRAL_STATES) or not inventory.has_item(inst) or inst.data.food_value <= 0.0:
+		return false
+	if satiety >= max_satiety - 1.0:
+		combat_banner_message.emit("You couldn't eat another bite", Color(0.7, 0.68, 0.62))
+		return false
+	_start_channel(ChannelKind.EAT, inst.data.use_duration, null, inst)
+	return true
+
 func afflict_spores(duration: float) -> void:
 	var fresh: bool = _spore_timer <= 0.0
 	_spore_timer = maxf(_spore_timer, duration)
@@ -1320,6 +1451,8 @@ func respawn_at_shelter(spawn_pos: Vector3) -> void:
 	global_position = spawn_pos
 	health = max_health
 	stamina = max_stamina
+	warmth = max_warmth
+	satiety = maxf(satiety, 50.0)
 	is_exhausted = false
 	is_bleeding = false
 	poise_damage_taken = 0.0
@@ -1576,6 +1709,14 @@ func _emit_stats() -> void:
 		"lodged": current_state == ActionState.LODGED,
 		"coughing": is_coughing(),
 		"spore_sick": is_spore_sick(),
+		"warmth": warmth,
+		"max_warmth": max_warmth,
+		"satiety": satiety,
+		"max_satiety": max_satiety,
+		"chilled": is_chilled(),
+		"freezing": is_freezing(),
+		"hungry": is_hungry(),
+		"starving": is_starving(),
 		"armor": get_armor_protection(),
 		"armor_label": _armor_label(),
 		"background": background.display_name if background else ""

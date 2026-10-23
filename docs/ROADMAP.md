@@ -17,7 +17,11 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 14 | Save & load | ✅ shipped | everything above |
 | 15 | Blackfen Bestiary I: Carrion Crows & the Ghoul | ✅ shipped | M8, M10 |
 | 16 | Blackfen Bestiary II: Bog Bear & Rot Mounds | ✅ shipped | M4 torch, M10 |
-| — | More of the bestiary (bog-bull, skull-deer, fungus zombies…), companions, Acts II–III | later | design doc; consider Fable for companion AI |
+| 17 | Survival: cold & hunger | ✅ shipped | M9 weather, M4 items |
+| 18 | Shelter crafting & repairs | planned | M17, M13 stash |
+| 19 | Day & night | planned | M9, M17 |
+| — | **Parked at the owner's request (remind them):** more of the bestiary (bog-bull, skull-deer, crows' roost, fungus zombies, rot-beast, pallid crawler) | parked | M15–16 |
+| — | Companions, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
 
@@ -120,3 +124,16 @@ Two creatures from the bestiary sheet (`docs/art_reference/12_creatures_beasts.w
 
 - **Bog Bear** (Bear Wallow, west): territorial charge by scent within 11 m of its wallow, leash at 18 m. Two-swipe-and-bite maul (the swipes are sweeps that clang, the bite bleeds). **Fears a lit torch held toward it within 4.5 m** until enraged below half health. 220 HP, drops a pelt.
 - **Rot Mounds** (marsh): burst into spores when touched, struck or hit by a thrown stone. **Spore-sick** for 25 s within 3 m (stamina regen ×0.5, audible coughing). A torch held close burns one safely; resting at the fire cures it.
+
+## Milestone 17 — Survival: cold & hunger
+
+The Smothering is a volcanic winter, and now the survivor feels it.
+
+- **Warmth (0–100).** Drains outdoors (about 8 minutes from full in Overcast). Weather scales the drain: Sleet ×2.2, Hoarfrost ×2.8, Dead Calm ×1.2, Miasma ×1.1, and Cinder-Squall ×0.6 (the embers are warm). Under a roof it drains at a quarter rate, a lit torch cuts the drain by 60%, and padded armor insulates. **The shelter fire warms you back up** (+4/s within 4 m), as does resting there.
+  - Below 40 you're **Chilled**: stamina regen ×0.75.
+  - Below 15 you're **Freezing**: stamina regen ×0.5, max stamina capped at 60, and you lose health slowly. At 0, faster.
+- **Food (0–100).** Drains about 1 point every 12 s, roughly 20 minutes from full.
+  - Below 30 you're **Hungry**: stamina regen ×0.8 and −15 max stamina.
+  - Below 10 you're **Starving**: you lose health slowly.
+- **Food items:** hardtack, dried meat, and raw bear meat (it fills you, but badly). You eat from the pack (a short, interruptible channel). Food turns up in containers and on corpses. The Ghoul spoils it on corpses it gnaws.
+- HUD bars for Warmth and Food. Both are saved.

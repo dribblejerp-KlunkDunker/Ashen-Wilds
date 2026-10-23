@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–16 complete · verified on Godot 4.3-stable (Forward+) · **383/383** headless regression checks passing
+> **Status:** Milestones 1–17 complete · verified on Godot 4.3-stable (Forward+) · **411/411** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -209,6 +209,19 @@ Finishing the three main objectives shows the **Act I complete** card (time spen
 
 ![The Bog Bear rears back from a raised torch; a rot mound in the marsh](docs/screenshots/17_bog_bear_torch.png)
 
+### Survival: cold & hunger (Milestone 17)
+The Smothering is a volcanic winter. Two new bars, **WARMTH** and **FOOD**, sit under your vitals.
+
+- **Warmth** drains outdoors (about 8 minutes from full in Overcast). Weather scales it: Sleet ×2.2, Hoarfrost ×2.8, Dead Calm ×1.2, Miasma ×1.1, Cinder-Squall ×0.6. A roof cuts the drain to a quarter, a lit torch cuts it by 60%, and padded armor insulates (gambeson −25%, padded hood −10%, leggings −8%; mail doesn't). **Stand by the shelter fire** (+4/s) or **rest there** to warm up.
+  - Below 40 you're **Chilled**: stamina regen ×0.75.
+  - Below 15 you're **Freezing**: stamina regen ×0.5, max stamina 60, −0.4 HP/s. At 0 you freeze, −1.5 HP/s.
+- **Food** drains about 1 point per 12 s.
+  - Below 30 you're **Hungry**: −15 max stamina and regen ×0.8.
+  - Below 10 you're **Starving**: −0.3 HP/s.
+  - **Eat** from the pack (a short, interruptible channel). *Hardtack* gives +25 (in the stash and the grain crate, sometimes on goblins). *Dried meat* gives +35 (on orks). *Raw bear meat* gives +12 (from bear carcasses; better cooked, which comes in Milestone 18).
+
+![Freezing and hungry in the hoarfrost](docs/screenshots/18_survival_freezing.png)
+
 ### Save & load (Milestone 14)
 **Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
 
@@ -268,7 +281,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), and the bog bear and rot mounds (territory, fire fear, enrage, maul, spores).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), the bog bear and rot mounds (territory, fire fear, enrage, maul, spores), and cold & hunger (drain rates per weather, shelter, torch and insulation, every threshold, eating, freezing to death).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -306,7 +319,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (383 checks)
+  smoke_test.gd            Headless regression suite (411 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)

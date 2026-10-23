@@ -108,6 +108,8 @@ static func collect(boot: AshenWildsBootstrap) -> Dictionary:
 			"pos": _v3(player.global_position),
 			"health": player.health,
 			"bleeding": player.is_bleeding,
+			"warmth": player.warmth,
+			"satiety": player.satiety,
 			"pack": pack,
 		},
 		"containers": containers,
@@ -167,6 +169,8 @@ static func apply(boot: AshenWildsBootstrap, data: Dictionary) -> bool:
 	player.global_position = _to_v3(p["pos"])
 	player.health = float(p["health"])
 	player.is_bleeding = bool(p["bleeding"])
+	player.warmth = float(p.get("warmth", player.max_warmth))
+	player.satiety = float(p.get("satiety", 80.0))
 	player.bleed_timer = 12.0 if player.is_bleeding else 0.0
 
 	var containers: Dictionary = data["containers"]
