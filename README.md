@@ -150,6 +150,7 @@ On a desktop with a GPU, drop the `xvfb-run …` prefix.
 ## Project structure
 
 ```
+CLAUDE.md                  Working notes for AI agents: Godot setup, verify steps, conventions
 project.godot              Engine config, physics layer names
 main.tscn                  Single root node → scene_bootstrap.gd
 shaders/
