@@ -256,6 +256,8 @@ func apply_background(bg: SurvivorBackground) -> void:
 				inventory.main_hand = inst
 			elif id == bg.off_hand_id and inventory.off_hand == null:
 				inventory.off_hand = inst
+			elif inst.data.category == ItemData.Category.ARMOR:
+				inventory.armor[inst.data.armor_slot] = inst
 	health = max_health
 	stamina = max_stamina
 	is_exhausted = false
@@ -295,7 +297,7 @@ func emit_gait_noise() -> float:
 	var kind: String = "footstep"
 	match current_state:
 		ActionState.SPRINT:
-			reach = sprint_noise_reach * get_noise_multiplier()
+			reach = sprint_noise_reach * get_noise_multiplier() * get_armor_noise_multiplier()
 		ActionState.MOVE:
 			reach = walk_noise_reach * get_footstep_noise_multiplier()
 		ActionState.CHANNEL:
@@ -468,9 +470,46 @@ func _on_inventory_changed() -> void:
 func get_noise_multiplier() -> float:
 	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
 
-## Hearing multiplier for walking footsteps (pack clatter x Light Step).
+## Hearing multiplier for walking footsteps (pack clatter x Light Step x armor).
 func get_footstep_noise_multiplier() -> float:
-	return get_noise_multiplier() * _mods.footstep_noise_mult
+	return get_noise_multiplier() * _mods.footstep_noise_mult * get_armor_noise_multiplier()
+
+# ------------------------------------------------------------------------------
+# Milestone 12 — armor
+# ------------------------------------------------------------------------------
+const MAX_ARMOR_PROTECTION: float = 0.6
+## Condition each worn piece loses per point of damage taken.
+const ARMOR_WEAR_PER_DAMAGE: float = 0.25
+
+## Total fraction of physical damage absorbed (unbroken pieces only).
+func get_armor_protection() -> float:
+	var total: float = 0.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		if not piece.is_broken():
+			total += piece.data.protection
+	return minf(total, MAX_ARMOR_PROTECTION)
+
+func get_armor_noise_multiplier() -> float:
+	var m: float = 1.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		m *= piece.data.armor_noise_mult
+	return m
+
+func _armor_sprint_multiplier() -> float:
+	var m: float = 1.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		m *= piece.data.armor_sprint_mult
+	return m
+
+func _armor_stops_bleeding() -> bool:
+	var body: ItemInstance = inventory.get_armor(ItemData.ArmorSlot.BODY)
+	return body != null and body.data.stops_bleeding and not body.is_broken()
+
+func _wear_armor(damage: float) -> void:
+	for piece: ItemInstance in inventory.armor_pieces():
+		if piece.wear(damage * ARMOR_WEAR_PER_DAMAGE):
+			combat_banner_message.emit("Your %s is ruined" % piece.data.display_name, Color(0.92, 0.36, 0.22))
+			inventory.notify_changed()
 
 ## True for a moment after an Ash-Lung cough.
 func is_coughing() -> bool:
@@ -505,7 +544,8 @@ func request_equip(inst: ItemInstance) -> bool:
 		return false
 	if not inventory.has_item(inst) or not inst.data.is_equippable():
 		return false
-	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time * _mods.swap_time_mult, null, inst, inventory.is_equipped(inst))
+	var base_time: float = inst.data.equip_time if inst.data.equip_time > 0.0 else equip_swap_time
+	_start_channel(ChannelKind.EQUIP_SWAP, base_time * _mods.swap_time_mult, null, inst, inventory.is_equipped(inst))
 	return true
 
 func use_item(inst: ItemInstance) -> bool:
@@ -598,6 +638,8 @@ func _channel_label() -> String:
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
+			if _channel_item.data.category == ItemData.Category.ARMOR:
+				return ("Taking off %s" if _channel_unequip else "Donning %s") % _channel_item.data.display_name
 			return ("Stowing %s" if _channel_unequip else "Readying %s") % _channel_item.data.display_name
 	return ""
 
@@ -667,7 +709,8 @@ func _complete_channel() -> void:
 			if item != null and inventory.has_item(item):
 				if unequip:
 					inventory.unequip(item)
-					combat_banner_message.emit("Stowed %s" % item.data.display_name, Color(0.72, 0.70, 0.64))
+					var verb: String = "Took off" if item.data.category == ItemData.Category.ARMOR else "Stowed"
+					combat_banner_message.emit("%s %s" % [verb, item.data.display_name], Color(0.72, 0.70, 0.64))
 				else:
 					inventory.equip(item)
 					var note: String = ""
@@ -675,7 +718,8 @@ func _complete_channel() -> void:
 						note = " — two-handed grip, %s stowed" % inventory.off_hand.data.display_name
 					elif item.is_broken():
 						note = " — it's broken"
-					combat_banner_message.emit("Readied %s%s" % [item.data.display_name, note], Color(0.78, 0.74, 0.62))
+					var verb: String = "Donned" if item.data.category == ItemData.Category.ARMOR else "Readied"
+					combat_banner_message.emit("%s %s%s" % [verb, item.data.display_name, note], Color(0.78, 0.74, 0.62))
 
 func _try_interact() -> bool:
 	var l: Lootable = _nearest_lootable
@@ -1051,7 +1095,7 @@ func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	if wants_sprint and stamina > 1.0:
 		current_state = ActionState.SPRINT
 		_consume_stamina(13.5 * delta)
-		var spd: float = sprint_speed * _mods.sprint_speed_mult * WeatherSystem.factor(self, "sprint") * load_mult
+		var spd: float = sprint_speed * _mods.sprint_speed_mult * WeatherSystem.factor(self, "sprint") * _armor_sprint_multiplier() * load_mult
 		_set_planar_velocity(move_dir.x * spd + _knockback_velocity.x, move_dir.z * spd + _knockback_velocity.z, delta)
 	elif move_dir.length_squared() > 0.01:
 		current_state = ActionState.MOVE
@@ -1182,12 +1226,17 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			return
 
 	_hitbox.end_swing()
-	health = maxf(0.0, health - payload.physical_damage)
+	var protection: float = get_armor_protection()
+	health = maxf(0.0, health - payload.physical_damage * (1.0 - protection))
+	if protection > 0.0:
+		_wear_armor(payload.physical_damage)
 	poise_damage_taken += payload.poise_damage
 	_poise_timer = poise_reset_time
 	_knockback_velocity = -to_attacker * payload.knockback_force
 
-	if payload.causes_bleed:
+	if payload.causes_bleed and _armor_stops_bleeding():
+		combat_banner_message.emit("The edge skids off your mail — no bleeding", Color(0.72, 0.78, 0.82))
+	elif payload.causes_bleed:
 		is_bleeding = true
 		bleed_timer = 12.0
 		combat_banner_message.emit("Deep Laceration — Bleeding (Press B to Bandage)", Color(0.88, 0.2, 0.2))
@@ -1206,6 +1255,13 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		poise_damage_taken = 0.0
 		current_state = ActionState.STAGGER
 		_state_timer = 0.62
+
+func _armor_label() -> String:
+	var parts: Array[String] = []
+	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS]:
+		var piece: ItemInstance = inventory.get_armor(slot)
+		parts.append(piece.data.display_name if piece else "—")
+	return " / ".join(parts)
 
 func _cough() -> void:
 	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
@@ -1477,6 +1533,8 @@ func _emit_stats() -> void:
 		"cramped": _cramped,
 		"lodged": current_state == ActionState.LODGED,
 		"coughing": is_coughing(),
+		"armor": get_armor_protection(),
+		"armor_label": _armor_label(),
 		"background": background.display_name if background else ""
 	})
 

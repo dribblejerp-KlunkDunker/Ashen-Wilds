@@ -34,6 +34,8 @@ static func roll_goblin_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	if randf() < 0.35:
 		out.append(make("salt", 1))
+	if randf() < 0.2:
+		out.append(make("leather_leggings", 1, randf_range(25.0, 50.0)))
 	return out
 
 static func roll_ork_loot() -> Array[ItemInstance]:
@@ -44,6 +46,8 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	if randf() < 0.3:
 		out.append(make("lamp_oil", 1))
+	if randf() < 0.35:
+		out.append(make("iron_skullcap", 1, randf_range(40.0, 80.0)))
 	return out
 
 static func roll_troll_loot() -> Array[ItemInstance]:
@@ -204,6 +208,31 @@ static func _build() -> void:
 	_register(_material("timber", "Seasoned Timber", 1.5, 10, "Dry enough to burn or build with."))
 	_register(_material("lamp_oil", "Flask of Lamp Oil", 0.9, 5, "Refuels lanterns; douses rags for fire."))
 
+	# --- Armor (Milestone 12) ----------------------------------------------
+	_register(_armor("padded_hood", "Padded Hood", ItemData.ArmorSlot.HEAD, 0.6, 0.06, 60.0,
+		"Quilted linen cap. Takes the sting out of a glancing blow."))
+	var cap := _armor("iron_skullcap", "Iron Skullcap", ItemData.ArmorSlot.HEAD, 1.4, 0.12, 90.0,
+		"Dented ork-forged cap, strapped under the chin.")
+	_register(cap)
+	var gambeson := _armor("quilted_gambeson", "Quilted Gambeson", ItemData.ArmorSlot.BODY, 3.0, 0.14, 90.0,
+		"Thick padded coat. Quiet, warm, and better than nothing.")
+	gambeson.equip_time = 1.6
+	_register(gambeson)
+	var mail := _armor("riveted_mail", "Riveted Mail Shirt", ItemData.ArmorSlot.BODY, 7.5, 0.26, 140.0,
+		"Heavy and loud: every step jingles. Edges skid off it, so no bleeding.")
+	mail.armor_noise_mult = 1.4
+	mail.stops_bleeding = true
+	mail.equip_time = 2.4
+	_register(mail)
+	_register(_armor("leather_leggings", "Leather Leggings", ItemData.ArmorSlot.LEGS, 1.5, 0.08, 70.0,
+		"Boiled-leather chaps with knee cops."))
+	var greaves := _armor("splinted_greaves", "Splinted Greaves", ItemData.ArmorSlot.LEGS, 3.2, 0.14, 100.0,
+		"Iron splints over leather. They clank and slow your stride.")
+	greaves.armor_noise_mult = 1.15
+	greaves.armor_sprint_mult = 0.95
+	greaves.equip_time = 1.4
+	_register(greaves)
+
 	# Milestone 11
 	var stone := ItemData.new()
 	stone.item_id = "throwing_stone"
@@ -222,6 +251,18 @@ static func _build() -> void:
 	pot.category = ItemData.Category.TOOL
 	pot.weight_kg = 4.5
 	_register(pot)
+
+static func _armor(id: String, label: String, slot: ItemData.ArmorSlot, weight: float, protection: float, condition: float, desc: String) -> ItemData:
+	var d := ItemData.new()
+	d.item_id = id
+	d.display_name = label
+	d.description = desc
+	d.category = ItemData.Category.ARMOR
+	d.armor_slot = slot
+	d.weight_kg = weight
+	d.protection = protection
+	d.max_condition = condition
+	return d
 
 static func _material(id: String, label: String, weight: float, stack: int, desc: String) -> ItemData:
 	var d := ItemData.new()

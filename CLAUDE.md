@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–11 are complete: combat core, four enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–12 are complete: combat core, four enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **272 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **294 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -86,7 +86,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 
 - **Damage:** the attacker builds a `CombatPayload` and calls `HitboxComponent.begin_swing()` during its ACTIVE phase. The hitbox rejects repeat hits and targets behind walls, then calls `HurtboxComponent.receive_attack()`. The defender decides dodge, block or take.
 - **Player states** (`PlayerController.ActionState`): IDLE, MOVE, SPRINT, BLOCK are "neutral". ATTACK_STARTUP → ATTACK_ACTIVE → ATTACK_RECOVERY. DODGE, BLOCK_IMPACT, STAGGER. CHANNEL is shared by search, bandage and equip swap; a hit, move, attack or dodge cancels it. RECOIL is a wall clang. LODGED is a stuck weapon. DEAD.
-- **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
+- **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight. Armor lives in `Inventory.armor` (slot -> instance), and `remove()`, `consume()` and `clear()` keep the slots in sync. Damage reduction applies only to unblocked hits, in `_on_hurtbox_hit_received`.
 - **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `SwingGeometry.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies call the same function for their sweeping strokes (Ork combo 1, Ogre sweep). A recoiling enemy must report `is_staggered()`.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
 - **Backgrounds:** `PlayerController._mods` is always a `SurvivorBackground`: the chosen one, or a neutral one. New player numbers that a trait could affect should multiply by a field on it. The bootstrap shows the picker unless `show_background_picker` is false. Tests and tools set that before `add_child`. Headless boots auto-pick the first survivor so the world isn't paused.

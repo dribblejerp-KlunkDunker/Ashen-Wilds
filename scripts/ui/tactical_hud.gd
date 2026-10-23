@@ -9,6 +9,7 @@ var _weight_bar: ColorRect
 var _status_label: Label
 var _survivor_label: Label
 var _weather_label: Label
+var _armor_label: Label
 var _main_label: Label
 var _off_label: Label
 var _weight_label: Label
@@ -62,6 +63,8 @@ func _ready() -> void:
 	vbox.add_child(_main_label)
 	_off_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
 	vbox.add_child(_off_label)
+	_armor_label = _make_label("", 12, Color(0.70, 0.72, 0.74))
+	vbox.add_child(_armor_label)
 
 	_status_label = _make_label("STATE: IDLE", 13, Color(0.72, 0.68, 0.62))
 	vbox.add_child(_status_label)
@@ -204,6 +207,8 @@ func update_stats(data: Dictionary) -> void:
 	if not data["off_active"] and String(data["off_label"]) != "— empty —":
 		off_text += "  [stowed]"
 	_off_label.text = off_text
+	var prot: float = float(data.get("armor", 0.0))
+	_armor_label.text = "ARMOR %d%%  %s" % [int(round(prot * 100.0)), String(data.get("armor_label", ""))]
 
 	var flags: String = ""
 	if data["exhausted"]:

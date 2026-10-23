@@ -15,6 +15,8 @@ var hard_limit_ratio: float = 1.5
 var items: Array[ItemInstance] = []
 var main_hand: ItemInstance = null
 var off_hand: ItemInstance = null
+## Milestone 12: ItemData.ArmorSlot -> ItemInstance.
+var armor: Dictionary = {}
 
 func total_weight() -> float:
 	var w: float = 0.0
@@ -83,6 +85,7 @@ func remove(inst: ItemInstance, quantity: int = -1) -> ItemInstance:
 		main_hand = null
 	if off_hand == inst:
 		off_hand = null
+	_drop_armor_ref(inst)
 	changed.emit()
 	return inst
 
@@ -111,6 +114,7 @@ func consume(item_id: String, quantity: int = 1) -> bool:
 				main_hand = null
 			if off_hand == inst:
 				off_hand = null
+			_drop_armor_ref(inst)
 	changed.emit()
 	return true
 
@@ -146,7 +150,22 @@ func find_weapon_of_class(weapon_class: ItemData.WeaponClass) -> ItemInstance:
 	return fallback
 
 func is_equipped(inst: ItemInstance) -> bool:
-	return inst != null and (inst == main_hand or inst == off_hand)
+	return inst != null and (inst == main_hand or inst == off_hand or armor.values().has(inst))
+
+func get_armor(slot: ItemData.ArmorSlot) -> ItemInstance:
+	return armor.get(slot, null) as ItemInstance
+
+func armor_pieces() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS]:
+		if armor.has(slot):
+			out.append(armor[slot])
+	return out
+
+func _drop_armor_ref(inst: ItemInstance) -> void:
+	for slot: Variant in armor.keys():
+		if armor[slot] == inst:
+			armor.erase(slot)
 
 func equip(inst: ItemInstance) -> bool:
 	if not items.has(inst):
@@ -156,6 +175,8 @@ func equip(inst: ItemInstance) -> bool:
 			main_hand = inst
 		ItemData.Category.SHIELD, ItemData.Category.TORCH:
 			off_hand = inst
+		ItemData.Category.ARMOR:
+			armor[inst.data.armor_slot] = inst
 		_:
 			return false
 	changed.emit()
@@ -166,6 +187,8 @@ func unequip(inst: ItemInstance) -> void:
 		main_hand = null
 	elif inst == off_hand:
 		off_hand = null
+	elif armor.values().has(inst):
+		_drop_armor_ref(inst)
 	else:
 		return
 	changed.emit()
@@ -175,6 +198,7 @@ func clear() -> void:
 	items.clear()
 	main_hand = null
 	off_hand = null
+	armor.clear()
 	changed.emit()
 
 func notify_changed() -> void:

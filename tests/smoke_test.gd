@@ -110,6 +110,7 @@ func _run() -> void:
 	await _test_weather()
 	await _test_enemy_ears()
 	await _test_quarry_troll()
+	await _test_armor()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1450,3 +1451,113 @@ func _test_quarry_troll() -> void:
 		n.queue_free()
 	_player.camera_rig = rig
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 12 — armor
+# ------------------------------------------------------------------------------
+func _test_armor() -> void:
+	_section("Armor")
+	var S := ItemData.ArmorSlot
+	var ids: Dictionary = {"padded_hood": S.HEAD, "iron_skullcap": S.HEAD, "quilted_gambeson": S.BODY,
+		"riveted_mail": S.BODY, "leather_leggings": S.LEGS, "splinted_greaves": S.LEGS}
+	var ok: bool = true
+	for id: String in ids.keys():
+		var d: ItemData = ItemDatabase.get_item(id)
+		if d.category != ItemData.Category.ARMOR or d.armor_slot != ids[id] or d.protection <= 0.0 or not d.is_equippable():
+			ok = false
+	_check(ok, "six armor pieces across head, body and legs")
+	var lootables: Array = get_nodes_in_group("lootable")
+	var holds := func(label: String, id: String) -> bool:
+		for l: Lootable in lootables:
+			if l.display_name == label:
+				return l.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == id)
+		return false
+	_check(holds.call("Watchhouse Supply Chest", "quilted_gambeson") and holds.call("Ork Plunder Pile", "riveted_mail") and holds.call("Gnawed Bone Heap", "splinted_greaves"), "armor is out there to scavenge (chest, plunder pile, bone heap)")
+
+	_reset_player(OPEN)
+	await _ticks(2)
+	var inv: Inventory = _player.inventory
+	var hood := ItemDatabase.make("padded_hood")
+	var gamb := ItemDatabase.make("quilted_gambeson")
+	var legs := ItemDatabase.make("leather_leggings")
+	var mail := ItemDatabase.make("riveted_mail")
+	for a: ItemInstance in [hood, gamb, legs, mail]:
+		inv.add(a)
+	var w0: float = inv.total_weight()
+	_check(_player.request_equip(hood) and _player._channel_label() == "Donning Padded Hood", "donning a hood is a timed swap")
+	await _seconds(0.7)
+	_check(inv.get_armor(S.HEAD) == hood and inv.is_equipped(hood), "the hood goes on your head")
+	_player.request_equip(mail)
+	_check(absf(_player._channel_total - 2.4) < 0.01, "mail takes 2.4 s to pull on")
+	await _seconds(2.6)
+	_check(inv.get_armor(S.BODY) == mail and is_equal_approx(inv.total_weight(), w0), "mail worn; worn armor still weighs what it weighs")
+	_player.current_state = PlayerController.ActionState.MOVE
+	var pack: float = _player.get_noise_multiplier()
+	_check(absf(_player.emit_gait_noise() - 3.5 * 1.4 * pack) < 0.01, "mail jingles: footsteps carry x1.4 (%.1f m with this pack)" % (3.5 * 1.4 * pack))
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Protection, wear and bleeding.
+	_player.health = 100.0
+	_player.is_bleeding = false
+	var prot: float = _player.get_armor_protection()
+	_check(absf(prot - 0.32) < 0.001, "hood + mail = 32%% protection (%.2f)" % prot)
+	var mail_cond: float = mail.condition
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, OPEN + Vector3(1, 0, 0), Vector3.LEFT, 50.0, 1.0, true))
+	_check(absf(_player.health - 66.0) < 0.01, "a 50-damage blow deals 34 through hood and mail")
+	_check(absf((mail_cond - mail.condition) - 12.5) < 0.01, "each worn piece wears with the blow (mail -12.5)")
+	_check(not _player.is_bleeding, "mail turns the edge: no bleeding")
+	_player.current_state = PlayerController.ActionState.IDLE
+	inv.equip(gamb)
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, OPEN + Vector3(1, 0, 0), Vector3.LEFT, 10.0, 1.0, true))
+	_check(_player.is_bleeding and inv.get_armor(S.BODY) == gamb, "a gambeson doesn't stop bleeding")
+	_player.is_bleeding = false
+	_player.current_state = PlayerController.ActionState.IDLE
+	gamb.condition = 0.0
+	_check(absf(_player.get_armor_protection() - 0.06) < 0.001, "a ruined piece protects nothing")
+	gamb.condition = gamb.data.max_condition
+	var saved: float = mail.data.protection
+	mail.data.protection = 0.9
+	inv.equip(mail)
+	_check(is_equal_approx(_player.get_armor_protection(), 0.6), "protection is capped at 60%")
+	mail.data.protection = saved
+
+	# Blocking keeps armor clean; greaves slow sprinting.
+	_player.current_state = PlayerController.ActionState.BLOCK
+	_player.stamina = _player.max_stamina
+	_player.is_exhausted = false
+	mail_cond = mail.condition
+	var front: Vector3 = _player.global_position + _player._aim_direction * 1.5
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, -_player._aim_direction, 30.0, 10.0))
+	_check(is_equal_approx(mail.condition, mail_cond), "a blocked blow doesn't wear your armor")
+	_player.current_state = PlayerController.ActionState.IDLE
+	var greaves := ItemDatabase.make("splinted_greaves")
+	inv.add(greaves)
+	inv.equip(greaves)
+	_check(is_equal_approx(_player._armor_sprint_multiplier(), 0.95), "splinted greaves: sprint x0.95")
+
+	# Drop and unequip.
+	_player.request_equip(hood)
+	await _seconds(0.7)
+	_check(inv.get_armor(S.HEAD) == null and inv.has_item(hood), "unequipping takes the hood off")
+	_player.drop_item(mail)
+	_check(inv.get_armor(S.BODY) == null, "dropping worn armor empties the slot")
+	await _ticks(2)
+	_emit_check_hud()
+
+	# Survivors start with a piece.
+	_bg("citadel_deserter")
+	_check(_player.inventory.get_armor(S.HEAD) != null and _player.inventory.get_armor(S.HEAD).data.item_id == "padded_hood", "Citadel Deserter starts in a padded hood")
+	_bg("disgraced_squire")
+	_check(_player.inventory.get_armor(S.HEAD) != null and _player.inventory.get_armor(S.HEAD).data.item_id == "iron_skullcap", "Disgraced Squire starts in an iron skullcap")
+	_player.apply_background(null)
+	_check(_player.inventory.armor.is_empty(), "legacy loadout wears nothing")
+	for l: Node in get_nodes_in_group("lootable"):
+		if (l as Lootable).items.has(mail):
+			l.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+func _emit_check_hud() -> void:
+	_player._emit_stats()
+	var lbl: Label = _hud._armor_label
+	_check(lbl.text.begins_with("ARMOR ") and lbl.text.contains("%"), "HUD shows armor (%s)" % lbl.text)

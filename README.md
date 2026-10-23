@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–11 complete · verified on Godot 4.3-stable (Forward+) · **272/272** headless regression checks passing
+> **Status:** Milestones 1–12 complete · verified on Godot 4.3-stable (Forward+) · **294/294** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -171,6 +171,20 @@ North-east of the watchhouse lies the **Old Quarry** (**F5**), a walled pit with
 
 ![The Blind Quarry-Troll in the Old Quarry](docs/screenshots/14_quarry_troll.png)
 
+### Armor (Milestone 12)
+Head, body and legs slots. Equip armor from the pack window. Putting it on and taking it off is a timed, interruptible swap. Worn pieces absorb a share of every blow you don't block (capped at 60%) and wear down as they do. A ruined piece protects nothing. Armor weighs what it weighs, and some of it is loud.
+
+| Piece | Slot | Weight | Protection | Notes | Where |
+|---|---|---|---|---|---|
+| Padded Hood | head | 0.6 kg | 6% | — | Citadel Deserter's start |
+| Iron Skullcap | head | 1.4 kg | 12% | — | Ork corpses (35%), Disgraced Squire |
+| Quilted Gambeson | body | 3.0 kg | 14% | quiet; 1.6 s to don | Watchhouse Supply Chest |
+| Riveted Mail Shirt | body | 7.5 kg | 26% | **stops bleeding**; footsteps ×1.4; 2.4 s to don | Ork Plunder Pile |
+| Leather Leggings | legs | 1.5 kg | 8% | — | goblin corpses (20%), Boar Hunter |
+| Splinted Greaves | legs | 3.2 kg | 14% | footsteps ×1.15, sprint −5% | Gnawed Bone Heap |
+
+The mail is the big choice: real protection and no more bleeding, but 7.5 kg pushes most packs into *Burdened*, and every step jingles for the Quarry-Troll to hear.
+
 ---
 
 ## Controls
@@ -226,7 +240,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, and thrown stones as lures.
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, and armor (protection, wear, the cap, bleeding, noise, slots).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -263,7 +277,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (272 checks)
+  smoke_test.gd            Headless regression suite (294 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -273,7 +287,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 - **Damage flow:** an attacker builds a `CombatPayload` and opens its `HitboxComponent` during the *active* phase. The hitbox finds overlapping `HurtboxComponent`s, rejects repeat hits and anything behind a wall (raycast), then calls `receive_attack()`. The defender decides whether it was dodged, blocked or taken.
 - **Physics layers:** 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders (roofs).
-- **Items:** `ItemData` is the shared definition (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
+- **Items:** `ItemData` is the shared definition (armor pieces carry a slot, protection and noise/sprint multipliers) (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
 - **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
 - **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
@@ -288,7 +302,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Milestones 12–14 (planned in the roadmap): armor slots, Act I objectives and the shelter, save & load.
+- Milestones 13–14 (planned in the roadmap): Act I objectives and the shelter, save & load.
 - Later: companions, the rest of the bestiary, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 

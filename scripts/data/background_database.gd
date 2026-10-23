@@ -30,7 +30,7 @@ static func _build() -> void:
 
 	b = _make("citadel_deserter", "Citadel Deserter",
 		"You walked off the Highland wall the night the Vaults broke. The drill never left you.")
-	b.add_item("arming_sword", 1, 88.0).add_item("wooden_targe").add_item("pitch_torch", 1, 180.0).add_item("clean_rag_bandage", 2)
+	b.add_item("arming_sword", 1, 88.0).add_item("wooden_targe").add_item("pitch_torch", 1, 180.0).add_item("clean_rag_bandage", 2).add_item("padded_hood")
 	b.main_hand_id = "arming_sword"
 	b.off_hand_id = "wooden_targe"
 	b.trait_name = "Shield Drill"
@@ -54,7 +54,7 @@ static func _build() -> void:
 
 	b = _make("boar_hunter", "Boar Hunter",
 		"You fed a village on what you could spear in the reeds. You learned to move without a sound.")
-	b.add_item("boar_spear", 1, 80.0).add_item("pitch_torch", 1, 160.0).add_item("clean_rag_bandage", 1)
+	b.add_item("boar_spear", 1, 80.0).add_item("pitch_torch", 1, 160.0).add_item("clean_rag_bandage", 1).add_item("leather_leggings", 1, 60.0)
 	b.main_hand_id = "boar_spear"
 	b.off_hand_id = "pitch_torch"
 	b.trait_name = "Light Step"
@@ -114,7 +114,7 @@ static func _build() -> void:
 
 	b = _make("disgraced_squire", "Disgraced Squire",
 		"Stripped of your spurs for a duel you shouldn't have won. You still stand like a knight.")
-	b.add_item("arming_sword", 1, 100.0).add_item("wooden_targe").add_item("clean_rag_bandage", 1)
+	b.add_item("arming_sword", 1, 100.0).add_item("wooden_targe").add_item("clean_rag_bandage", 1).add_item("iron_skullcap", 1, 85.0)
 	b.main_hand_id = "arming_sword"
 	b.off_hand_id = "wooden_targe"
 	b.trait_name = "Tourney Poise"

@@ -3,7 +3,8 @@ extends Resource
 ## Static definition of an item type. Runtime state (condition, quantity)
 ## lives on ItemInstance.
 
-enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL }
+enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL, ARMOR }
+enum ArmorSlot { NONE, HEAD, BODY, LEGS }
 enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 
 @export var item_id: String = ""
@@ -35,6 +36,18 @@ enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 # Consumable
 @export var use_duration: float = 1.6
 
+# Armor (Milestone 12)
+@export var armor_slot: ArmorSlot = ArmorSlot.NONE
+## Fraction of physical damage this piece absorbs while unbroken.
+@export var protection: float = 0.0
+## Multiplies the reach of your footsteps (mail jingles, hide muffles).
+@export var armor_noise_mult: float = 1.0
+@export var armor_sprint_mult: float = 1.0
+## Body armor that turns edges: blows don't make you bleed.
+@export var stops_bleeding: bool = false
+## Seconds to don or remove (0 = the normal swap time).
+@export var equip_time: float = 0.0
+
 func is_stackable() -> bool:
 	return max_stack > 1
 
@@ -42,4 +55,4 @@ func has_durability() -> bool:
 	return max_condition > 0.0
 
 func is_equippable() -> bool:
-	return category in [Category.WEAPON, Category.SHIELD, Category.TORCH]
+	return category in [Category.WEAPON, Category.SHIELD, Category.TORCH, Category.ARMOR]

@@ -406,15 +406,15 @@ func _spawn_scavenge_containers() -> void:
 	)
 	_spawn_container(
 		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.36, 0.27, 0.18), 3.0,
-		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
+		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2), ItemDatabase.make("quilted_gambeson", 1, 70.0)]
 	)
 	_spawn_container(
 		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.34, 0.28, 0.22), 2.5,
-		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
+		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("riveted_mail", 1, 110.0)]
 	)
 	_spawn_container(
 		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.46, 0.42, 0.35), 3.5,
-		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
+		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("splinted_greaves", 1, 80.0)]
 	)
 	_spawn_container(
 		"Quarry Rubble Pile", Vector3(12.2, 0.0, -10.4), Vector3(1.0, 0.4, 0.8), Color(0.38, 0.36, 0.33), 2.5,

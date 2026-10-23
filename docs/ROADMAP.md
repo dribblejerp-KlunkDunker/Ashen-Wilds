@@ -12,7 +12,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 9 | Weather & atmosphere | ✅ shipped | M8 (weather scales sight & hearing) |
 | 10 | Enemy ears | ✅ shipped | M8 acoustic field |
 | 11 | The Blind Quarry-Troll | ✅ shipped | M10 |
-| 12 | Armor slots | planned | M4 inventory, M10 (armor is noisy) |
+| 12 | Armor slots | ✅ shipped | M4 inventory, M10 (armor is noisy) |
 | 13 | Act I objectives & the shelter | planned | M4 loot, M7 |
 | 14 | Save & load | planned | everything above |
 | — | Companions, the rest of the bestiary, Acts II–III | later | design doc; consider Fable for companion AI |
@@ -91,9 +91,9 @@ A sightless troll in a new quarry pit east of the Ogre lair. It has no eyes, so 
 - Loud events (clangs, swings, blocks) make it charge. **Thrown stones (G)** thud down where you aim, so you can lure it away, and goblins and Orks investigate the landing spot too.
 - Hits like the Ogre but turns slowly. Tough hide: light blows deal 35% unless it's staggered or recoiling. Its club clangs off the quarry walls. It drops a hide for M12's armor.
 
-## Milestone 12 — Armor slots *(proposed)*
+## Milestone 12 — Armor slots
 
-Head, body and legs slots. Each piece adds **protection** (damage reduction), **weight**, and sometimes **noise** (mail jingles: footstep reach ×) and **stamina** cost. Loot new pieces from corpses and containers.
+Head, body and legs slots. Each piece adds **protection** (damage reduction on unblocked hits, capped at 60%), **weight**, and sometimes **noise** (mail ×1.4, greaves ×1.15) or a sprint penalty. Pieces wear as they absorb blows. Riveted mail stops bleeding. Six pieces, found in containers and on corpses, and three survivors start with one.
 
 ## Milestone 13 — Act I objectives & the shelter *(proposed)*
 
