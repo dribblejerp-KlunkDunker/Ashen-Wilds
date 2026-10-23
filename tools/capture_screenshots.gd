@@ -327,8 +327,8 @@ func _run() -> void:
 	_equip_now("pitch_torch")
 	_place(Vector3(-2.4, 0.0, 1.6), Vector3(0.5, 0, -1.0))
 	var night_gob: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger and not e.is_dead())[0]
-	night_gob.global_position = Vector3(-0.6, 0.0, -2.6)
-	night_gob._facing_dir = Vector3(-0.4, 0, 1).normalized()
+	night_gob.global_position = Vector3(-1.2, 0.0, -1.1)
+	night_gob._facing_dir = Vector3(-0.45, 0, 1).normalized()
 	night_gob._visual_root.look_at(night_gob.global_position + night_gob._facing_dir, Vector3.UP)
 	night_gob._visual_root.visible = true
 	await _frames(40)
