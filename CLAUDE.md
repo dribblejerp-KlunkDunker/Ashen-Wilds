@@ -12,6 +12,8 @@ Milestones 1–19 are complete: combat core, eight enemy types, scavenging and e
 
 `.claude/skills/ashen-wilds-milestone/` is this repo's plan → test → code → debug → clean → commit loop, with helper scripts: `setup_godot.sh`, `verify.sh` (all four checks below; `--twice` for timing work) and `capture.sh` (screenshots). Use it for any feature or fix.
 
+For gated, autonomous runs, the Autonomous Project Master kit is in `.claude/apm/` (`verify.mjs`, `mission.mjs`, hooks, `selftest.mjs`), with the `evidence-reviewer` agent and this repo's gates (compile, suite, boot) in `.agent/master/config.json`. Its hooks only run once they're in `.claude/settings.json`, which the owner enables.
+
 ## Visual direction (read before any visual work)
 
 The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets (13) and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.

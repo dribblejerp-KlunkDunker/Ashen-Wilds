@@ -16,3 +16,7 @@ export/
 .vscode/
 .idea/
 *.swp
+
+# Autonomous Project Master: keep the gate config, not the session evidence
+.agent/master/*
+!.agent/master/config.json
