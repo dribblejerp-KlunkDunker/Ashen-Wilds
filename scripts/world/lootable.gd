@@ -76,6 +76,7 @@ static func spawn_lodged_weapon(parent: Node, world_pos: Vector3, inst: ItemInst
 	l.remove_when_empty = true
 	l.interact_radius = 1.8
 	l.items.append(inst)
+	l.set_meta("save_kind", "lodged")
 
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -108,6 +109,7 @@ static func spawn_ground_pile(parent: Node, world_pos: Vector3, inst: ItemInstan
 	l.remove_when_empty = true
 	l.interact_radius = 1.4
 	l.items.append(inst)
+	l.set_meta("save_kind", "ground")
 
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()

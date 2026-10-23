@@ -112,6 +112,7 @@ func _run() -> void:
 	await _test_quarry_troll()
 	await _test_armor()
 	await _test_act_one()
+	await _test_save_load() # last: it replaces the world
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1639,3 +1640,99 @@ func _test_act_one() -> void:
 	_check(not _hud.is_act_panel_open() and not _player.ui_capture, "closing the card returns control")
 	_reset_player(OPEN)
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 14 — save & load (runs last: it frees the world and boots a new one)
+# ------------------------------------------------------------------------------
+func _test_save_load() -> void:
+	_section("Save & load")
+	SaveGame.save_path = "user://smoke_test_save.json"
+	SaveGame.delete()
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	_check(boot._all_enemies.size() == 6, "six enemies tracked for saving")
+
+	# Build up some state worth saving.
+	_bg("peat_cutter")
+	var inv: Inventory = _player.inventory
+	var mail := ItemDatabase.make("riveted_mail", 1, 101.0)
+	inv.add(mail)
+	inv.equip(mail)
+	inv.add(ItemDatabase.make("throwing_stone", 3))
+	_reset_player(Vector3(-2.0, 0.0, 10.0))
+	await _ticks(2)
+	_player.drop_item(inv.find_first("throwing_stone"))
+	var pile_pos: Vector3 = _player.global_position + _player._aim_direction * 0.7
+	Lootable.spawn_lodged_weapon(_main, Vector3(0.0, 0.0, 12.0), ItemDatabase.make("arming_sword", 1, 42.0), "a goblin")
+	boot._weather.set_weather(WeatherSystem.Weather.SLEET, true)
+	boot._vision.update_now()
+	var seen_cell: Vector3 = _player.global_position + Vector3(3.0, 0, 0)
+	_check(boot._vision.is_explored(seen_cell), "(setup) the ground ahead is explored")
+	var stash_items: int = boot._stash.items.size()
+
+	_check(not boot.rest_at_fire() and not SaveGame.exists(), "you can only rest at the shelter fire")
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(2)
+	_check(_hud._prompt_label.text.contains("[T] Rest at the fire"), "near the fire the prompt offers rest")
+	_player.health = 40.0
+	_player.is_bleeding = true
+	var saved_pos: Vector3 = _player.global_position
+	_check(boot.rest_at_fire() and SaveGame.exists(), "resting at the fire saves the game")
+	_check(is_equal_approx(_player.health, _player.max_health) and not _player.is_bleeding, "...and heals you")
+	var data: Dictionary = SaveGame.read()
+	_check(data.get("background") == "peat_cutter" and data.has("enemies") and data.has("seen"), "the save holds survivor, enemies and the memory map")
+
+	# Picker offers Continue.
+	var picker := BackgroundPicker.new()
+	picker.can_continue = true
+	var continued: Array = []
+	picker.continue_chosen.connect(func() -> void: continued.append(true))
+	root.add_child(picker)
+	await process_frame
+	var cont_btn: Button = null
+	for b: Node in picker.find_children("*", "Button", true, false):
+		if (b as Button).text.begins_with("Continue"):
+			cont_btn = b
+	_check(cont_btn != null, "the start screen offers Continue when a save exists")
+	picker.continue_game()
+	await process_frame
+	_check(continued.size() == 1 and not paused, "Continue unpauses and asks to load")
+
+	# Throw this world away and boot a fresh one.
+	_main.queue_free()
+	await _ticks(3)
+	_main = (load("res://main.tscn") as PackedScene).instantiate()
+	_main.set("show_background_picker", false)
+	_main.set("weather_cycle_enabled", false)
+	root.add_child(_main)
+	await _ticks(5)
+	boot = _main as AshenWildsBootstrap
+	_player = boot._player
+	_hud = boot._hud
+	for e: Node3D in boot._all_enemies:
+		e.process_mode = Node.PROCESS_MODE_DISABLED
+	_check(_player.background == null and boot._stash.items.size() < stash_items, "(fresh world before loading)")
+	await boot.load_game()
+	await _ticks(2)
+	inv = _player.inventory
+	_check(_player.background != null and _player.background.background_id == "peat_cutter" and is_equal_approx(inv.capacity_kg, 23.0), "loaded: the Peat-Cutter, with Strong Back")
+	_check(_player.global_position.distance_to(saved_pos) < 0.1 and is_equal_approx(_player.health, _player.max_health), "loaded: where you rested, at full health")
+	_check(inv.get_armor(ItemData.ArmorSlot.BODY) != null and absf(inv.get_armor(ItemData.ArmorSlot.BODY).condition - 101.0) < 0.01, "loaded: still wearing the mail, same condition")
+	_check(inv.main_hand != null and inv.main_hand.data.item_id == "woodsmans_broadaxe" and inv.count_of("throwing_stone") == 0, "loaded: pack and main hand match")
+	_check(boot._stash.items.size() == stash_items and boot._stash.count_of("cooking_pot") == 1, "loaded: the stash holds what you stored")
+	var dead: int = boot._all_enemies.filter(func(e: Node3D) -> bool: return e.is_dead()).size()
+	_check(dead == int(data["enemies"].filter(func(e: Dictionary) -> bool: return e["dead"]).size()) and dead >= 4, "loaded: the dead stay dead (%d)" % dead)
+	var gob: Node3D = boot._all_enemies[0]
+	var corpse_ok: bool = false
+	for c: Node in gob.get_children():
+		if c is Lootable:
+			corpse_ok = (c as Lootable).items.size() == data["enemies"][0]["corpse"]["items"].size()
+	_check(corpse_ok, "loaded: a corpse keeps exactly what was left on it")
+	var piles: Array = get_nodes_in_group("lootable").filter(func(l: Lootable) -> bool: return l.get_meta("save_kind", "") in ["ground", "lodged"])
+	_check(piles.any(func(l: Lootable) -> bool: return l.get_meta("save_kind") == "ground" and l.global_position.distance_to(pile_pos) < 0.2 and l.count_of("throwing_stone") == 3), "loaded: your dropped stones are where you left them")
+	_check(piles.any(func(l: Lootable) -> bool: return l.get_meta("save_kind") == "lodged" and l.display_name.contains("lodged in a goblin")), "loaded: a lodged sword is still stuck")
+	_check(boot._objectives.is_done("watchhouse") and boot._objectives.is_done("shelter") and boot._objectives.completed, "loaded: objectives and Act I completion")
+	_check(not _hud.is_act_panel_open(), "loading a finished act doesn't replay the Act I card")
+	_check(boot._weather.current == WeatherSystem.Weather.SLEET, "loaded: the weather")
+	_check(boot._vision.is_explored(seen_cell), "loaded: the charcoal memory map")
+	SaveGame.delete()
+	_check(not SaveGame.exists(), "(cleanup) test save removed")

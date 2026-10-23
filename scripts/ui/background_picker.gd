@@ -4,6 +4,11 @@ extends CanvasLayer
 ## paused while it's open. Keys 1-8 select, Enter begins.
 
 signal background_chosen(bg: SurvivorBackground)
+## Milestone 14: picked "Continue" instead of a new survivor.
+signal continue_chosen
+
+## Set before adding to the tree: offers Continue when a save exists.
+var can_continue: bool = false
 
 var _backgrounds: Array[SurvivorBackground] = []
 var _selected: int = 0
@@ -91,6 +96,13 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	detail.add_child(spacer)
+	if can_continue:
+		var cont := Button.new()
+		cont.text = "Continue from your last rest   [C]"
+		cont.custom_minimum_size = Vector2(0, 46)
+		cont.add_theme_font_size_override("font_size", 17)
+		cont.pressed.connect(continue_game)
+		detail.add_child(cont)
 	var begin := Button.new()
 	begin.text = "Begin as this survivor   [Enter]"
 	begin.custom_minimum_size = Vector2(0, 54)
@@ -129,6 +141,11 @@ func select(index: int) -> void:
 	_trait_label.text = "TRAIT — %s: %s" % [bg.trait_name, bg.trait_desc]
 	_flaw_label.text = "FLAW — %s: %s" % [bg.flaw_name, bg.flaw_desc]
 
+func continue_game() -> void:
+	get_tree().paused = false
+	continue_chosen.emit()
+	queue_free()
+
 func confirm() -> void:
 	var bg: SurvivorBackground = get_selected()
 	get_tree().paused = false
@@ -148,6 +165,9 @@ func _input(event: InputEvent) -> void:
 	elif key == KEY_DOWN:
 		select(_selected + 1)
 		get_viewport().set_input_as_handled()
+	elif key == KEY_C and can_continue:
+		get_viewport().set_input_as_handled()
+		continue_game()
 	elif key == KEY_ENTER or key == KEY_KP_ENTER:
 		get_viewport().set_input_as_handled()
 		confirm()

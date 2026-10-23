@@ -99,6 +99,8 @@ var camera_rig: IsoCameraRig
 var audio: ProceduralAudio
 ## True while a pack/loot window is open: combat inputs are ignored.
 var ui_capture: bool = false
+## Milestone 14: an extra prompt set by the world (e.g. resting at the fire).
+var extra_prompt: String = ""
 
 var _state_timer: float = 0.0
 var _stamina_delay_timer: float = 0.0
@@ -1541,7 +1543,7 @@ func _emit_stats() -> void:
 		"bandages": inventory.count_of("clean_rag_bandage"),
 		"channel_label": _channel_label() if current_state == ActionState.CHANNEL else "",
 		"channel_progress": get_channel_progress(),
-		"prompt": prompt,
+		"prompt": prompt + ("   " if prompt != "" and extra_prompt != "" else "") + (extra_prompt if current_state in NEUTRAL_STATES and not ui_capture else ""),
 		"cramped": _cramped,
 		"lodged": current_state == ActionState.LODGED,
 		"coughing": is_coughing(),

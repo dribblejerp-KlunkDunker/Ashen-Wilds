@@ -14,7 +14,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 11 | The Blind Quarry-Troll | ✅ shipped | M10 |
 | 12 | Armor slots | ✅ shipped | M4 inventory, M10 (armor is noisy) |
 | 13 | Act I objectives & the shelter | ✅ shipped | M4 loot, M7 |
-| 14 | Save & load | planned | everything above |
+| 14 | Save & load | ✅ shipped | everything above |
 | — | Companions, the rest of the bestiary, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
@@ -105,4 +105,4 @@ Optional: slay the Ogre and silence the Quarry-Troll. An objective tracker on th
 
 ## Milestone 14 — Save & load
 
-Save at the shelter fire: background, pack, world containers, dead enemies, objectives, weather and the exploration memory. Load from the start screen.
+Rest at the shelter fire (T) to heal and save: survivor, pack and worn gear, world containers, dead enemies and their corpses, dropped and lodged items, objectives, weather and the exploration memory. One JSON slot in `user://`. Continue from the start screen.

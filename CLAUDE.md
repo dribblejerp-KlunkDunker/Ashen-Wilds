@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–13 are complete: combat core, four enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–14 are complete: combat core, four enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **313 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **337 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -64,7 +64,7 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 
 ```
 scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers, objectives), procedural_audio.gd,
-                    act_objectives.gd (checks + progress callables, act completion)
+                    act_objectives.gd (checks + progress callables, act completion), save_game.gd
 scripts/camera/     iso_camera_rig.gd (45° yaw / -30° pitch ortho, shake, brightness)
 scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), swing_geometry (shared clang arc + sparks)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
@@ -97,6 +97,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Art is being made separately** (sprites from another agent). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
 - **Weather:** read effects via `WeatherSystem.factor(node, key)`, never by checking `current`. Fire and footing keys (`SHELTERED_KEYS`) are neutral under a roof. Register new interiors with both the camera rig and `WeatherSystem.register_interior()`. Tests and tools set `weather_cycle_enabled = false` before `add_child` so the weather can't change mid-check.
 - **Objectives** are callables in `_build_act_one_objectives()`, re-checked twice a second. Once done they stay done. Smoke tests that kill an encounter's enemies (the corpse test kills the yard goblin and the Ork Cleaver) change objective state, so the Act I test runs last and counts on that.
+- **Saving:** `SaveGame.collect()` / `apply()`. World containers are identified by display name, enemies by spawn order (`_all_enemies`), dropped and lodged piles by the `save_kind` meta. New persistent state needs a line in both functions and in the save test. `apply()` is a coroutine (corpses attach a frame after death), so `await` it. The save test runs last because it frees the world and boots a new one. Tests point `SaveGame.save_path` at a throwaway file.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
 ## Conventions and pitfalls (learned the hard way)
@@ -110,7 +111,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Godot renames duplicate sibling names** (a second `Ripple` becomes `@Node3D@N`). Find spawned nodes by group, not by `name.begins_with()`.
 - **Full-screen shader output is linear, pre-tonemap.** Constants that look tiny (0.016) come out light grey on screen. Compare against the scene with the overlay off (V) before tuning.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, F1–F3 and F5 are dev teleports, V toggles the vision overlay, F4 advances the weather.
+- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, F1–F3 and F5 are dev teleports, V toggles the vision overlay, F4 advances the weather.
 
 ### Writing tests (`tests/smoke_test.gd`)
 

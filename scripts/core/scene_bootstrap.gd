@@ -16,6 +16,10 @@ var _orks: Array[Node3D] = []
 var _ogre: EnemyOgreBrute
 var _troll: EnemyQuarryTroll
 var _stash: Lootable
+## Every enemy in spawn order (Milestone 14 save identity).
+var _all_enemies: Array[Node3D] = []
+const FIRE_POS := Vector3(-6.5, 0.0, 4.8)
+const REST_RADIUS: float = 2.6
 var _sun: DirectionalLight3D
 ## Milestone 9: tests and tools turn the weather cycle off before add_child.
 @export var weather_cycle_enabled: bool = true
@@ -81,6 +85,9 @@ func _ready() -> void:
 	add_child(_hud)
 	_hud.bind_player(_player)
 	_build_act_one_objectives()
+	for n: Node in get_children():
+		if n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll:
+			_all_enemies.append(n)
 	_hud.show_banner("THE BLACKFEN OUTSKIRTS — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 	if show_background_picker and DisplayServer.get_name() == "headless":
@@ -89,8 +96,32 @@ func _ready() -> void:
 		_on_background_chosen.call_deferred(BackgroundDatabase.all()[0])
 	elif show_background_picker:
 		var picker := BackgroundPicker.new()
+		picker.can_continue = SaveGame.exists()
 		picker.background_chosen.connect(_on_background_chosen)
+		picker.continue_chosen.connect(load_game)
 		add_child(picker)
+
+func _process(_delta: float) -> void:
+	_player.extra_prompt = "[T] Rest at the fire (heal & save)" if is_near_fire() else ""
+
+func is_near_fire() -> bool:
+	var d := Vector2(_player.global_position.x - FIRE_POS.x, _player.global_position.z - FIRE_POS.z)
+	return d.length() <= REST_RADIUS
+
+## Milestone 14: resting at the shelter fire heals you, stops bleeding and saves.
+func rest_at_fire() -> bool:
+	if not is_near_fire() or not (_player.current_state in PlayerController.NEUTRAL_STATES):
+		return false
+	_player.health = _player.max_health
+	_player.is_bleeding = false
+	_player.bleed_timer = 0.0
+	var ok: bool = SaveGame.write(self)
+	_hud.show_banner("You rest by the fire. Wounds bound, the night survived — game saved." if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
+	return ok
+
+func load_game() -> void:
+	var ok: bool = await SaveGame.apply(self, SaveGame.read())
+	_hud.show_banner("The fire still burns. Game loaded." if ok else "No saved game found.", Color(0.86, 0.78, 0.60))
 
 func _on_background_chosen(bg: SurvivorBackground) -> void:
 	_player.apply_background(bg)
@@ -110,6 +141,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
+			KEY_T:
+				rest_at_fire()
 			KEY_F5:
 				_player.global_position = Vector3(7.8, 0.0, -15.0)
 				_hud.show_banner("Teleported: The Old Quarry (Blind Quarry-Troll) — make no sound", Color(0.78, 0.72, 0.58))
@@ -151,6 +184,7 @@ func _ensure_input_bindings() -> void:
 	_bind_key("equip_slot_4", KEY_4)
 	# Milestone 11
 	_bind_key("throw", KEY_G)
+
 
 func _bind_key(action: String, key: Key) -> void:
 	if InputMap.has_action(action):
@@ -504,6 +538,7 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 
 	var loot := Lootable.new()
 	loot.display_name = label
+	loot.set_meta("save_kind", "container")
 	loot.search_duration = search_time
 	loot.position = Vector3(0.0, -size.y * 0.5, 0.0)
 	for inst: Variant in contents:

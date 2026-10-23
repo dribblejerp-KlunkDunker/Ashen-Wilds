@@ -141,6 +141,17 @@ func _mark_disc(center: Vector3, radius: float) -> void:
 			if Vector2(dx, dy).length() * cell <= radius:
 				_mark(c0 + Vector2i(dx, dy))
 
+## Milestone 14: the exploration memory, for saving.
+func get_seen_bytes() -> PackedByteArray:
+	return _seen_bytes
+
+func set_seen_bytes(bytes: PackedByteArray) -> void:
+	if bytes.size() != CELLS * CELLS:
+		return
+	_seen_bytes = bytes
+	_seen_img.set_data(CELLS, CELLS, false, Image.FORMAT_R8, _seen_bytes)
+	_seen_tex.update(_seen_img)
+
 ## True if the spot was lit by the cone on the last update.
 func is_visible_now(world: Vector3) -> bool:
 	var c: Vector2i = _cell_of(world)

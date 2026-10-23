@@ -83,7 +83,7 @@ func _ready() -> void:
 	var help_lbl := _make_label(
 		"ASHEN WILDS — THE BLACKFEN OUTSKIRTS\n" +
 		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
-		"[E] Search / Open   [Tab] Pack   [B] Bandage   [G] Throw Stone   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
+		"[E] Search / Open   [Tab] Pack   [B] Bandage   [G] Throw Stone   [T] Rest at Fire   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
 		"[F1/F2/F3/F5] Teleport Encounters   [F4] Next Weather   [V] Vision Cone   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
 		13, Color(0.68, 0.65, 0.60)
 	)
