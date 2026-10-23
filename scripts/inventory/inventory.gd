@@ -170,5 +170,12 @@ func unequip(inst: ItemInstance) -> void:
 		return
 	changed.emit()
 
+## Empties the pack and both slots (used when a survivor background is applied).
+func clear() -> void:
+	items.clear()
+	main_hand = null
+	off_hand = null
+	changed.emit()
+
 func notify_changed() -> void:
 	changed.emit()

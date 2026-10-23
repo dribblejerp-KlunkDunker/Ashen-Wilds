@@ -7,6 +7,9 @@ var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
+## Milestone 7: show the survivor picker on boot. Tests and tools turn this
+## off before adding the scene, which keeps the legacy loadout.
+@export var show_background_picker: bool = true
 
 func _ready() -> void:
 	_ensure_input_bindings()
@@ -39,7 +42,20 @@ func _ready() -> void:
 	_hud = TacticalHUD.new()
 	add_child(_hud)
 	_hud.bind_player(_player)
-	_hud.show_banner("MILESTONE 4 — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
+	_hud.show_banner("THE BLACKFEN OUTSKIRTS — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
+
+	if show_background_picker and DisplayServer.get_name() == "headless":
+		# Headless boots (CI, the live-boot check) can't click: start as the
+		# first survivor so the world runs unpaused.
+		_on_background_chosen.call_deferred(BackgroundDatabase.all()[0])
+	elif show_background_picker:
+		var picker := BackgroundPicker.new()
+		picker.background_chosen.connect(_on_background_chosen)
+		add_child(picker)
+
+func _on_background_chosen(bg: SurvivorBackground) -> void:
+	_player.apply_background(bg)
+	_hud.show_banner("%s — %s, but %s." % [bg.display_name, bg.trait_name, bg.flaw_name.to_lower()], Color(0.86, 0.78, 0.60))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
@@ -266,6 +282,7 @@ func _spawn_all_archetype_encounters() -> void:
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
+	ork_cleaver.enemy_name = "Ork Cleaver"
 	ork_cleaver.position = Vector3(14.0, 0.0, 9.8)
 	ork_cleaver.player_ref = _player
 	ork_cleaver.audio = _audio

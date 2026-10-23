@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–6 complete · verified on Godot 4.3-stable (Forward+) · **145/145** headless regression checks passing
+> **Status:** Milestones 1–7 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -90,7 +90,25 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
   | Ork (combo finisher) | overhead chop | never | — |
   | Blackfen Ogre | 150° club sweep | yes, off pillars and walls | 1.1 s |
   | Blackfen Ogre | ground slam | never | — |
-- **The Vanguard reads the walls.** When there's no room to sweep, the shielded Ork shortens its grip and opens with the overhead chop. The unshielded cleaver Ork swings anyway, and you can bait it into the entry hall.
+- **The Vanguard reads the walls.** When there's no room to sweep, the shielded Ork shortens its grip and opens with the overhead chop. The unshielded Ork Cleaver swings anyway, and you can bait it into the entry hall.
+
+![The Ork Cleaver's sweep clangs off the entry hall wall](docs/screenshots/08_ork_hall_clang.png)
+
+### Survivor backgrounds (Milestone 7)
+A new game opens on **"Who were you before the Smothering?"** Pick one of eight survivors (click, or **1–8** and **Enter**). Each has a starting loadout, one **trait** and one **permanent flaw**. Respawning keeps both.
+
+| Survivor | Starts with | Trait | Flaw |
+|---|---|---|---|
+| Citadel Deserter | sword, targe, torch, 2 bandages | **Shield Drill**: blocking costs 25% less stamina | **Bad Knee**: sprint 12% slower |
+| Peat-Cutter | worn broadaxe, torch, timber, bandage | **Strong Back**: +5 kg capacity | **Bog Lung**: −15 max stamina |
+| Boar Hunter | boar spear, torch, bandage | **Light Step**: walking is 40% quieter | **Old Goring**: −20 max health |
+| Hedge Surgeon | worn sword, 5 bandages, salt | **Steady Hands**: bandage 45% faster, +10 healing | **Frail**: −10 max poise |
+| Ferryman's Widow | sword, full torch, lamp oil, bandage | **Fire-Keeper**: torch burns 40% slower | **Grief-Worn**: stamina regenerates 15% slower |
+| Vault Runaway | broadaxe, bandage | **Tunnel-Born**: clangs cost normal wear, recoil halved | **Ash-Lung**: you cough every 16–30 s, and goblins and Orks within 9 m hear it |
+| Salt-Smuggler | sword, worn targe, 3 salt | **Light Fingers**: search 35% faster | **Shaking Hands**: swaps 50% slower |
+| Disgraced Squire | pristine sword, targe, bandage | **Tourney Poise**: +12 max poise | **Soft Grip**: weapons wear 50% faster |
+
+![The survivor picker](docs/screenshots/09_survivor_picker.png)
 
 ---
 
@@ -144,7 +162,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), and which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), and every survivor's trait and flaw.
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -171,14 +189,15 @@ scripts/
   core/       scene_bootstrap.gd (builds the level, input map, containers), procedural_audio.gd
   camera/     iso_camera_rig.gd
   combat/     hitbox / hurtbox components, encounter_coordinator.gd, swing_geometry.gd (shared clang arc check)
-  data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
+  data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
+              survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles)
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute
-  ui/         tactical_hud.gd, inventory_ui.gd
+  ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (145 checks)
+  smoke_test.gd            Headless regression suite (177 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -191,6 +210,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Items:** `ItemData` is the shared definition (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
 - **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
+- **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
 ---
@@ -199,7 +219,6 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 The full plan, with proposed numbers, is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-- **Milestone 7: Survivor backgrounds.** Eight starting characters with gear, traits and permanent flaws.
 - **Milestone 8: Acoustic ripples & vision cone.** Unseen threats appear as dust-ring ripples sized by noise. A 130° vision cone with a charcoal "memory map" outside it.
 - **Milestone 9: Weather & atmosphere.** Ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead Calm, each changing sight, hearing, fire and footing.
 - Later: armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.

@@ -54,6 +54,9 @@ func play_wall_clang() -> void:
 func play_lodge_thud() -> void:
 	_trigger_sound(0.18, 88.0, 0.55, false)
 
+func play_cough() -> void:
+	_trigger_sound(0.26, 160.0, 0.92, false)
+
 func play_ogre_roar() -> void:
 	_trigger_sound(0.42, 74.0, 0.45, false)
 

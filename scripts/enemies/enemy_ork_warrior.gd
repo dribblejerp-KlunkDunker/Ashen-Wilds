@@ -122,7 +122,7 @@ func _evaluate_senses(delta: float) -> void:
 	var can_hear: bool = (
 		player_ref.current_state in [PlayerController.ActionState.SPRINT, PlayerController.ActionState.ATTACK_ACTIVE]
 		and dist <= 10.0 * player_ref.get_noise_multiplier()
-	)
+	) or (player_ref.is_coughing() and dist <= player_ref.cough_noise_radius)
 
 	if can_see or can_hear:
 		_last_known_player_pos = player_ref.global_position
@@ -332,7 +332,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	if audio:
 		audio.play_wall_clang()
 	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
-	ork_combat_bark.emit("The %s's cleaver clangs off the wall — strike now!" % enemy_name)
+	ork_combat_bark.emit("The %s's swing clangs off the wall — strike now!" % enemy_name)
 
 func _finish_attack_sequence(recovery_duration: float) -> void:
 	_hitbox.end_swing()

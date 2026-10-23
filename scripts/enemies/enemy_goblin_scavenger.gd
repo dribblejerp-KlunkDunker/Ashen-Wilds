@@ -126,7 +126,9 @@ func _evaluate_senses(delta: float) -> void:
 		PlayerController.ActionState.ATTACK_ACTIVE
 	] and dist <= 9.0 * noise_mult:
 		can_hear = true
-	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * noise_mult:
+	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * player_ref.get_footstep_noise_multiplier():
+		can_hear = true
+	elif player_ref.is_coughing() and dist <= player_ref.cough_noise_radius:
 		can_hear = true
 	elif player_ref.is_scavenging() and dist <= 4.5:
 		# Rummaging through crates and corpses is never quiet.

@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–6 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs. The plan for Milestones 7–9 is in `docs/ROADMAP.md`; the design document (not in the repo) has the final say on specifics.
+Milestones 1–7 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds. The plan for Milestones 8–9 is in `docs/ROADMAP.md`; the design document (not in the repo) has the final say on specifics.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **145 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **177 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -66,12 +66,13 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers), procedural_audio.gd
 scripts/camera/     iso_camera_rig.gd (45° yaw / -30° pitch ortho, shake, brightness)
 scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), swing_geometry (shared clang arc + sparks)
-scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
+scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
+                    survivor_background + background_database (the eight starting survivors)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
 scripts/player/     player_controller.gd (state machine, the largest file)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
-scripts/ui/         tactical_hud.gd, inventory_ui.gd
+scripts/ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd (start screen; pauses the tree)
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
 tests/smoke_test.gd headless regression suite
 tools/              capture_screenshots.gd
@@ -86,6 +87,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
 - **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `SwingGeometry.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies call the same function for their sweeping strokes (Ork combo 1, Ogre sweep). A recoiling enemy must report `is_staggered()`.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
+- **Backgrounds:** `PlayerController._mods` is always a `SurvivorBackground`: the chosen one, or a neutral one. New player numbers that a trait could affect should multiply by a field on it. The bootstrap shows the picker unless `show_background_picker` is false. Tests and tools set that before `add_child`. Headless boots auto-pick the first survivor so the world isn't paused.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
 ## Conventions and pitfalls (learned the hard way)

@@ -60,6 +60,12 @@ const NEUTRAL_STATES: Array[ActionState] = [
 @export var wall_clang_wear_mult: float = 3.0
 @export var lodge_tug_time: float = 0.35
 
+# Milestone 7 — survivor backgrounds
+@export var cough_interval_min: float = 16.0
+@export var cough_interval_max: float = 30.0
+## How far an Ash-Lung cough carries to enemy ears.
+@export var cough_noise_radius: float = 9.0
+
 var health: float = 100.0
 var stamina: float = 100.0
 var poise_damage_taken: float = 0.0
@@ -99,6 +105,13 @@ var _last_load: Inventory.Load = Inventory.Load.NORMAL
 var _torch_flicker_t: float = 0.0
 var _cramped: bool = false
 var _lodged_target: Node3D = null
+## The chosen survivor (null = legacy Milestone 1-6 loadout, no traits).
+var background: SurvivorBackground = null
+## Active modifiers: the background's, or a neutral set.
+var _mods: SurvivorBackground = SurvivorBackground.new()
+var _base_stats: Dictionary = {}
+var _cough_timer: float = 0.0
+var _cough_noise_left: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
@@ -118,6 +131,12 @@ var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
 
 func _ready() -> void:
+	_base_stats = {
+		"max_health": max_health,
+		"max_stamina": max_stamina,
+		"max_poise": max_poise,
+		"carry_capacity_kg": carry_capacity_kg,
+	}
 	_fists = _make_fists()
 	if inventory == null:
 		inventory = Inventory.new()
@@ -189,6 +208,46 @@ func _give_starting_loadout() -> void:
 	inventory.add(ItemDatabase.make("clean_rag_bandage", 2))
 	inventory.main_hand = sword
 	inventory.off_hand = targe
+
+## Milestone 7: replaces the loadout and applies the survivor's trait and
+## flaw. The flaw is permanent: respawning keeps the background.
+func apply_background(bg: SurvivorBackground) -> void:
+	background = bg
+	_mods = bg if bg != null else SurvivorBackground.new()
+	max_health = float(_base_stats["max_health"]) + _mods.max_health_bonus
+	max_stamina = float(_base_stats["max_stamina"]) + _mods.max_stamina_bonus
+	max_poise = float(_base_stats["max_poise"]) + _mods.max_poise_bonus
+	carry_capacity_kg = float(_base_stats["carry_capacity_kg"]) + _mods.capacity_bonus_kg
+	_clear_channel()
+	_hitbox.end_swing()
+	_lodged_target = null
+	current_state = ActionState.IDLE
+	inventory.clear()
+	inventory.capacity_kg = carry_capacity_kg
+	if bg == null:
+		_give_starting_loadout()
+	else:
+		for entry: Dictionary in bg.loadout:
+			var inst: ItemInstance = ItemDatabase.make(String(entry["id"]), int(entry["qty"]), float(entry["cond"]))
+			inventory.add(inst)
+			var id: String = inst.data.item_id
+			if id == bg.main_hand_id and inventory.main_hand == null:
+				inventory.main_hand = inst
+			elif id == bg.off_hand_id and inventory.off_hand == null:
+				inventory.off_hand = inst
+	health = max_health
+	stamina = max_stamina
+	is_exhausted = false
+	is_bleeding = false
+	poise_damage_taken = 0.0
+	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
+	_cough_noise_left = 0.0
+	_last_load = inventory.get_load()
+	inventory.notify_changed()
+	_emit_stats()
+
+func get_modifiers() -> SurvivorBackground:
+	return _mods
 
 func _current_weapon_data() -> WeaponData:
 	var main: ItemInstance = inventory.main_hand if inventory else null
@@ -299,6 +358,14 @@ func _on_inventory_changed() -> void:
 func get_noise_multiplier() -> float:
 	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
 
+## Hearing multiplier for walking footsteps (pack clatter x Light Step).
+func get_footstep_noise_multiplier() -> float:
+	return get_noise_multiplier() * _mods.footstep_noise_mult
+
+## True for a moment after an Ash-Lung cough.
+func is_coughing() -> bool:
+	return _cough_noise_left > 0.0
+
 func is_scavenging() -> bool:
 	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
 
@@ -328,7 +395,7 @@ func request_equip(inst: ItemInstance) -> bool:
 		return false
 	if not inventory.has_item(inst) or not inst.data.is_equippable():
 		return false
-	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time, null, inst, inventory.is_equipped(inst))
+	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time * _mods.swap_time_mult, null, inst, inventory.is_equipped(inst))
 	return true
 
 func use_item(inst: ItemInstance) -> bool:
@@ -348,7 +415,7 @@ func start_bandage() -> bool:
 	if not is_bleeding and health >= max_health - 0.5:
 		combat_banner_message.emit("No wound to dress", Color(0.7, 0.68, 0.62))
 		return false
-	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration)
+	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration * _mods.bandage_time_mult)
 	return true
 
 func drop_item(inst: ItemInstance) -> bool:
@@ -484,7 +551,7 @@ func _complete_channel() -> void:
 			if inventory.consume("clean_rag_bandage", 1):
 				is_bleeding = false
 				bleed_timer = 0.0
-				health = minf(max_health, health + 8.0)
+				health = minf(max_health, health + 8.0 + _mods.bandage_heal_bonus)
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
 		ChannelKind.EQUIP_SWAP:
 			if item != null and inventory.has_item(item):
@@ -508,7 +575,7 @@ func _try_interact() -> bool:
 		l.searched = true
 		loot_opened.emit(l)
 		return true
-	_start_channel(ChannelKind.SCAVENGE, l.search_duration, l)
+	_start_channel(ChannelKind.SCAVENGE, l.search_duration * _mods.search_time_mult, l)
 	return true
 
 func _update_interaction_target() -> void:
@@ -575,7 +642,7 @@ func _update_torch(delta: float) -> void:
 	if not lit:
 		return
 	var torch: ItemInstance = inventory.off_hand
-	if torch.wear(delta):
+	if torch.wear(delta * _mods.torch_burn_mult):
 		_torch_light.visible = false
 		_torch_flame.visible = false
 		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
@@ -608,10 +675,17 @@ func _update_timers_and_conditions(delta: float) -> void:
 		if bleed_timer <= 0.0:
 			is_bleeding = false
 
+	if _cough_noise_left > 0.0:
+		_cough_noise_left = maxf(0.0, _cough_noise_left - delta)
+	if _mods.coughs:
+		_cough_timer -= delta
+		if _cough_timer <= 0.0:
+			_cough()
+
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
-		var rate: float = stamina_regen_rate * (0.38 if current_state == ActionState.BLOCK else 1.0)
+		var rate: float = stamina_regen_rate * _mods.stamina_regen_mult * (0.38 if current_state == ActionState.BLOCK else 1.0)
 		if is_bleeding:
 			rate *= 0.75
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
@@ -807,8 +881,9 @@ func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	if wants_sprint and stamina > 1.0:
 		current_state = ActionState.SPRINT
 		_consume_stamina(13.5 * delta)
-		velocity.x = move_dir.x * sprint_speed * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * sprint_speed * load_mult + _knockback_velocity.z
+		var spd: float = sprint_speed * _mods.sprint_speed_mult * load_mult
+		velocity.x = move_dir.x * spd + _knockback_velocity.x
+		velocity.z = move_dir.z * spd + _knockback_velocity.z
 	elif move_dir.length_squared() > 0.01:
 		current_state = ActionState.MOVE
 		velocity.x = move_dir.x * move_speed * exh_mult * load_mult + _knockback_velocity.x
@@ -907,7 +982,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state in [ActionState.BLOCK, ActionState.BLOCK_IMPACT] and _has_ready_shield():
 		var block_cos: float = cos(deg_to_rad(shield.data.block_angle_degrees * 0.5))
 		if facing_dot >= block_cos:
-			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency
+			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency * _mods.block_stamina_mult
 			_consume_stamina(stam_cost)
 			_knockback_velocity = -to_attacker * (payload.knockback_force * 0.7)
 			if shield.wear(payload.poise_damage * shield.data.block_wear_per_poise):
@@ -955,6 +1030,13 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		poise_damage_taken = 0.0
 		current_state = ActionState.STAGGER
 		_state_timer = 0.62
+
+func _cough() -> void:
+	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
+	_cough_noise_left = 0.5
+	if audio:
+		audio.play_cough()
+	combat_banner_message.emit("You double over coughing — ash in your lungs", Color(0.70, 0.66, 0.58))
 
 func respawn_at_shelter(spawn_pos: Vector3) -> void:
 	_clear_channel()
@@ -1171,7 +1253,7 @@ func _on_confirmed_hit_landed(target: Node3D, payload: CombatPayload) -> void:
 		camera_rig.add_trauma(0.38 if payload.is_heavy else 0.22)
 	var main: ItemInstance = inventory.main_hand
 	if main != null and main.data.has_durability():
-		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit
+		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit * _mods.weapon_wear_mult
 		if main.wear(amount):
 			combat_banner_message.emit("Your %s has BROKEN" % main.data.display_name, Color(0.92, 0.36, 0.22))
 			inventory.notify_changed()
@@ -1216,7 +1298,9 @@ func _emit_stats() -> void:
 		"channel_progress": get_channel_progress(),
 		"prompt": prompt,
 		"cramped": _cramped,
-		"lodged": current_state == ActionState.LODGED
+		"lodged": current_state == ActionState.LODGED,
+		"coughing": is_coughing(),
+		"background": background.display_name if background else ""
 	})
 
 # ------------------------------------------------------------------------------
@@ -1237,7 +1321,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_hitbox.end_swing()
 	_queued_light_attack = false
 	current_state = ActionState.RECOIL
-	_state_timer = wall_recoil_time
+	_state_timer = wall_recoil_time * _mods.recoil_time_mult
 
 	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _aim_direction)
 	_knockback_velocity = normal * 2.2
@@ -1246,7 +1330,8 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	var name_text: String = main.data.display_name if main else "fist"
 	var broke: bool = false
 	if main != null and main.data.has_durability():
-		var amount: float = wall_clang_wear_mult * main.data.wear_per_hit * (2.0 if _is_current_attack_heavy else 1.0)
+		var clang_mult: float = _mods.clang_wear_mult if _mods.clang_wear_mult >= 0.0 else wall_clang_wear_mult
+		var amount: float = clang_mult * main.data.wear_per_hit * _mods.weapon_wear_mult * (2.0 if _is_current_attack_heavy else 1.0)
 		broke = main.wear(amount)
 	if broke:
 		combat_banner_message.emit("Your %s clangs off the wall and BREAKS" % name_text, Color(0.92, 0.36, 0.22))
@@ -1294,7 +1379,7 @@ func get_lodged_target() -> Node3D:
 func _finish_lodge_tug() -> void:
 	_lodged_target = null
 	var main: ItemInstance = inventory.main_hand
-	if main != null and main.wear(main.data.wear_per_hit):
+	if main != null and main.wear(main.data.wear_per_hit * _mods.weapon_wear_mult):
 		combat_banner_message.emit("You wrench the %s free — it snaps" % main.data.display_name, Color(0.92, 0.36, 0.22))
 		inventory.notify_changed()
 	current_state = ActionState.ATTACK_RECOVERY

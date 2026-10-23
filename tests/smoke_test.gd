@@ -79,6 +79,7 @@ func _reset_player(pos: Vector3) -> void:
 
 func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
+	_main.set("show_background_picker", false)
 	root.add_child(_main)
 	await _ticks(5)
 
@@ -103,6 +104,7 @@ func _run() -> void:
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
 	await _test_enemy_clangs()
+	await _test_survivor_backgrounds()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -802,4 +804,169 @@ func _test_enemy_clangs() -> void:
 
 	for n: Node3D in [hall_ork, open_ork, vanguard, brute, vanguard_open, hall_gob, ogre]:
 		n.queue_free()
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 7 — survivor backgrounds
+# ------------------------------------------------------------------------------
+func _bg(id: String) -> SurvivorBackground:
+	var bg: SurvivorBackground = BackgroundDatabase.get_background(id)
+	_player.apply_background(bg)
+	return bg
+
+func _test_survivor_backgrounds() -> void:
+	_section("Survivor backgrounds")
+	var all: Array[SurvivorBackground] = BackgroundDatabase.all()
+	var ids: Dictionary = {}
+	var well_formed: bool = true
+	for bg: SurvivorBackground in all:
+		ids[bg.background_id] = true
+		if bg.trait_name == "" or bg.flaw_name == "" or bg.trait_desc == "" or bg.flaw_desc == "":
+			well_formed = false
+		var loadout_ids: Array = bg.loadout.map(func(e: Dictionary) -> String: return String(e["id"]))
+		for id: String in loadout_ids:
+			if not ItemDatabase.all_ids().has(id):
+				well_formed = false
+		if bg.main_hand_id != "" and not loadout_ids.has(bg.main_hand_id):
+			well_formed = false
+		if bg.off_hand_id != "" and not loadout_ids.has(bg.off_hand_id):
+			well_formed = false
+	_check(all.size() == 8 and ids.size() == 8, "eight survivors with unique ids")
+	_check(well_formed, "every survivor has a trait, a flaw and a valid loadout")
+
+	_reset_player(OPEN)
+	await _ticks(2)
+	var all_fit: bool = true
+	for bg: SurvivorBackground in all:
+		_player.apply_background(bg)
+		var main_ok: bool = bg.main_hand_id == "" or (_player.inventory.main_hand != null and _player.inventory.main_hand.data.item_id == bg.main_hand_id)
+		var off_ok: bool = bg.off_hand_id == "" or (_player.inventory.off_hand != null and _player.inventory.off_hand.data.item_id == bg.off_hand_id)
+		if not main_ok or not off_ok or _player.inventory.get_load() == Inventory.Load.OVERBURDENED:
+			all_fit = false
+			print("   loadout problem: ", bg.background_id)
+	_check(all_fit, "every loadout equips its weapons and starts below overburdened")
+
+	# Citadel Deserter
+	_bg("citadel_deserter")
+	_check(_player.inventory.main_hand.data.item_id == "arming_sword" and _player.inventory.off_hand.data.item_id == "wooden_targe", "Deserter: sword & targe readied")
+	_player.current_state = PlayerController.ActionState.BLOCK
+	_player.stamina = _player.max_stamina
+	var front: Vector3 = _player.global_position + _player._aim_direction * 1.5
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, -_player._aim_direction, 10.0, 20.0))
+	var drilled_cost: float = _player.max_stamina - _player.stamina
+	_check(absf(drilled_cost - 20.0 * 0.55 * 0.75) < 0.05, "Shield Drill: block costs 25%% less stamina (%.2f)" % drilled_cost)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(is_equal_approx(_player.get_modifiers().sprint_speed_mult, 0.88), "Bad Knee: sprint multiplier 0.88")
+
+	# Peat-Cutter
+	_bg("peat_cutter")
+	_check(is_equal_approx(_player.inventory.capacity_kg, 23.0), "Strong Back: 23 kg capacity")
+	_check(is_equal_approx(_player.max_stamina, 85.0) and is_equal_approx(_player.stamina, 85.0), "Bog Lung: 85 max stamina")
+
+	# Boar Hunter: quieter walking.
+	_bg("boar_hunter")
+	_check(is_equal_approx(_player.max_health, 80.0) and is_equal_approx(_player.health, 80.0), "Old Goring: 80 max health")
+	var listener := _spawn_dummy_goblin(OPEN + Vector3(3.1, 0, 0))
+	listener.player_ref = _player
+	listener._facing_dir = Vector3.RIGHT # facing away: can't see you
+	listener.state = EnemyGoblinScavenger.AIState.PATROL
+	_player.current_state = PlayerController.ActionState.MOVE
+	listener._evaluate_senses(0.016)
+	_check(listener.state == EnemyGoblinScavenger.AIState.PATROL, "Light Step: a goblin 3.1 m away doesn't hear you walk")
+	_bg("citadel_deserter")
+	_player.current_state = PlayerController.ActionState.MOVE
+	listener._evaluate_senses(0.016)
+	_check(listener.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "...but it hears an ordinary survivor")
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Hedge Surgeon
+	_bg("hedge_surgeon")
+	_check(_player.inventory.count_of("clean_rag_bandage") == 5 and _player.inventory.off_hand == null, "Hedge Surgeon: 5 bandages, empty off-hand")
+	_check(is_equal_approx(_player.max_poise, 25.0), "Frail: 25 max poise")
+	_player.is_bleeding = true
+	_player.health = 50.0
+	_player.start_bandage()
+	_check(absf(_player._channel_total - 1.6 * 0.55) < 0.01, "Steady Hands: bandaging takes 0.88 s")
+	await _seconds(1.0)
+	_check(not _player.is_bleeding and absf(_player.health - 68.0) < 1.0, "Steady Hands: bandage heals 18 (hp %.1f)" % _player.health)
+
+	# Ferryman's Widow: torch fuel.
+	_bg("ferrymans_widow")
+	var torch: ItemInstance = _player.inventory.off_hand
+	var fuel: float = torch.condition
+	await _seconds(1.0)
+	var burned: float = fuel - torch.condition
+	_check(burned > 0.45 and burned < 0.8, "Fire-Keeper: torch burns ~0.6 s of fuel per second (%.2f)" % burned)
+	_check(is_equal_approx(_player.get_modifiers().stamina_regen_mult, 0.85), "Grief-Worn: stamina regen x0.85")
+
+	# Vault Runaway: clangs and the cough.
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_bg("vault_runaway")
+	var axe: ItemInstance = _player.inventory.main_hand
+	_reset_player(HALL)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var cond: float = axe.condition
+	_ready_for_attack()
+	_player._start_attack(false)
+	await _seconds(_player.weapon.light_startup_time + 0.03)
+	_check(_player.current_state == PlayerController.ActionState.RECOIL, "Vault Runaway still clangs in the hall")
+	_check(absf((cond - axe.condition) - 1.0) < 0.01, "Tunnel-Born: clang costs normal wear (%.1f)" % (cond - axe.condition))
+	_check(absf(_player._state_timer - 0.25) < 0.05, "Tunnel-Born: recoil is halved")
+	await _seconds(0.4)
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+	listener.state = EnemyGoblinScavenger.AIState.PATROL
+	listener.global_position = OPEN + Vector3(7.0, 0, 0)
+	_player._cough_timer = 0.01
+	await _ticks(2)
+	_check(_player.is_coughing(), "Ash-Lung: the survivor coughs")
+	listener._evaluate_senses(0.016)
+	_check(listener.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "Ash-Lung: a goblin 7 m away hears the cough")
+	_check(_player._cough_timer > 10.0, "next cough rescheduled")
+	listener.queue_free()
+
+	# Salt-Smuggler
+	_bg("salt_smuggler")
+	var cache := _make_test_lootable(OPEN + Vector3(0.8, 0, 0), 2.0, [ItemDatabase.make("salt", 1)])
+	await _ticks(2)
+	_player._try_interact()
+	_check(absf(_player._channel_total - 1.3) < 0.01, "Light Fingers: 2.0 s search takes 1.3 s")
+	_player._cancel_channel("")
+	cache.queue_free()
+	_player.inventory.add(ItemDatabase.make("woodsmans_broadaxe"))
+	_player.request_equip(_player.inventory.find_first("woodsmans_broadaxe"))
+	_check(absf(_player._channel_total - 0.55 * 1.5) < 0.01, "Shaking Hands: swaps take 50% longer")
+	_player._cancel_channel("")
+
+	# Disgraced Squire
+	_bg("disgraced_squire")
+	_check(is_equal_approx(_player.max_poise, 47.0), "Tourney Poise: 47 max poise")
+	var sword: ItemInstance = _player.inventory.main_hand
+	var c0: float = sword.condition
+	_player._on_confirmed_hit_landed(_main, CombatPayload.new(_player, Vector3.ZERO, Vector3.FORWARD, 1, 1))
+	_check(absf((c0 - sword.condition) - 1.5) < 0.001, "Soft Grip: a light hit wears 1.5")
+
+	# Flaws are permanent; the picker pauses the world.
+	_player.respawn_at_shelter(OPEN)
+	_check(_player.background != null and _player.background.background_id == "disgraced_squire" and is_equal_approx(_player.max_poise, 47.0), "respawning keeps the survivor and their flaw")
+
+	var picker := BackgroundPicker.new()
+	var chosen: Array = []
+	picker.background_chosen.connect(func(bg: SurvivorBackground) -> void: chosen.append(bg))
+	root.add_child(picker)
+	await process_frame
+	_check(paused, "the survivor picker pauses the world")
+	picker.select(3)
+	_check(picker.get_selected().background_id == "hedge_surgeon", "picker selects by index")
+	picker.confirm()
+	await process_frame
+	_check(not paused and chosen.size() == 1 and chosen[0].background_id == "hedge_surgeon", "confirming emits the choice and unpauses")
+
+	# Back to the legacy loadout for anything that follows.
+	_player.apply_background(null)
+	_check(absf(_player.inventory.total_weight() - 5.9) < 0.01 and is_equal_approx(_player.max_health, 100.0), "clearing the background restores the legacy loadout")
+	_reset_player(OPEN)
 	await _ticks(2)

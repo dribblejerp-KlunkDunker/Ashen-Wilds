@@ -58,6 +58,7 @@ func _equip_now(item_id: String) -> void:
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
+	_main.set("show_background_picker", false)
 	root.add_child(_main)
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
@@ -149,5 +150,31 @@ func _run() -> void:
 	await _frames(3)
 	await _shot("07_entry_hall_clang.png")
 	Engine.time_scale = 1.0
+	await _frames(10)
+
+	# 8. Milestone 6: the cleaver Ork follows you into the entry hall and clangs.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	_place(Vector3(3.7, 0.0, -2.675), Vector3(-1, 0, 0))
+	var cleaver_ork: EnemyOrkWarrior = enemies.filter(func(e: Node) -> bool: return e is EnemyOrkWarrior and not e.has_shield)[0]
+	cleaver_ork.global_position = Vector3(2.3, 0.0, -2.675)
+	cleaver_ork._face_direction(Vector3.RIGHT, 50.0, 1.0)
+	cleaver_ork._visual_root.visible = true
+	await _frames(30)
+	cleaver_ork._enter_combo_1_active()
+	cleaver_ork._update_visual_telegraph()
+	Engine.time_scale = 0.05
+	await _frames(3)
+	await _shot("08_ork_hall_clang.png")
+	Engine.time_scale = 1.0
+	await _frames(10)
+
+	# 9. Milestone 7: the survivor picker.
+	var picker := BackgroundPicker.new()
+	root.add_child(picker)
+	picker.select(5)
+	await _frames(6)
+	await _shot("09_survivor_picker.png")
+	picker.confirm()
 
 	quit(0)

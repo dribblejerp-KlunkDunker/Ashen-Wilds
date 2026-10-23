@@ -7,6 +7,7 @@ var _stamina_bar: ColorRect
 var _poise_bar: ColorRect
 var _weight_bar: ColorRect
 var _status_label: Label
+var _survivor_label: Label
 var _main_label: Label
 var _off_label: Label
 var _weight_label: Label
@@ -48,6 +49,10 @@ func _ready() -> void:
 	_poise_bar = _create_bar_row(vbox, "POISE", Color(0.46, 0.50, 0.54))
 	_weight_bar = _create_bar_row(vbox, "PACK", Color(0.48, 0.56, 0.40))
 
+	_survivor_label = _make_label("", 12, Color(0.74, 0.68, 0.54))
+	_survivor_label.visible = false
+	vbox.add_child(_survivor_label)
+
 	_weight_label = _make_label("", 12, Color(0.66, 0.62, 0.56))
 	vbox.add_child(_weight_label)
 	_main_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
@@ -65,7 +70,7 @@ func _ready() -> void:
 	root.add_child(help_panel)
 
 	var help_lbl := _make_label(
-		"ASHEN WILDS — MILESTONE 5: CRAMPED QUARTERS (THE BLACKFEN OUTSKIRTS)\n" +
+		"ASHEN WILDS — THE BLACKFEN OUTSKIRTS\n" +
 		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
 		"[E] Search / Open   [Tab] Pack   [B] Bandage   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
 		"[F1/F2/F3] Teleport Encounters   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
@@ -177,6 +182,11 @@ func update_stats(data: Dictionary) -> void:
 		weight, capacity, String(data["load"]).capitalize(), int(data["bandages"])
 	]
 
+	var bg_name: String = String(data.get("background", ""))
+	_survivor_label.visible = bg_name != ""
+	if _survivor_label.visible and _player and _player.background:
+		_survivor_label.text = "%s  ·  %s  ·  %s" % [bg_name.to_upper(), _player.background.trait_name, _player.background.flaw_name]
+
 	_main_label.text = "MAIN  %s" % data["main_label"]
 	_main_label.add_theme_color_override(
 		"font_color", Color(0.90, 0.46, 0.28) if data["main_broken"] else Color(0.80, 0.76, 0.68)
@@ -195,6 +205,8 @@ func update_stats(data: Dictionary) -> void:
 		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
 	if data.get("lodged", false):
 		flags += "  [LODGED: SPACE TO LET GO]"
+	if data.get("coughing", false):
+		flags += "  [COUGHING: HEARD NEARBY]"
 	_status_label.text = "ACTION: %s%s" % [data["state"], flags]
 
 	_prompt_label.text = String(data["prompt"])
