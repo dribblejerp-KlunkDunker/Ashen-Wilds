@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–5 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. The design document is the source for future milestones. The README's Roadmap section lists the candidates.
+Milestones 1–6 are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs. The plan for Milestones 7–9 is in `docs/ROADMAP.md`; the design document (not in the repo) has the final say on specifics.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **126 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **145 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -65,7 +65,7 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 ```
 scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers), procedural_audio.gd
 scripts/camera/     iso_camera_rig.gd (45° yaw / -30° pitch ortho, shake, brightness)
-scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens)
+scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), swing_geometry (shared clang arc + sparks)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
@@ -84,7 +84,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Damage:** the attacker builds a `CombatPayload` and calls `HitboxComponent.begin_swing()` during its ACTIVE phase. The hitbox rejects repeat hits and targets behind walls, then calls `HurtboxComponent.receive_attack()`. The defender decides dodge, block or take.
 - **Player states** (`PlayerController.ActionState`): IDLE, MOVE, SPRINT, BLOCK are "neutral". ATTACK_STARTUP → ATTACK_ACTIVE → ATTACK_RECOVERY. DODGE, BLOCK_IMPACT, STAGGER. CHANNEL is shared by search, bandage and equip swap; a hit, move, attack or dodge cancels it. RECOIL is a wall clang. LODGED is a stuck weapon. DEAD.
 - **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
-- **Deflection:** `WeaponData.is_thrust(heavy)` marks each stroke. Sweeps raycast their arc (layer 1) when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang.
+- **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `SwingGeometry.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies call the same function for their sweeping strokes (Ork combo 1, Ogre sweep). A recoiling enemy must report `is_staggered()`.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 

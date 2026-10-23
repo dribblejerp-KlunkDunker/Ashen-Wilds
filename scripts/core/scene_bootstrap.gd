@@ -262,10 +262,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_shield.coordinator = _coordinator
 	ork_shield.patrol_points = [Vector3(11.8, 0.0, 7.5), Vector3(13.5, 0.0, 10.5)]
 	add_child(ork_shield)
-	ork_shield.ork_combat_bark.connect(func(msg: String) -> void:
-		if _hud:
-			_hud.show_banner(msg, Color(0.86, 0.68, 0.38))
-	)
+	ork_shield.ork_combat_bark.connect(_on_ork_bark)
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
@@ -275,6 +272,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_cleaver.coordinator = _coordinator
 	ork_cleaver.patrol_points = [Vector3(14.0, 0.0, 11.2), Vector3(12.5, 0.0, 8.8)]
 	add_child(ork_cleaver)
+	ork_cleaver.ork_combat_bark.connect(_on_ork_bark)
 
 	var ogre := EnemyOgreBrute.new()
 	ogre.position = Vector3(-13.5, 0.0, -11.5)
@@ -290,6 +288,10 @@ func _spawn_all_archetype_encounters() -> void:
 		if _camera_rig:
 			_camera_rig.add_trauma(trauma)
 	)
+
+func _on_ork_bark(msg: String) -> void:
+	if _hud:
+		_hud.show_banner(msg, Color(0.86, 0.68, 0.38))
 
 func _on_goblin_unseen_noise(_pos: Vector3) -> void:
 	if _hud:

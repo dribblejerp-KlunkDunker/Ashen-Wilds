@@ -287,6 +287,8 @@ func _try_begin_attack_windup() -> bool:
 	_state_timer = 0.56
 	return true
 
+## A hooked-knife stab: like the survivor's thrusts it never clangs, so the
+## entry hall is no refuge from goblins (Milestone 6).
 func _enter_attack_active() -> void:
 	state = AIState.ATTACK_ACTIVE
 	_state_timer = 0.16

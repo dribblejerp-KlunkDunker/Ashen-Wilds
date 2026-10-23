@@ -1226,24 +1226,9 @@ func _emit_stats() -> void:
 ## (a PhysicsDirectSpaceState3D ray result) or {} if the arc is clear.
 ## Thrusts never clang.
 func _sweep_obstruction(heavy: bool) -> Dictionary:
-	if weapon == null or weapon.is_thrust(heavy) or not is_inside_tree():
+	if weapon == null or weapon.is_thrust(heavy):
 		return {}
-	var arc: float = minf(weapon.get_swing_arc(heavy), 180.0)
-	var half: float = deg_to_rad(arc * 0.5)
-	var steps: int = clampi(int(ceil(arc / 20.0)) + 1, 3, 9)
-	var origin: Vector3 = global_position + Vector3(0.0, 1.05, 0.0)
-	var length: float = weapon.reach_meters * 0.9 + 0.25
-	var aim: Vector3 = Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
-	var space := get_world_3d().direct_space_state
-	for i in range(steps):
-		var t: float = -half + (2.0 * half) * float(i) / float(steps - 1)
-		var dir: Vector3 = aim.rotated(Vector3.UP, t)
-		var q := PhysicsRayQueryParameters3D.create(origin, origin + dir * length, 1)
-		q.exclude = [get_rid()]
-		var hit: Dictionary = space.intersect_ray(q)
-		if not hit.is_empty():
-			return hit
-	return {}
+	return SwingGeometry.sweep_obstruction(self, _aim_direction, weapon.get_swing_arc(heavy), weapon.reach_meters)
 
 func is_cramped() -> bool:
 	return _cramped
@@ -1254,11 +1239,8 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	current_state = ActionState.RECOIL
 	_state_timer = wall_recoil_time
 
-	var normal: Vector3 = hit.get("normal", -_aim_direction)
-	normal.y = 0.0
-	if normal.length_squared() < 0.001:
-		normal = -_aim_direction
-	_knockback_velocity = normal.normalized() * 2.2
+	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _aim_direction)
+	_knockback_velocity = normal * 2.2
 
 	var main: ItemInstance = inventory.main_hand
 	var name_text: String = main.data.display_name if main else "fist"
@@ -1279,34 +1261,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_spawn_sparks(hit.get("position", global_position + _aim_direction), normal)
 
 func _spawn_sparks(at: Vector3, normal: Vector3) -> void:
-	# Hand-animated shards rather than a particle system: renders identically on
-	# every backend (including software Vulkan) and is easy to test.
-	var parent: Node = get_parent()
-	if parent == null:
-		return
-	var burst := Node3D.new()
-	burst.name = "WallSparks"
-	parent.add_child(burst)
-	burst.global_position = at + normal * 0.12
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(1.0, 0.74, 0.32)
-	var shard_mesh := BoxMesh.new()
-	shard_mesh.size = Vector3(0.07, 0.07, 0.07)
-	var base_dir: Vector3 = normal if normal.length_squared() > 0.001 else Vector3.UP
-	var tween := burst.create_tween().set_parallel(true)
-	for i in range(14):
-		var shard := MeshInstance3D.new()
-		shard.mesh = shard_mesh
-		shard.material_override = mat
-		burst.add_child(shard)
-		var spray: Vector3 = (base_dir + Vector3(randf_range(-0.9, 0.9), randf_range(0.0, 1.1), randf_range(-0.9, 0.9))).normalized()
-		var dist: float = randf_range(0.35, 0.85)
-		var end_pos: Vector3 = spray * dist + Vector3(0.0, -0.35, 0.0)
-		var life: float = randf_range(0.28, 0.45)
-		tween.tween_property(shard, "position", end_pos, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(shard, "scale", Vector3.ONE * 0.15, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.chain().tween_callback(burst.queue_free)
+	SwingGeometry.spawn_sparks(get_parent(), at, normal)
 
 # ------------------------------------------------------------------------------
 # Milestone 5 — weapon lodging

@@ -1,5 +1,5 @@
 extends SceneTree
-# Headless regression checks for Ashen Wilds (Milestones 1-4).
+# Headless regression checks for Ashen Wilds (Milestones 1-9).
 # Run: godot --headless --path . --script res://tests/smoke_test.gd
 # Exit code is the number of failures (0 = all passed).
 
@@ -102,6 +102,7 @@ func _run() -> void:
 	await _test_world_containers()
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
+	await _test_enemy_clangs()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -694,4 +695,111 @@ func _test_weapon_lodging() -> void:
 	_equip_now("arming_sword")
 	_equip_now("wooden_targe")
 	_player.camera_rig = rig
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 6 — enemy wall clangs
+# ------------------------------------------------------------------------------
+func _spawn_dummy_ork(pos: Vector3, shield: bool, facing: Vector3) -> EnemyOrkWarrior:
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = shield
+	_main.add_child(o)
+	o.global_position = pos
+	o.process_mode = Node.PROCESS_MODE_DISABLED
+	o._facing_dir = facing.normalized()
+	o.state = EnemyOrkWarrior.AIState.PURSUE
+	return o
+
+func _sparks_count() -> int:
+	return _main.find_children("WallSparks*", "Node3D", false, false).size()
+
+func _test_enemy_clangs() -> void:
+	_section("Enemy wall clangs")
+	await _ticks(30) # let earlier sparks expire
+
+	# Ork cleaver sweep: clangs in the hall, connects in the open.
+	var hall_ork := _spawn_dummy_ork(HALL, false, Vector3.RIGHT)
+	await _ticks(2)
+	_check(hall_ork.is_cramped(), "entry hall: ork sweep flagged as cramped")
+	var sparks_before: int = _sparks_count()
+	hall_ork._enter_combo_1_active()
+	_check(hall_ork.state == EnemyOrkWarrior.AIState.RECOIL, "entry hall: ork cleaver sweep clangs into RECOIL")
+	_check(not hall_ork._hitbox._is_swing_active, "a clanged ork swing never opens its hitbox")
+	_check(_sparks_count() > sparks_before, "ork clang throws sparks")
+	_check(hall_ork.is_staggered(), "a recoiling ork counts as staggered (punishable, can lodge)")
+	hall_ork._process_ai_state(hall_ork.wall_recoil_time + 0.05)
+	_check(hall_ork.state == EnemyOrkWarrior.AIState.PURSUE, "ork recovers from recoil back into pursuit")
+
+	hall_ork.state = EnemyOrkWarrior.AIState.PURSUE
+	hall_ork._enter_combo_2_active()
+	_check(hall_ork.state == EnemyOrkWarrior.AIState.COMBO_2_ACTIVE, "entry hall: ork overhead chop never clangs")
+	hall_ork._hitbox.end_swing()
+
+	var open_ork := _spawn_dummy_ork(OPEN + Vector3(0, 0, -3.0), false, Vector3.RIGHT)
+	await _ticks(2)
+	_check(not open_ork.is_cramped(), "open ground: ork sweep not cramped")
+	open_ork._enter_combo_1_active()
+	_check(open_ork.state == EnemyOrkWarrior.AIState.COMBO_1_ACTIVE, "open ground: ork cleaver sweep swings normally")
+	open_ork._hitbox.end_swing()
+
+	# Vanguard discipline: cramped shielded ork opens with the overhead chop.
+	var vanguard := _spawn_dummy_ork(HALL + Vector3(-0.6, 0, 0), true, Vector3.RIGHT)
+	await _ticks(2)
+	_check(vanguard._try_begin_combo() and vanguard.state == EnemyOrkWarrior.AIState.COMBO_2_STARTUP, "cramped Vanguard opens with the overhead chop")
+	var brute := _spawn_dummy_ork(HALL + Vector3(0.6, 0, 0), false, Vector3.RIGHT)
+	await _ticks(2)
+	_check(brute._try_begin_combo() and brute.state == EnemyOrkWarrior.AIState.COMBO_1_STARTUP, "unshielded ork sweeps anyway")
+	var vanguard_open := _spawn_dummy_ork(OPEN + Vector3(2.0, 0, -3.0), true, Vector3.RIGHT)
+	await _ticks(2)
+	_check(vanguard_open._try_begin_combo() and vanguard_open.state == EnemyOrkWarrior.AIState.COMBO_1_STARTUP, "Vanguard sweeps normally in the open")
+
+	# Goblin stab never clangs.
+	var hall_gob := _spawn_dummy_goblin(HALL + Vector3(0.4, 0, 0))
+	hall_gob._facing_dir = Vector3.RIGHT
+	await _ticks(2)
+	hall_gob._enter_attack_active()
+	_check(hall_gob.state == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE, "entry hall: goblin knife stab never clangs")
+	hall_gob._hitbox.end_swing()
+
+	# Ogre club sweep clangs off a lair pillar; the slam doesn't.
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.global_position = Vector3(-11.5, 0.0, -11.9) # 1.8 m south of the pillar at z -14.5
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre.player_ref = _player
+	ogre._facing_dir = Vector3.FORWARD
+	await _ticks(2)
+	ogre._enter_sweep_active()
+	_check(ogre.state == EnemyOgreBrute.AIState.RECOIL, "ogre club sweep smashes into the pillar (RECOIL)")
+	_check(not ogre._hitbox._is_swing_active and ogre.is_staggered(), "clanged ogre swing deals nothing and leaves it open")
+	ogre.state = EnemyOgreBrute.AIState.PURSUE
+	ogre._enter_slam_active()
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE, "ogre overhead slam never clangs")
+	ogre._hitbox.end_swing()
+	ogre._facing_dir = Vector3.BACK
+	ogre.state = EnemyOgreBrute.AIState.PURSUE
+	ogre._enter_sweep_active()
+	_check(ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE, "ogre sweep facing open ground swings normally")
+	ogre._hitbox.end_swing()
+
+	# A heavy blow on a recoiling ork can lodge.
+	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
+	var saved_chance: float = axe_w.heavy_lodge_chance
+	axe_w.heavy_lodge_chance = 1.0
+	_equip_now("woodsmans_broadaxe")
+	_reset_player(OPEN)
+	await _ticks(2)
+	hall_ork.state = EnemyOrkWarrior.AIState.RECOIL
+	hall_ork.health = hall_ork.max_health
+	_make_lodge(hall_ork, false)
+	_check(_player.current_state == PlayerController.ActionState.LODGED, "heavy axe blow on a recoiling ork lodges")
+	await _seconds(0.5)
+	_check(_player.inventory.main_hand != null and _player.inventory.main_hand.data.item_id == "woodsmans_broadaxe", "...and the tug wrenches it free")
+	axe_w.heavy_lodge_chance = saved_chance
+	_equip_now("arming_sword")
+	_equip_now("wooden_targe")
+	await _seconds(0.6)
+
+	for n: Node3D in [hall_ork, open_ork, vanguard, brute, vanguard_open, hall_gob, ogre]:
+		n.queue_free()
 	await _ticks(2)

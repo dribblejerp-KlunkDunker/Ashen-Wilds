@@ -17,6 +17,7 @@ enum AIState {
 	ATTACK_RECOVERY,
 	GUARD_BROKEN,
 	STAGGER,
+	RECOIL,
 	DEAD
 }
 
@@ -26,6 +27,11 @@ enum AIState {
 @export var max_poise: float = 42.0
 @export var max_guard_stamina: float = 55.0
 @export var patrol_points: Array[Vector3] = []
+
+# Milestone 6 — the cleaver's opening sweep clangs off walls; the overhead chop doesn't.
+@export var cleaver_reach: float = 1.75
+@export var sweep_arc_degrees: float = 110.0
+@export var wall_recoil_time: float = 0.8
 
 var health: float = 115.0
 var poise_damage: float = 0.0
@@ -239,6 +245,13 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.SHIELD_ADVANCE if has_shield else AIState.PURSUE
 
+		AIState.RECOIL:
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			if _state_timer <= 0.0:
+				state = AIState.SHIELD_ADVANCE if has_shield else AIState.PURSUE
+
 		AIState.GUARD_BROKEN, AIState.STAGGER:
 			_state_timer -= delta
 			velocity.x = _knockback_vel.x
@@ -251,16 +264,30 @@ func is_dead() -> bool:
 	return state == AIState.DEAD
 
 func is_staggered() -> bool:
-	return state in [AIState.STAGGER, AIState.GUARD_BROKEN]
+	return state in [AIState.STAGGER, AIState.GUARD_BROKEN, AIState.RECOIL]
+
+## True if the opening sweep would meet a wall right now.
+func is_cramped() -> bool:
+	return not SwingGeometry.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, cleaver_reach, 1.15).is_empty()
 
 func _try_begin_combo() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
 		return false
+	if has_shield and is_cramped():
+		# Vanguard discipline: no room to sweep, so open with the overhead chop.
+		state = AIState.COMBO_2_STARTUP
+		_state_timer = 0.62
+		ork_combat_bark.emit("The Vanguard shortens its grip — overhead chop!")
+		return true
 	state = AIState.COMBO_1_STARTUP
 	_state_timer = 0.48
 	return true
 
 func _enter_combo_1_active() -> void:
+	var obstruction: Dictionary = SwingGeometry.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, cleaver_reach, 1.15)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	state = AIState.COMBO_1_ACTIVE
 	_state_timer = 0.16
 	if audio:
@@ -293,6 +320,19 @@ func _enter_combo_2_active() -> void:
 		5.2
 	)
 	_hitbox.begin_swing(payload)
+
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	state = AIState.RECOIL
+	_state_timer = wall_recoil_time
+	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 2.0
+	if audio:
+		audio.play_wall_clang()
+	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
+	ork_combat_bark.emit("The %s's cleaver clangs off the wall — strike now!" % enemy_name)
 
 func _finish_attack_sequence(recovery_duration: float) -> void:
 	_hitbox.end_swing()
@@ -395,6 +435,11 @@ func _update_visual_telegraph() -> void:
 		AIState.COMBO_1_ACTIVE, AIState.COMBO_2_ACTIVE:
 			_weapon_arm.rotation_degrees = Vector3(25.0, -70.0, 0.0)
 			_status_mat.albedo_color = Color(0.92, 0.16, 0.16)
+		AIState.RECOIL:
+			_weapon_arm.rotation_degrees = Vector3(-35.0, 70.0, -20.0)
+			if _shield_mesh:
+				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
+			_status_mat.albedo_color = Color(0.95, 0.55, 0.15)
 		AIState.ATTACK_RECOVERY, AIState.GUARD_BROKEN, AIState.STAGGER:
 			_weapon_arm.rotation_degrees = Vector3(40.0, -45.0, 25.0)
 			if _shield_mesh:

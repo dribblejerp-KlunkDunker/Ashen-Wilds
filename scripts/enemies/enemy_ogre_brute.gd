@@ -15,12 +15,18 @@ enum AIState {
 	SLAM_ACTIVE,
 	LONG_RECOVERY,
 	STAGGER,
+	RECOIL,
 	DEAD
 }
 
 @export var enemy_name: String = "Blackfen Ogre"
 @export var max_health: float = 280.0
 @export var max_poise: float = 95.0
+
+# Milestone 6 — the club sweep clangs off walls and pillars; the slam doesn't.
+@export var club_reach: float = 2.6
+@export var sweep_arc_degrees: float = 150.0
+@export var wall_recoil_time: float = 1.1
 
 var health: float = 280.0
 var poise_damage: float = 0.0
@@ -170,6 +176,13 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
+		AIState.RECOIL:
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			if _state_timer <= 0.0:
+				state = AIState.PURSUE
+
 		AIState.STAGGER:
 			_state_timer -= delta
 			_slam_ring.visible = false
@@ -182,7 +195,7 @@ func is_dead() -> bool:
 	return state == AIState.DEAD
 
 func is_staggered() -> bool:
-	return state == AIState.STAGGER
+	return state in [AIState.STAGGER, AIState.RECOIL]
 
 func _begin_committed_attack(dir_to_player: Vector3) -> void:
 	if coordinator:
@@ -196,6 +209,10 @@ func _begin_committed_attack(dir_to_player: Vector3) -> void:
 		_state_timer = 0.92
 
 func _enter_sweep_active() -> void:
+	var obstruction: Dictionary = SwingGeometry.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, club_reach, 1.6)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	state = AIState.SWEEP_ACTIVE
 	_state_timer = 0.24
 	if audio:
@@ -229,6 +246,20 @@ func _enter_slam_active() -> void:
 		8.5
 	)
 	_hitbox.begin_swing(payload)
+
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	state = AIState.RECOIL
+	_state_timer = wall_recoil_time
+	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 1.6
+	if audio:
+		audio.play_wall_clang()
+	ogre_ground_shockwave.emit(0.3)
+	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * 2.0), normal, 22)
+	ogre_event_banner.emit("The Ogre's club smashes into stone — strike now!", Color(0.48, 0.78, 0.92))
 
 func _enter_long_recovery(duration: float) -> void:
 	_hitbox.end_swing()
@@ -288,7 +319,7 @@ func _update_visual_telegraph() -> void:
 		AIState.SWEEP_ACTIVE, AIState.SLAM_ACTIVE:
 			_club_pivot.rotation_degrees = Vector3(32.0, -75.0, 0.0)
 			_status_mat.albedo_color = Color(0.95, 0.12, 0.12)
-		AIState.LONG_RECOVERY, AIState.STAGGER:
+		AIState.LONG_RECOVERY, AIState.STAGGER, AIState.RECOIL:
 			_club_pivot.rotation_degrees = Vector3(52.0, -15.0, 18.0)
 			_status_mat.albedo_color = Color(0.38, 0.75, 0.92)
 		_:
