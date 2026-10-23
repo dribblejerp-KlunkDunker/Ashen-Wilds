@@ -157,7 +157,7 @@ func get_armor(slot: ItemData.ArmorSlot) -> ItemInstance:
 
 func armor_pieces() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
-	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS]:
+	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
 		if armor.has(slot):
 			out.append(armor[slot])
 	return out

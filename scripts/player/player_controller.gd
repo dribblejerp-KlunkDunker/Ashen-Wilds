@@ -25,7 +25,7 @@ enum ActionState {
 }
 
 ## Timed, cancellable actions that share the CHANNEL state.
-enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP, EAT }
+enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP, EAT, CRAFT }
 
 const NEUTRAL_STATES: Array[ActionState] = [
 	ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK
@@ -138,6 +138,9 @@ var _channel_total: float = 0.0
 var _channel_lootable: Lootable = null
 var _channel_item: ItemInstance = null
 var _channel_unequip: bool = false
+## Milestone 18: the recipe being worked at the fire, and the stash it draws on.
+var _channel_recipe: Dictionary = {}
+var _channel_stash: Lootable = null
 var _nearest_lootable: Lootable = null
 var _last_load: Inventory.Load = Inventory.Load.NORMAL
 var _torch_flicker_t: float = 0.0
@@ -649,6 +652,8 @@ func _start_channel(kind: ChannelKind, duration: float, lootable: Lootable = nul
 	current_state = ActionState.CHANNEL
 
 func _clear_channel() -> void:
+	_channel_recipe = {}
+	_channel_stash = null
 	_channel_kind = ChannelKind.NONE
 	_channel_elapsed = 0.0
 	_channel_total = 0.0
@@ -674,6 +679,8 @@ func _channel_label() -> String:
 			return "Binding wound"
 		ChannelKind.EAT:
 			return "Eating %s" % (_channel_item.data.display_name if _channel_item else "")
+		ChannelKind.CRAFT:
+			return String(_channel_recipe.get("name", "Working"))
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
@@ -728,6 +735,8 @@ func _complete_channel() -> void:
 	var lootable: Lootable = _channel_lootable
 	var item: ItemInstance = _channel_item
 	var unequip: bool = _channel_unequip
+	var recipe: Dictionary = _channel_recipe
+	var craft_stash: Lootable = _channel_stash
 	_clear_channel()
 	current_state = ActionState.IDLE
 
@@ -744,6 +753,10 @@ func _complete_channel() -> void:
 				bleed_timer = 0.0
 				health = minf(max_health, health + 8.0 + _mods.bandage_heal_bonus)
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
+		ChannelKind.CRAFT:
+			var result: String = Crafting.apply(recipe, self, craft_stash)
+			if result != "":
+				combat_banner_message.emit(result, Color(0.86, 0.76, 0.52))
 		ChannelKind.EAT:
 			if item != null and inventory.has_item(item):
 				var food: ItemData = item.data
@@ -1317,7 +1330,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 
 func _armor_label() -> String:
 	var parts: Array[String] = []
-	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS]:
+	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
 		var piece: ItemInstance = inventory.get_armor(slot)
 		parts.append(piece.data.display_name if piece else "—")
 	return " / ".join(parts)
@@ -1413,6 +1426,22 @@ func _die(message: String) -> void:
 	_hitbox.end_swing()
 	current_state = ActionState.DEAD
 	combat_banner_message.emit(message, Color(0.9, 0.18, 0.18))
+
+## Milestone 18: works a recipe at the fire (a timed, interruptible channel).
+## Returns "" on success, or why it can't start.
+func start_craft(recipe_id: String, stash: Lootable) -> String:
+	var recipe: Dictionary = Crafting.get_recipe(recipe_id)
+	if recipe.is_empty():
+		return "unknown recipe"
+	if not (current_state in NEUTRAL_STATES):
+		return "you're busy"
+	var reason: String = Crafting.why_not(recipe, self, stash)
+	if reason != "":
+		return reason
+	_start_channel(ChannelKind.CRAFT, float(recipe["time"]))
+	_channel_recipe = recipe
+	_channel_stash = stash
+	return ""
 
 func start_eating(inst: ItemInstance) -> bool:
 	if not (current_state in NEUTRAL_STATES) or not inventory.has_item(inst) or inst.data.food_value <= 0.0:

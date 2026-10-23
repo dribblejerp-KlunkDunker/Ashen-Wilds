@@ -115,6 +115,7 @@ func _run() -> void:
 	await _test_bestiary_one()
 	await _test_bestiary_two()
 	await _test_survival()
+	await _test_crafting()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -1995,6 +1996,143 @@ func _test_survival() -> void:
 	_player.warmth = _player.max_warmth
 	_player.satiety = 80.0
 	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Milestone 18 — shelter crafting & repairs
+# ------------------------------------------------------------------------------
+func _craft_now(recipe_id: String, stash: Lootable) -> String:
+	var reason: String = _player.start_craft(recipe_id, stash)
+	if reason == "":
+		await _seconds(float(Crafting.get_recipe(recipe_id)["time"]) + 0.1)
+	return reason
+
+func _test_crafting() -> void:
+	_section("Shelter crafting & repairs")
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	var stash: Lootable = boot._stash
+	var stash_backup: Array[ItemInstance] = stash.items.duplicate()
+	stash.items = [] as Array[ItemInstance]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var inv: Inventory = _player.inventory
+	var valid: bool = true
+	for r: Dictionary in Crafting.all():
+		for id: String in (r["inputs"] as Dictionary).keys():
+			if not ItemDatabase.all_ids().has(id):
+				valid = false
+		if String(r["output"]) != "" and not ItemDatabase.all_ids().has(String(r["output"])):
+			valid = false
+	_check(Crafting.all().size() == 9 and valid, "nine recipes, all with real ingredients and outputs")
+
+	# Only at the fire.
+	_reset_player(OPEN)
+	await _ticks(1)
+	var k := InputEventKey.new()
+	k.keycode = KEY_K
+	k.pressed = true
+	boot._unhandled_input(k)
+	_check(not boot._crafting.is_open(), "[K] away from the fire does nothing")
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(2)
+	_check(_hud._prompt_label.text.contains("[K] Work at the fire"), "at the fire the prompt offers work")
+	boot._unhandled_input(k)
+	_check(boot._crafting.is_open() and _player.ui_capture, "[K] at the fire opens the work panel")
+	_player.global_position = OPEN
+	await _ticks(2)
+	_check(not boot._crafting.is_open(), "walking away closes it")
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _seconds(0.2)
+
+	# Repairs.
+	var sword: ItemInstance = inv.main_hand
+	sword.condition = 30.0
+	_check(_player.start_craft("repair_weapon", stash).begins_with("needs 2×"), "no iron scrap: the repair says what it needs")
+	inv.add(ItemDatabase.make("iron_scrap", 2))
+	_check(await _craft_now("repair_weapon", stash) == "" and absf(sword.condition - 70.0) < 0.01 and inv.count_of("iron_scrap") == 0, "repair weapon: 2 scrap, +40 condition")
+	stash.put(ItemDatabase.make("iron_scrap", 2))
+	sword.condition = 50.0
+	_check(await _craft_now("repair_weapon", stash) == "" and absf(sword.condition - 90.0) < 0.01 and stash.count_of("iron_scrap") == 0, "ingredients can come from the shelter stash")
+	sword.condition = sword.data.max_condition
+	stash.put(ItemDatabase.make("iron_scrap", 2))
+	_check(Crafting.why_not(Crafting.get_recipe("repair_weapon"), _player, stash).contains("good order"), "a weapon in good order can't be repaired")
+	var shield: ItemInstance = inv.off_hand
+	shield.condition = 10.0
+	stash.put(ItemDatabase.make("timber", 1))
+	_check(await _craft_now("repair_shield", stash) == "" and absf(shield.condition - 60.0) < 0.01, "repair shield: timber + scrap, +50")
+	var hood := ItemDatabase.make("padded_hood", 1, 5.0)
+	inv.add(hood)
+	inv.equip(hood)
+	stash.put(ItemDatabase.make("iron_scrap", 1))
+	_check(await _craft_now("repair_armor", stash) == "" and absf(hood.condition - 45.0) < 0.01, "repair armour: the most worn piece, +40")
+	var torch: ItemInstance = inv.find_first("pitch_torch")
+	torch.condition = 10.0
+	stash.put(ItemDatabase.make("timber", 1))
+	_check(await _craft_now("refuel_torch_wood", stash) == "" and absf(torch.condition - 100.0) < 0.01, "pitch & timber: +90 s of torch fuel")
+	stash.put(ItemDatabase.make("lamp_oil", 1))
+	_check(await _craft_now("refuel_torch_oil", stash) == "" and is_equal_approx(torch.condition, torch.data.max_condition), "lamp oil: a full torch")
+
+	# Cooking needs the pot.
+	stash.put(ItemDatabase.make("raw_bear_meat", 1))
+	stash.put(ItemDatabase.make("salt", 1))
+	_check(_player.start_craft("cook_stew", stash).contains("Cooking Pot"), "no pot, no stew")
+	stash.put(ItemDatabase.make("cooking_pot"))
+	_check(await _craft_now("cook_stew", stash) == "" and inv.count_of("marsh_stew") == 1 and stash.count_of("cooking_pot") == 1, "stew cooked in the stash's pot (the pot stays)")
+	_player.warmth = 40.0
+	_player.satiety = 20.0
+	_player.use_item(inv.find_first("marsh_stew"))
+	await _seconds(2.2)
+	_check(absf(_player.satiety - 80.0) < 1.0 and absf(_player.warmth - 75.0) < 1.0, "marsh stew: +60 food and +35 warmth")
+
+	# Cloaks.
+	stash.put(ItemDatabase.make("bear_pelt", 1))
+	stash.put(ItemDatabase.make("clean_rag_bandage", 1))
+	_check(await _craft_now("sew_bear_cloak", stash) == "" and inv.find_first("bear_pelt_cloak") != null, "sew a bear-pelt cloak")
+	var cloak: ItemInstance = inv.find_first("bear_pelt_cloak")
+	inv.equip(cloak)
+	inv.unequip(hood)
+	_check(inv.get_armor(ItemData.ArmorSlot.CLOAK) == cloak and absf(_player.get_insulation() - 0.35) < 0.001, "it goes in the cloak slot and insulates (35%)")
+	_player.current_state = PlayerController.ActionState.MOVE
+	_check(absf(_player.emit_gait_noise() - 3.5 * 0.85 * _player.get_noise_multiplier()) < 0.01, "the fur muffles your footsteps (x0.85)")
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Interrupted work wastes nothing; the panel's Make button works.
+	inv.add(ItemDatabase.make("iron_scrap", 2))
+	sword.condition = 20.0
+	_player.start_craft("repair_weapon", stash)
+	await _seconds(0.5)
+	Input.action_press("move_up")
+	await _ticks(2)
+	Input.action_release("move_up")
+	await _ticks(1)
+	_check(_player.current_state != PlayerController.ActionState.CHANNEL and inv.count_of("iron_scrap") == 2 and absf(sword.condition - 20.0) < 0.01, "moving interrupts the work and costs nothing")
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _seconds(0.2)
+	boot._crafting.open()
+	var makes: int = 0
+	for row: Node in boot._crafting._list.get_children():
+		for c: Node in row.get_children():
+			if c is Button:
+				makes += 1
+	_check(makes >= 1, "the panel offers Make for what you can afford (%d)" % makes)
+	_check(boot._crafting.make("repair_weapon") == "" and _player.get_channel_kind() == PlayerController.ChannelKind.CRAFT and not boot._crafting.is_open(), "Make starts the work and closes the panel")
+	await _seconds(3.2)
+	_check(absf(sword.condition - 60.0) < 0.01, "...and the repair lands")
+
+	# Clean up: restore the stash and gear for the Act I test.
+	for i: ItemInstance in [cloak, hood]:
+		if inv.has_item(i):
+			inv.remove(i)
+	for id: String in ["marsh_stew", "iron_scrap"]:
+		inv.consume(id, inv.count_of(id))
+	stash.items = stash_backup
+	stash.contents_changed.emit()
+	sword.condition = 88.0
+	_player.warmth = _player.max_warmth
+	_player.satiety = 80.0
+	_player.camera_rig = rig
+	await _seconds(0.2)
 	_reset_player(OPEN)
 	await _ticks(2)
 

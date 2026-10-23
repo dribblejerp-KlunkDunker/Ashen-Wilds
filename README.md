@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–17 complete · verified on Godot 4.3-stable (Forward+) · **411/411** headless regression checks passing
+> **Status:** Milestones 1–18 complete · verified on Godot 4.3-stable (Forward+) · **434/434** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -222,6 +222,24 @@ The Smothering is a volcanic winter. Two new bars, **WARMTH** and **FOOD**, sit 
 
 ![Freezing and hungry in the hoarfrost](docs/screenshots/18_survival_freezing.png)
 
+### Shelter crafting & repairs (Milestone 18)
+At the shelter fire, press **K** to **work at the fire**. Ingredients come from your pack first, then the shelter stash. Each job is a timed channel, and walking off or getting hit interrupts it without wasting anything.
+
+| Recipe | Takes | Gives |
+|---|---|---|
+| Repair weapon | 2 iron scrap | +40 condition (main hand) |
+| Repair shield | 1 timber, 1 iron scrap | +50 condition |
+| Repair armour | 2 iron scrap | +40 to your most worn piece |
+| Refuel torch | 1 lamp oil / 1 timber | full / +90 s of fuel |
+| Cook Marsh Stew | raw bear meat, salt, **the cooking pot** | +60 food, **+35 warmth** |
+| Cook Salted Broth | 2 salt, timber, **the cooking pot** | +30 food, +25 warmth |
+| Sew Bear-Pelt Cloak | bear pelt, rag bandage | new **cloak slot**: 35% insulation, footsteps ×0.85 |
+| Sew Troll-Hide Cloak | troll hide, rag bandage | cloak: 25% insulation, 10% protection |
+
+The pot works from the stash, so storing it for the Act I objective doesn't stop you cooking.
+
+![Working at the shelter fire](docs/screenshots/19_crafting_at_fire.png)
+
 ### Save & load (Milestone 14)
 **Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
 
@@ -247,6 +265,7 @@ The Smothering is a volcanic winter. Two new bars, **WARMTH** and **FOOD**, sit 
 | **F4** | Next weather (dev) |
 | **V** | Toggle the vision cone & memory map |
 | **T** | Rest at the shelter fire: heal & save |
+| **K** | Work at the shelter fire: repairs, cooking, sewing |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
 | **Mouse wheel** | Zoom |
@@ -281,7 +300,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), the bog bear and rot mounds (territory, fire fear, enrage, maul, spores), and cold & hunger (drain rates per weather, shelter, torch and insulation, every threshold, eating, freezing to death).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), the bog bear and rot mounds (territory, fire fear, enrage, maul, spores), and cold & hunger (drain rates per weather, shelter, torch and insulation, every threshold, eating, freezing to death), and crafting (every recipe kind, pack-then-stash ingredients, the pot, cloaks, interruptions, the work panel).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -307,7 +326,7 @@ shaders/
   vision_memory.gdshader        Vision cone + charcoal memory map (full-screen pass)
 scripts/
   core/       scene_bootstrap.gd (builds the level, input map, containers, Act I objectives), procedural_audio.gd,
-              act_objectives.gd (objective tracker), save_game.gd (JSON save/load)
+              act_objectives.gd (objective tracker), save_game.gd (JSON save/load), crafting.gd (recipes)
   camera/     iso_camera_rig.gd
   combat/     hitbox / hurtbox components, encounter_coordinator.gd, swing_geometry.gd (shared clang arc check)
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
@@ -317,9 +336,9 @@ scripts/
               weather_system.gd
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound
-  ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
+  ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (411 checks)
+  smoke_test.gd            Headless regression suite (434 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)

@@ -304,6 +304,22 @@ func _run() -> void:
 	_player.satiety = 80.0
 	await _frames(5)
 
+	# 19. Milestone 18: working at the shelter fire.
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	_equip_now("arming_sword")
+	_equip_now("wooden_targe")
+	_player.inventory.main_hand.condition = 34.0
+	_player.inventory.add(ItemDatabase.make("iron_scrap", 3))
+	_player.inventory.add(ItemDatabase.make("raw_bear_meat", 1))
+	_player.inventory.add(ItemDatabase.make("bear_pelt", 1))
+	boot._stash.put(ItemDatabase.make("cooking_pot"))
+	_place(Vector3(-7.4, 0.0, 6.0), Vector3(0.5, 0, -1.0))
+	await _frames(25)
+	boot._crafting.open()
+	await _frames(6)
+	await _shot("19_crafting_at_fire.png")
+	boot._crafting.close()
+
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
 	root.add_child(picker)

@@ -4,7 +4,7 @@ extends Resource
 ## lives on ItemInstance.
 
 enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL, ARMOR }
-enum ArmorSlot { NONE, HEAD, BODY, LEGS }
+enum ArmorSlot { NONE, HEAD, BODY, LEGS, CLOAK }
 enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 
 @export var item_id: String = ""

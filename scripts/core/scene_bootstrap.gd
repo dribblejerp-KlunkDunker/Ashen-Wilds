@@ -11,6 +11,7 @@ var _ripples: AcousticRipples
 var _vision: VisionCone
 var _weather: WeatherSystem
 var _objectives: ActObjectives
+var _crafting: CraftingUI
 var _watch_goblins: Array[Node3D] = []
 var _orks: Array[Node3D] = []
 var _ogre: EnemyOgreBrute
@@ -88,6 +89,11 @@ func _ready() -> void:
 	add_child(_hud)
 	_hud.bind_player(_player)
 	_build_act_one_objectives()
+	# Milestone 18: crafting & repairs at the shelter fire.
+	_crafting = CraftingUI.new()
+	_hud.add_child(_crafting)
+	_crafting.bind(_player, _stash)
+	_player.ui_force_close.connect(_crafting.close)
 	for n: Node in get_children():
 		if n.is_in_group("enemy"):
 			_all_enemies.append(n)
@@ -105,7 +111,10 @@ func _ready() -> void:
 		add_child(picker)
 
 func _process(_delta: float) -> void:
-	_player.extra_prompt = "[T] Rest at the fire (heal & save)" if is_near_fire() else ""
+	var near: bool = is_near_fire()
+	_player.extra_prompt = "[T] Rest at the fire (heal & save)   [K] Work at the fire" if near else ""
+	if not near and _crafting and _crafting.is_open():
+		_crafting.close()
 
 func is_near_fire() -> bool:
 	var d := Vector2(_player.global_position.x - FIRE_POS.x, _player.global_position.z - FIRE_POS.z)
@@ -148,6 +157,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
 			KEY_T:
 				rest_at_fire()
+			KEY_K:
+				if is_near_fire():
+					_crafting.toggle()
+				else:
+					_hud.show_banner("You can only work at the shelter fire", Color(0.72, 0.68, 0.62))
 			KEY_F5:
 				_player.global_position = Vector3(7.8, 0.0, -15.0)
 				_hud.show_banner("Teleported: The Old Quarry (Blind Quarry-Troll) — make no sound", Color(0.78, 0.72, 0.58))

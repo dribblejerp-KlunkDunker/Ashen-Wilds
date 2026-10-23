@@ -258,9 +258,28 @@ static func _build() -> void:
 	greaves.equip_time = 1.4
 	_register(greaves)
 
+	# --- Cloaks (Milestone 18: sewn at the shelter fire) ------------------------
+	var bear_cloak := _armor("bear_pelt_cloak", "Bear-Pelt Cloak", ItemData.ArmorSlot.CLOAK, 2.8, 0.04, 80.0,
+		"Heavy, warm, and the fur muffles every step.")
+	bear_cloak.insulation = 0.35
+	bear_cloak.armor_noise_mult = 0.85
+	bear_cloak.equip_time = 1.2
+	_register(bear_cloak)
+	var troll_cloak := _armor("troll_hide_cloak", "Troll-Hide Cloak", ItemData.ArmorSlot.CLOAK, 3.4, 0.10, 120.0,
+		"Stiff as a cart-tarp. Turns a blade now and then.")
+	troll_cloak.insulation = 0.25
+	troll_cloak.equip_time = 1.2
+	_register(troll_cloak)
+
 	# --- Food (Milestone 17) ---------------------------------------------------
 	_register(_food("hardtack", "Hardtack Biscuit", 0.2, 10, 25.0, 1.2, "Twice-baked and hard as slate. Soak it if you can."))
 	_register(_food("dried_meat", "Strip of Dried Meat", 0.3, 10, 35.0, 1.4, "Salted, smoked, chewy. A soldier's supper."))
+	var stew := _food("marsh_stew", "Bowl of Marsh Stew", 0.8, 3, 60.0, 2.0, "Bear meat stewed with salt in the iron pot. Warms you to the bone.")
+	stew.warmth_value = 35.0
+	_register(stew)
+	var broth := _food("salted_broth", "Cup of Salted Broth", 0.4, 3, 30.0, 1.5, "Thin and salty, but hot.")
+	broth.warmth_value = 25.0
+	_register(broth)
 	_register(_food("raw_bear_meat", "Raw Bear Meat", 1.0, 4, 12.0, 2.2, "Fills the belly badly raw. Better in a pot."))
 
 	# Milestone 11

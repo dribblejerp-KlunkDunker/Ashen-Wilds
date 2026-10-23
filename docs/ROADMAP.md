@@ -18,7 +18,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 15 | Blackfen Bestiary I: Carrion Crows & the Ghoul | ✅ shipped | M8, M10 |
 | 16 | Blackfen Bestiary II: Bog Bear & Rot Mounds | ✅ shipped | M4 torch, M10 |
 | 17 | Survival: cold & hunger | ✅ shipped | M9 weather, M4 items |
-| 18 | Shelter crafting & repairs | planned | M17, M13 stash |
+| 18 | Shelter crafting & repairs | ✅ shipped | M17, M13 stash |
 | 19 | Day & night | planned | M9, M17 |
 | — | **Parked at the owner's request (remind them):** more of the bestiary (bog-bull, skull-deer, crows' roost, fungus zombies, rot-beast, pallid crawler) | parked | M15–16 |
 | — | Companions, Acts II–III | later | design doc; consider Fable for companion AI |
@@ -137,3 +137,7 @@ The Smothering is a volcanic winter, and now the survivor feels it.
   - Below 10 you're **Starving**: you lose health slowly.
 - **Food items:** hardtack, dried meat, and raw bear meat (it fills you, but badly). You eat from the pack (a short, interruptible channel). Food turns up in containers and on corpses. The Ghoul spoils it on corpses it gnaws.
 - HUD bars for Warmth and Food. Both are saved.
+
+## Milestone 18 — Shelter crafting & repairs
+
+**K** at the shelter fire opens the work panel. There are nine recipes: repair weapon, shield and armour (iron scrap, timber), refuel the torch (lamp oil / timber), cook Marsh Stew or Salted Broth (needs the Cast-Iron Cooking Pot, pack or stash; hot food restores warmth), and sew Bear-Pelt or Troll-Hide Cloaks (a new cloak slot: insulation; fur muffles footsteps). Ingredients come from the pack, then the stash. Timed, interruptible, nothing wasted.
