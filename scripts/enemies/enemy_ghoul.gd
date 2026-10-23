@@ -31,6 +31,11 @@ enum AIState {
 @export var eat_time: float = 5.0
 @export var claw_bleed_chance: float = 0.6
 
+## Milestone 19: the ghoul sees in the dark, and the night makes it bolder:
+## its blood scent reaches half as far again and it runs faster.
+var night_eyed: bool = true
+const NIGHT_SCENT_BONUS: float = 0.5
+const NIGHT_SPEED_BONUS: float = 0.15
 var health: float = 90.0
 var poise_damage: float = 0.0
 var state: AIState = AIState.WANDER
@@ -117,7 +122,13 @@ func smells_blood() -> bool:
 	if player_ref == null or not player_ref.is_bleeding:
 		return false
 	var flat := Vector2(player_ref.global_position.x - global_position.x, player_ref.global_position.z - global_position.z)
-	return flat.length() <= blood_scent_range
+	return flat.length() <= get_scent_range()
+
+func get_scent_range() -> float:
+	return blood_scent_range * (1.0 + NIGHT_SCENT_BONUS * DayNightCycle.darkness(self))
+
+func get_run_speed() -> float:
+	return run_speed * (1.0 + NIGHT_SPEED_BONUS * DayNightCycle.darkness(self))
 
 func _sees_player() -> bool:
 	var to_p: Vector3 = player_ref.global_position - global_position
@@ -208,7 +219,7 @@ func _process_ai_state(delta: float) -> void:
 				velocity.x = _knockback_vel.x
 				velocity.z = _knockback_vel.z
 			else:
-				_steer_toward(to_t.normalized(), run_speed, delta)
+				_steer_toward(to_t.normalized(), get_run_speed(), delta)
 
 		AIState.ATTACK_STARTUP:
 			_state_timer -= delta

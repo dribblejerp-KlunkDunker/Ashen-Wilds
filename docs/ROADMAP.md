@@ -19,7 +19,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 16 | Blackfen Bestiary II: Bog Bear & Rot Mounds | ✅ shipped | M4 torch, M10 |
 | 17 | Survival: cold & hunger | ✅ shipped | M9 weather, M4 items |
 | 18 | Shelter crafting & repairs | ✅ shipped | M17, M13 stash |
-| 19 | Day & night | planned | M9, M17 |
+| 19 | Day & night | ✅ shipped | M9, M17 |
 | — | **Parked at the owner's request (remind them):** more of the bestiary (bog-bull, skull-deer, crows' roost, fungus zombies, rot-beast, pallid crawler) | parked | M15–16 |
 | — | Companions, Acts II–III | later | design doc; consider Fable for companion AI |
 
@@ -141,3 +141,14 @@ The Smothering is a volcanic winter, and now the survivor feels it.
 ## Milestone 18 — Shelter crafting & repairs
 
 **K** at the shelter fire opens the work panel. There are nine recipes: repair weapon, shield and armour (iron scrap, timber), refuel the torch (lamp oil / timber), cook Marsh Stew or Salted Broth (needs the Cast-Iron Cooking Pot, pack or stash; hot food restores warmth), and sew Bear-Pelt or Troll-Hide Cloaks (a new cloak slot: insulation; fur muffles footsteps). Ingredients come from the pack, then the stash. Timed, interruptible, nothing wasted.
+
+## Milestone 19 — Day & night
+
+A 16-minute day *(proposed)*: night 20:00–05:00, dusk and dawn easing over two hours each. **F8** skips three hours. The clock is saved.
+
+- **Light:** sun ×0.2 and moon-blue at full dark, ambient −55%, fog darkened. The weather still blends on top.
+- **Cold:** warmth drains ×1.7 at night.
+- **Sight:** −45% without a lit torch, −15% with one. Anything looking at a torch-bearer sees them as by day. Goblins and the ghoul are `night_eyed`.
+- **Hearing:** ×1.15 at night.
+- **Creatures:** crows roost (blind, and a noise needs 4 m of spare reach to wake them). The ghoul's blood scent is ×1.5 and its run ×1.15.
+- **Sleep:** after dusk, resting at the fire sleeps until 06:00 for 15 food.

@@ -10,6 +10,7 @@ var _acoustics: AcousticField
 var _ripples: AcousticRipples
 var _vision: VisionCone
 var _weather: WeatherSystem
+var _day_night: DayNightCycle
 var _objectives: ActObjectives
 var _crafting: CraftingUI
 var _watch_goblins: Array[Node3D] = []
@@ -26,6 +27,10 @@ var _sun: DirectionalLight3D
 @export var weather_cycle_enabled: bool = true
 ## Milestone 17: tests and tools turn cold & hunger off before add_child.
 @export var survival_enabled: bool = true
+## Milestone 19: tests and tools stop the clock before add_child.
+@export var day_cycle_enabled: bool = true
+## Food a night's sleep at the fire costs.
+const SLEEP_FOOD_COST: float = 15.0
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
 ## Milestone 7: show the survivor picker on boot. Tests and tools turn this
 ## off before adding the scene, which keeps the legacy loadout.
@@ -80,6 +85,14 @@ func _ready() -> void:
 	_weather.register_interior(WATCHHOUSE_INTERIOR)
 	add_child(_weather)
 	_weather.weather_changed.connect(_on_weather_changed)
+	# Milestone 19: day & night.
+	_day_night = DayNightCycle.new()
+	_day_night.cycle_enabled = day_cycle_enabled
+	_day_night.weather = _weather
+	_weather.day_night = _day_night
+	add_child(_day_night)
+	_day_night.phase_changed.connect(_on_phase_changed)
+	_weather.refresh_environment()
 
 	_spawn_all_archetype_encounters()
 
@@ -112,7 +125,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var near: bool = is_near_fire()
-	_player.extra_prompt = "[T] Rest at the fire (heal & save)   [K] Work at the fire" if near else ""
+	var rest: String = "Sleep until dawn" if _night_for_sleeping() else "Rest at the fire"
+	_player.extra_prompt = "[T] %s (heal & save)   [K] Work at the fire" % rest if near else ""
 	if not near and _crafting and _crafting.is_open():
 		_crafting.close()
 
@@ -129,9 +143,20 @@ func rest_at_fire() -> bool:
 	_player.bleed_timer = 0.0
 	_player.cure_spores()
 	_player.warmth = _player.max_warmth
+	# Milestone 19: after dusk, resting means sleeping through to dawn.
+	var slept: bool = _night_for_sleeping()
+	if slept:
+		_day_night.advance_hours(_day_night.hours_until_dawn())
+		if _player.survival_enabled:
+			_player.satiety = maxf(0.0, _player.satiety - SLEEP_FOOD_COST)
 	var ok: bool = SaveGame.write(self)
-	_hud.show_banner("You rest by the fire. Wounds bound, the night survived — game saved." if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
+	var what: String = "You sleep by the fire until dawn. Wounds bound, the night survived" if slept else "You rest by the fire. Wounds bound"
+	_hud.show_banner("%s — game saved." % what if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
 	return ok
+
+## Dusk through the small hours: resting becomes sleeping until dawn.
+func _night_for_sleeping() -> bool:
+	return _day_night != null and _day_night.phase in [DayNightCycle.Phase.DUSK, DayNightCycle.Phase.NIGHT]
 
 func load_game() -> void:
 	var ok: bool = await SaveGame.apply(self, SaveGame.read())
@@ -173,6 +198,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hud.show_banner("Teleported: east of the Bear Wallow — keep a torch lit", Color(0.80, 0.62, 0.42))
 			KEY_F4:
 				_weather.advance()
+			KEY_F8:
+				_day_night.advance_hours(3.0)
+				_hud.show_banner("Time passes: %s %s" % [_day_night.get_phase_name(), _day_night.clock_text()], Color(0.70, 0.72, 0.80))
 			KEY_V:
 				_vision.set_enabled(not _vision.enabled)
 				_hud.show_banner("Vision cone & memory map: %s" % ("ON" if _vision.enabled else "OFF"), Color(0.75, 0.75, 0.75))
@@ -585,6 +613,17 @@ func _shelter_progress() -> String:
 func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
 	if _hud:
 		_hud.show_banner("The weather turns: %s — %s" % [display_name.to_upper(), summary], Color(0.72, 0.78, 0.84))
+
+func _on_phase_changed(phase: DayNightCycle.Phase, _display_name: String) -> void:
+	if _hud == null:
+		return
+	match phase:
+		DayNightCycle.Phase.DUSK:
+			_hud.show_banner("Dusk. The light is going; the cold is coming.", Color(0.78, 0.62, 0.46))
+		DayNightCycle.Phase.NIGHT:
+			_hud.show_banner("Night falls. Without fire you see little — and with it, you are seen. Goblins and the ghoul see in the dark.", Color(0.58, 0.64, 0.84))
+		DayNightCycle.Phase.DAWN:
+			_hud.show_banner("Dawn. Grey light returns to the Blackfen.", Color(0.82, 0.76, 0.62))
 
 func _on_crow_alarm(_pos: Vector3) -> void:
 	if _hud:

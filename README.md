@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–18 complete · verified on Godot 4.3-stable (Forward+) · **434/434** headless regression checks passing
+> **Status:** Milestones 1–19 complete · verified on Godot 4.3-stable (Forward+) · **463/463** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -240,8 +240,20 @@ The pot works from the stash, so storing it for the Act I objective doesn't stop
 
 ![Working at the shelter fire](docs/screenshots/19_crafting_at_fire.png)
 
+### Day & night (Milestone 19)
+A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 of those minutes, and dusk and dawn ease in over two in-game hours. The HUD shows the phase and the clock next to the weather. **F8** skips three hours.
+
+- **Darker.** At full dark the sun gives way to dim blue moonlight (×0.2), ambient light drops by half and the fog goes black. The weather still blends on top.
+- **Colder.** Warmth drains ×1.7 at night, on top of the weather.
+- **Fire cuts both ways.** Without a lit torch you see only 55% as far. With one you keep 85%, but anything looking at you sees you as if it were day.
+- **Quieter.** The still night carries sound a little further (×1.15).
+- **Creatures change.** Goblins and the ghoul see in the dark. The ghoul is bolder: its blood scent reaches half as far again (37 m) and it runs 15% faster. Carrion crows **roost**: they don't see you, and only a noise that reaches them with 4 m to spare (a clang or a thrown stone, not a footstep) wakes the flock.
+- **Sleep until dawn.** After dusk, resting at the fire (**T**) means sleeping until 06:00. It heals and saves as usual and costs 15 food. The hour is saved.
+
+![Night in the yard by torchlight](docs/screenshots/20_night_torchlight.png)
+
 ### Save & load (Milestone 14)
-**Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
+**Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather, the hour and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
 
 ---
 
@@ -263,8 +275,9 @@ The pot works from the stash, so storing it for the Act I objective doesn't stop
 | **1 / 2 / 3** | Ready blade / polearm / axe |
 | **4** | Swap off-hand: shield ⇄ torch |
 | **F4** | Next weather (dev) |
+| **F8** | Skip three hours (dev) |
 | **V** | Toggle the vision cone & memory map |
-| **T** | Rest at the shelter fire: heal & save |
+| **T** | Rest at the shelter fire: heal & save (after dusk, sleep until dawn) |
 | **K** | Work at the shelter fire: repairs, cooking, sewing |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
@@ -333,12 +346,12 @@ scripts/
               survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
-              weather_system.gd
+              weather_system.gd, day_night_cycle.gd
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (434 checks)
+  smoke_test.gd            Headless regression suite (463 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -353,7 +366,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
 - **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
 - **Vision:** `PlayerController.can_see_point()` is the cone test plus a line-of-sight ray, and enemies use it to decide whether they're drawn. `VisionCone` casts 96 rays across the cone every other tick into two byte grids over the 52 m yard: "visible now" and "seen ever". The `vision_memory` shader is a full-screen quad on the camera. It rebuilds each pixel's world position from the depth buffer, passes visible pixels through, and draws the rest as charcoal or black.
-- **Weather:** `WeatherSystem` blends between profile dictionaries. Gameplay code asks `WeatherSystem.factor(node, "sight" | "hearing" | "torch_burn" | …)`, which returns the neutral value when there's no weather, or when the node is under a roof and the key is a fire or footing effect. It drives the fog, ambient and sun light, and the acoustic field's reach.
+- **Weather:** `WeatherSystem` blends between profile dictionaries. Gameplay code asks `WeatherSystem.factor(node, "sight" | "hearing" | "torch_burn" | …)`, which returns the neutral value when there's no weather, or when the node is under a roof and the key is a fire or footing effect. It drives the fog, ambient and sun light, and the acoustic field's reach. `DayNightCycle` keeps the clock; the weather darkens its light by `get_darkness()` and folds the night into "sight" and "cold" inside `factor()`.
 - **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. Listeners connect with `AcousticField.listen()` and test `AcousticField.can_hear()`, which cuts the reach to 60% when a wall is in the way. Enemies hear the survivor (and any clang) that way, and `AcousticRipples` draws a ripple when the survivor hears something it can't see.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 

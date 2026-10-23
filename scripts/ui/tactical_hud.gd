@@ -272,6 +272,9 @@ func update_stats(data: Dictionary) -> void:
 	if weather:
 		var sheltered: bool = weather.is_sheltered(_player.global_position)
 		_weather_label.text = "WEATHER  %s%s" % [weather.get_display_name(), "  ·  sheltered" if sheltered else ""]
+		var dn: DayNightCycle = DayNightCycle.find(_player)
+		if dn:
+			_weather_label.text += "     %s  %s" % [dn.get_phase_name().to_upper(), dn.clock_text()]
 
 	_main_label.text = "MAIN  %s" % data["main_label"]
 	_main_label.add_theme_color_override(

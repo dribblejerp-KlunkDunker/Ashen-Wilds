@@ -60,6 +60,7 @@ func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("day_cycle_enabled", false)
 	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
@@ -319,6 +320,21 @@ func _run() -> void:
 	await _frames(6)
 	await _shot("19_crafting_at_fire.png")
 	boot._crafting.close()
+
+	# 20. Milestone 19: night. Torchlight in the yard, a goblin at the edge of it.
+	var dn: DayNightCycle = _find(func(n: Node) -> bool: return n is DayNightCycle)[0]
+	dn.set_hour(23.0)
+	_equip_now("pitch_torch")
+	_place(Vector3(-2.4, 0.0, 1.6), Vector3(0.5, 0, -1.0))
+	var night_gob: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger and not e.is_dead())[0]
+	night_gob.global_position = Vector3(-0.6, 0.0, -2.6)
+	night_gob._facing_dir = Vector3(-0.4, 0, 1).normalized()
+	night_gob._visual_root.look_at(night_gob.global_position + night_gob._facing_dir, Vector3.UP)
+	night_gob._visual_root.visible = true
+	await _frames(40)
+	await _shot("20_night_torchlight.png")
+	dn.set_hour(8.0)
+	await _frames(5)
 
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()

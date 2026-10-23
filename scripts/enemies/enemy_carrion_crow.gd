@@ -3,7 +3,9 @@ extends CharacterBody3D
 ## Milestone 15: a Carrion Crow. Sentinel, not fighter. It perches, and when
 ## the survivor comes close in its sight or a noise reaches it, it bursts up
 ## cawing: a loud noise that goblins, orks and the Quarry-Troll treat like a
-## clang. It comes back after a while. One blow kills it.
+## clang. It comes back after a while. One blow kills it. Milestone 19: at
+## night the flock roosts. A roosting crow keeps its eyes shut and only a
+## noise that reaches it with `roost_margin` to spare wakes it.
 
 signal crow_alarm(world_pos: Vector3)
 
@@ -16,6 +18,8 @@ enum AIState { PERCHED, FLYING_AWAY, AWAY, RETURNING, DEAD }
 @export var away_time: float = 25.0
 ## Any noise reaching it with at least this much reach to spare scatters it.
 @export var startle_margin: float = 0.0
+## Extra reach a noise needs to wake a roosting crow.
+@export var roost_margin: float = 4.0
 
 ## Weapons don't lodge in a crow.
 var can_lodge: bool = false
@@ -58,9 +62,10 @@ func is_perched() -> bool:
 func _process_ai_state(delta: float) -> void:
 	match state:
 		AIState.PERCHED:
-			_bob_t += delta
+			if not is_roosting():
+				_bob_t += delta
 			_visual_root.position.y = absf(sin(_bob_t * 2.3)) * 0.04
-			if _sees_player():
+			if not is_roosting() and _sees_player():
 				scatter()
 		AIState.FLYING_AWAY:
 			_state_timer -= delta
@@ -75,6 +80,10 @@ func _process_ai_state(delta: float) -> void:
 			_state_timer -= delta
 			if _state_timer <= 0.0:
 				state = AIState.PERCHED
+
+## Asleep on its perch: the night is more than half dark.
+func is_roosting() -> bool:
+	return state == AIState.PERCHED and DayNightCycle.darkness(self) > 0.5
 
 func _sees_player() -> bool:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -98,7 +107,8 @@ func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: Str
 	if kind == "footstep" and not (source is PlayerController):
 		return
 	var flat := Vector2(world_pos.x - global_position.x, world_pos.z - global_position.z).length()
-	if flat <= reach - startle_margin and AcousticField.can_hear(self, world_pos, reach):
+	var margin: float = startle_margin + (roost_margin if is_roosting() else 0.0)
+	if flat <= reach - margin and AcousticField.can_hear(self, world_pos, reach):
 		scatter()
 
 ## Bursts into the air cawing. Public so tests (and other crows) can call it.

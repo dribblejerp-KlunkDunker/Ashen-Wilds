@@ -7,7 +7,8 @@ extends Node3D
 ## when no weather exists. Interiors shelter you from fire and footing
 ## effects, but not from fog, sound or miasma. Precipitation is CPU-animated
 ## MultiMesh flakes, not particles, so it renders in software-Vulkan
-## screenshots.
+## screenshots. Milestone 19: the DayNightCycle (if any) darkens the light
+## and folds the night into "sight", "cold" and hearing.
 
 signal weather_changed(weather: Weather, display_name: String, summary: String)
 
@@ -32,6 +33,9 @@ var player: PlayerController
 var environment: Environment
 var sun: DirectionalLight3D
 var acoustics: AcousticField
+var day_night: DayNightCycle
+## Moonlight replaces the sun's colour at full dark.
+const MOON_COLOR := Color(0.40, 0.48, 0.66)
 
 var _from: Dictionary = {}
 var _to: Dictionary = {}
@@ -57,7 +61,7 @@ func _ready() -> void:
 	_time_left = randf_range(min_duration, max_duration)
 	_gust_timer = randf_range(gust_interval_min, gust_interval_max)
 	_build_precip()
-	_apply_environment()
+	refresh_environment()
 
 # ------------------------------------------------------------------------------
 # Profiles
@@ -138,7 +142,15 @@ static func factor(node: Node3D, key: String) -> float:
 	var w: WeatherSystem = find(node)
 	if w == null:
 		return 0.0 if key == "dodge_extra" else 1.0
-	return w.value_at(key, node.global_position)
+	var v: float = w.value_at(key, node.global_position)
+	if key == "sight":
+		v *= DayNightCycle.sight_factor(node)
+	elif key == "cold":
+		v *= 1.0 + DayNightCycle.NIGHT_COLD * w.get_darkness()
+	return v
+
+func get_darkness() -> float:
+	return day_night.get_darkness() if day_night else 0.0
 
 func value(key: String) -> float:
 	return lerpf(float(_from[key]), float(_to[key]), _blend)
@@ -190,7 +202,7 @@ func set_weather(w: Weather, instant: bool = false) -> void:
 	_blend = 1.0 if instant else 0.0
 	_time_left = randf_range(min_duration, max_duration)
 	_gust_timer = randf_range(gust_interval_min, gust_interval_max)
-	_apply_environment()
+	refresh_environment()
 	weather_changed.emit(w, get_display_name(), get_summary())
 
 ## Moves to the next weather in the list (F4).
@@ -200,7 +212,7 @@ func advance(instant: bool = false) -> void:
 func _physics_process(delta: float) -> void:
 	if _blend < 1.0:
 		_blend = minf(1.0, _blend + delta / maxf(transition_time, 0.01))
-		_apply_environment()
+		refresh_environment()
 	if cycle_enabled:
 		_time_left -= delta
 		if _time_left <= 0.0:
@@ -210,16 +222,21 @@ func _physics_process(delta: float) -> void:
 			set_weather(next as Weather)
 	_update_gusts(delta)
 
-func _apply_environment() -> void:
+## Applies the blended weather, darkened by the hour, to the world.
+func refresh_environment() -> void:
+	var dark: float = get_darkness()
 	if acoustics:
-		acoustics.hearing_multiplier = value("hearing")
+		acoustics.hearing_multiplier = value("hearing") * (1.0 + DayNightCycle.NIGHT_HEARING * dark)
 	if environment:
-		environment.fog_light_color = (_from["fog_color"] as Color).lerp(_to["fog_color"], _blend)
+		var fog: Color = (_from["fog_color"] as Color).lerp(_to["fog_color"], _blend)
+		environment.fog_light_color = fog.darkened(0.6 * dark)
 		environment.fog_density = value("fog_density")
-		environment.ambient_light_color = (_from["ambient_color"] as Color).lerp(_to["ambient_color"], _blend)
+		var amb: Color = (_from["ambient_color"] as Color).lerp(_to["ambient_color"], _blend)
+		environment.ambient_light_color = amb.darkened(0.55 * dark).lerp(Color(0.05, 0.06, 0.09), 0.25 * dark)
 	if sun:
-		sun.light_color = (_from["sun_color"] as Color).lerp(_to["sun_color"], _blend)
-		sun.light_energy = value("sun_energy")
+		var sun_col: Color = (_from["sun_color"] as Color).lerp(_to["sun_color"], _blend)
+		sun.light_color = sun_col.lerp(MOON_COLOR, dark)
+		sun.light_energy = value("sun_energy") * (1.0 - 0.8 * dark)
 
 # ------------------------------------------------------------------------------
 # Cinder-squall gusts

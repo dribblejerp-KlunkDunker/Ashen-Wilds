@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–18 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–19 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs, day & night. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## Visual direction (read before any visual work)
 
@@ -50,7 +50,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **434 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **463 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -79,7 +79,7 @@ scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons),
                     vision_cone.gd (cone rays + memory grids + overlay), acoustic_field.gd (noise bus), acoustic_ripples.gd,
-                    weather_system.gd (profiles, blending, shelter, gusts, MultiMesh precipitation)
+                    weather_system.gd (profiles, blending, shelter, gusts, MultiMesh precipitation), day_night_cycle.gd (clock, darkness, night sight)
 scripts/player/     player_controller.gd (state machine, the largest file)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute, enemy_quarry_troll (blind, hunts sound),
                     enemy_carrion_crow (sentinel, caws), enemy_ghoul (eats corpses, smells blood),
@@ -107,6 +107,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
 - **Art is being made separately** (sprites from another agent, to the brief in `docs/VISUAL_DIRECTION.md`). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
 - **Weather:** read effects via `WeatherSystem.factor(node, key)`, never by checking `current`. Fire and footing keys (`SHELTERED_KEYS`) are neutral under a roof. Register new interiors with both the camera rig and `WeatherSystem.register_interior()`. Tests and tools set `weather_cycle_enabled = false` before `add_child` so the weather can't change mid-check.
+- **Day & night:** `DayNightCycle` keeps the hour. Ask `DayNightCycle.darkness(node)`. Night is already folded into `WeatherSystem.factor()` for "sight" and "cold", so don't apply it twice. A creature that sees in the dark sets `night_eyed = true`. Tests and tools set `day_cycle_enabled = false` (the clock stays at 08:00, darkness 0). Call `set_hour()`, never write `hour`, so the light refreshes.
 - **Survival (cold & hunger):** `PlayerController.survival_enabled` gates all draining. Tests and tools set the bootstrap's `survival_enabled = false` before `add_child`, so long runs can't freeze or starve the survivor. The survival test turns it on locally and calls `_update_survival(dt)` directly. Heat sources are nodes in the `heat_source` group with a `heat_radius` meta. Stamina regen and max stamina go through `_survival_regen_mult()` and `get_stamina_cap()`.
 - **Crafting:** recipes are dictionaries in `Crafting._build()`. `why_not()` returns "" or a reason, `apply()` consumes from the pack and then the stash. The player runs them as the `CRAFT` channel via `start_craft()`. Tests that borrow the shelter stash must snapshot and restore `stash.items`, because the Act I test later counts what's in it.
 - **Objectives** are callables in `_build_act_one_objectives()`, re-checked twice a second. Once done they stay done. Smoke tests that kill an encounter's enemies (the corpse test kills the yard goblin and the Ork Cleaver) change objective state, so the Act I test runs last and counts on that.
@@ -124,7 +125,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Godot renames duplicate sibling names** (a second `Ripple` becomes `@Node3D@N`). Find spawned nodes by group, not by `name.begins_with()`.
 - **Full-screen shader output is linear, pre-tonemap.** Constants that look tiny (0.016) come out light grey on screen. Compare against the scene with the overlay off (V) before tuning.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, K works at the fire, F1–F3 and F5–F7 are dev teleports, V toggles the vision overlay, F4 advances the weather.
+- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, K works at the fire, F1–F3 and F5–F7 are dev teleports, V toggles the vision overlay, F4 advances the weather, F8 skips three hours.
 
 ### Writing tests (`tests/smoke_test.gd`)
 

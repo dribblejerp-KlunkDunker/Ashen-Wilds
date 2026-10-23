@@ -23,6 +23,8 @@ enum AIState {
 @export var max_poise: float = 22.0
 @export var patrol_points: Array[Vector3] = []
 
+## Milestone 19: goblins see in the dark as well as by day.
+var night_eyed: bool = true
 var health: float = 65.0
 var poise_damage: float = 0.0
 var state: AIState = AIState.PATROL

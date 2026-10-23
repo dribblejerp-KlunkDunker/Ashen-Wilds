@@ -117,6 +117,7 @@ static func collect(boot: AshenWildsBootstrap) -> Dictionary:
 		"enemies": enemies,
 		"objectives": {"done": done, "elapsed": boot._objectives.elapsed, "completed": boot._objectives.completed},
 		"weather": int(boot._weather.current),
+		"hour": boot._day_night.hour,
 		"seen": Marshalls.raw_to_base64(boot._vision.get_seen_bytes()),
 	}
 
@@ -237,5 +238,6 @@ static func apply(boot: AshenWildsBootstrap, data: Dictionary) -> bool:
 				corpse.items = items_from_array(entry["corpse"]["items"])
 
 	boot._weather.set_weather(int(data["weather"]) as WeatherSystem.Weather, true)
+	boot._day_night.set_hour(float(data.get("hour", 8.0)))
 	boot._vision.set_seen_bytes(Marshalls.base64_to_raw(String(data["seen"])))
 	return true

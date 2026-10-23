@@ -81,6 +81,7 @@ func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("day_cycle_enabled", false)
 	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
@@ -116,6 +117,7 @@ func _run() -> void:
 	await _test_bestiary_two()
 	await _test_survival()
 	await _test_crafting()
+	await _test_day_night()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -2137,6 +2139,119 @@ func _test_crafting() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
+# Milestone 19 — day & night
+# ------------------------------------------------------------------------------
+func _test_day_night() -> void:
+	_section("Day & night")
+	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
+	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	var sun: DirectionalLight3D = boot._sun
+	var env: Environment = weather.environment
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_check(not dn.cycle_enabled and is_equal_approx(dn.hour, 8.0) and dn.get_darkness() == 0.0, "(the clock is stopped at 08:00 for the suite)")
+	_check(DayNightCycle.darkness_at_hour(12.0) == 0.0 and DayNightCycle.darkness_at_hour(23.0) == 1.0 and DayNightCycle.darkness_at_hour(2.0) == 1.0, "noon is light, midnight dark")
+	var dusk: float = DayNightCycle.darkness_at_hour(19.0)
+	var dawn: float = DayNightCycle.darkness_at_hour(6.0)
+	_check(dusk > 0.2 and dusk < 0.8 and dawn > 0.2 and dawn < 0.8, "dusk and dawn ease between (%.2f, %.2f)" % [dusk, dawn])
+	_check(DayNightCycle.phase_of(6.0) == DayNightCycle.Phase.DAWN and DayNightCycle.phase_of(12.0) == DayNightCycle.Phase.DAY and DayNightCycle.phase_of(19.0) == DayNightCycle.Phase.DUSK and DayNightCycle.phase_of(1.0) == DayNightCycle.Phase.NIGHT, "dawn, day, dusk and night phases")
+
+	var day_sun: float = sun.light_energy
+	var day_amb: float = env.ambient_light_color.get_luminance()
+	var day_hearing: float = field.hearing_multiplier
+	var phases: Array = []
+	var rec := func(p: DayNightCycle.Phase, _n: String) -> void: phases.append(p)
+	dn.phase_changed.connect(rec)
+	dn.set_hour(23.0)
+	_check(phases == [DayNightCycle.Phase.NIGHT] and dn.is_night() and dn.clock_text() == "23:00", "setting 23:00 brings on the night (one phase change)")
+	dn.phase_changed.disconnect(rec)
+	_check(sun.light_energy < day_sun * 0.3, "the sun gives way to dim moonlight (%.2f -> %.2f)" % [day_sun, sun.light_energy])
+	_check(sun.light_color.b > sun.light_color.r, "moonlight is cold blue")
+	_check(env.ambient_light_color.get_luminance() < day_amb * 0.6, "ambient light darkens at night")
+	_check(field.hearing_multiplier > day_hearing * 1.1, "the still night carries sound further (×%.2f)" % (field.hearing_multiplier / day_hearing))
+	weather.set_weather(WeatherSystem.Weather.SLEET, true)
+	_check(sun.light_energy < 0.2, "weather changes keep the night dark")
+	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
+
+	# Cold and sight.
+	_reset_player(OPEN)
+	_equip_now("wooden_targe")
+	await _ticks(2)
+	var cold: float = WeatherSystem.factor(_player, "cold")
+	_check(absf(cold - 1.7) < 0.01, "night cold: warmth drains ×1.7 (%.2f)" % cold)
+	var dark_range: float = _player.get_vision_range()
+	_equip_now("pitch_torch")
+	await _ticks(2)
+	var torch_range: float = _player.get_vision_range()
+	_check(dark_range < _player.vision_range * 0.6 and torch_range > _player.vision_range * 0.8, "without fire you see 55%% as far; a torch keeps 85%% (%.1f / %.1f m)" % [dark_range, torch_range])
+	var ork := _spawn_dummy_ork(OPEN + Vector3(10.0, 0, 0), false, Vector3.LEFT)
+	ork.player_ref = _player
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(10.0, 0, 2.0))
+	await _ticks(1)
+	_check(is_equal_approx(DayNightCycle.sight_factor(ork), 1.0), "an ork sees a torch-bearer as by day")
+	_equip_now("wooden_targe")
+	await _ticks(1)
+	_check(absf(DayNightCycle.sight_factor(ork) - 0.55) < 0.01, "...and an unlit survivor at only 55%")
+	_check(is_equal_approx(DayNightCycle.sight_factor(gob), 1.0), "goblins see in the dark")
+
+	# Crows roost.
+	var crow := _spawn_dummy_crow(OPEN + Vector3(4.0, 0, 0))
+	await _ticks(1)
+	crow._process_ai_state(0.05)
+	_check(crow.is_roosting() and crow.is_perched(), "at night a crow 4 m away roosts and doesn't see you")
+	field.emit_noise(OPEN + Vector3(1.0, 0, 0), 6.0, _player, "footstep")
+	_check(crow.is_perched(), "a footstep doesn't wake it")
+	field.emit_noise(OPEN + Vector3(3.0, 0, 0), 12.0, _player, "clang")
+	_check(not crow.is_perched(), "a clang next to it does")
+
+	# The ghoul is bolder.
+	var ghoul := EnemyGhoul.new()
+	ghoul.position = OPEN + Vector3(-32.0, 0, 0)
+	ghoul.process_mode = Node.PROCESS_MODE_DISABLED
+	ghoul.player_ref = _player
+	_main.add_child(ghoul)
+	await _ticks(1)
+	_player.is_bleeding = true
+	_check(ghoul.smells_blood() and ghoul.get_run_speed() > ghoul.run_speed * 1.1, "at night the ghoul smells blood from 32 m and runs faster")
+	_check(is_equal_approx(DayNightCycle.sight_factor(ghoul), 1.0), "the ghoul sees in the dark")
+	dn.set_hour(12.0)
+	_check(not ghoul.smells_blood() and is_equal_approx(ghoul.get_run_speed(), ghoul.run_speed), "by day: 25 m and its normal pace")
+	_check(not crow.is_roosting() and absf(WeatherSystem.factor(_player, "cold") - 1.0) < 0.001, "by day the crows wake and the cold is ordinary")
+	_check(is_equal_approx(sun.light_energy, day_sun) and is_equal_approx(field.hearing_multiplier, day_hearing), "daylight is restored exactly")
+	_player.is_bleeding = false
+
+	# Sleeping at the fire until dawn.
+	SaveGame.save_path = "user://smoke_test_save.json"
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(1)
+	boot._process(0.0)
+	_check(_player.extra_prompt.contains("Rest at the fire"), "by day the fire offers a rest")
+	dn.set_hour(22.0)
+	boot._process(0.0)
+	_check(_player.extra_prompt.contains("Sleep until dawn"), "after dark it offers sleep until dawn")
+	_player.survival_enabled = true
+	_player.satiety = 50.0
+	boot.rest_at_fire()
+	_player.survival_enabled = false
+	_check(is_equal_approx(dn.hour, 6.0) and dn.phase == DayNightCycle.Phase.DAWN, "sleeping at the fire skips to 06:00")
+	_check(absf(_player.satiety - 35.0) < 0.01, "a night's sleep costs 15 food")
+	var saved: Dictionary = SaveGame.collect(boot)
+	_check(is_equal_approx(float(saved["hour"]), 6.0), "the hour is saved")
+	SaveGame.delete()
+	boot._process(0.0)
+	_check(_player.extra_prompt.contains("Rest at the fire"), "(at dawn it's a rest again)")
+
+	dn.set_hour(8.0)
+	_player.satiety = _player.max_satiety
+	for n: Node in [ork, gob, crow, ghoul]:
+		n.queue_free()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -2275,6 +2390,7 @@ func _test_save_load() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
 	_main.set("show_background_picker", false)
 	_main.set("weather_cycle_enabled", false)
+	_main.set("day_cycle_enabled", false)
 	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
