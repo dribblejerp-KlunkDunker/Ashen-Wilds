@@ -8,6 +8,10 @@ An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Fo
 
 Milestones 1–14 are complete: combat core, four enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
+## Visual direction (read before any visual work)
+
+The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
+
 ## Get Godot (cloud sessions don't have it)
 
 GitHub release downloads work through the session proxy. Keep the binary **outside** the repo:
@@ -94,7 +98,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Vision & noise:** enemies set `_visual_root.visible = player_ref.can_see_body(self)`; their own senses must not depend on that (the Ogre has `_sees_player()`). Anything that makes a sound calls `AcousticField.report()`. Enemies hear through `AcousticField.listen()` + `can_hear()` (walls muffle to 60%), never by polling the player's state. Player gait noise comes from `emit_gait_noise()`. Tests set `current_state` and call it directly. Enemy footsteps go through `AcousticField.step_cadence()`.
 - **Enemies must be frozen in tests and tools by class:** the freeze lists in `smoke_test.gd` and `capture_screenshots.gd` name every enemy class. Add new ones there, or a live enemy wanders into later checks.
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
-- **Art is being made separately** (sprites from another agent). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
+- **Art is being made separately** (sprites from another agent, to the brief in `docs/VISUAL_DIRECTION.md`). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
 - **Weather:** read effects via `WeatherSystem.factor(node, key)`, never by checking `current`. Fire and footing keys (`SHELTERED_KEYS`) are neutral under a roof. Register new interiors with both the camera rig and `WeatherSystem.register_interior()`. Tests and tools set `weather_cycle_enabled = false` before `add_child` so the weather can't change mid-check.
 - **Objectives** are callables in `_build_act_one_objectives()`, re-checked twice a second. Once done they stay done. Smoke tests that kill an encounter's enemies (the corpse test kills the yard goblin and the Ork Cleaver) change objective state, so the Act I test runs last and counts on that.
 - **Saving:** `SaveGame.collect()` / `apply()`. World containers are identified by display name, enemies by spawn order (`_all_enemies`), dropped and lodged piles by the `save_kind` meta. New persistent state needs a line in both functions and in the save test. `apply()` is a coroutine (corpses attach a frame after death), so `await` it. The save test runs last because it frees the world and boots a new one. Tests point `SaveGame.save_path` at a throwaway file.

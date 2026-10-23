@@ -6,7 +6,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
 > **Status:** Milestones 1–14 complete · verified on Godot 4.3-stable (Forward+) · **337/337** headless regression checks passing
-> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
+> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
 
