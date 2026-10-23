@@ -10,7 +10,7 @@ Milestones 1–14 are complete: combat core, four enemy types, scavenging and eq
 
 ## Visual direction (read before any visual work)
 
-The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
+The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets (13) and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
 
 ## Get Godot (cloud sessions don't have it)
 
