@@ -332,6 +332,7 @@ On a desktop with a GPU, drop the `xvfb-run …` prefix.
 
 ```
 CLAUDE.md                  Working notes for AI agents: Godot setup, verify steps, conventions
+.claude/skills/ashen-wilds-milestone/   The agents' work loop + setup / verify / capture scripts
 project.godot              Engine config, physics layer names
 main.tscn                  Single root node → scene_bootstrap.gd
 shaders/

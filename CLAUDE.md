@@ -8,6 +8,10 @@ An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Fo
 
 Milestones 1–19 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs, day & night. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
+## The work loop
+
+`.claude/skills/ashen-wilds-milestone/` is this repo's plan → test → code → debug → clean → commit loop, with helper scripts: `setup_godot.sh`, `verify.sh` (all four checks below; `--twice` for timing work) and `capture.sh` (screenshots). Use it for any feature or fix.
+
 ## Visual direction (read before any visual work)
 
 The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets (13) and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
