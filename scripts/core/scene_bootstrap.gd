@@ -10,6 +10,12 @@ var _acoustics: AcousticField
 var _ripples: AcousticRipples
 var _vision: VisionCone
 var _weather: WeatherSystem
+var _objectives: ActObjectives
+var _watch_goblins: Array[Node3D] = []
+var _orks: Array[Node3D] = []
+var _ogre: EnemyOgreBrute
+var _troll: EnemyQuarryTroll
+var _stash: Lootable
 var _sun: DirectionalLight3D
 ## Milestone 9: tests and tools turn the weather cycle off before add_child.
 @export var weather_cycle_enabled: bool = true
@@ -74,6 +80,7 @@ func _ready() -> void:
 	_hud = TacticalHUD.new()
 	add_child(_hud)
 	_hud.bind_player(_player)
+	_build_act_one_objectives()
 	_hud.show_banner("THE BLACKFEN OUTSKIRTS — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 	if show_background_picker and DisplayServer.get_name() == "headless":
@@ -320,6 +327,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_yard.patrol_points = [Vector3(-1.2, 0.0, -4.5), Vector3(-3.0, 0.0, 0.5)]
 	add_child(goblin_yard)
 	goblin_yard.goblin_alert_sound.connect(_on_goblin_unseen_noise)
+	_watch_goblins.append(goblin_yard)
 
 	var goblin_inside := EnemyGoblinScavenger.new()
 	goblin_inside.position = Vector3(5.2, 0.0, -3.2)
@@ -329,6 +337,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_inside.patrol_points = [Vector3(6.8, 0.0, -5.2), Vector3(6.8, 0.0, -1.4)]
 	add_child(goblin_inside)
 	goblin_inside.goblin_alert_sound.connect(_on_goblin_unseen_noise)
+	_watch_goblins.append(goblin_inside)
 
 	var ork_shield := EnemyOrkWarrior.new()
 	ork_shield.has_shield = true
@@ -339,6 +348,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_shield.patrol_points = [Vector3(11.8, 0.0, 7.5), Vector3(13.5, 0.0, 10.5)]
 	add_child(ork_shield)
 	ork_shield.ork_combat_bark.connect(_on_ork_bark)
+	_orks.append(ork_shield)
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
@@ -350,6 +360,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_cleaver.patrol_points = [Vector3(14.0, 0.0, 11.2), Vector3(12.5, 0.0, 8.8)]
 	add_child(ork_cleaver)
 	ork_cleaver.ork_combat_bark.connect(_on_ork_bark)
+	_orks.append(ork_cleaver)
 
 	var ogre := EnemyOgreBrute.new()
 	ogre.position = Vector3(-13.5, 0.0, -11.5)
@@ -357,6 +368,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ogre.audio = _audio
 	ogre.coordinator = _coordinator
 	add_child(ogre)
+	_ogre = ogre
 	ogre.ogre_event_banner.connect(func(txt: String, col: Color) -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
@@ -372,10 +384,53 @@ func _spawn_all_archetype_encounters() -> void:
 	troll.audio = _audio
 	troll.coordinator = _coordinator
 	add_child(troll)
+	_troll = troll
 	troll.troll_event_banner.connect(func(txt: String, col: Color) -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
 	)
+
+# ------------------------------------------------------------------------------
+# Milestone 13 — Act I objectives
+# ------------------------------------------------------------------------------
+const SHELTER_NEEDS: Dictionary = {"cooking_pot": 1, "timber": 4, "salt": 4}
+const SHELTER_SHORT_NAMES: Dictionary = {"cooking_pot": "pot", "timber": "timber", "salt": "salt"}
+
+func _build_act_one_objectives() -> void:
+	_objectives = ActObjectives.new()
+	add_child(_objectives)
+	_objectives.add("watchhouse", "Secure the Wayfarer's Watchhouse",
+		func() -> bool: return _all_dead(_watch_goblins),
+		func() -> String: return "goblins %d / %d" % [_dead_count(_watch_goblins), _watch_goblins.size()])
+	_objectives.add("shelter", "Stock the shelter stash",
+		func() -> bool: return _shelter_stocked(),
+		_shelter_progress)
+	_objectives.add("causeway", "Break the Ork choke point",
+		func() -> bool: return _all_dead(_orks),
+		func() -> String: return "orks %d / %d" % [_dead_count(_orks), _orks.size()])
+	_objectives.add("ogre", "Slay the Blackfen Ogre",
+		func() -> bool: return _ogre != null and _ogre.is_dead(), Callable(), true)
+	_objectives.add("troll", "Silence the Quarry-Troll",
+		func() -> bool: return _troll != null and _troll.is_dead(), Callable(), true)
+	_hud.bind_objectives(_objectives)
+
+func _dead_count(group: Array[Node3D]) -> int:
+	return group.filter(func(e: Node3D) -> bool: return not is_instance_valid(e) or e.is_dead()).size()
+
+func _all_dead(group: Array[Node3D]) -> bool:
+	return _dead_count(group) == group.size()
+
+func _shelter_stocked() -> bool:
+	for id: String in SHELTER_NEEDS.keys():
+		if _stash.count_of(id) < int(SHELTER_NEEDS[id]):
+			return false
+	return true
+
+func _shelter_progress() -> String:
+	var parts: Array[String] = []
+	for id: String in SHELTER_NEEDS.keys():
+		parts.append("%s %d/%d" % [SHELTER_SHORT_NAMES[id], mini(_stash.count_of(id), int(SHELTER_NEEDS[id])), int(SHELTER_NEEDS[id])])
+	return " · ".join(parts)
 
 func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
 	if _hud:
@@ -399,6 +454,8 @@ func _spawn_scavenge_containers() -> void:
 		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("throwing_stone", 3)]
 	)
 	stash.searched = true
+	stash.accepts_deposits = true
+	_stash = stash
 
 	_spawn_container(
 		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.38, 0.29, 0.19), 2.0,

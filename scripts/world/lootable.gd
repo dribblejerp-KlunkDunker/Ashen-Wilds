@@ -13,6 +13,8 @@ signal contents_changed
 ## Wording for the prompt and progress bar ("Search" / "Searching").
 @export var search_verb: String = "Search"
 @export var search_verb_progressive: String = "Searching"
+## Milestone 13: you can store your own things here (the shelter stash).
+@export var accepts_deposits: bool = false
 
 var items: Array[ItemInstance] = []
 var searched: bool = false
@@ -36,6 +38,13 @@ func take(inst: ItemInstance) -> void:
 	contents_changed.emit()
 	if remove_when_empty and items.is_empty():
 		queue_free()
+
+func count_of(item_id: String) -> int:
+	var n: int = 0
+	for inst: ItemInstance in items:
+		if inst.data.item_id == item_id:
+			n += inst.quantity
+	return n
 
 func total_weight() -> float:
 	var w: float = 0.0

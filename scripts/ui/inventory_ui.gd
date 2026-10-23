@@ -166,6 +166,9 @@ func _rebuild_inventory() -> void:
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
 		row.add_child(w_lbl)
+		if _loot_panel.visible and _loot_target != null and is_instance_valid(_loot_target) and _loot_target.accepts_deposits:
+			var dest: Lootable = _loot_target
+			_add_button(row, "Store", func() -> void: _player.store_in(dest, inst))
 		if inst.data.is_equippable():
 			_add_button(row, "Unequip" if inv.is_equipped(inst) else "Equip", func() -> void: _player.request_equip(inst))
 		elif inst.data.category == ItemData.Category.CONSUMABLE:

@@ -237,6 +237,20 @@ func _run() -> void:
 	Engine.time_scale = 1.0
 	await _frames(5)
 
+	# 15. Milestone 13: the Act I card, at the shelter fire.
+	_equip_now("wooden_targe")
+	_place(Vector3(-7.0, 0.0, 6.6), Vector3(-0.9, 0, 0.5))
+	await _frames(20)
+	var acts: ActObjectives = _find(func(n: Node) -> bool: return n is ActObjectives)[0]
+	for o: Dictionary in acts.objectives:
+		o["done"] = not o["optional"] or o["id"] == "ogre"
+	acts.elapsed = 47.0 * 60.0 + 12.0
+	_hud._refresh_objectives()
+	_hud.show_act_complete()
+	await _frames(4)
+	await _shot("15_act_one_complete.png")
+	_hud.close_act_complete()
+
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
 	root.add_child(picker)

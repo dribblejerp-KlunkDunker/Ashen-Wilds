@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–12 complete · verified on Godot 4.3-stable (Forward+) · **294/294** headless regression checks passing
+> **Status:** Milestones 1–13 complete · verified on Godot 4.3-stable (Forward+) · **313/313** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -185,6 +185,18 @@ Head, body and legs slots. Equip armor from the pack window. Putting it on and t
 
 The mail is the big choice: real protection and no more bleeding, but 7.5 kg pushes most packs into *Burdened*, and every step jingles for the Quarry-Troll to hear.
 
+### Act I objectives & the shelter (Milestone 13)
+The slice now has an ending. The objective tracker (under your stats) lists:
+
+1. **Secure the Wayfarer's Watchhouse**: kill both goblins.
+2. **Stock the shelter stash**: carry back the Cast-Iron Cooking Pot (from the Ogre's bone heap), 4 Seasoned Timber and 4 Salt Rations. Open the Shelter Stash and use **Store** in your pack window. The stash is the only container that takes deposits.
+3. **Break the Ork choke point**: kill both Orks on the Old Causeway.
+4. *Optional:* slay the Blackfen Ogre. *Optional:* silence the Quarry-Troll.
+
+Finishing the three main objectives shows the **Act I complete** card (time spent and objectives done). **Enter** closes it and you can keep exploring.
+
+![Act I complete](docs/screenshots/15_act_one_complete.png)
+
 ---
 
 ## Controls
@@ -240,7 +252,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, and armor (protection, wear, the cap, bleeding, noise, slots).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), and the Act I loop (objectives, storing supplies, the end card).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -265,7 +277,8 @@ shaders/
   foreground_cutaway.gdshader   Bayer-dither wall/roof cutaway
   vision_memory.gdshader        Vision cone + charcoal memory map (full-screen pass)
 scripts/
-  core/       scene_bootstrap.gd (builds the level, input map, containers), procedural_audio.gd
+  core/       scene_bootstrap.gd (builds the level, input map, containers, Act I objectives), procedural_audio.gd,
+              act_objectives.gd (objective tracker)
   camera/     iso_camera_rig.gd
   combat/     hitbox / hurtbox components, encounter_coordinator.gd, swing_geometry.gd (shared clang arc check)
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
@@ -277,7 +290,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd
 tests/
-  smoke_test.gd            Headless regression suite (294 checks)
+  smoke_test.gd            Headless regression suite (313 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -302,7 +315,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Milestones 13–14 (planned in the roadmap): Act I objectives and the shelter, save & load.
+- Milestone 14 (planned in the roadmap): save & load.
 - Later: companions, the rest of the bestiary, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 
@@ -311,7 +324,7 @@ Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers ar
 ## Known limitations
 
 - Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
-- No save system yet; your pack is kept when you respawn.
+- No save system yet; your pack is kept when you respawn. Act I has no failure state: death sends you back to the shelter fire.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel. Swap times, light levels, charcoal contrast, ripple readability, ice handling and UI layout still need hands-on tuning.
 - Survivor, weather and noise numbers are first-pass proposals (see the roadmap). The design document has the final say.

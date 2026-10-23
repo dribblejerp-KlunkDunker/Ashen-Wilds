@@ -596,6 +596,18 @@ func take_from(lootable: Lootable, inst: ItemInstance) -> bool:
 	lootable.take(inst)
 	return true
 
+## Milestone 13: puts a whole stack from your pack into a container that
+## accepts deposits (the shelter stash). Worn or held items come off first.
+func store_in(lootable: Lootable, inst: ItemInstance) -> bool:
+	if not is_instance_valid(lootable) or not lootable.accepts_deposits or not inventory.has_item(inst):
+		return false
+	if current_state == ActionState.CHANNEL and _channel_item == inst:
+		_cancel_channel("")
+	var stored: ItemInstance = inventory.remove(inst)
+	lootable.put(stored)
+	combat_banner_message.emit("Stored %s in the %s" % [stored.get_label(), lootable.display_name], Color(0.74, 0.80, 0.66))
+	return true
+
 func get_nearest_lootable() -> Lootable:
 	return _nearest_lootable
 

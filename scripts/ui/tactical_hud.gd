@@ -20,6 +20,11 @@ var _channel_panel: PanelContainer
 var _channel_label: Label
 var _channel_fill: ColorRect
 var inventory_ui: InventoryUI
+var _objectives: ActObjectives
+var _objectives_label: Label
+var _objectives_panel: PanelContainer
+var _act_panel: PanelContainer
+var _act_label: Label
 
 const BAR_W: float = 215.0
 
@@ -122,6 +127,29 @@ func _ready() -> void:
 	ch_bg.add_child(_channel_fill)
 	_channel_panel.visible = false
 
+	# Milestone 13: objectives (left, under the stats) and the act-complete card.
+	_objectives_panel = PanelContainer.new()
+	_objectives_panel.position = Vector2(24, 360)
+	_objectives_panel.custom_minimum_size = Vector2(360, 0)
+	_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_objectives_panel.add_theme_stylebox_override("panel", style)
+	_objectives_panel.visible = false
+	root.add_child(_objectives_panel)
+	_objectives_label = _make_label("", 13, Color(0.78, 0.74, 0.64))
+	_objectives_panel.add_child(_objectives_label)
+
+	_act_panel = PanelContainer.new()
+	_act_panel.position = Vector2(560, 300)
+	_act_panel.custom_minimum_size = Vector2(800, 0)
+	_act_panel.add_theme_stylebox_override("panel", style)
+	_act_panel.visible = false
+	root.add_child(_act_panel)
+	_act_label = _make_label("", 17, Color(0.90, 0.82, 0.62))
+	_act_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_act_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_act_label.custom_minimum_size = Vector2(760, 0)
+	_act_panel.add_child(_act_label)
+
 	inventory_ui = InventoryUI.new()
 	root.add_child(inventory_ui)
 
@@ -133,7 +161,49 @@ func bind_player(p: PlayerController) -> void:
 	p.loot_opened.connect(inventory_ui.open_loot)
 	p.ui_force_close.connect(inventory_ui.close_all)
 
+func bind_objectives(o: ActObjectives) -> void:
+	_objectives = o
+	_objectives_panel.visible = true
+	o.objective_completed.connect(func(_id: String, title: String) -> void:
+		show_banner("OBJECTIVE COMPLETE — %s" % title, Color(0.86, 0.80, 0.52))
+		_refresh_objectives()
+	)
+	o.act_completed.connect(show_act_complete)
+	_refresh_objectives()
+
+func _refresh_objectives() -> void:
+	if _objectives == null:
+		return
+	_objectives_label.text = "%s\n%s" % [_objectives.act_title, "\n".join(_objectives.summary_lines())]
+
+func is_act_panel_open() -> bool:
+	return _act_panel.visible
+
+func show_act_complete() -> void:
+	var t: int = int(_objectives.elapsed) if _objectives else 0
+	var who: String = _player.background.display_name if _player and _player.background else "The survivor"
+	_act_label.text = "ACT I COMPLETE\n\nThe watchhouse is yours, the shelter has a pot to boil and wood to burn, and the Old Causeway is open.\n%s will see the spring... perhaps.\n\nTime in the Wilds: %d:%02d   ·   Objectives: %d / %d\n\n[Enter] Keep exploring" % [
+		who, t / 60, t % 60, _objectives.done_count() if _objectives else 0, _objectives.objectives.size() if _objectives else 0
+	]
+	_act_panel.visible = true
+	if _player:
+		_player.set_ui_capture(true)
+
+func close_act_complete() -> void:
+	if not _act_panel.visible:
+		return
+	_act_panel.visible = false
+	if _player:
+		_player.set_ui_capture(inventory_ui.is_any_open())
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _act_panel.visible and event is InputEventKey and event.pressed and (event as InputEventKey).keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_ESCAPE]:
+		close_act_complete()
+		get_viewport().set_input_as_handled()
+
 func _process(delta: float) -> void:
+	if _objectives and Engine.get_process_frames() % 30 == 0:
+		_refresh_objectives()
 	if _banner_timer > 0.0:
 		_banner_timer = maxf(0.0, _banner_timer - delta)
 		if _banner_timer == 0.0:

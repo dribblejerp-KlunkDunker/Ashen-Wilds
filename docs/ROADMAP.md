@@ -13,7 +13,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 10 | Enemy ears | ✅ shipped | M8 acoustic field |
 | 11 | The Blind Quarry-Troll | ✅ shipped | M10 |
 | 12 | Armor slots | ✅ shipped | M4 inventory, M10 (armor is noisy) |
-| 13 | Act I objectives & the shelter | planned | M4 loot, M7 |
+| 13 | Act I objectives & the shelter | ✅ shipped | M4 loot, M7 |
 | 14 | Save & load | planned | everything above |
 | — | Companions, the rest of the bestiary, Acts II–III | later | design doc; consider Fable for companion AI |
 
@@ -95,13 +95,13 @@ A sightless troll in a new quarry pit east of the Ogre lair. It has no eyes, so 
 
 Head, body and legs slots. Each piece adds **protection** (damage reduction on unblocked hits, capped at 60%), **weight**, and sometimes **noise** (mail ×1.4, greaves ×1.15) or a sprint penalty. Pieces wear as they absorb blows. Riveted mail stops bleeding. Six pieces, found in containers and on corpses, and three survivors start with one.
 
-## Milestone 13 — Act I objectives & the shelter *(proposed)*
+## Milestone 13 — Act I objectives & the shelter
 
 Turns the slice into a loop:
 1. **Secure the Wayfarer's Watchhouse**: kill or drive off both goblins.
-2. **Stock the shelter**: deposit the Cast-Iron Cooking Pot, timber and salt at the shelter fire.
+2. **Stock the shelter**: store the Cast-Iron Cooking Pot, 4 timber and 4 salt in the Shelter Stash (a new **Store** button while it's open).
 3. **Break the Ork choke point** on the Old Causeway: both Orks dead.
-An objective tracker on the HUD, and an Act I complete screen.
+Optional: slay the Ogre and silence the Quarry-Troll. An objective tracker on the HUD, and an Act I complete card.
 
 ## Milestone 14 — Save & load
 

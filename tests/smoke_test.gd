@@ -111,6 +111,7 @@ func _run() -> void:
 	await _test_enemy_ears()
 	await _test_quarry_troll()
 	await _test_armor()
+	await _test_act_one()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1561,3 +1562,80 @@ func _emit_check_hud() -> void:
 	_player._emit_stats()
 	var lbl: Label = _hud._armor_label
 	_check(lbl.text.begins_with("ARMOR ") and lbl.text.contains("%"), "HUD shows armor (%s)" % lbl.text)
+
+# ------------------------------------------------------------------------------
+# Milestone 13 — Act I objectives & the shelter
+# ------------------------------------------------------------------------------
+func _test_act_one() -> void:
+	_section("Act I objectives & the shelter")
+	var acts: ActObjectives = _children_of(func(n: Node) -> bool: return n is ActObjectives)[0]
+	var completed_ids: Array = []
+	var act_done: Array = []
+	acts.objective_completed.connect(func(id: String, _t: String) -> void: completed_ids.append(id))
+	acts.act_completed.connect(func() -> void: act_done.append(true))
+	_check(acts.objectives.size() == 5 and acts.objectives.filter(func(o: Dictionary) -> bool: return o["optional"]).size() == 2, "five objectives, two of them optional")
+	acts.evaluate()
+	_check(not acts.is_act_complete() and not acts.completed, "Act I isn't complete at the start")
+	_check(_hud._objectives_label.text.contains("ACT I") and _hud._objectives_label.text.contains("Secure the Wayfarer's Watchhouse"), "the HUD lists the objectives")
+
+	# Earlier checks killed the yard goblin and the Ork Cleaver.
+	_check(not acts.is_done("watchhouse"), "one goblin still holds the watchhouse")
+	for g: EnemyGoblinScavenger in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger and n.patrol_points.size() > 0):
+		if not g.is_dead():
+			g._on_hurtbox_hit_received(CombatPayload.new(_player, g.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
+	await _ticks(2)
+	acts.evaluate()
+	_check(acts.is_done("watchhouse") and completed_ids.has("watchhouse"), "both goblins dead: the watchhouse is secured")
+	for o: EnemyOrkWarrior in _children_of(func(n: Node) -> bool: return n is EnemyOrkWarrior and n.patrol_points.size() > 0):
+		if not o.is_dead():
+			o._on_hurtbox_hit_received(CombatPayload.new(_player, o.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
+	await _ticks(2)
+	acts.evaluate()
+	_check(acts.is_done("causeway"), "both orks dead: the choke point is broken")
+	_check(not acts.completed, "...but the shelter still needs stocking")
+	_check(_hud._objectives_label.text.contains("pot 0/1") and _hud._objectives_label.text.contains("timber 1/4"), "shelter progress is shown (%s)" % _hud._objectives_label.text.get_slice("\n", 2))
+
+	# Store supplies in the shelter stash.
+	var stash: Lootable = null
+	var crate: Lootable = null
+	for l: Lootable in get_nodes_in_group("lootable"):
+		if l.display_name == "Shelter Stash":
+			stash = l
+		elif l.display_name == "Rotted Grain Crate":
+			crate = l
+	_check(stash != null and stash.accepts_deposits and not crate.accepts_deposits, "only the shelter stash takes deposits")
+	var pot := ItemDatabase.make("cooking_pot")
+	var timber := ItemDatabase.make("timber", 3)
+	var salt := ItemDatabase.make("salt", 4)
+	for i: ItemInstance in [pot, timber, salt]:
+		_player.inventory.add(i)
+	_check(not _player.store_in(crate, salt), "you can't stash things in a random crate")
+	_reset_player(stash.global_position + Vector3(0.9, 0, 0.3))
+	await _ticks(3)
+	_loot_events.clear()
+	await _tap("interact")
+	await _ticks(2)
+	_check(_hud.inventory_ui.is_loot_open() and _hud.inventory_ui.get_loot_target() == stash, "the stash opens")
+	var has_store: bool = false
+	for row: Node in _hud.inventory_ui._inv_list.get_children():
+		for c: Node in row.get_children():
+			if c is Button and (c as Button).text == "Store":
+				has_store = true
+	_check(has_store, "the pack window offers Store while the stash is open")
+	_check(_player.store_in(stash, pot) and stash.items.has(pot) and not _player.inventory.has_item(pot), "the pot goes into the stash")
+	_player.store_in(stash, timber)
+	acts.evaluate()
+	_check(not acts.is_done("shelter"), "not stocked until the salt is in too")
+	_player.store_in(stash, salt)
+	acts.evaluate()
+	_check(acts.is_done("shelter"), "pot, 4 timber and 4 salt: the shelter is stocked")
+	_check(acts.completed and act_done.size() == 1, "all three main objectives: Act I complete")
+	_check(_hud.is_act_panel_open() and _player.ui_capture, "the Act I card shows and pauses combat input")
+	acts.evaluate()
+	_check(act_done.size() == 1, "the act completes only once")
+	_hud.close_act_complete()
+	_hud.inventory_ui.close_all()
+	await _seconds(0.2)
+	_check(not _hud.is_act_panel_open() and not _player.ui_capture, "closing the card returns control")
+	_reset_player(OPEN)
+	await _ticks(2)
