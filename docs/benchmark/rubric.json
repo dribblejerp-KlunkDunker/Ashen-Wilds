@@ -1,0 +1,19 @@
+{
+  "about": "The must-haves from docs/VISUAL_DIRECTION.md that image metrics can't judge. Each run scores them by hand in docs/benchmark/runs/<run>/rubric.json as {\"<id>\": {\"score\": 0 | 0.5 | 1, \"note\": \"...\"}}. Copy the previous run's file and change what the new art changed.",
+  "items": [
+    {"id": "survivor_sprite", "pillar": "Painterly", "weight": 3, "text": "The survivor is a hooded, leather-armoured painted sprite, small in frame, holding the torch"},
+    {"id": "enemy_sprites", "pillar": "Painterly", "weight": 3, "text": "Enemies are painted sprites with distinct, readable silhouettes (goblin, ork, ogre, troll, beasts)"},
+    {"id": "telegraph_poses", "pillar": "Readable", "weight": 2, "text": "Wind-up poses read as telegraphs without the coloured status rings"},
+    {"id": "stone_walls", "pillar": "Everything broken", "weight": 3, "text": "Watchhouse walls are worn, crumbling painted stone with damage variants, not flat boxes"},
+    {"id": "wet_ground", "pillar": "Everything broken", "weight": 3, "text": "Ground is wet, mossy flagstone and mud that catches torchlight (puddle sheen)"},
+    {"id": "props", "pillar": "Everything broken", "weight": 2, "text": "Props match the mockup: iron-banded chest, barrels, leaning shield, collapsed timbers, banner"},
+    {"id": "torch_light", "pillar": "Light is precious", "weight": 3, "text": "One warm torch pool on cold blue-grey night, fast falloff, most of the frame near-black"},
+    {"id": "fire_vfx", "pillar": "Light is precious", "weight": 2, "text": "Flames, embers and smoke are painted flipbooks (torches, braziers, the shelter fire)"},
+    {"id": "backdrop", "pillar": "Light is precious", "weight": 1, "text": "Mist and dark pines beyond the walls"},
+    {"id": "palette_discipline", "pillar": "Muted palette", "weight": 2, "text": "Saturated colour only for fire, blood, heraldic red and rot green"},
+    {"id": "pack_grid", "pillar": "UI", "weight": 3, "text": "PACK window: charcoal panel, serif title, weight line, 4-column icon grid with stack counts, gold selected border"},
+    {"id": "pack_detail", "pillar": "UI", "weight": 2, "text": "Detail pane: item name, one-line description, USE / DROP buttons"},
+    {"id": "item_icons", "pillar": "UI", "weight": 2, "text": "Painted item icons for every item id (sheets 05, 10)"},
+    {"id": "hud_minimal", "pillar": "UI", "weight": 3, "text": "HUD is two thin bars (health, stamina) and three quick slots, bottom-left, no text clutter"}
+  ]
+}

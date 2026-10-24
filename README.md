@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **126/126** headless regression checks passing
-> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
+> **Status:** Milestones 1–21 complete · verified on Godot 4.3-stable (Forward+) · **558/558** headless regression checks passing
+> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
 
@@ -80,6 +80,202 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
   
   Either way the weapon stays where it lodged. Walk back and **work it loose** (1.2 s) to recover it, then fight on with fists or draw another weapon with 1–3.
 
+### Cramped for everyone (Milestone 6)
+- **Enemy swings clang too.** Every attacker runs the survivor's arc check. A clanged enemy swing deals no damage, throws sparks, frees the attack token, and leaves the enemy open. It counts as staggered, so a heavy blow can lodge.
+
+  | Attacker | Stroke | Clangs? | Opening |
+  |---|---|---|---|
+  | Goblin Scavenger | hooked-knife stab | never — goblins are tunnel fighters | — |
+  | Ork (combo opener) | 110° cleaver sweep | yes | 0.8 s |
+  | Ork (combo finisher) | overhead chop | never | — |
+  | Blackfen Ogre | 150° club sweep | yes, off pillars and walls | 1.1 s |
+  | Blackfen Ogre | ground slam | never | — |
+- **The Vanguard reads the walls.** When there's no room to sweep, the shielded Ork shortens its grip and opens with the overhead chop. The unshielded Ork Cleaver swings anyway, and you can bait it into the entry hall.
+
+![The Ork Cleaver's sweep clangs off the entry hall wall](docs/screenshots/08_ork_hall_clang.png)
+
+### Survivor backgrounds (Milestone 7)
+A new game opens on **"Who were you before the Smothering?"** Pick one of eight survivors (click, or **1–8** and **Enter**). Each has a starting loadout, one **trait** and one **permanent flaw**. Respawning keeps both.
+
+| Survivor | Starts with | Trait | Flaw |
+|---|---|---|---|
+| Citadel Deserter | sword, targe, torch, 2 bandages | **Shield Drill**: blocking costs 25% less stamina | **Bad Knee**: sprint 12% slower |
+| Peat-Cutter | worn broadaxe, torch, timber, bandage | **Strong Back**: +5 kg capacity | **Bog Lung**: −15 max stamina |
+| Boar Hunter | boar spear, torch, bandage | **Light Step**: walking is 40% quieter | **Old Goring**: −20 max health |
+| Hedge Surgeon | worn sword, 5 bandages, salt | **Steady Hands**: bandage 45% faster, +10 healing | **Frail**: −10 max poise |
+| Ferryman's Widow | sword, full torch, lamp oil, bandage | **Fire-Keeper**: torch burns 40% slower | **Grief-Worn**: stamina regenerates 15% slower |
+| Vault Runaway | broadaxe, bandage | **Tunnel-Born**: clangs cost normal wear, recoil halved | **Ash-Lung**: you cough every 16–30 s, and goblins and Orks within 9 m hear it |
+| Salt-Smuggler | sword, worn targe, 3 salt | **Light Fingers**: search 35% faster | **Shaking Hands**: swaps 50% slower |
+| Disgraced Squire | pristine sword, targe, bandage | **Tourney Poise**: +12 max poise | **Soft Grip**: weapons wear 50% faster |
+
+![The survivor picker](docs/screenshots/09_survivor_picker.png)
+
+### Acoustic ripples & vision cone (Milestone 8)
+- **You see what you face.** A 130° cone, 16 m deep, follows your aim. Enemies outside it, or behind a wall inside it, aren't drawn. Within 1.6 m you sense what's behind you.
+- **Charcoal memory map.** Outside the cone the world turns to a dim, desaturated charcoal sketch, but only where you've looked before. Places you've never seen stay black, so the map fills in as you explore. Walls cast sight-shadows: the cone's rays stop at stone.
+- **Acoustic ripples.** Every footstep, swing, clang, roar and slam is reported to a shared acoustic field. When you can hear a threat but can't see it, a dust-ring ripple spreads at its position, drawn over walls and roofs. Ripple size follows loudness and opacity follows distance.
+
+  | Noise | Reach |
+  |---|---|
+  | Goblin footstep / swing | 4.5 m / 6 m |
+  | Ork footstep / swing | 7 m / 8 m |
+  | Any clang | 13–14 m |
+  | Ogre footstep / sweep | 13 m / 12 m |
+  | Ogre slam / roar | 18 m / 20 m |
+- **V** toggles the cone and memory map (accessibility and debugging).
+
+![Facing west in the yard: the watchhouse behind you is charcoal memory, and goblin footsteps ripple over the roof and the yard](docs/screenshots/10_vision_cone_ripples.png)
+
+### Weather & atmosphere (Milestone 9)
+The sky over the Blackfen changes every 2½–4 minutes. Each weather blends in over 8 seconds and is announced in a banner, and the HUD shows the current one. **F4** skips to the next. Weather changes four things: **sight** (fog, your cone's depth, enemy sight range), **hearing** (enemy ears and how far noises ripple), **fire** (torch fuel and light) and **footing**. Under the watchhouse roof you're *sheltered* from fire and footing effects, but fog, sound and miasma still get in.
+
+| Weather | Sight | Hearing | Fire | Footing / other |
+|---|---|---|---|---|
+| Overcast | — | — | — | — |
+| Ashfall | −25%, grey haze | ×0.8 | — | — |
+| Miasma Fog | −50%, green murk | — | — | stamina regen −25% |
+| Sleet | −15% | ×0.7 | torch burns 2× | sprint −10%, dodge +4 stamina |
+| Cinder-Squall | −10%, ember glow | ×0.6 | torch +30% light | ember gusts shove you outdoors |
+| Hoarfrost | +15%, crisp | ×1.25 | torch −20% light | ice: you slide when starting and stopping |
+| Dead Calm | — | ×1.6 | torch burns 0.8× | — |
+
+Ash, sleet, embers and frost glints are CPU-animated meshes around the survivor, and they don't fall through the roof.
+
+| | | |
+|---|---|---|
+| ![Ashfall](docs/screenshots/11_weather_ashfall.png) | ![Cinder-squall at the Ork choke](docs/screenshots/12_weather_cinder_squall.png) | ![Miasma fog in the Ogre's lair](docs/screenshots/13_weather_miasma.png) |
+| **Ashfall** | **Cinder-squall** at the Ork choke | **Miasma** in the Ogre's lair |
+
+### Enemy ears (Milestone 10)
+Enemies hear what you actually do, through the same acoustic field that draws ripples, so weather affects their hearing too. **Walls muffle sound to 60%.**
+
+| Your noise | Reach |
+|---|---|
+| Walking | 3.5 m (Light Step 2.1 m) |
+| Sprinting | 9 m |
+| Swinging | 9 m |
+| Rummaging in a container | 4.5 m |
+| Blocking a blow | 8 m |
+| Burdened dodge | 6 m |
+
+A burdened pack makes sprints, swings and dodges carry ×1.35. Goblins creep up to investigate where a sound came from, Orks advance on it shield-first, and a sleeping Ogre wakes up. Enemies ignore each other's footsteps but come running to a clang.
+
+### The Blind Quarry-Troll (Milestone 11)
+North-east of the watchhouse lies the **Old Quarry** (**F5**), a walled pit with one way in. The **Blind Quarry-Troll** lives there. It has no eyes, so darkness, the cone and walls don't hide you from it. Only silence does.
+- **It hunts sound.** A faint noise makes it stalk toward the spot. A loud one (a clang, a swing, a thrown stone, a block) makes it charge. Once it reaches the spot it swings if you're there and feels around if you're not. A fainter new sound won't pull it off a louder fresh one.
+- **Touch and pain give you away.** Come within 1.5 m of it and it swings, and any blow tells it exactly where you are.
+- **Thick hide.** Light blows deal 35% unless it's staggered or recoiling. Its stone club clangs off the quarry walls, which is your opening.
+- It drops a **Quarry-Troll Hide**.
+
+**Thrown stones (G).** Throw a Fist-Sized Stone toward the cursor, up to 9 m. It thuds down with a 10 m noise and stays where it landed for you to pick up. The troll charges the thud, and goblins and Orks go to look **where it landed, not where you are**. You start with 3 in your shelter stash, and the Quarry Rubble Pile holds more.
+
+![The Blind Quarry-Troll in the Old Quarry](docs/screenshots/14_quarry_troll.png)
+
+### Armor (Milestone 12)
+Head, body and legs slots. Equip armor from the pack window. Putting it on and taking it off is a timed, interruptible swap. Worn pieces absorb a share of every blow you don't block (capped at 60%) and wear down as they do. A ruined piece protects nothing. Armor weighs what it weighs, and some of it is loud.
+
+| Piece | Slot | Weight | Protection | Notes | Where |
+|---|---|---|---|---|---|
+| Padded Hood | head | 0.6 kg | 6% | — | Citadel Deserter's start |
+| Iron Skullcap | head | 1.4 kg | 12% | — | Ork corpses (35%), Disgraced Squire |
+| Quilted Gambeson | body | 3.0 kg | 14% | quiet; 1.6 s to don | Watchhouse Supply Chest |
+| Riveted Mail Shirt | body | 7.5 kg | 26% | **stops bleeding**; footsteps ×1.4; 2.4 s to don | Ork Plunder Pile |
+| Leather Leggings | legs | 1.5 kg | 8% | — | goblin corpses (20%), Boar Hunter |
+| Splinted Greaves | legs | 3.2 kg | 14% | footsteps ×1.15, sprint −5% | Gnawed Bone Heap |
+
+The mail is the big choice: real protection and no more bleeding, but 7.5 kg pushes most packs into *Burdened*, and every step jingles for the Quarry-Troll to hear.
+
+### Act I objectives & the shelter (Milestone 13)
+The slice now has an ending. The objective tracker (under your stats) lists:
+
+1. **Secure the Wayfarer's Watchhouse**: kill both goblins.
+2. **Stock the shelter stash**: carry back the Cast-Iron Cooking Pot (from the Ogre's bone heap), 4 Seasoned Timber and 4 Salt Rations. Open the Shelter Stash and use **Store** in your pack window. The stash is the only container that takes deposits.
+3. **Break the Ork choke point**: kill both Orks on the Old Causeway.
+4. *Optional:* slay the Blackfen Ogre. *Optional:* silence the Quarry-Troll.
+
+Finishing the three main objectives shows the **Act I complete** card (time spent and objectives done). **Enter** closes it and you can keep exploring.
+
+![Act I complete](docs/screenshots/15_act_one_complete.png)
+
+### Blackfen Bestiary I: Carrion Crows & the Ghoul (Milestone 15)
+- **Carrion Crows** perch on the **Old Gibbet** south-east of the watchhouse and on the Ogre's bone heap. They're sentinels, not fighters. Come within 6 m in their sight, or make a noise that reaches them, and the flock bursts up **cawing**: a 14 m noise that goblins, Orks and the Quarry-Troll come running to. They settle again after about 25 s. **Throw a stone near a flock** to set them off on purpose, as a loud distraction somewhere else. One blow kills a crow (and nothing lodges in one).
+- **The Ghoul** haunts the **Drowned Barrow** in the south-west (**F6**). Between hunts it seeks the nearest corpse and **gnaws** it for 5 s, healing fully and spoiling the food, cloth and herbs on the body (weapons, armour and metal survive). The crunching carries, so it ripples. It **smells blood**: while you're bleeding it knows exactly where you are within 25 m, through walls. Fast and fragile (90 HP). Its two-claw rake opens bleeding wounds often, and claws never clang. Bandage early.
+
+![Crows on the Old Gibbet; the Ghoul gnaws a goblin corpse](docs/screenshots/16_gibbet_crows_ghoul.png)
+
+### Blackfen Bestiary II: the Bog Bear & Rot Mounds (Milestone 16)
+- **The Bog Bear** lairs in the **Bear Wallow** in the west (**F7**). It's territorial: come within 11 m of its wallow and it charges, by scent, whichever way it's facing. It gives up past 18 m and lumbers home. It mauls with two swipes (sweeps, which clang off walls) and a bleeding bite. It **fears fire**: hold a lit torch toward it within 4.5 m and it rears back. That only works until it drops below half health and becomes enraged. It drops a **Bog Bear Pelt**.
+- **Rot Mounds** dot the marsh around the Drowned Barrow. Walk into one, strike it, or land a thrown stone next to it and it **bursts into spores**. Anyone within 3 m becomes **spore-sick** for 25 s: stamina regenerates at half speed and you cough every few seconds, loud enough for enemies to hear. A **torch held close burns a mound away safely**, a thrown stone pops it from range, and resting at the fire clears your lungs.
+
+![The Bog Bear rears back from a raised torch; a rot mound in the marsh](docs/screenshots/17_bog_bear_torch.png)
+
+### Survival: cold & hunger (Milestone 17)
+The Smothering is a volcanic winter. Two new bars, **WARMTH** and **FOOD**, sit under your vitals.
+
+- **Warmth** drains outdoors (about 8 minutes from full in Overcast). Weather scales it: Sleet ×2.2, Hoarfrost ×2.8, Dead Calm ×1.2, Miasma ×1.1, Cinder-Squall ×0.6. A roof cuts the drain to a quarter, a lit torch cuts it by 60%, and padded armor insulates (gambeson −25%, padded hood −10%, leggings −8%; mail doesn't). **Stand by the shelter fire** (+4/s) or **rest there** to warm up.
+  - Below 40 you're **Chilled**: stamina regen ×0.75.
+  - Below 15 you're **Freezing**: stamina regen ×0.5, max stamina 60, −0.4 HP/s. At 0 you freeze, −1.5 HP/s.
+- **Food** drains about 1 point per 12 s.
+  - Below 30 you're **Hungry**: −15 max stamina and regen ×0.8.
+  - Below 10 you're **Starving**: −0.3 HP/s.
+  - **Eat** from the pack (a short, interruptible channel). *Hardtack* gives +25 (in the stash and the grain crate, sometimes on goblins). *Dried meat* gives +35 (on orks). *Raw bear meat* gives +12 (from bear carcasses; better cooked, which comes in Milestone 18).
+
+![Freezing and hungry in the hoarfrost](docs/screenshots/18_survival_freezing.png)
+
+### Shelter crafting & repairs (Milestone 18)
+At the shelter fire, press **K** to **work at the fire**. Ingredients come from your pack first, then the shelter stash. Each job is a timed channel, and walking off or getting hit interrupts it without wasting anything.
+
+| Recipe | Takes | Gives |
+|---|---|---|
+| Repair weapon | 2 iron scrap | +40 condition (main hand) |
+| Repair shield | 1 timber, 1 iron scrap | +50 condition |
+| Repair armour | 2 iron scrap | +40 to your most worn piece |
+| Refuel torch | 1 lamp oil / 1 timber | full / +90 s of fuel |
+| Cook Marsh Stew | raw bear meat, salt, **the cooking pot** | +60 food, **+35 warmth** |
+| Cook Salted Broth | 2 salt, timber, **the cooking pot** | +30 food, +25 warmth |
+| Sew Bear-Pelt Cloak | bear pelt, rag bandage | new **cloak slot**: 35% insulation, footsteps ×0.85 |
+| Sew Troll-Hide Cloak | troll hide, rag bandage | cloak: 25% insulation, 10% protection |
+
+The pot works from the stash, so storing it for the Act I objective doesn't stop you cooking.
+
+![Working at the shelter fire](docs/screenshots/19_crafting_at_fire.png)
+
+### Blackfen Bestiary III: the Bog-Bull, the Skull-Deer & the Crows' Roost (Milestone 20)
+- **The Bog-Bull** (the Grey Pasture, **F9**) grazes until it sees you within 10 m or hears you. Then it snorts, paws the ground for about a second, and **charges in a straight line it can't steer**. Step aside as it comes and it thunders past; get caught and it gores you for 38 and throws you back. Nothing staggers a charging bull. But bait it into one of the pasture's standing stones and it slams in and stands stunned for 2.6 s, long enough for a heavy blow to lodge.
+- **The Skull-Deer** (the Pale Glade, **F10**) are prey. A deer notices you at 11 m (further if you carry fire), raises its bone-white head, and bolts if you keep coming. Its **bleat** sets the herd running, and goblins, orks, the ghoul and the troll come to see what spooked it. By day you can only get close from behind. At night they don't run: their eye sockets glow and they **stare**, until you're within 3.5 m.
+- **The Crows' Roost** (far south, **F11**) is a dead tree with six crows and a nest hoard of shiny things. Rummage in the hoard, or make a loud noise nearby, and the whole flock **mobs you** for 18 s, cawing over your head every few seconds. Anything that hears it knows exactly where you are. Get 18 m away to shake them.
+- **Game meat** from either beast roasts at the fire without the pot: 14 food raw, 40 roasted, and it warms you a little.
+
+| | |
+|---|---|
+| ![The Bog-Bull paws the ground](docs/screenshots/21_bog_bull_paws.png) | ![Skull-Deer staring at night](docs/screenshots/22_skull_deer_stare.png) |
+| **The Bog-Bull lowers its horns.** The orange ring means it's about to charge. Don't be where it's pointing. | **At night the Skull-Deer stare.** They won't run until you're almost close enough to touch. |
+
+### Blackfen Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler (Milestone 21)
+- **Fungus zombies** (three, among the rot mounds) shamble after you slowly. From a few metres one rears back, swelling, and **spews a cone of spores**; close in it claws. Every wound you give it puffs spores at you, and if steel kills it, it **bursts** like a rot mound. Fight it from a spear's length, or **thrust a lit torch at it**: it catches fire, flails and burns, and one that burns to death burns clean.
+- **The Rot-Beast** (the Bile Pit, north-west, **F12**) hunts by sight and sound. It bites hard up close. From mid range it rears back and **vomits a 6 m line of bile** where it faced when it reared, so step out of the line. Caught in it, you're burned and your armour pits. The bile then lies on the ground for 9 s as a **pool that slows you, stings, and keeps eating your armour**.
+- **The Pallid Crawler** (under the Sunken Lane) is never there by day: it lies buried, and you can't hurt it. When night falls it digs out and **hunts you by scent**. It won't come into the light of your torch or the shelter fire. It circles at the edge instead, and recoils if you bring the light to it. Douse your torch in the dark and it hisses, pounces, rakes you open, and scuttles off to come again. At dawn it goes home and buries itself.
+
+| | | |
+|---|---|---|
+| ![A fungus zombie rears to spew](docs/screenshots/23_fungus_zombie_spew.png) | ![The Rot-Beast and its bile](docs/screenshots/24_rot_beast_bile.png) | ![The Pallid Crawler at the torchlight's edge](docs/screenshots/25_pallid_crawler_torchlight.png) |
+| **A fungus zombie swells to spew.** Back off, or burn it. | **The Rot-Beast rears again.** Its last spew still lies on the ground. | **Night: the Pallid Crawler waits at the edge of the light.** |
+
+### Day & night (Milestone 19)
+A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 of those minutes, and dusk and dawn ease in over two in-game hours. The HUD shows the phase and the clock next to the weather. **F8** skips three hours.
+
+- **Darker.** At full dark the sun gives way to dim blue moonlight (×0.2), ambient light drops by half and the fog goes black. The weather still blends on top.
+- **Colder.** Warmth drains ×1.7 at night, on top of the weather.
+- **Fire cuts both ways.** Without a lit torch you see only 55% as far. With one you keep 85%, but anything looking at you sees you as if it were day.
+- **Quieter.** The still night carries sound a little further (×1.15).
+- **Creatures change.** Goblins and the ghoul see in the dark. The ghoul is bolder: its blood scent reaches half as far again (37 m) and it runs 15% faster. Carrion crows **roost**: they don't see you, and only a noise that reaches them with 4 m to spare (a clang or a thrown stone, not a footstep) wakes the flock.
+- **Sleep until dawn.** After dusk, resting at the fire (**T**) means sleeping until 06:00. It heals and saves as usual and costs 15 food. The hour is saved.
+
+![Night in the yard by torchlight](docs/screenshots/20_night_torchlight.png)
+
+### Save & load (Milestone 14)
+**Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather, the hour and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
+
 ---
 
 ## Controls
@@ -96,10 +292,17 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
 | **E** | Search / open a container or corpse, or work a lodged weapon loose (press again to stop) |
 | **Tab** | Open/close pack · **Esc** closes windows |
 | **B** | Bandage a wound |
+| **G** | Throw a stone (makes a noise where it lands) |
 | **1 / 2 / 3** | Ready blade / polearm / axe |
 | **4** | Swap off-hand: shield ⇄ torch |
+| **F4** | Next weather (dev) |
+| **F8** | Skip three hours (dev) |
+| **V** | Toggle the vision cone & memory map |
+| **T** | Rest at the shelter fire: heal & save (after dusk, sleep until dawn) |
+| **K** | Work at the shelter fire: repairs, cooking, sewing |
 | **R** | Respawn at the shelter fire |
-| **F1 / F2 / F3** | Teleport to Watchhouse / Ork choke point / Ogre lair (dev) |
+| **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
+| **F9 / F10 / F11 / F12** | Teleport to the Grey Pasture / Pale Glade / Crows' Roost / Bile Pit (dev) |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -132,7 +335,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), and every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge), which enemy strokes clang (Ork sweep vs. chop, Vanguard discipline, Ogre sweep vs. slam, goblin stabs), every survivor's trait and flaw, what the cone can and can't see, exploration memory, when a noise does or doesn't make a ripple, each weather's effect on sight, hearing, fire and footing, indoors and out, what each enemy hears (and doesn't) through walls, the troll's hunting, hide and clangs, thrown stones as lures, armor (protection, wear, the cap, bleeding, noise, slots), the Act I loop (objectives, storing supplies, the end card), save & load (a full round trip into a freshly booted world), the crows and the ghoul (sentinels, flock alarms, corpse-eating, blood scent), the bog bear and rot mounds (territory, fire fear, enrage, maul, spores), and cold & hunger (drain rates per weather, shelter, torch and insulation, every threshold, eating, freezing to death), and crafting (every recipe kind, pack-then-stash ingredients, the pot, cloaks, interruptions, the work panel).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -151,22 +354,29 @@ On a desktop with a GPU, drop the `xvfb-run …` prefix.
 
 ```
 CLAUDE.md                  Working notes for AI agents: Godot setup, verify steps, conventions
+.claude/skills/ashen-wilds-milestone/   The agents' work loop + setup / verify / capture / benchmark scripts
+docs/benchmark/            Visual benchmark: runs scored against the target mockup (REPORT.md)
 project.godot              Engine config, physics layer names
 main.tscn                  Single root node → scene_bootstrap.gd
 shaders/
   foreground_cutaway.gdshader   Bayer-dither wall/roof cutaway
+  vision_memory.gdshader        Vision cone + charcoal memory map (full-screen pass)
 scripts/
-  core/       scene_bootstrap.gd (builds the level, input map, containers), procedural_audio.gd
+  core/       scene_bootstrap.gd (builds the level, input map, containers, Act I objectives), procedural_audio.gd,
+              act_objectives.gd (objective tracker), save_game.gd (JSON save/load), crafting.gd (recipes)
   camera/     iso_camera_rig.gd
-  combat/     hitbox / hurtbox components, encounter_coordinator.gd
-  data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
+  combat/     hitbox / hurtbox components, encounter_coordinator.gd, swing_geometry.gd (shared clang arc check)
+  data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
+              survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
-  world/      lootable.gd (crates, corpses, ground piles)
+  world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
+              weather_system.gd, day_night_cycle.gd, crow_roost.gd, bile_pool.gd
   player/     player_controller.gd
-  enemies/    goblin scavenger, ork warrior, ogre brute
-  ui/         tactical_hud.gd, inventory_ui.gd
+  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound,
+              bog-bull, skull-deer, fungus zombie, rot-beast, pallid crawler
+  ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (126 checks)
+  smoke_test.gd            Headless regression suite (558 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -176,31 +386,34 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 - **Damage flow:** an attacker builds a `CombatPayload` and opens its `HitboxComponent` during the *active* phase. The hitbox finds overlapping `HurtboxComponent`s, rejects repeat hits and anything behind a wall (raycast), then calls `receive_attack()`. The defender decides whether it was dodged, blocked or taken.
 - **Physics layers:** 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders (roofs).
-- **Items:** `ItemData` is the shared definition (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
+- **Items:** `ItemData` is the shared definition (armor pieces carry a slot, protection and noise/sprint multipliers) (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
-- **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `_sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the player into `RECOIL` instead of opening the hitbox. The same check runs every frame while idle to drive the orange "cramped" warning.
+- **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `SwingGeometry.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Enemies call the same function for their sweeping strokes. For the player, the check also runs every frame while idle to drive the orange "cramped" warning.
+- **Backgrounds:** a `SurvivorBackground` is a bag of modifiers (flat bonuses and multipliers that default to "no change"). `PlayerController.apply_background()` refills the pack and stores the modifiers, and each system multiplies by them where it already computes its value. With the background set to `null` you get the legacy loadout, which the tests use.
+- **Vision:** `PlayerController.can_see_point()` is the cone test plus a line-of-sight ray, and enemies use it to decide whether they're drawn. `VisionCone` casts 96 rays across the cone every other tick into two byte grids over the 52 m yard: "visible now" and "seen ever". The `vision_memory` shader is a full-screen quad on the camera. It rebuilds each pixel's world position from the depth buffer, passes visible pixels through, and draws the rest as charcoal or black.
+- **Weather:** `WeatherSystem` blends between profile dictionaries. Gameplay code asks `WeatherSystem.factor(node, "sight" | "hearing" | "torch_burn" | …)`, which returns the neutral value when there's no weather, or when the node is under a roof and the key is a fire or footing effect. It drives the fog, ambient and sun light, and the acoustic field's reach. `DayNightCycle` keeps the clock; the weather darkens its light by `get_darkness()` and folds the night into "sight" and "cold" inside `factor()`.
+- **Noise:** emitters call `AcousticField.report(self, pos, reach, kind)`. Listeners connect with `AcousticField.listen()` and test `AcousticField.can_hear()`, which cuts the reach to 60% when a wall is in the way. Enemies hear the survivor (and any clang) that way, and `AcousticRipples` draws a ripple when the survivor hears something it can't see.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
 ---
 
 ## Roadmap
 
-Next milestone not yet chosen. Candidates from the design document:
+Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- **Weather & atmosphere** — ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead Calm, each changing sight, hearing, fire and footing.
-- **Acoustic ripples & vision cone** — unseen threats shown as dust-ring ripples sized by noise; a 130° vision cone with a charcoal "memory map" outside it.
-- **Survivor backgrounds** — eight starting characters with gear, traits and permanent flaws.
-- Armor slots, companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
+- Later: companions, Acts II–III.
+- An art and audio pass, once the look is settled. See *Known limitations*.
+- The art pass is measured by the **visual benchmark** ([`docs/benchmark/REPORT.md`](docs/benchmark/REPORT.md)): fixed shots scored against the target mockup. The baseline of today's placeholders is 32/100 measured, with a rubric of 7/100. A **performance benchmark** (frame time, draw calls and memory before and after each art swap) comes later.
 
 ---
 
 ## Known limitations
 
 - Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
-- No save system yet; your pack is kept when you respawn.
+- One save slot, made only at the shelter fire. Act I has no failure state: death sends you back to the fire with your pack.
 - Only tested on Godot **4.3-stable**.
-- Wall deflection applies to the survivor only; enemy swings don't clang yet.
-- The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
+- The test suite checks game logic, not feel. Swap times, light levels, charcoal contrast, ripple readability, ice handling and UI layout still need hands-on tuning.
+- Survivor, weather and noise numbers are first-pass proposals (see the roadmap). The design document has the final say.
 
 ---
 

@@ -25,7 +25,7 @@ enum ActionState {
 }
 
 ## Timed, cancellable actions that share the CHANNEL state.
-enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP }
+enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP, EAT, CRAFT }
 
 const NEUTRAL_STATES: Array[ActionState] = [
 	ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK
@@ -60,8 +60,50 @@ const NEUTRAL_STATES: Array[ActionState] = [
 @export var wall_clang_wear_mult: float = 3.0
 @export var lodge_tug_time: float = 0.35
 
+# Milestone 7 — survivor backgrounds
+@export var cough_interval_min: float = 16.0
+@export var cough_interval_max: float = 30.0
+## How far an Ash-Lung cough carries to enemy ears.
+@export var cough_noise_radius: float = 9.0
+
+# Milestone 10 — the noises you make (heard through the acoustic field)
+@export var walk_noise_reach: float = 3.5
+@export var sprint_noise_reach: float = 9.0
+@export var swing_noise_reach: float = 9.0
+@export var rummage_noise_reach: float = 4.5
+@export var shield_noise_reach: float = 8.0
+
+# Milestone 17 — survival: cold & hunger
+## Off in tests and tools so long runs don't freeze or starve the survivor.
+var survival_enabled: bool = true
+@export var max_warmth: float = 100.0
+## Warmth lost per second outdoors in Overcast, before weather and gear.
+@export var warmth_drain: float = 0.2
+@export var sheltered_warmth_mult: float = 0.25
+@export var torch_warmth_mult: float = 0.4
+@export var max_satiety: float = 100.0
+## Satiety lost per second.
+@export var satiety_drain: float = 0.08
+const CHILLED_BELOW: float = 40.0
+const FREEZING_BELOW: float = 15.0
+const HUNGRY_BELOW: float = 30.0
+const STARVING_BELOW: float = 10.0
+
+# Milestone 11 — thrown stones
+@export var throw_range: float = 9.0
+@export var throw_noise_reach: float = 10.0
+@export var throw_cooldown: float = 0.8
+
+# Milestone 8 — vision cone
+@export var vision_half_angle_deg: float = 65.0
+@export var vision_range: float = 16.0
+## Inside this radius you sense things behind you (walls still block).
+@export var sense_radius: float = 1.6
+
 var health: float = 100.0
 var stamina: float = 100.0
+var warmth: float = 100.0
+var satiety: float = 80.0
 var poise_damage_taken: float = 0.0
 var is_exhausted: bool = false
 var is_bleeding: bool = false
@@ -75,6 +117,8 @@ var camera_rig: IsoCameraRig
 var audio: ProceduralAudio
 ## True while a pack/loot window is open: combat inputs are ignored.
 var ui_capture: bool = false
+## Milestone 14: an extra prompt set by the world (e.g. resting at the fire).
+var extra_prompt: String = ""
 
 var _state_timer: float = 0.0
 var _stamina_delay_timer: float = 0.0
@@ -94,11 +138,26 @@ var _channel_total: float = 0.0
 var _channel_lootable: Lootable = null
 var _channel_item: ItemInstance = null
 var _channel_unequip: bool = false
+## Milestone 18: the recipe being worked at the fire, and the stash it draws on.
+var _channel_recipe: Dictionary = {}
+var _channel_stash: Lootable = null
 var _nearest_lootable: Lootable = null
 var _last_load: Inventory.Load = Inventory.Load.NORMAL
 var _torch_flicker_t: float = 0.0
 var _cramped: bool = false
 var _lodged_target: Node3D = null
+## The chosen survivor (null = legacy Milestone 1-6 loadout, no traits).
+var background: SurvivorBackground = null
+## Active modifiers: the background's, or a neutral set.
+var _mods: SurvivorBackground = SurvivorBackground.new()
+var _base_stats: Dictionary = {}
+var _cough_timer: float = 0.0
+var _cough_noise_left: float = 0.0
+var _gait_noise_timer: float = 0.0
+## Milestone 16: spore sickness from a burst rot mound.
+var _spore_timer: float = 0.0
+var _spore_cough_timer: float = 0.0
+var _throw_cooldown_left: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_pivot: Node3D
@@ -118,6 +177,12 @@ var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
 
 func _ready() -> void:
+	_base_stats = {
+		"max_health": max_health,
+		"max_stamina": max_stamina,
+		"max_poise": max_poise,
+		"carry_capacity_kg": carry_capacity_kg,
+	}
 	_fists = _make_fists()
 	if inventory == null:
 		inventory = Inventory.new()
@@ -145,6 +210,7 @@ func _physics_process(delta: float) -> void:
 	_process_state_machine(delta)
 	_update_visual_pose(delta)
 	move_and_slide()
+	_update_gait_noise(delta)
 	_update_interaction_target()
 	_cramped = current_state in NEUTRAL_STATES and not _sweep_obstruction(false).is_empty()
 	_emit_stats()
@@ -189,6 +255,137 @@ func _give_starting_loadout() -> void:
 	inventory.add(ItemDatabase.make("clean_rag_bandage", 2))
 	inventory.main_hand = sword
 	inventory.off_hand = targe
+
+## Milestone 7: replaces the loadout and applies the survivor's trait and
+## flaw. The flaw is permanent: respawning keeps the background.
+func apply_background(bg: SurvivorBackground) -> void:
+	background = bg
+	_mods = bg if bg != null else SurvivorBackground.new()
+	max_health = float(_base_stats["max_health"]) + _mods.max_health_bonus
+	max_stamina = float(_base_stats["max_stamina"]) + _mods.max_stamina_bonus
+	max_poise = float(_base_stats["max_poise"]) + _mods.max_poise_bonus
+	carry_capacity_kg = float(_base_stats["carry_capacity_kg"]) + _mods.capacity_bonus_kg
+	_clear_channel()
+	_hitbox.end_swing()
+	_lodged_target = null
+	current_state = ActionState.IDLE
+	inventory.clear()
+	inventory.capacity_kg = carry_capacity_kg
+	if bg == null:
+		_give_starting_loadout()
+	else:
+		for entry: Dictionary in bg.loadout:
+			var inst: ItemInstance = ItemDatabase.make(String(entry["id"]), int(entry["qty"]), float(entry["cond"]))
+			inventory.add(inst)
+			var id: String = inst.data.item_id
+			if id == bg.main_hand_id and inventory.main_hand == null:
+				inventory.main_hand = inst
+			elif id == bg.off_hand_id and inventory.off_hand == null:
+				inventory.off_hand = inst
+			elif inst.data.category == ItemData.Category.ARMOR:
+				inventory.armor[inst.data.armor_slot] = inst
+	health = max_health
+	stamina = max_stamina
+	is_exhausted = false
+	is_bleeding = false
+	poise_damage_taken = 0.0
+	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
+	_cough_noise_left = 0.0
+	_last_load = inventory.get_load()
+	inventory.notify_changed()
+	_emit_stats()
+
+## Footsteps, sprinting and rummaging, reported at their cadence.
+func _update_gait_noise(delta: float) -> void:
+	var interval: float = _gait_interval()
+	if interval <= 0.0:
+		_gait_noise_timer = minf(_gait_noise_timer, 0.05)
+		return
+	_gait_noise_timer -= delta
+	if _gait_noise_timer <= 0.0:
+		_gait_noise_timer = interval
+		emit_gait_noise()
+
+func _gait_interval() -> float:
+	match current_state:
+		ActionState.SPRINT:
+			return 0.3
+		ActionState.MOVE:
+			return 0.45
+		ActionState.CHANNEL:
+			return 0.5 if _channel_kind == ChannelKind.SCAVENGE else 0.0
+	return 0.0
+
+## Reports the noise your current gait makes right now. Returns its reach
+## (0 when standing still or doing something quiet).
+func emit_gait_noise() -> float:
+	var reach: float = 0.0
+	var kind: String = "footstep"
+	match current_state:
+		ActionState.SPRINT:
+			reach = sprint_noise_reach * get_noise_multiplier() * get_armor_noise_multiplier()
+		ActionState.MOVE:
+			reach = walk_noise_reach * get_footstep_noise_multiplier()
+		ActionState.CHANNEL:
+			if _channel_kind == ChannelKind.SCAVENGE:
+				reach = rummage_noise_reach
+				kind = "rummage"
+	if reach > 0.0:
+		AcousticField.report(self, global_position, reach, kind)
+	return reach
+
+## Milestone 11: lob a stone toward the cursor (or straight ahead without a
+## camera). It makes a noise where it lands and stays there to pick up.
+func throw_stone() -> bool:
+	if _throw_cooldown_left > 0.0 or not (current_state in NEUTRAL_STATES):
+		return false
+	var stone: ItemInstance = inventory.find_first("throwing_stone")
+	if stone == null:
+		combat_banner_message.emit("No stones to throw", Color(0.70, 0.66, 0.60))
+		return false
+	var target: Vector3 = global_position + get_aim_direction() * throw_range * 0.8
+	if camera_rig:
+		target = camera_rig.get_mouse_ground_position(global_position.y)
+	var flat: Vector3 = target - global_position
+	flat.y = 0.0
+	if flat.length() > throw_range:
+		flat = flat.normalized() * throw_range
+	var landing: Vector3 = global_position + flat
+	var thrown: ItemInstance = inventory.remove(stone, 1)
+	_throw_cooldown_left = throw_cooldown
+	_consume_stamina(4.0)
+	if audio:
+		audio.play_swing()
+	_launch_stone(landing, thrown)
+	return true
+
+func _launch_stone(landing: Vector3, thrown: ItemInstance) -> void:
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	var rock := MeshInstance3D.new()
+	rock.name = "ThrownStone"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.12, 0.1, 0.12)
+	rock.mesh = mesh
+	parent.add_child(rock)
+	var start: Vector3 = global_position + Vector3(0.0, 1.4, 0.0)
+	rock.global_position = start
+	var flight: float = 0.45
+	var tween := rock.create_tween()
+	tween.tween_method(func(t: float) -> void:
+		var p: Vector3 = start.lerp(landing, t)
+		p.y = lerpf(start.y, landing.y + 0.06, t) + sin(t * PI) * 1.6
+		rock.global_position = p
+	, 0.0, 1.0, flight)
+	tween.tween_callback(func() -> void:
+		AcousticField.report_as(rock, self, landing, throw_noise_reach, "thud")
+		Lootable.spawn_ground_pile(parent, landing, thrown)
+		rock.queue_free()
+	)
+
+func get_modifiers() -> SurvivorBackground:
+	return _mods
 
 func _current_weapon_data() -> WeaponData:
 	var main: ItemInstance = inventory.main_hand if inventory else null
@@ -299,6 +496,51 @@ func _on_inventory_changed() -> void:
 func get_noise_multiplier() -> float:
 	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
 
+## Hearing multiplier for walking footsteps (pack clatter x Light Step x armor).
+func get_footstep_noise_multiplier() -> float:
+	return get_noise_multiplier() * _mods.footstep_noise_mult * get_armor_noise_multiplier()
+
+# ------------------------------------------------------------------------------
+# Milestone 12 — armor
+# ------------------------------------------------------------------------------
+const MAX_ARMOR_PROTECTION: float = 0.6
+## Condition each worn piece loses per point of damage taken.
+const ARMOR_WEAR_PER_DAMAGE: float = 0.25
+
+## Total fraction of physical damage absorbed (unbroken pieces only).
+func get_armor_protection() -> float:
+	var total: float = 0.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		if not piece.is_broken():
+			total += piece.data.protection
+	return minf(total, MAX_ARMOR_PROTECTION)
+
+func get_armor_noise_multiplier() -> float:
+	var m: float = 1.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		m *= piece.data.armor_noise_mult
+	return m
+
+func _armor_sprint_multiplier() -> float:
+	var m: float = 1.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		m *= piece.data.armor_sprint_mult
+	return m
+
+func _armor_stops_bleeding() -> bool:
+	var body: ItemInstance = inventory.get_armor(ItemData.ArmorSlot.BODY)
+	return body != null and body.data.stops_bleeding and not body.is_broken()
+
+func _wear_armor(damage: float) -> void:
+	for piece: ItemInstance in inventory.armor_pieces():
+		if piece.wear(damage * ARMOR_WEAR_PER_DAMAGE):
+			combat_banner_message.emit("Your %s is ruined" % piece.data.display_name, Color(0.92, 0.36, 0.22))
+			inventory.notify_changed()
+
+## True for a moment after an Ash-Lung cough.
+func is_coughing() -> bool:
+	return _cough_noise_left > 0.0
+
 func is_scavenging() -> bool:
 	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
 
@@ -328,7 +570,8 @@ func request_equip(inst: ItemInstance) -> bool:
 		return false
 	if not inventory.has_item(inst) or not inst.data.is_equippable():
 		return false
-	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time, null, inst, inventory.is_equipped(inst))
+	var base_time: float = inst.data.equip_time if inst.data.equip_time > 0.0 else equip_swap_time
+	_start_channel(ChannelKind.EQUIP_SWAP, base_time * _mods.swap_time_mult, null, inst, inventory.is_equipped(inst))
 	return true
 
 func use_item(inst: ItemInstance) -> bool:
@@ -336,6 +579,8 @@ func use_item(inst: ItemInstance) -> bool:
 		return false
 	if inst.data.item_id == "clean_rag_bandage":
 		return start_bandage()
+	if inst.data.food_value > 0.0:
+		return start_eating(inst)
 	combat_banner_message.emit("You can't use %s here" % inst.data.display_name, Color(0.7, 0.68, 0.62))
 	return false
 
@@ -348,7 +593,7 @@ func start_bandage() -> bool:
 	if not is_bleeding and health >= max_health - 0.5:
 		combat_banner_message.emit("No wound to dress", Color(0.7, 0.68, 0.62))
 		return false
-	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration)
+	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration * _mods.bandage_time_mult)
 	return true
 
 func drop_item(inst: ItemInstance) -> bool:
@@ -379,6 +624,18 @@ func take_from(lootable: Lootable, inst: ItemInstance) -> bool:
 	lootable.take(inst)
 	return true
 
+## Milestone 13: puts a whole stack from your pack into a container that
+## accepts deposits (the shelter stash). Worn or held items come off first.
+func store_in(lootable: Lootable, inst: ItemInstance) -> bool:
+	if not is_instance_valid(lootable) or not lootable.accepts_deposits or not inventory.has_item(inst):
+		return false
+	if current_state == ActionState.CHANNEL and _channel_item == inst:
+		_cancel_channel("")
+	var stored: ItemInstance = inventory.remove(inst)
+	lootable.put(stored)
+	combat_banner_message.emit("Stored %s in the %s" % [stored.get_label(), lootable.display_name], Color(0.74, 0.80, 0.66))
+	return true
+
 func get_nearest_lootable() -> Lootable:
 	return _nearest_lootable
 
@@ -395,6 +652,8 @@ func _start_channel(kind: ChannelKind, duration: float, lootable: Lootable = nul
 	current_state = ActionState.CHANNEL
 
 func _clear_channel() -> void:
+	_channel_recipe = {}
+	_channel_stash = null
 	_channel_kind = ChannelKind.NONE
 	_channel_elapsed = 0.0
 	_channel_total = 0.0
@@ -418,9 +677,15 @@ func _channel_label() -> String:
 			return "%s %s" % [_channel_lootable.search_verb_progressive, _channel_lootable.display_name]
 		ChannelKind.BANDAGE:
 			return "Binding wound"
+		ChannelKind.EAT:
+			return "Eating %s" % (_channel_item.data.display_name if _channel_item else "")
+		ChannelKind.CRAFT:
+			return String(_channel_recipe.get("name", "Working"))
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
+			if _channel_item.data.category == ItemData.Category.ARMOR:
+				return ("Taking off %s" if _channel_unequip else "Donning %s") % _channel_item.data.display_name
 			return ("Stowing %s" if _channel_unequip else "Readying %s") % _channel_item.data.display_name
 	return ""
 
@@ -470,6 +735,8 @@ func _complete_channel() -> void:
 	var lootable: Lootable = _channel_lootable
 	var item: ItemInstance = _channel_item
 	var unequip: bool = _channel_unequip
+	var recipe: Dictionary = _channel_recipe
+	var craft_stash: Lootable = _channel_stash
 	_clear_channel()
 	current_state = ActionState.IDLE
 
@@ -484,13 +751,25 @@ func _complete_channel() -> void:
 			if inventory.consume("clean_rag_bandage", 1):
 				is_bleeding = false
 				bleed_timer = 0.0
-				health = minf(max_health, health + 8.0)
+				health = minf(max_health, health + 8.0 + _mods.bandage_heal_bonus)
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
+		ChannelKind.CRAFT:
+			var result: String = Crafting.apply(recipe, self, craft_stash)
+			if result != "":
+				combat_banner_message.emit(result, Color(0.86, 0.76, 0.52))
+		ChannelKind.EAT:
+			if item != null and inventory.has_item(item):
+				var food: ItemData = item.data
+				inventory.remove(item, 1)
+				satiety = minf(max_satiety, satiety + food.food_value)
+				warmth = minf(max_warmth, warmth + food.warmth_value)
+				combat_banner_message.emit("You eat the %s" % food.display_name.to_lower(), Color(0.78, 0.74, 0.58))
 		ChannelKind.EQUIP_SWAP:
 			if item != null and inventory.has_item(item):
 				if unequip:
 					inventory.unequip(item)
-					combat_banner_message.emit("Stowed %s" % item.data.display_name, Color(0.72, 0.70, 0.64))
+					var verb: String = "Took off" if item.data.category == ItemData.Category.ARMOR else "Stowed"
+					combat_banner_message.emit("%s %s" % [verb, item.data.display_name], Color(0.72, 0.70, 0.64))
 				else:
 					inventory.equip(item)
 					var note: String = ""
@@ -498,7 +777,8 @@ func _complete_channel() -> void:
 						note = " — two-handed grip, %s stowed" % inventory.off_hand.data.display_name
 					elif item.is_broken():
 						note = " — it's broken"
-					combat_banner_message.emit("Readied %s%s" % [item.data.display_name, note], Color(0.78, 0.74, 0.62))
+					var verb: String = "Donned" if item.data.category == ItemData.Category.ARMOR else "Readied"
+					combat_banner_message.emit("%s %s%s" % [verb, item.data.display_name, note], Color(0.78, 0.74, 0.62))
 
 func _try_interact() -> bool:
 	var l: Lootable = _nearest_lootable
@@ -508,7 +788,7 @@ func _try_interact() -> bool:
 		l.searched = true
 		loot_opened.emit(l)
 		return true
-	_start_channel(ChannelKind.SCAVENGE, l.search_duration, l)
+	_start_channel(ChannelKind.SCAVENGE, l.search_duration * _mods.search_time_mult, l)
 	return true
 
 func _update_interaction_target() -> void:
@@ -575,7 +855,7 @@ func _update_torch(delta: float) -> void:
 	if not lit:
 		return
 	var torch: ItemInstance = inventory.off_hand
-	if torch.wear(delta):
+	if torch.wear(delta * _mods.torch_burn_mult * WeatherSystem.factor(self, "torch_burn")):
 		_torch_light.visible = false
 		_torch_flame.visible = false
 		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
@@ -584,8 +864,47 @@ func _update_torch(delta: float) -> void:
 	_torch_flicker_t += delta
 	var flicker: float = 0.9 + 0.06 * sin(_torch_flicker_t * 13.0) + 0.04 * sin(_torch_flicker_t * 29.0 + 1.3)
 	var fuel_fade: float = clampf(torch.condition_ratio() / 0.2, 0.35, 1.0)
-	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade
-	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade)
+	var weather_light: float = WeatherSystem.factor(self, "torch_light")
+	_torch_light.light_energy = torch.data.light_energy * flicker * fuel_fade * weather_light
+	_torch_light.omni_range = torch.data.light_range * lerpf(0.7, 1.0, fuel_fade) * lerpf(1.0, weather_light, 0.5)
+
+# ------------------------------------------------------------------------------
+# Milestone 8 — vision cone
+# ------------------------------------------------------------------------------
+func get_aim_direction() -> Vector3:
+	return Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
+
+func get_vision_range() -> float:
+	return vision_range * WeatherSystem.factor(self, "sight")
+
+## Milestone 9: a cinder-squall gust shoves you downwind.
+func apply_gust(impulse: Vector3) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_knockback_velocity += Vector3(impulse.x, 0.0, impulse.z)
+	combat_banner_message.emit("An ember gust staggers you", Color(0.95, 0.56, 0.28))
+
+## True if a world point is inside the cone (or the sense radius) with a clear
+## line of sight from eye height.
+func can_see_point(world: Vector3) -> bool:
+	if not is_inside_tree():
+		return false
+	var flat := Vector3(world.x - global_position.x, 0.0, world.z - global_position.z)
+	var dist: float = flat.length()
+	if dist > sense_radius:
+		if dist > get_vision_range():
+			return false
+		if get_aim_direction().dot(flat / dist) < cos(deg_to_rad(vision_half_angle_deg)):
+			return false
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 1.35, 0.0), world, 1)
+	q.exclude = [get_rid()]
+	return get_world_3d().direct_space_state.intersect_ray(q).is_empty()
+
+## Checks a body at chest and head height so short walls don't hide tall foes.
+func can_see_body(body: Node3D) -> bool:
+	if body == null or not is_instance_valid(body):
+		return false
+	return can_see_point(body.global_position + Vector3(0.0, 0.95, 0.0)) or can_see_point(body.global_position + Vector3(0.0, 1.7, 0.0))
 
 func is_torch_lit() -> bool:
 	return _torch_light != null and _torch_light.visible
@@ -596,6 +915,8 @@ func is_torch_lit() -> bool:
 func _update_timers_and_conditions(delta: float) -> void:
 	if _dodge_cooldown > 0.0:
 		_dodge_cooldown = maxf(0.0, _dodge_cooldown - delta)
+	if _throw_cooldown_left > 0.0:
+		_throw_cooldown_left = maxf(0.0, _throw_cooldown_left - delta)
 
 	if _poise_timer > 0.0:
 		_poise_timer = maxf(0.0, _poise_timer - delta)
@@ -608,15 +929,37 @@ func _update_timers_and_conditions(delta: float) -> void:
 		if bleed_timer <= 0.0:
 			is_bleeding = false
 
+	if _cough_noise_left > 0.0:
+		_cough_noise_left = maxf(0.0, _cough_noise_left - delta)
+	if _slow_timer > 0.0:
+		_slow_timer = maxf(0.0, _slow_timer - delta)
+	if _spore_timer > 0.0:
+		_spore_timer = maxf(0.0, _spore_timer - delta)
+		_spore_cough_timer -= delta
+		if _spore_cough_timer <= 0.0 and _spore_timer > 0.0:
+			_spore_cough_timer = 5.0
+			_cough()
+		if _spore_timer == 0.0:
+			combat_banner_message.emit("Your lungs clear of the spores", Color(0.72, 0.80, 0.66))
+	if _mods.coughs:
+		_cough_timer -= delta
+		if _cough_timer <= 0.0:
+			_cough()
+
+	_update_survival(delta)
+
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
-		var rate: float = stamina_regen_rate * (0.38 if current_state == ActionState.BLOCK else 1.0)
+		var rate: float = stamina_regen_rate * _mods.stamina_regen_mult * WeatherSystem.factor(self, "stamina_regen") * (0.38 if current_state == ActionState.BLOCK else 1.0)
+		if is_spore_sick():
+			rate *= 0.5
 		if is_bleeding:
 			rate *= 0.75
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
 			rate *= 0.7
-		stamina = minf(max_stamina, stamina + rate * delta)
+		rate *= _survival_regen_mult()
+		stamina = minf(get_stamina_cap(), stamina + rate * delta)
 		if is_exhausted and stamina >= 18.0:
 			is_exhausted = false
 
@@ -762,6 +1105,10 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 		if start_bandage():
 			return
 
+	if Input.is_action_just_pressed("throw"):
+		if throw_stone():
+			return
+
 	for slot: int in range(1, 5):
 		if Input.is_action_just_pressed("equip_slot_%d" % slot):
 			_on_slot_key(slot)
@@ -791,12 +1138,27 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 		if Input.is_action_just_pressed("block") and not _has_ready_shield():
 			combat_banner_message.emit(_block_unavailable_reason(), Color(0.74, 0.66, 0.56))
 
+## Sets horizontal velocity; on icy ground (traction < 1) it eases toward the
+## target instead, so you slide.
+func _set_planar_velocity(target_x: float, target_z: float, delta: float) -> void:
+	var traction: float = WeatherSystem.factor(self, "traction")
+	if traction >= 0.99:
+		velocity.x = target_x
+		velocity.z = target_z
+		return
+	var k: float = 1.0 - exp(-traction * 14.0 * delta)
+	velocity.x = lerpf(velocity.x, target_x, k)
+	velocity.z = lerpf(velocity.z, target_z, k)
+
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
-	var load_mult: float = _encumbrance_speed_mult()
+	var load_mult: float = _encumbrance_speed_mult() * get_hazard_speed_mult()
 	if current_state == ActionState.BLOCK:
-		velocity.x = move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z
+		_set_planar_velocity(
+			move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x,
+			move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z,
+			delta
+		)
 		return
 
 	var overburdened: bool = inventory.get_load() == Inventory.Load.OVERBURDENED
@@ -807,16 +1169,15 @@ func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	if wants_sprint and stamina > 1.0:
 		current_state = ActionState.SPRINT
 		_consume_stamina(13.5 * delta)
-		velocity.x = move_dir.x * sprint_speed * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * sprint_speed * load_mult + _knockback_velocity.z
+		var spd: float = sprint_speed * _mods.sprint_speed_mult * WeatherSystem.factor(self, "sprint") * _armor_sprint_multiplier() * load_mult
+		_set_planar_velocity(move_dir.x * spd + _knockback_velocity.x, move_dir.z * spd + _knockback_velocity.z, delta)
 	elif move_dir.length_squared() > 0.01:
 		current_state = ActionState.MOVE
-		velocity.x = move_dir.x * move_speed * exh_mult * load_mult + _knockback_velocity.x
-		velocity.z = move_dir.z * move_speed * exh_mult * load_mult + _knockback_velocity.z
+		var walk: float = move_speed * exh_mult * load_mult
+		_set_planar_velocity(move_dir.x * walk + _knockback_velocity.x, move_dir.z * walk + _knockback_velocity.z, delta)
 	else:
 		current_state = ActionState.IDLE
-		velocity.x = _knockback_velocity.x
-		velocity.z = _knockback_velocity.z
+		_set_planar_velocity(_knockback_velocity.x, _knockback_velocity.z, delta)
 
 func _start_attack(heavy: bool) -> void:
 	if is_exhausted or stamina < 4.0:
@@ -837,6 +1198,7 @@ func _enter_attack_active() -> void:
 	_state_timer = weapon.heavy_active_time if _is_current_attack_heavy else weapon.light_active_time
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, swing_noise_reach * get_noise_multiplier(), "swing")
 
 	_configure_hitbox(weapon.get_swing_arc(_is_current_attack_heavy))
 	var mult: float = _weapon_condition_multiplier()
@@ -862,7 +1224,11 @@ func _try_start_dodge(move_dir: Vector3) -> bool:
 	if load_state == Inventory.Load.OVERBURDENED:
 		combat_banner_message.emit("Overburdened — too heavy to dodge", Color(0.90, 0.40, 0.25))
 		return false
-	var cost: float = dodge_stamina_cost + (burdened_dodge_extra_cost if load_state == Inventory.Load.BURDENED else 0.0)
+	var cost: float = (
+		dodge_stamina_cost
+		+ (burdened_dodge_extra_cost if load_state == Inventory.Load.BURDENED else 0.0)
+		+ WeatherSystem.factor(self, "dodge_extra")
+	)
 	if is_exhausted or stamina < 8.0 or _dodge_cooldown > 0.0:
 		return false
 	_hitbox.end_swing()
@@ -870,6 +1236,8 @@ func _try_start_dodge(move_dir: Vector3) -> bool:
 	_dodge_cooldown = 0.58
 	_dodge_direction = move_dir if move_dir.length_squared() > 0.01 else -_aim_direction
 	current_state = ActionState.DODGE
+	if load_state == Inventory.Load.BURDENED:
+		AcousticField.report(self, global_position, 6.0 * get_noise_multiplier(), "clatter")
 	_state_timer = 0.36
 	return true
 
@@ -884,7 +1252,7 @@ func _consume_stamina(amount: float) -> void:
 func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state == ActionState.DEAD:
 		return
-	if current_state == ActionState.DODGE and _state_timer > 0.16:
+	if is_evading():
 		combat_banner_message.emit("Evaded!", Color(0.75, 0.78, 0.82))
 		return
 
@@ -907,7 +1275,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state in [ActionState.BLOCK, ActionState.BLOCK_IMPACT] and _has_ready_shield():
 		var block_cos: float = cos(deg_to_rad(shield.data.block_angle_degrees * 0.5))
 		if facing_dot >= block_cos:
-			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency
+			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency * _mods.block_stamina_mult
 			_consume_stamina(stam_cost)
 			_knockback_velocity = -to_attacker * (payload.knockback_force * 0.7)
 			if shield.wear(payload.poise_damage * shield.data.block_wear_per_poise):
@@ -924,6 +1292,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			else:
 				if audio:
 					audio.play_shield_block()
+				AcousticField.report(self, global_position, shield_noise_reach, "shield")
 				if camera_rig:
 					camera_rig.add_trauma(0.28)
 				current_state = ActionState.BLOCK_IMPACT
@@ -931,12 +1300,17 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			return
 
 	_hitbox.end_swing()
-	health = maxf(0.0, health - payload.physical_damage)
+	var protection: float = get_armor_protection()
+	health = maxf(0.0, health - payload.physical_damage * (1.0 - protection))
+	if protection > 0.0:
+		_wear_armor(payload.physical_damage)
 	poise_damage_taken += payload.poise_damage
 	_poise_timer = poise_reset_time
 	_knockback_velocity = -to_attacker * payload.knockback_force
 
-	if payload.causes_bleed:
+	if payload.causes_bleed and _armor_stops_bleeding():
+		combat_banner_message.emit("The edge skids off your mail — no bleeding", Color(0.72, 0.78, 0.82))
+	elif payload.causes_bleed:
 		is_bleeding = true
 		bleed_timer = 12.0
 		combat_banner_message.emit("Deep Laceration — Bleeding (Press B to Bandage)", Color(0.88, 0.2, 0.2))
@@ -956,6 +1330,199 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		current_state = ActionState.STAGGER
 		_state_timer = 0.62
 
+func _armor_label() -> String:
+	var parts: Array[String] = []
+	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
+		var piece: ItemInstance = inventory.get_armor(slot)
+		parts.append(piece.data.display_name if piece else "—")
+	return " / ".join(parts)
+
+## Milestone 16: a rot mound's spores. Halves stamina regen and makes you
+## cough (audibly) every few seconds until it wears off or you rest at the fire.
+# ------------------------------------------------------------------------------
+# Milestone 17 — survival: cold & hunger
+# ------------------------------------------------------------------------------
+func is_chilled() -> bool:
+	return warmth < CHILLED_BELOW
+
+func is_freezing() -> bool:
+	return warmth < FREEZING_BELOW
+
+func is_hungry() -> bool:
+	return satiety < HUNGRY_BELOW
+
+func is_starving() -> bool:
+	return satiety < STARVING_BELOW
+
+## Total insulation from worn armor (0..0.7, slows the loss of warmth).
+func get_insulation() -> float:
+	var total: float = 0.0
+	for piece: ItemInstance in inventory.armor_pieces():
+		if not piece.is_broken():
+			total += piece.data.insulation
+	return minf(total, 0.7)
+
+## True when standing by a heat source (the shelter fire).
+func _near_heat() -> bool:
+	if not is_inside_tree():
+		return false
+	for n: Node in get_tree().get_nodes_in_group("heat_source"):
+		var h := n as Node3D
+		if h and Vector2(h.global_position.x - global_position.x, h.global_position.z - global_position.z).length() <= float(h.get_meta("heat_radius", 4.0)):
+			return true
+	return false
+
+## Warmth change per second right now (negative = getting colder).
+func warmth_rate() -> float:
+	if _near_heat():
+		return 4.0
+	var drain: float = warmth_drain * WeatherSystem.factor(self, "cold") * (1.0 - get_insulation())
+	var weather: WeatherSystem = WeatherSystem.find(self)
+	if weather and weather.is_sheltered(global_position):
+		drain *= sheltered_warmth_mult
+	if _has_lit_torch():
+		drain *= torch_warmth_mult
+	return -drain
+
+func _update_survival(delta: float) -> void:
+	if not survival_enabled:
+		return
+	warmth = clampf(warmth + warmth_rate() * delta, 0.0, max_warmth)
+	satiety = clampf(satiety - satiety_drain * delta, 0.0, max_satiety)
+	var hp_loss: float = 0.0
+	if warmth <= 0.0:
+		hp_loss += 1.5
+	elif is_freezing():
+		hp_loss += 0.4
+	if is_starving():
+		hp_loss += 0.3
+	if hp_loss > 0.0:
+		health = maxf(0.0, health - hp_loss * delta)
+		if health <= 0.0:
+			_die("YOU %s IN THE ASHEN WILDS — Press R to Respawn at Shelter" % ("FROZE" if warmth < FREEZING_BELOW else "STARVED"))
+	stamina = minf(stamina, get_stamina_cap())
+
+func _survival_regen_mult() -> float:
+	var m: float = 1.0
+	if is_freezing():
+		m *= 0.5
+	elif is_chilled():
+		m *= 0.75
+	if is_hungry():
+		m *= 0.8
+	return m
+
+## Max stamina after cold and hunger.
+func get_stamina_cap() -> float:
+	var cap: float = max_stamina
+	if is_hungry():
+		cap -= 15.0
+	if is_freezing():
+		cap = minf(cap, 60.0)
+	return maxf(cap, 10.0)
+
+func _die(message: String) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_clear_channel()
+	_hitbox.end_swing()
+	current_state = ActionState.DEAD
+	combat_banner_message.emit(message, Color(0.9, 0.18, 0.18))
+
+## Milestone 18: works a recipe at the fire (a timed, interruptible channel).
+## Returns "" on success, or why it can't start.
+func start_craft(recipe_id: String, stash: Lootable) -> String:
+	var recipe: Dictionary = Crafting.get_recipe(recipe_id)
+	if recipe.is_empty():
+		return "unknown recipe"
+	if not (current_state in NEUTRAL_STATES):
+		return "you're busy"
+	var reason: String = Crafting.why_not(recipe, self, stash)
+	if reason != "":
+		return reason
+	_start_channel(ChannelKind.CRAFT, float(recipe["time"]))
+	_channel_recipe = recipe
+	_channel_stash = stash
+	return ""
+
+func start_eating(inst: ItemInstance) -> bool:
+	if not (current_state in NEUTRAL_STATES) or not inventory.has_item(inst) or inst.data.food_value <= 0.0:
+		return false
+	if satiety >= max_satiety - 1.0:
+		combat_banner_message.emit("You couldn't eat another bite", Color(0.7, 0.68, 0.62))
+		return false
+	_start_channel(ChannelKind.EAT, inst.data.use_duration, null, inst)
+	return true
+
+# ------------------------------------------------------------------------------
+# Milestone 21 — ground hazards (Rot-Beast bile)
+# ------------------------------------------------------------------------------
+var _slow_timer: float = 0.0
+var _slow_mult: float = 1.0
+
+## Slows walking and sprinting to `mult` for `duration` seconds. The
+## strongest slow in effect wins.
+func apply_slow(mult: float, duration: float) -> void:
+	if _slow_timer <= 0.0 or mult < _slow_mult:
+		_slow_mult = mult
+	_slow_timer = maxf(_slow_timer, duration)
+
+func get_hazard_speed_mult() -> float:
+	return _slow_mult if _slow_timer > 0.0 else 1.0
+
+## Damage from the ground, not a blow: no block, no dodge, no armour.
+func take_hazard_damage(amount: float) -> void:
+	if current_state == ActionState.DEAD or amount <= 0.0:
+		return
+	health = maxf(0.0, health - amount)
+	if health <= 0.0:
+		_die("YOU DISSOLVED IN ROT-BILE — Press R to Respawn at Shelter")
+
+## The dodge's invulnerable window.
+func is_evading() -> bool:
+	return current_state == ActionState.DODGE and _state_timer > 0.16
+
+var _corrode_unreported: float = 0.0
+
+## Bile eats into every worn armour piece. The pack is told about it when a
+## piece breaks or every 2 points of wear, not every physics tick.
+func corrode_armor(amount: float) -> void:
+	var touched: bool = false
+	var broke: bool = false
+	for piece: ItemInstance in inventory.armor_pieces():
+		if piece.data.has_durability() and not piece.is_broken():
+			touched = true
+			if piece.wear(amount):
+				broke = true
+				combat_banner_message.emit("Your %s is eaten through by bile" % piece.data.display_name, Color(0.80, 0.82, 0.28))
+	if not touched:
+		return
+	_corrode_unreported += amount
+	if broke or _corrode_unreported >= 2.0:
+		_corrode_unreported = 0.0
+		inventory.notify_changed()
+
+func afflict_spores(duration: float) -> void:
+	var fresh: bool = _spore_timer <= 0.0
+	_spore_timer = maxf(_spore_timer, duration)
+	if fresh:
+		_spore_cough_timer = 1.0
+		combat_banner_message.emit("You breathe in rot spores — your chest seizes (spore-sick)", Color(0.66, 0.74, 0.36))
+
+func is_spore_sick() -> bool:
+	return _spore_timer > 0.0
+
+func cure_spores() -> void:
+	_spore_timer = 0.0
+
+func _cough() -> void:
+	_cough_timer = randf_range(cough_interval_min, cough_interval_max)
+	_cough_noise_left = 0.5
+	if audio:
+		audio.play_cough()
+	AcousticField.report(self, global_position, cough_noise_radius, "cough")
+	combat_banner_message.emit("You double over coughing — ash in your lungs", Color(0.70, 0.66, 0.58))
+
 func respawn_at_shelter(spawn_pos: Vector3) -> void:
 	_clear_channel()
 	_hitbox.end_swing()
@@ -963,6 +1530,8 @@ func respawn_at_shelter(spawn_pos: Vector3) -> void:
 	global_position = spawn_pos
 	health = max_health
 	stamina = max_stamina
+	warmth = max_warmth
+	satiety = maxf(satiety, 50.0)
 	is_exhausted = false
 	is_bleeding = false
 	poise_damage_taken = 0.0
@@ -1171,7 +1740,7 @@ func _on_confirmed_hit_landed(target: Node3D, payload: CombatPayload) -> void:
 		camera_rig.add_trauma(0.38 if payload.is_heavy else 0.22)
 	var main: ItemInstance = inventory.main_hand
 	if main != null and main.data.has_durability():
-		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit
+		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit * _mods.weapon_wear_mult
 		if main.wear(amount):
 			combat_banner_message.emit("Your %s has BROKEN" % main.data.display_name, Color(0.92, 0.36, 0.22))
 			inventory.notify_changed()
@@ -1214,9 +1783,22 @@ func _emit_stats() -> void:
 		"bandages": inventory.count_of("clean_rag_bandage"),
 		"channel_label": _channel_label() if current_state == ActionState.CHANNEL else "",
 		"channel_progress": get_channel_progress(),
-		"prompt": prompt,
+		"prompt": prompt + ("   " if prompt != "" and extra_prompt != "" else "") + (extra_prompt if current_state in NEUTRAL_STATES and not ui_capture else ""),
 		"cramped": _cramped,
-		"lodged": current_state == ActionState.LODGED
+		"lodged": current_state == ActionState.LODGED,
+		"coughing": is_coughing(),
+		"spore_sick": is_spore_sick(),
+		"warmth": warmth,
+		"max_warmth": max_warmth,
+		"satiety": satiety,
+		"max_satiety": max_satiety,
+		"chilled": is_chilled(),
+		"freezing": is_freezing(),
+		"hungry": is_hungry(),
+		"starving": is_starving(),
+		"armor": get_armor_protection(),
+		"armor_label": _armor_label(),
+		"background": background.display_name if background else ""
 	})
 
 # ------------------------------------------------------------------------------
@@ -1226,24 +1808,9 @@ func _emit_stats() -> void:
 ## (a PhysicsDirectSpaceState3D ray result) or {} if the arc is clear.
 ## Thrusts never clang.
 func _sweep_obstruction(heavy: bool) -> Dictionary:
-	if weapon == null or weapon.is_thrust(heavy) or not is_inside_tree():
+	if weapon == null or weapon.is_thrust(heavy):
 		return {}
-	var arc: float = minf(weapon.get_swing_arc(heavy), 180.0)
-	var half: float = deg_to_rad(arc * 0.5)
-	var steps: int = clampi(int(ceil(arc / 20.0)) + 1, 3, 9)
-	var origin: Vector3 = global_position + Vector3(0.0, 1.05, 0.0)
-	var length: float = weapon.reach_meters * 0.9 + 0.25
-	var aim: Vector3 = Vector3(_aim_direction.x, 0.0, _aim_direction.z).normalized()
-	var space := get_world_3d().direct_space_state
-	for i in range(steps):
-		var t: float = -half + (2.0 * half) * float(i) / float(steps - 1)
-		var dir: Vector3 = aim.rotated(Vector3.UP, t)
-		var q := PhysicsRayQueryParameters3D.create(origin, origin + dir * length, 1)
-		q.exclude = [get_rid()]
-		var hit: Dictionary = space.intersect_ray(q)
-		if not hit.is_empty():
-			return hit
-	return {}
+	return SwingGeometry.sweep_obstruction(self, _aim_direction, weapon.get_swing_arc(heavy), weapon.reach_meters)
 
 func is_cramped() -> bool:
 	return _cramped
@@ -1252,19 +1819,17 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_hitbox.end_swing()
 	_queued_light_attack = false
 	current_state = ActionState.RECOIL
-	_state_timer = wall_recoil_time
+	_state_timer = wall_recoil_time * _mods.recoil_time_mult
 
-	var normal: Vector3 = hit.get("normal", -_aim_direction)
-	normal.y = 0.0
-	if normal.length_squared() < 0.001:
-		normal = -_aim_direction
-	_knockback_velocity = normal.normalized() * 2.2
+	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _aim_direction)
+	_knockback_velocity = normal * 2.2
 
 	var main: ItemInstance = inventory.main_hand
 	var name_text: String = main.data.display_name if main else "fist"
 	var broke: bool = false
 	if main != null and main.data.has_durability():
-		var amount: float = wall_clang_wear_mult * main.data.wear_per_hit * (2.0 if _is_current_attack_heavy else 1.0)
+		var clang_mult: float = _mods.clang_wear_mult if _mods.clang_wear_mult >= 0.0 else wall_clang_wear_mult
+		var amount: float = clang_mult * main.data.wear_per_hit * _mods.weapon_wear_mult * (2.0 if _is_current_attack_heavy else 1.0)
 		broke = main.wear(amount)
 	if broke:
 		combat_banner_message.emit("Your %s clangs off the wall and BREAKS" % name_text, Color(0.92, 0.36, 0.22))
@@ -1274,45 +1839,21 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 
 	if audio:
 		audio.play_wall_clang()
+	AcousticField.report(self, global_position, 13.0, "clang")
 	if camera_rig:
 		camera_rig.add_trauma(0.32)
 	_spawn_sparks(hit.get("position", global_position + _aim_direction), normal)
 
 func _spawn_sparks(at: Vector3, normal: Vector3) -> void:
-	# Hand-animated shards rather than a particle system: renders identically on
-	# every backend (including software Vulkan) and is easy to test.
-	var parent: Node = get_parent()
-	if parent == null:
-		return
-	var burst := Node3D.new()
-	burst.name = "WallSparks"
-	parent.add_child(burst)
-	burst.global_position = at + normal * 0.12
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(1.0, 0.74, 0.32)
-	var shard_mesh := BoxMesh.new()
-	shard_mesh.size = Vector3(0.07, 0.07, 0.07)
-	var base_dir: Vector3 = normal if normal.length_squared() > 0.001 else Vector3.UP
-	var tween := burst.create_tween().set_parallel(true)
-	for i in range(14):
-		var shard := MeshInstance3D.new()
-		shard.mesh = shard_mesh
-		shard.material_override = mat
-		burst.add_child(shard)
-		var spray: Vector3 = (base_dir + Vector3(randf_range(-0.9, 0.9), randf_range(0.0, 1.1), randf_range(-0.9, 0.9))).normalized()
-		var dist: float = randf_range(0.35, 0.85)
-		var end_pos: Vector3 = spray * dist + Vector3(0.0, -0.35, 0.0)
-		var life: float = randf_range(0.28, 0.45)
-		tween.tween_property(shard, "position", end_pos, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(shard, "scale", Vector3.ONE * 0.15, life).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.chain().tween_callback(burst.queue_free)
+	SwingGeometry.spawn_sparks(get_parent(), at, normal)
 
 # ------------------------------------------------------------------------------
 # Milestone 5 — weapon lodging
 # ------------------------------------------------------------------------------
 func _target_dead_or_staggered(target: Node3D) -> bool:
 	if target == null or not is_instance_valid(target):
+		return false
+	if target.get("can_lodge") == false:
 		return false
 	if target.has_method("is_dead") and target.is_dead():
 		return true
@@ -1339,7 +1880,7 @@ func get_lodged_target() -> Node3D:
 func _finish_lodge_tug() -> void:
 	_lodged_target = null
 	var main: ItemInstance = inventory.main_hand
-	if main != null and main.wear(main.data.wear_per_hit):
+	if main != null and main.wear(main.data.wear_per_hit * _mods.weapon_wear_mult):
 		combat_banner_message.emit("You wrench the %s free — it snaps" % main.data.display_name, Color(0.92, 0.36, 0.22))
 		inventory.notify_changed()
 	current_state = ActionState.ATTACK_RECOVERY

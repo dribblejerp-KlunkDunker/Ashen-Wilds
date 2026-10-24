@@ -23,6 +23,8 @@ enum AIState {
 @export var max_poise: float = 22.0
 @export var patrol_points: Array[Vector3] = []
 
+## Milestone 19: goblins see in the dark as well as by day.
+var night_eyed: bool = true
 var health: float = 65.0
 var poise_damage: float = 0.0
 var state: AIState = AIState.PATROL
@@ -39,6 +41,7 @@ var _flank_sign: float = 1.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _unseen_cue_cooldown: float = 0.0
+var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
@@ -48,9 +51,11 @@ var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	_flank_sign = 1.0 if randf() > 0.5 else -1.0
 	_build_goblin_visuals_and_colliders()
+	AcousticField.listen(self, _on_noise_heard)
 
 func _physics_process(delta: float) -> void:
 	_update_player_los_visibility(delta)
@@ -68,6 +73,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
+	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.34, 4.5)
 
 func _update_player_los_visibility(delta: float) -> void:
 	if player_ref == null:
@@ -82,7 +88,7 @@ func _update_player_los_visibility(delta: float) -> void:
 	var hit := space_state.intersect_ray(query)
 
 	var is_occluded_by_wall: bool = not hit.is_empty()
-	_visual_root.visible = not is_occluded_by_wall
+	_visual_root.visible = player_ref.can_see_body(self)
 
 	if is_occluded_by_wall and state != AIState.DEAD and velocity.length() > 0.5:
 		var dist: float = global_position.distance_to(player_ref.global_position)
@@ -106,7 +112,7 @@ func _evaluate_senses(delta: float) -> void:
 	var dir_to_player: Vector3 = to_player.normalized() if dist > 0.01 else Vector3.FORWARD
 
 	var can_see: bool = false
-	if dist <= 13.5:
+	if dist <= 13.5 * WeatherSystem.factor(self, "sight"):
 		var dot: float = _facing_dir.dot(dir_to_player)
 		if dot >= cos(deg_to_rad(57.5)) or dist <= 2.8:
 			var space_state := get_world_3d().direct_space_state
@@ -118,28 +124,24 @@ func _evaluate_senses(delta: float) -> void:
 			if space_state.intersect_ray(q).is_empty():
 				can_see = true
 
-	# A burdened pack clatters, stretching every hearing radius.
-	var noise_mult: float = player_ref.get_noise_multiplier()
-	var can_hear: bool = false
-	if player_ref.current_state in [
-		PlayerController.ActionState.SPRINT,
-		PlayerController.ActionState.ATTACK_ACTIVE
-	] and dist <= 9.0 * noise_mult:
-		can_hear = true
-	elif player_ref.current_state == PlayerController.ActionState.MOVE and dist <= 3.5 * noise_mult:
-		can_hear = true
-	elif player_ref.is_scavenging() and dist <= 4.5:
-		# Rummaging through crates and corpses is never quiet.
-		can_hear = true
-
 	if can_see:
 		_last_known_player_pos = player_ref.global_position
 		_has_last_known_pos = true
 		_memory_timer = 7.5
 		if state in [AIState.IDLE, AIState.PATROL, AIState.INVESTIGATE]:
 			state = AIState.PURSUE
-	elif can_hear and state in [AIState.IDLE, AIState.PATROL]:
-		_last_known_player_pos = player_ref.global_position
+
+## Milestone 10: goblin ears. The survivor's noises (and any clang) within
+## reach send it to investigate where the sound came from.
+func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
+	if state == AIState.DEAD or source == self or not is_inside_tree():
+		return
+	if not (source is PlayerController or kind in ["clang", "caw", "bleat"]):
+		return
+	if not AcousticField.can_hear(self, world_pos, reach):
+		return
+	if state in [AIState.IDLE, AIState.PATROL]:
+		_last_known_player_pos = world_pos
 		_has_last_known_pos = true
 		_memory_timer = 5.0
 		state = AIState.INVESTIGATE
@@ -287,11 +289,14 @@ func _try_begin_attack_windup() -> bool:
 	_state_timer = 0.56
 	return true
 
+## A hooked-knife stab: like the survivor's thrusts it never clangs, so the
+## entry hall is no refuge from goblins (Milestone 6).
 func _enter_attack_active() -> void:
 	state = AIState.ATTACK_ACTIVE
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 6.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,

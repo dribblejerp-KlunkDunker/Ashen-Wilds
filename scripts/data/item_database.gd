@@ -34,6 +34,10 @@ static func roll_goblin_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	if randf() < 0.35:
 		out.append(make("salt", 1))
+	if randf() < 0.2:
+		out.append(make("leather_leggings", 1, randf_range(25.0, 50.0)))
+	if randf() < 0.4:
+		out.append(make("hardtack", 1))
 	return out
 
 static func roll_ork_loot() -> Array[ItemInstance]:
@@ -44,6 +48,65 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	if randf() < 0.3:
 		out.append(make("lamp_oil", 1))
+	if randf() < 0.35:
+		out.append(make("iron_skullcap", 1, randf_range(40.0, 80.0)))
+	out.append(make("dried_meat", randi_range(1, 2)))
+	return out
+
+static func roll_bear_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("bear_pelt", 1))
+	out.append(make("raw_bear_meat", 2))
+	if randf() < 0.4:
+		out.append(make("clean_rag_bandage", 1))
+	return out
+
+## Milestone 20
+static func roll_bull_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("raw_game_meat", 3))
+	return out
+
+static func roll_deer_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("raw_game_meat", 2))
+	return out
+
+## Milestone 21
+static func roll_zombie_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	if randf() < 0.5:
+		out.append(make("clean_rag_bandage", 1))
+	if randf() < 0.3:
+		out.append(make("hardtack", 1))
+	return out
+
+static func roll_rot_beast_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("iron_scrap", 2))
+	out.append(make("salt", 2))
+	return out
+
+static func roll_crawler_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	if randf() < 0.5:
+		out.append(make("throwing_stone", 2))
+	return out
+
+static func roll_ghoul_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("iron_scrap", 1))
+	if randf() < 0.5:
+		out.append(make("clean_rag_bandage", 1))
+	if randf() < 0.25:
+		out.append(make("throwing_stone", 2))
+	return out
+
+static func roll_troll_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("troll_hide", 1))
+	out.append(make("iron_scrap", 2))
+	out.append(make("throwing_stone", 4))
 	return out
 
 static func roll_ogre_loot() -> Array[ItemInstance]:
@@ -197,6 +260,77 @@ static func _build() -> void:
 	_register(_material("timber", "Seasoned Timber", 1.5, 10, "Dry enough to burn or build with."))
 	_register(_material("lamp_oil", "Flask of Lamp Oil", 0.9, 5, "Refuels lanterns; douses rags for fire."))
 
+	# --- Armor (Milestone 12) ----------------------------------------------
+	var hood := _armor("padded_hood", "Padded Hood", ItemData.ArmorSlot.HEAD, 0.6, 0.06, 60.0,
+		"Quilted linen cap. Takes the sting out of a glancing blow, and keeps your ears warm.")
+	hood.insulation = 0.10
+	_register(hood)
+	var cap := _armor("iron_skullcap", "Iron Skullcap", ItemData.ArmorSlot.HEAD, 1.4, 0.12, 90.0,
+		"Dented ork-forged cap, strapped under the chin.")
+	_register(cap)
+	var gambeson := _armor("quilted_gambeson", "Quilted Gambeson", ItemData.ArmorSlot.BODY, 3.0, 0.14, 90.0,
+		"Thick padded coat. Quiet, warm, and better than nothing.")
+	gambeson.equip_time = 1.6
+	gambeson.insulation = 0.25
+	_register(gambeson)
+	var mail := _armor("riveted_mail", "Riveted Mail Shirt", ItemData.ArmorSlot.BODY, 7.5, 0.26, 140.0,
+		"Heavy and loud: every step jingles. Edges skid off it, so no bleeding.")
+	mail.armor_noise_mult = 1.4
+	mail.stops_bleeding = true
+	mail.equip_time = 2.4
+	_register(mail)
+	var leggings := _armor("leather_leggings", "Leather Leggings", ItemData.ArmorSlot.LEGS, 1.5, 0.08, 70.0,
+		"Boiled-leather chaps with knee cops.")
+	leggings.insulation = 0.08
+	_register(leggings)
+	var greaves := _armor("splinted_greaves", "Splinted Greaves", ItemData.ArmorSlot.LEGS, 3.2, 0.14, 100.0,
+		"Iron splints over leather. They clank and slow your stride.")
+	greaves.armor_noise_mult = 1.15
+	greaves.armor_sprint_mult = 0.95
+	greaves.equip_time = 1.4
+	_register(greaves)
+
+	# --- Cloaks (Milestone 18: sewn at the shelter fire) ------------------------
+	var bear_cloak := _armor("bear_pelt_cloak", "Bear-Pelt Cloak", ItemData.ArmorSlot.CLOAK, 2.8, 0.04, 80.0,
+		"Heavy, warm, and the fur muffles every step.")
+	bear_cloak.insulation = 0.35
+	bear_cloak.armor_noise_mult = 0.85
+	bear_cloak.equip_time = 1.2
+	_register(bear_cloak)
+	var troll_cloak := _armor("troll_hide_cloak", "Troll-Hide Cloak", ItemData.ArmorSlot.CLOAK, 3.4, 0.10, 120.0,
+		"Stiff as a cart-tarp. Turns a blade now and then.")
+	troll_cloak.insulation = 0.25
+	troll_cloak.equip_time = 1.2
+	_register(troll_cloak)
+
+	# --- Food (Milestone 17) ---------------------------------------------------
+	_register(_food("hardtack", "Hardtack Biscuit", 0.2, 10, 25.0, 1.2, "Twice-baked and hard as slate. Soak it if you can."))
+	_register(_food("dried_meat", "Strip of Dried Meat", 0.3, 10, 35.0, 1.4, "Salted, smoked, chewy. A soldier's supper."))
+	var stew := _food("marsh_stew", "Bowl of Marsh Stew", 0.8, 3, 60.0, 2.0, "Bear meat stewed with salt in the iron pot. Warms you to the bone.")
+	stew.warmth_value = 35.0
+	_register(stew)
+	var broth := _food("salted_broth", "Cup of Salted Broth", 0.4, 3, 30.0, 1.5, "Thin and salty, but hot.")
+	broth.warmth_value = 25.0
+	_register(broth)
+	_register(_food("raw_bear_meat", "Raw Bear Meat", 1.0, 4, 12.0, 2.2, "Fills the belly badly raw. Better in a pot."))
+	# Milestone 20: bull and deer.
+	_register(_food("raw_game_meat", "Raw Game Meat", 0.8, 6, 14.0, 2.0, "Bull or deer, cut from the carcass. Roast it at the fire."))
+	var roast := _food("roast_game_meat", "Roast Game Meat", 0.6, 6, 40.0, 1.6, "Charred outside, pink within. Still warm.")
+	roast.warmth_value = 10.0
+	_register(roast)
+
+	# Milestone 11
+	var stone := ItemData.new()
+	stone.item_id = "throwing_stone"
+	stone.display_name = "Fist-Sized Stone"
+	stone.description = "Throw it with [G] to make a noise where it lands. Lures the blind and distracts the sighted."
+	stone.category = ItemData.Category.TOOL
+	stone.weight_kg = 0.3
+	stone.max_stack = 10
+	_register(stone)
+	_register(_material("bear_pelt", "Bog Bear Pelt", 2.6, 2, "Matted with moss and marsh-water. Warm, if you can stand the smell."))
+	_register(_material("troll_hide", "Quarry-Troll Hide", 3.2, 2, "Thick as a cart-tarp and grey with stone dust."))
+
 	var pot := ItemData.new()
 	pot.item_id = "cooking_pot"
 	pot.display_name = "Cast-Iron Cooking Pot"
@@ -204,6 +338,30 @@ static func _build() -> void:
 	pot.category = ItemData.Category.TOOL
 	pot.weight_kg = 4.5
 	_register(pot)
+
+static func _armor(id: String, label: String, slot: ItemData.ArmorSlot, weight: float, protection: float, condition: float, desc: String) -> ItemData:
+	var d := ItemData.new()
+	d.item_id = id
+	d.display_name = label
+	d.description = desc
+	d.category = ItemData.Category.ARMOR
+	d.armor_slot = slot
+	d.weight_kg = weight
+	d.protection = protection
+	d.max_condition = condition
+	return d
+
+static func _food(id: String, label: String, weight: float, stack: int, food: float, eat_time: float, desc: String) -> ItemData:
+	var d := ItemData.new()
+	d.item_id = id
+	d.display_name = label
+	d.description = desc
+	d.category = ItemData.Category.CONSUMABLE
+	d.weight_kg = weight
+	d.max_stack = stack
+	d.food_value = food
+	d.use_duration = eat_time
+	return d
 
 static func _material(id: String, label: String, weight: float, stack: int, desc: String) -> ItemData:
 	var d := ItemData.new()

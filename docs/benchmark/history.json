@@ -1,0 +1,17 @@
+[
+  {
+    "run": "000-baseline-placeholders",
+    "label": "Baseline: placeholder primitives at Milestone 21",
+    "date": "2026-10-24",
+    "scorer_version": 2,
+    "measured": 32.4,
+    "rubric": 7.4,
+    "rubric_complete": true,
+    "per_shot": {
+      "b1_watchhouse_night": 24.0,
+      "b2_shelter_fire_night": 24.8,
+      "b3_marsh_day": 41.0,
+      "b4_bestiary_lineup": 39.9
+    }
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "run": "000-baseline-placeholders",
+  "label": "Baseline: placeholder primitives at Milestone 21",
+  "date": "2026-10-24",
+  "scorer_version": 2,
+  "measured": 32.4,
+  "rubric": 7.4,
+  "rubric_complete": true,
+  "shots": {
+    "b1_watchhouse_night": {
+      "values": {
+        "palette": 4.116,
+        "darkness": 0.999,
+        "light_pool": 13.584,
+        "torch_pool": 0.001,
+        "ambient_share": 0.0,
+        "ambient_tint": null,
+        "saturation": 1.816,
+        "detail": 0.266
+      },
+      "scores": {
+        "palette": 72.6,
+        "darkness": 24.4,
+        "light_pool": 45.1,
+        "torch_pool": 5.8,
+        "ambient_share": 0.0,
+        "ambient_tint": 0.0,
+        "saturation": 39.6,
+        "detail": 4.4
+      },
+      "overall": 24.0
+    },
+    "b2_shelter_fire_night": {
+      "values": {
+        "palette": 4.613,
+        "darkness": 0.999,
+        "light_pool": 12.998,
+        "torch_pool": 0.001,
+        "ambient_share": 0.0,
+        "ambient_tint": null,
+        "saturation": 2.449,
+        "detail": 0.237
+      },
+      "scores": {
+        "palette": 69.2,
+        "darkness": 24.2,
+        "light_pool": 43.2,
+        "torch_pool": 4.1,
+        "ambient_share": 0.0,
+        "ambient_tint": 0.0,
+        "saturation": 53.4,
+        "detail": 3.9
+      },
+      "overall": 24.8
+    },
+    "b3_marsh_day": {
+      "values": {
+        "palette": 5.097,
+        "darkness": 0.995,
+        "light_pool": 8.438,
+        "torch_pool": 0.004,
+        "ambient_share": 0.072,
+        "ambient_tint": 2.72,
+        "saturation": 2.235,
+        "detail": 0.513
+      },
+      "scores": {
+        "palette": 66.0,
+        "saturation": 48.7,
+        "detail": 8.4
+      },
+      "overall": 41.0
+    },
+    "b4_bestiary_lineup": {
+      "values": {
+        "palette": 5.702,
+        "darkness": 0.974,
+        "light_pool": 38.018,
+        "torch_pool": 0.016,
+        "ambient_share": 0.112,
+        "ambient_tint": 4.41,
+        "saturation": 2.89,
+        "detail": 1.023
+      },
+      "scores": {
+        "saturation": 63.0,
+        "detail": 16.8
+      },
+      "overall": 39.9
+    }
+  },
+  "target": {
+    "darkness": 0.886,
+    "light_pool": 30.088,
+    "torch_pool": 0.017,
+    "ambient_share": 0.214,
+    "ambient_tint": -3.768,
+    "saturation": 4.585,
+    "detail": 6.089
+  }
+}
