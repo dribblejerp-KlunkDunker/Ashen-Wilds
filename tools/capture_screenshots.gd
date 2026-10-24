@@ -373,6 +373,59 @@ func _run() -> void:
 	dn.set_hour(8.0)
 	await _frames(5)
 
+	# 23. Milestone 21: a fungus zombie rears back to spew, among the rot mounds.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	var zombie: EnemyFungusZombie = enemies.filter(func(e: Node) -> bool: return e is EnemyFungusZombie)[0]
+	var z_stand: Vector3 = zombie.global_position + Vector3(2.6, 0.0, -2.6)
+	_place(z_stand, (zombie.global_position - z_stand).normalized())
+	zombie._facing_dir = (z_stand - zombie.global_position).normalized()
+	zombie._visual_root.look_at(zombie.global_position + zombie._facing_dir, Vector3.UP)
+	zombie.state = EnemyFungusZombie.AIState.SPEW_STARTUP
+	zombie._update_visual_telegraph()
+	zombie._visual_root.visible = true
+	for e: Node in enemies:
+		if e is EnemyRotMound:
+			e._visual_root.visible = true
+	await _frames(40)
+	await _shot("23_fungus_zombie_spew.png")
+
+	# 24. Milestone 21: the Rot-Beast swells to vomit again; its last spew lies steaming beside it.
+	var beast: EnemyRotBeast = enemies.filter(func(e: Node) -> bool: return e is EnemyRotBeast)[0]
+	var b_stand: Vector3 = beast.global_position + Vector3(3.6, 0.0, -3.0)
+	_place(b_stand, (beast.global_position - b_stand).normalized())
+	beast._facing_dir = Vector3(0.2, 0, 1).normalized()
+	beast._visual_root.look_at(beast.global_position + beast._facing_dir, Vector3.UP)
+	beast.vomit()
+	beast._facing_dir = (b_stand - beast.global_position).normalized()
+	beast._visual_root.look_at(beast.global_position + beast._facing_dir, Vector3.UP)
+	beast.state = EnemyRotBeast.AIState.VOMIT_STARTUP
+	beast._state_timer = 0.2
+	beast._update_visual_telegraph()
+	beast._visual_root.visible = true
+	_hud.show_banner("", Color.WHITE)
+	await _frames(30)
+	await _shot("24_rot_beast_bile.png")
+	for n: Node in get_nodes_in_group("bile_pool"):
+		n.queue_free()
+
+	# 25. Milestone 21: night. The Pallid Crawler circles at the edge of the torchlight.
+	dn.set_hour(23.0)
+	var crawler: EnemyPallidCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyPallidCrawler)[0]
+	var c_stand: Vector3 = AshenWildsBootstrap.CRAWLER_LAIR + Vector3(5.0, 0.0, -5.0)
+	crawler.state = EnemyPallidCrawler.AIState.STALK
+	crawler._set_buried(false)
+	crawler.global_position = c_stand + Vector3(-4.2, 0.0, 3.4)
+	_place(c_stand, (crawler.global_position - c_stand).normalized())
+	crawler._facing_dir = (c_stand - crawler.global_position).normalized()
+	crawler._visual_root.look_at(crawler.global_position + crawler._facing_dir, Vector3.UP)
+	crawler._update_visual_telegraph()
+	crawler._visual_root.visible = true
+	await _frames(40)
+	await _shot("25_pallid_crawler_torchlight.png")
+	dn.set_hour(8.0)
+	await _frames(5)
+
 	# 9. Milestone 7: the survivor picker.
 	var picker := BackgroundPicker.new()
 	root.add_child(picker)

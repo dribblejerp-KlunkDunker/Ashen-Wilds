@@ -21,7 +21,7 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 18 | Shelter crafting & repairs | ✅ shipped | M17, M13 stash |
 | 19 | Day & night | ✅ shipped | M9, M17 |
 | 20 | Blackfen Bestiary III: Bog-Bull, Skull-Deer & the Crows' Roost | ✅ shipped | M15, M19 |
-| 21 | Blackfen Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler | planned | M16, M19 |
+| 21 | Blackfen Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler | ✅ shipped | M16, M19 |
 | — | Companions, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
@@ -162,4 +162,14 @@ Three creatures of the open fen *(all numbers proposed)*:
 - **The Skull-Deer** (two, in the Pale Glade, east; **F10**). Prey: it never attacks. It notices you within 11 m (×1.5 with a lit torch) in a 260° field, turns wary, then bolts if you keep coming or get within 6 m, or straight away at a loud noise. Its **bleat** (reach 14) sets off the herd, and goblins, orks, the ghoul and the troll treat it like a caw. At night it stares instead, until you're within 3.5 m. Its carcass gives 2 raw game meat.
 - **The Crows' Roost** (a dead tree, far south; **F11**). Six crows and a **Crows' Nest Hoard**. When any roost crow scatters, the flock mobs you for 18 s. Every 2.5 s, within 18 m of the tree, it caws right over your head (reach 14, credited to a crow), so every listener knows where you are.
 - **Roast game meat** at the fire, no pot needed: 14 food raw, 40 roasted (+10 warmth).
+
+## Milestone 21 — Blackfen Bestiary IV
+
+The rot, and the thing in the dark *(all numbers proposed)*:
+
+- **Fungus zombies** (three, among the rot mounds). 75 hp. They shamble at 0.8 m/s and chase at 1.9 m/s, seeing 9 m in a 160° field and hearing the survivor. A **spore spew** comes after a 0.9 s rear-back: a 70° cone to 3.5 m, 20 s of spore sickness, 5 s cooldown. The claw does 14. Every non-lethal wound puffs spores within 1.5 m. A death by steel bursts spores within 2.5 m. A lit torch held toward one within 1.8 m sets it **burning** for 3.5 s at 18/s, and a zombie that dies burning leaves no spores.
+- **The Rot-Beast** (the Bile Pit; **F12**). 260 hp, 90 poise, 2.4 m/s, sight 12 m. The bite does 30 (a 30% bleed chance) and never clangs. The **vomit**, at 2.5–7 m with a 6 s cooldown, follows a 1.0 s rear-back. It's a 6 × 1.4 m line along the direction the beast faced when the rearing ended: 14 damage and 12 wear on every worn armour piece. It leaves a **BilePool** for 9 s that slows you to ×0.55, deals 3/s and corrodes 3/s. Both the beast and the zombies scan around when they reach your last-known position.
+- **The Pallid Crawler** (the Sunken Lane). 80 hp. It is **buried** (unseen, unhittable) until darkness reaches 0.6, then hunts the survivor within 22 m by scent at 4.6 m/s. It **won't enter light**: 5 m around a lit torch, 5.5 m around the shelter fire. It circles 1.5 m outside the light and recoils if the light reaches it. In the dark, within 4 m, it hisses (0.5 s), then **pounces** for 22 with a bleed, retreats for 2.5 s, and comes again. A wound sends it back into the dark. At darkness 0.35 it returns to its lair and buries itself.
+- **Bog-Bull fix:** blows on a stunned bull no longer cut its stun short.
+- A dodge's invulnerable window avoids the vomit spray, and the spray (and its pool) stops at walls. A zombie killed by any blow while it burns counts as burned clean. Loading restores dead crawlers and zombies quietly, and a living crawler is saved at its lair.
 

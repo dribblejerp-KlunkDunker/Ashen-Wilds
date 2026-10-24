@@ -258,8 +258,9 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_visual_root.position.y = 0.4
 		Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_bull_loot(), 3.5)
 		return
-	# Nothing staggers a charging bull.
-	if state != AIState.CHARGE:
+	# Nothing staggers a charging bull, and blows on a stunned one don't cut
+	# the stun short (that's your punish window).
+	if state not in [AIState.CHARGE, AIState.STUNNED]:
 		poise_damage += payload.poise_damage
 		if poise_damage >= max_poise:
 			poise_damage = 0.0

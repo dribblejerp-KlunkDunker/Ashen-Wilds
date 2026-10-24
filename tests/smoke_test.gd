@@ -121,6 +121,7 @@ func _run() -> void:
 	await _test_crafting()
 	await _test_day_night()
 	await _test_bestiary_three()
+	await _test_bestiary_four()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -2288,7 +2289,7 @@ func _test_bestiary_three() -> void:
 	_check(world_bulls.size() == 1 and world_deer.size() == 2, "a Bog-Bull and two Skull-Deer in the world")
 	_check((world_bulls[0] as Node3D).global_position.distance_to(AshenWildsBootstrap.PASTURE_POS) < 6.0 and world_deer.all(func(d: Node3D) -> bool: return d.global_position.distance_to(AshenWildsBootstrap.GLADE_POS) < 10.0), "the bull is in the Grey Pasture, the deer in the Pale Glade")
 	_check((world_bulls[0] as EnemyBogBull)._pasture_pos.distance_to(AshenWildsBootstrap.PASTURE_POS) < 0.1, "the bull's pasture is recorded where it spawned")
-	_check(boot._all_enemies.slice(18).all(func(e: Node) -> bool: return e is EnemyBogBull or e is EnemySkullDeer or e is EnemyCarrionCrow), "M20 creatures spawn after every older enemy (old saves keep their order)")
+	_check(boot._all_enemies.slice(18, 27).all(func(e: Node) -> bool: return e is EnemyBogBull or e is EnemySkullDeer or e is EnemyCarrionCrow), "M20 creatures spawn after every older enemy (old saves keep their order)")
 	var noises: Array = []
 	var rec := func(pos: Vector3, _r: float, src: Node3D, kind: String) -> void: noises.append([kind, pos, src])
 	field.noise_emitted.connect(rec)
@@ -2364,6 +2365,9 @@ func _test_bestiary_three() -> void:
 	b4.process_mode = Node.PROCESS_MODE_INHERIT
 	await _seconds(1.0)
 	_check(b4.state == B.STUNNED and b4.is_staggered(), "a charge into a standing stone stuns it (it counts as staggered)")
+	var stun_left: float = b4._state_timer
+	b4._on_hurtbox_hit_received(CombatPayload.new(_player, b4.global_position, Vector3.FORWARD, 1.0, 999.0))
+	_check(b4.state == B.STUNNED and b4._state_timer >= stun_left - 0.001, "blows on a stunned bull don't cut its stun short")
 	_check(noises.any(func(n: Array) -> bool: return n[0] == "thud" and n[2] == b4), "the impact is loud")
 	b4.process_mode = Node.PROCESS_MODE_DISABLED
 	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
@@ -2516,6 +2520,222 @@ func _test_bestiary_three() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
+# Milestone 21 — Bestiary IV: fungus zombies, the Rot-Beast, the Pallid Crawler
+# ------------------------------------------------------------------------------
+func _spawn_frozen(e: CharacterBody3D, pos: Vector3, facing: Vector3) -> CharacterBody3D:
+	e.position = pos
+	e.process_mode = Node.PROCESS_MODE_DISABLED
+	e.set("player_ref", _player)
+	_main.add_child(e)
+	e.set("_facing_dir", facing.normalized())
+	return e
+
+func _test_bestiary_four() -> void:
+	_section("Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler")
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_check(_children_of(func(n: Node) -> bool: return n is EnemyFungusZombie).size() == 3 and _children_of(func(n: Node) -> bool: return n is EnemyRotBeast).size() == 1 and _children_of(func(n: Node) -> bool: return n is EnemyPallidCrawler).size() == 1, "three fungus zombies, a Rot-Beast and a Pallid Crawler in the world")
+	_check(boot._all_enemies.slice(27).all(func(e: Node) -> bool: return e is EnemyFungusZombie or e is EnemyRotBeast or e is EnemyPallidCrawler), "M21 creatures spawn after every older enemy")
+	_equip_now("wooden_targe")
+
+	# Fungus zombies.
+	var Z := EnemyFungusZombie.AIState
+	_reset_player(OPEN)
+	_player.cure_spores()
+	await _ticks(1)
+	var z := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -8.0), Vector3.BACK) as EnemyFungusZombie
+	var z_far := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -11.0), Vector3.BACK) as EnemyFungusZombie
+	await _ticks(1)
+	_check(z.sees_player() and not z_far.sees_player(), "a zombie sees you at 8 m, not at 11 m")
+	z._evaluate_senses(0.05)
+	_check(z.state == Z.PURSUE, "seen: it shambles after you")
+	z.global_position = OPEN + Vector3(0, 0, -3.0)
+	await _ticks(1)
+	z._process_ai_state(0.05)
+	_check(z.state == Z.SPEW_STARTUP, "from 3 m it rears back to spew (the telegraph)")
+	_check(z.spew() and _player.is_spore_sick(), "the spore cone catches you: spore-sick")
+	_player.cure_spores()
+	z._facing_dir = Vector3.FORWARD
+	_check(not z.spew() and not _player.is_spore_sick(), "facing away, the spew misses")
+	z._facing_dir = Vector3.BACK
+	z.global_position = OPEN + Vector3(0, 0, -1.2)
+	z.state = Z.PURSUE
+	z._memory_timer = 5.0
+	await _ticks(1)
+	z._process_ai_state(0.05)
+	_check(z.state == Z.CLAW_STARTUP, "within reach it claws")
+	z._hitbox.end_swing()
+	z.state = Z.PURSUE
+	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
+	_check(_player.is_spore_sick(), "striking it up close puffs spores in your face")
+	_player.cure_spores()
+	z.global_position = OPEN + Vector3(0, 0, -2.0)
+	await _ticks(1)
+	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
+	_check(not _player.is_spore_sick(), "...not from a spear's length (2 m)")
+	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
+	_check(z.is_dead() and _player.is_spore_sick() and not z.burned_clean(), "killed by steel within 2.5 m, it bursts: spore-sick")
+	_player.cure_spores()
+	# Fire.
+	var z2 := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -1.5), Vector3.BACK) as EnemyFungusZombie
+	_equip_now("pitch_torch")
+	_face(Vector3.FORWARD)
+	await _ticks(1)
+	z2._evaluate_senses(0.05)
+	_check(z2.is_burning(), "a lit torch thrust at it from 1.5 m sets it alight")
+	var hp: float = z2.health
+	z2._process_ai_state(1.0)
+	_check(hp - z2.health > 15.0, "it burns (%.0f a second)" % (hp - z2.health))
+	_player.cure_spores()
+	z2._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
+	_check(z2.is_dead() and z2.burned_clean() and not _player.is_spore_sick(), "killed while burning it burns clean: no spores")
+	_equip_now("wooden_targe")
+
+	# The Rot-Beast.
+	var R := EnemyRotBeast.AIState
+	_reset_player(OPEN)
+	_player.health = _player.max_health
+	_equip_now("padded_hood")
+	var hood: ItemInstance = _player.inventory.armor.get(ItemData.ArmorSlot.HEAD)
+	await _ticks(1)
+	var beast := _spawn_frozen(EnemyRotBeast.new(), OPEN + Vector3(0, 0, -5.0), Vector3.BACK) as EnemyRotBeast
+	await _ticks(1)
+	beast._hunt(_player.global_position)
+	beast._process_ai_state(0.05)
+	_check(beast.state == R.VOMIT_STARTUP, "from 5 m the Rot-Beast rears back to vomit")
+	var hood_before: float = hood.condition
+	var hp_before: float = _player.health
+	_check(beast.vomit(), "the bile line reaches you")
+	_check(_player.health < hp_before - 10.0 and hood.condition < hood_before - 10.0, "it burns (%.0f) and pits your armour (%.0f -> %.0f)" % [hp_before - _player.health, hood_before, hood.condition])
+	var pools: Array = get_nodes_in_group("bile_pool")
+	_check(pools.size() == 1, "and lies on the ground as a pool")
+	var pool: BilePool = pools[0]
+	_check(pool.contains(_player.global_position) and not pool.contains(_player.global_position + Vector3(2.0, 0, 0)), "the pool is a strip along the spew: 2 m to the side is clear")
+	await _ticks(10)
+	_check(_player.get_hazard_speed_mult() < 0.6, "standing in it slows you (×%.2f)" % _player.get_hazard_speed_mult())
+	var pool_hp: float = _player.health
+	var pool_hood: float = hood.condition
+	var changed: Array = []
+	var on_changed := func() -> void: changed.append(1)
+	_player.inventory.changed.connect(on_changed)
+	await _seconds(1.0)
+	_player.inventory.changed.disconnect(on_changed)
+	_check(pool_hp - _player.health > 2.0 and pool_hood - hood.condition > 2.0, "the pool stings (%.1f/s) and eats your armour (%.1f/s)" % [pool_hp - _player.health, pool_hood - hood.condition])
+	_check(changed.size() <= 3, "...without flooding the pack with updates (%d in a second)" % changed.size())
+	_reset_player(OPEN + Vector3(3.0, 0, 0))
+	await _seconds(0.4)
+	_check(is_equal_approx(_player.get_hazard_speed_mult(), 1.0), "step out and the slow wears off")
+	pool._physics_process(pool.lifetime)
+	await _ticks(1)
+	_check(get_nodes_in_group("bile_pool").filter(func(n: Node) -> bool: return not n.is_queued_for_deletion()).is_empty(), "the pool soaks away after 9 s")
+	beast._vomit_cooldown = 0.0
+	beast._facing_dir = Vector3.BACK
+	_check(not beast.vomit(), "standing 3 m to the side of its line, the spew misses")
+	_reset_player(OPEN)
+	await _ticks(1)
+	_player.current_state = PlayerController.ActionState.DODGE
+	_player._state_timer = 0.3
+	hp_before = _player.health
+	_check(not beast.vomit() and is_equal_approx(_player.health, hp_before), "a well-timed dodge goes through the spray")
+	_player.current_state = PlayerController.ActionState.IDLE
+	for n: Node in get_nodes_in_group("bile_pool"):
+		n.queue_free()
+	var wall_beast := _spawn_frozen(EnemyRotBeast.new(), Vector3(-1.5, 0, -5.0), Vector3.RIGHT) as EnemyRotBeast
+	_reset_player(Vector3(3.0, 0, -5.0))
+	await _ticks(1)
+	_check(not wall_beast.vomit(), "the watchhouse wall stops the spray")
+	var short_pool: BilePool = get_nodes_in_group("bile_pool").filter(func(n: Node) -> bool: return not n.is_queued_for_deletion())[0]
+	_check(short_pool.length < 3.0, "...and the pool ends at the wall (%.1f m)" % short_pool.length)
+	wall_beast.queue_free()
+	for n: Node in get_nodes_in_group("bile_pool"):
+		n.queue_free()
+	_reset_player(OPEN)
+	await _ticks(1)
+	beast.global_position = OPEN + Vector3(0, 0, -1.6)
+	beast.state = R.PURSUE
+	await _ticks(1)
+	beast._process_ai_state(0.05)
+	_check(beast.state == R.BITE_STARTUP, "close in it bites instead")
+	beast._hitbox.end_swing()
+	hood.condition = hood.data.max_condition
+
+	# The Pallid Crawler.
+	var C := EnemyPallidCrawler.AIState
+	var DARK: Vector3 = OPEN + Vector3(8.0, 0, 2.0) # well away from the shelter fire
+	_reset_player(DARK)
+	_equip_now("wooden_targe")
+	await _ticks(1)
+	var cr := _spawn_frozen(EnemyPallidCrawler.new(), DARK + Vector3(0, 0, -10.0), Vector3.BACK) as EnemyPallidCrawler
+	await _ticks(2)
+	_check(cr.is_buried() and cr.collision_layer == 0, "by day it lies buried")
+	var chp: float = cr.health
+	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 50.0, 1.0))
+	cr._process_ai_state(0.05)
+	_check(is_equal_approx(cr.health, chp) and cr.is_buried(), "a buried crawler can't be hurt, and stays put by day")
+	dn.set_hour(23.0)
+	cr._process_ai_state(0.05)
+	_check(cr.state == C.EMERGE and not cr.is_buried(), "night falls: it digs itself out")
+	cr._process_ai_state(1.1)
+	cr._process_ai_state(0.05)
+	_check(cr.state == C.STALK and cr.velocity.z > 2.0, "and crawls straight at you in the dark, from 10 m")
+	_check(is_equal_approx(DayNightCycle.sight_factor(cr), 1.0), "(it has no eyes for the dark to blind)")
+	cr.global_position = DARK + Vector3(0, 0, -3.5)
+	await _ticks(1)
+	cr._process_ai_state(0.05)
+	_check(cr.state == C.POUNCE_STARTUP, "within 4 m it hisses and gathers to pounce")
+	_equip_now("pitch_torch")
+	await _ticks(1)
+	cr._process_ai_state(0.05)
+	_check(cr.state == C.RECOIL, "raise a torch and it recoils from the light")
+	cr.state = C.STALK
+	cr.global_position = DARK + Vector3(0, 0, -6.5) # on its orbit: the light's edge + 1.5 m
+	await _ticks(1)
+	cr._process_ai_state(0.05)
+	var to_p := Vector3(_player.global_position.x - cr.global_position.x, 0, _player.global_position.z - cr.global_position.z).normalized()
+	var v := Vector3(cr.velocity.x, 0, cr.velocity.z)
+	_check(cr.state == C.STALK and v.length() > 1.0 and absf(v.normalized().dot(to_p)) < 0.6, "outside your torchlight it circles, waiting")
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(0, 0, 1.5))
+	_equip_now("wooden_targe")
+	await _ticks(1)
+	_check(cr.is_lit(AshenWildsBootstrap.FIRE_POS + Vector3(3.5, 0, 0)) and not cr.is_lit(AshenWildsBootstrap.FIRE_POS + Vector3(8.0, 0, 0)), "the shelter fire's light keeps it 5.5 m off, torch or no torch")
+	# A real pounce, in the dark.
+	_reset_player(DARK)
+	_player.health = _player.max_health
+	_player.is_bleeding = false
+	await _ticks(2)
+	cr.global_position = DARK + Vector3(0, 0, -3.0)
+	cr._facing_dir = Vector3.BACK
+	cr._visual_root.look_at(cr.global_position + Vector3.BACK, Vector3.UP)
+	cr._begin_pounce()
+	cr.process_mode = Node.PROCESS_MODE_INHERIT
+	await _seconds(0.4)
+	cr.process_mode = Node.PROCESS_MODE_DISABLED
+	_check(_player.health < _player.max_health - 15.0 and _player.is_bleeding, "the pounce rakes you open: %.0f and bleeding" % (_player.max_health - _player.health))
+	_player.is_bleeding = false
+	cr.state = C.STALK
+	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
+	_check(cr.state == C.RETREAT, "wounded, it slips back into the dark")
+	dn.set_hour(8.0)
+	cr.state = C.STALK
+	cr._process_ai_state(0.05)
+	_check(cr.state == C.BURROW, "at dawn it heads home")
+	cr.global_position = cr._lair_pos
+	cr._process_ai_state(0.05)
+	_check(cr.is_buried(), "and buries itself again")
+	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
+	_check(not cr.is_dead(), "(still safe underground)")
+
+	for n: Node in [z, z_far, z2, beast, cr]:
+		n.queue_free()
+	_player.health = _player.max_health
+	_player.cure_spores()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -2600,7 +2820,7 @@ func _test_save_load() -> void:
 	SaveGame.save_path = "user://smoke_test_save.json"
 	SaveGame.delete()
 	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_check(boot._all_enemies.size() == 27, "every enemy tracked for saving (%d: 18 + M20's bull, two deer, six roost crows)" % boot._all_enemies.size())
+	_check(boot._all_enemies.size() == 32, "every enemy tracked for saving (%d: 18 + M20's bull, two deer, six roost crows + M21's three zombies, the Rot-Beast, the crawler)" % boot._all_enemies.size())
 
 	# Build up some state worth saving.
 	_bg("peat_cutter")
@@ -2619,6 +2839,14 @@ func _test_save_load() -> void:
 	var seen_cell: Vector3 = _player.global_position + Vector3(3.0, 0, 0)
 	_check(boot._vision.is_explored(seen_cell), "(setup) the ground ahead is explored")
 	var stash_items: int = boot._stash.items.size()
+	# Milestone 21: a crawler killed above ground, a zombie killed by steel.
+	var w_crawler: EnemyPallidCrawler = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyPallidCrawler)[0]
+	w_crawler.state = EnemyPallidCrawler.AIState.STALK
+	w_crawler._set_buried(false)
+	w_crawler._on_hurtbox_hit_received(CombatPayload.new(_player, w_crawler.global_position, Vector3.FORWARD, 999.0, 1.0))
+	var w_zombie: EnemyFungusZombie = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyFungusZombie)[0]
+	w_zombie._on_hurtbox_hit_received(CombatPayload.new(_player, w_zombie.global_position, Vector3.FORWARD, 999.0, 1.0))
+	_check(w_crawler.is_dead() and w_zombie.is_dead(), "(setup) a crawler and a zombie are dead")
 
 	_check(not boot.rest_at_fire() and not SaveGame.exists(), "you can only rest at the shelter fire")
 	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
@@ -2674,6 +2902,10 @@ func _test_save_load() -> void:
 	_check(boot._stash.items.size() == stash_items and boot._stash.count_of("cooking_pot") == 1, "loaded: the stash holds what you stored")
 	var dead: int = boot._all_enemies.filter(func(e: Node3D) -> bool: return e.is_dead()).size()
 	_check(dead == int(data["enemies"].filter(func(e: Dictionary) -> bool: return e["dead"]).size()) and dead >= 4, "loaded: the dead stay dead (%d)" % dead)
+	var l_crawler: EnemyPallidCrawler = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyPallidCrawler)[0]
+	var l_zombie: EnemyFungusZombie = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyFungusZombie)[0]
+	_check(l_crawler.is_dead() and l_crawler.get_children().any(func(c: Node) -> bool: return c is Lootable), "loaded: a dead Pallid Crawler stays dead (and its husk is there), though crawlers boot buried")
+	_check(l_zombie.is_dead() and not _player.is_spore_sick(), "loaded: a dead zombie stays dead, without a fresh spore burst")
 	var gob: Node3D = boot._all_enemies[0]
 	var corpse_ok: bool = false
 	for c: Node in gob.get_children():

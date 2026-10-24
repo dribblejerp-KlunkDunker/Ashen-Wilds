@@ -72,6 +72,27 @@ static func roll_deer_loot() -> Array[ItemInstance]:
 	out.append(make("raw_game_meat", 2))
 	return out
 
+## Milestone 21
+static func roll_zombie_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	if randf() < 0.5:
+		out.append(make("clean_rag_bandage", 1))
+	if randf() < 0.3:
+		out.append(make("hardtack", 1))
+	return out
+
+static func roll_rot_beast_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("iron_scrap", 2))
+	out.append(make("salt", 2))
+	return out
+
+static func roll_crawler_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	if randf() < 0.5:
+		out.append(make("throwing_stone", 2))
+	return out
+
 static func roll_ghoul_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("iron_scrap", 1))

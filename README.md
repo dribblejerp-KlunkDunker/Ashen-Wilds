@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–20 complete · verified on Godot 4.3-stable (Forward+) · **511/511** headless regression checks passing
+> **Status:** Milestones 1–21 complete · verified on Godot 4.3-stable (Forward+) · **558/558** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -251,6 +251,16 @@ The pot works from the stash, so storing it for the Act I objective doesn't stop
 | ![The Bog-Bull paws the ground](docs/screenshots/21_bog_bull_paws.png) | ![Skull-Deer staring at night](docs/screenshots/22_skull_deer_stare.png) |
 | **The Bog-Bull lowers its horns.** The orange ring means it's about to charge. Don't be where it's pointing. | **At night the Skull-Deer stare.** They won't run until you're almost close enough to touch. |
 
+### Blackfen Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler (Milestone 21)
+- **Fungus zombies** (three, among the rot mounds) shamble after you slowly. From a few metres one rears back, swelling, and **spews a cone of spores**; close in it claws. Every wound you give it puffs spores at you, and if steel kills it, it **bursts** like a rot mound. Fight it from a spear's length, or **thrust a lit torch at it**: it catches fire, flails and burns, and one that burns to death burns clean.
+- **The Rot-Beast** (the Bile Pit, north-west, **F12**) hunts by sight and sound. It bites hard up close. From mid range it rears back and **vomits a 6 m line of bile** where it faced when it reared, so step out of the line. Caught in it, you're burned and your armour pits. The bile then lies on the ground for 9 s as a **pool that slows you, stings, and keeps eating your armour**.
+- **The Pallid Crawler** (under the Sunken Lane) is never there by day: it lies buried, and you can't hurt it. When night falls it digs out and **hunts you by scent**. It won't come into the light of your torch or the shelter fire. It circles at the edge instead, and recoils if you bring the light to it. Douse your torch in the dark and it hisses, pounces, rakes you open, and scuttles off to come again. At dawn it goes home and buries itself.
+
+| | | |
+|---|---|---|
+| ![A fungus zombie rears to spew](docs/screenshots/23_fungus_zombie_spew.png) | ![The Rot-Beast and its bile](docs/screenshots/24_rot_beast_bile.png) | ![The Pallid Crawler at the torchlight's edge](docs/screenshots/25_pallid_crawler_torchlight.png) |
+| **A fungus zombie swells to spew.** Back off, or burn it. | **The Rot-Beast rears again.** Its last spew still lies on the ground. | **Night: the Pallid Crawler waits at the edge of the light.** |
+
 ### Day & night (Milestone 19)
 A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 of those minutes, and dusk and dawn ease in over two in-game hours. The HUD shows the phase and the clock next to the weather. **F8** skips three hours.
 
@@ -292,7 +302,7 @@ A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 
 | **K** | Work at the shelter fire: repairs, cooking, sewing |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
-| **F9 / F10 / F11** | Teleport to the Grey Pasture / Pale Glade / Crows' Roost (dev) |
+| **F9 / F10 / F11 / F12** | Teleport to the Grey Pasture / Pale Glade / Crows' Roost / Bile Pit (dev) |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -359,13 +369,13 @@ scripts/
               survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
-              weather_system.gd, day_night_cycle.gd, crow_roost.gd
+              weather_system.gd, day_night_cycle.gd, crow_roost.gd, bile_pool.gd
   player/     player_controller.gd
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound,
-              bog-bull, skull-deer
+              bog-bull, skull-deer, fungus zombie, rot-beast, pallid crawler
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (511 checks)
+  smoke_test.gd            Headless regression suite (558 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -390,7 +400,6 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Next: Blackfen Bestiary IV (fungus zombies, the Rot-Beast, the Pallid Crawler).
 - Later: companions, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 

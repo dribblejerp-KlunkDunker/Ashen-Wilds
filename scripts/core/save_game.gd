@@ -88,7 +88,10 @@ static func collect(boot: AshenWildsBootstrap) -> Dictionary:
 		var entry: Dictionary = {"dead": true}
 		if is_instance_valid(e):
 			# A crow caught mid-flight is saved back on its perch.
+			# A crawler alive at save time is saved at its lair (it would be buried there by day).
 			var pos: Vector3 = e.get("_perch_pos") if e is EnemyCarrionCrow else e.global_position
+			if e is EnemyPallidCrawler and not e.is_dead():
+				pos = e.get("_lair_pos")
 			entry = {"dead": e.is_dead(), "pos": _v3(pos), "health": float(e.get("health"))}
 			if e.is_dead():
 				for c: Node in e.get_children():
@@ -220,7 +223,10 @@ static func apply(boot: AshenWildsBootstrap, data: Dictionary) -> bool:
 		if entry.has("pos"):
 			e.global_position = _to_v3(entry["pos"])
 		if bool(entry["dead"]) and not e.is_dead():
-			e.call("_on_hurtbox_hit_received", CombatPayload.new(player, e.global_position, Vector3.FORWARD, 1e9, 0.0))
+			if e.has_method("restore_dead"):
+				e.call("restore_dead") # enemies that need a quiet or special death
+			else:
+				e.call("_on_hurtbox_hit_received", CombatPayload.new(player, e.global_position, Vector3.FORWARD, 1e9, 0.0))
 			to_dress.append([e, entry])
 		elif entry.has("health") and not e.is_dead():
 			e.set("health", float(entry["health"]))

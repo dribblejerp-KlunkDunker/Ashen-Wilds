@@ -205,6 +205,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F11:
 				_player.global_position = ROOST_POS + Vector3(0.0, 0.0, -9.0)
 				_hud.show_banner("Teleported: the Crows' Roost — the nest hoard is guarded by the whole flock", Color(0.72, 0.70, 0.66))
+			KEY_F12:
+				_player.global_position = BILE_PIT_POS + Vector3(9.0, 0.0, 6.0)
+				_hud.show_banner("Teleported: the Bile Pit (Rot-Beast) — when it rears back, get out of its line", Color(0.70, 0.76, 0.36))
 			KEY_F4:
 				_weather.advance()
 			KEY_F8:
@@ -435,6 +438,30 @@ func _build_bestiary_three_landmarks(cutaway_shader: Shader) -> void:
 	_create_static_box(ROOST_POS + Vector3(0.6, 3.3, 0.1), Vector3(1.4, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
 	_create_static_box(ROOST_POS + Vector3(-0.5, 2.9, 0.1), Vector3(1.1, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
 	_create_static_box(ROOST_POS + Vector3(0.1, 3.9, 0.3), Vector3(0.15, 0.15, 1.4), dead_wood, cutaway_shader, false, false)
+	# Milestone 21: the Bile Pit, a reeking hollow; the Sunken Lane's broken ground.
+	var pit := MeshInstance3D.new()
+	var pit_mesh := CylinderMesh.new()
+	pit_mesh.top_radius = 3.5
+	pit_mesh.bottom_radius = 3.5
+	pit_mesh.height = 0.02
+	pit.mesh = pit_mesh
+	var pit_mat := StandardMaterial3D.new()
+	pit_mat.albedo_color = Color(0.20, 0.21, 0.09)
+	pit_mat.roughness = 0.25 # slick
+	pit.material_override = pit_mat
+	pit.position = BILE_PIT_POS + Vector3(0.0, 0.012, 0.0)
+	add_child(pit)
+	var lane := MeshInstance3D.new()
+	var lane_mesh := CylinderMesh.new()
+	lane_mesh.top_radius = 1.2
+	lane_mesh.bottom_radius = 1.2
+	lane_mesh.height = 0.02
+	lane.mesh = lane_mesh
+	var lane_mat := StandardMaterial3D.new()
+	lane_mat.albedo_color = Color(0.11, 0.10, 0.09) # disturbed earth over the burrow
+	lane.material_override = lane_mat
+	lane.position = CRAWLER_LAIR + Vector3(0.0, 0.012, 0.0)
+	add_child(lane)
 
 ## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
 ## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
@@ -605,8 +632,9 @@ func _spawn_all_archetype_encounters() -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
 	)
-	# Milestone 20 spawns come last so older saves keep their spawn order.
+	# Milestone 20 and 21 spawns come last so older saves keep their spawn order.
 	_spawn_bestiary_three()
+	_spawn_bestiary_four()
 
 func _spawn_bestiary_three() -> void:
 	var bull := EnemyBogBull.new()
@@ -636,6 +664,36 @@ func _spawn_bestiary_three() -> void:
 		add_child(crow)
 		crow.crow_alarm.connect(_on_crow_alarm)
 		_roost.add_crow(crow)
+
+## Milestone 21: fungus zombies among the rot mounds, the Rot-Beast in its
+## Bile Pit (north-west), the Pallid Crawler under the Sunken Lane.
+const ZOMBIE_SPOTS: Array[Vector3] = [Vector3(-12.5, 0.0, 15.0), Vector3(-20.5, 0.0, 21.5), Vector3(-7.5, 0.0, 19.0)]
+const BILE_PIT_POS := Vector3(-20.0, 0.0, -19.0)
+const CRAWLER_LAIR := Vector3(-12.0, 0.0, -4.0)
+
+func _spawn_bestiary_four() -> void:
+	for spot: Vector3 in ZOMBIE_SPOTS:
+		var z := EnemyFungusZombie.new()
+		z.position = spot
+		z.player_ref = _player
+		z.audio = _audio
+		z.coordinator = _coordinator
+		add_child(z)
+		z.zombie_event_banner.connect(_banner)
+	var beast := EnemyRotBeast.new()
+	beast.position = BILE_PIT_POS
+	beast.player_ref = _player
+	beast.audio = _audio
+	beast.coordinator = _coordinator
+	add_child(beast)
+	beast.beast_event_banner.connect(_banner)
+	var crawler := EnemyPallidCrawler.new()
+	crawler.position = CRAWLER_LAIR
+	crawler.player_ref = _player
+	crawler.audio = _audio
+	crawler.coordinator = _coordinator
+	add_child(crawler)
+	crawler.crawler_event_banner.connect(_banner)
 
 func _banner(txt: String, col: Color) -> void:
 	if _hud:

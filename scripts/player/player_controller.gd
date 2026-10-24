@@ -931,6 +931,8 @@ func _update_timers_and_conditions(delta: float) -> void:
 
 	if _cough_noise_left > 0.0:
 		_cough_noise_left = maxf(0.0, _cough_noise_left - delta)
+	if _slow_timer > 0.0:
+		_slow_timer = maxf(0.0, _slow_timer - delta)
 	if _spore_timer > 0.0:
 		_spore_timer = maxf(0.0, _spore_timer - delta)
 		_spore_cough_timer -= delta
@@ -1150,7 +1152,7 @@ func _set_planar_velocity(target_x: float, target_z: float, delta: float) -> voi
 
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
-	var load_mult: float = _encumbrance_speed_mult()
+	var load_mult: float = _encumbrance_speed_mult() * get_hazard_speed_mult()
 	if current_state == ActionState.BLOCK:
 		_set_planar_velocity(
 			move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x,
@@ -1250,7 +1252,7 @@ func _consume_stamina(amount: float) -> void:
 func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state == ActionState.DEAD:
 		return
-	if current_state == ActionState.DODGE and _state_timer > 0.16:
+	if is_evading():
 		combat_banner_message.emit("Evaded!", Color(0.75, 0.78, 0.82))
 		return
 
@@ -1451,6 +1453,54 @@ func start_eating(inst: ItemInstance) -> bool:
 		return false
 	_start_channel(ChannelKind.EAT, inst.data.use_duration, null, inst)
 	return true
+
+# ------------------------------------------------------------------------------
+# Milestone 21 — ground hazards (Rot-Beast bile)
+# ------------------------------------------------------------------------------
+var _slow_timer: float = 0.0
+var _slow_mult: float = 1.0
+
+## Slows walking and sprinting to `mult` for `duration` seconds. The
+## strongest slow in effect wins.
+func apply_slow(mult: float, duration: float) -> void:
+	if _slow_timer <= 0.0 or mult < _slow_mult:
+		_slow_mult = mult
+	_slow_timer = maxf(_slow_timer, duration)
+
+func get_hazard_speed_mult() -> float:
+	return _slow_mult if _slow_timer > 0.0 else 1.0
+
+## Damage from the ground, not a blow: no block, no dodge, no armour.
+func take_hazard_damage(amount: float) -> void:
+	if current_state == ActionState.DEAD or amount <= 0.0:
+		return
+	health = maxf(0.0, health - amount)
+	if health <= 0.0:
+		_die("YOU DISSOLVED IN ROT-BILE — Press R to Respawn at Shelter")
+
+## The dodge's invulnerable window.
+func is_evading() -> bool:
+	return current_state == ActionState.DODGE and _state_timer > 0.16
+
+var _corrode_unreported: float = 0.0
+
+## Bile eats into every worn armour piece. The pack is told about it when a
+## piece breaks or every 2 points of wear, not every physics tick.
+func corrode_armor(amount: float) -> void:
+	var touched: bool = false
+	var broke: bool = false
+	for piece: ItemInstance in inventory.armor_pieces():
+		if piece.data.has_durability() and not piece.is_broken():
+			touched = true
+			if piece.wear(amount):
+				broke = true
+				combat_banner_message.emit("Your %s is eaten through by bile" % piece.data.display_name, Color(0.80, 0.82, 0.28))
+	if not touched:
+		return
+	_corrode_unreported += amount
+	if broke or _corrode_unreported >= 2.0:
+		_corrode_unreported = 0.0
+		inventory.notify_changed()
 
 func afflict_spores(duration: float) -> void:
 	var fresh: bool = _spore_timer <= 0.0

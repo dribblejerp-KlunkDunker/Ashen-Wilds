@@ -6,7 +6,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
 
-Milestones 1–20 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs, day & night, the bog-bull, skull-deer and crows' roost. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
+Milestones 1–21 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs, day & night, the bog-bull, skull-deer and crows' roost, fungus zombies, the rot-beast and the pallid crawler. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
 ## The work loop
 
@@ -56,7 +56,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **511 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **558 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -86,12 +86,14 @@ scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons),
                     vision_cone.gd (cone rays + memory grids + overlay), acoustic_field.gd (noise bus), acoustic_ripples.gd,
                     weather_system.gd (profiles, blending, shelter, gusts, MultiMesh precipitation), day_night_cycle.gd (clock, darkness, night sight),
-                    crow_roost.gd (adopts crows; mobbing caws at the survivor's position)
+                    crow_roost.gd (adopts crows; mobbing caws at the survivor's position), bile_pool.gd (slow / sting / corrode strip)
 scripts/player/     player_controller.gd (state machine, the largest file)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute, enemy_quarry_troll (blind, hunts sound),
                     enemy_carrion_crow (sentinel, caws), enemy_ghoul (eats corpses, smells blood),
                     enemy_bog_bear (territorial, fears fire), enemy_rot_mound (spore hazard),
-                    enemy_bog_bull (locked straight-line charge, stuns on walls), enemy_skull_deer (prey: wary, bolts, bleats)
+                    enemy_bog_bull (locked straight-line charge, stuns on walls), enemy_skull_deer (prey: wary, bolts, bleats),
+                    enemy_fungus_zombie (spore spew, burns), enemy_rot_beast (bile line + BilePool),
+                    enemy_pallid_crawler (buried by day, night hunter, shuns torch and fire light)
 scripts/ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd (start screen; pauses the tree), crafting_ui.gd
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway), vision_memory.gdshader (full-screen cone/charcoal pass)
 tests/smoke_test.gd headless regression suite
@@ -113,6 +115,9 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Pose tilts:** rotating a `_visual_root` by +X raises its forward (−Z) end. The bear's rear pose was upside down until a screenshot showed it.
 - **New enemies spawn last** (`_spawn_bestiary_three()` runs after the troll) so older saves, which identify enemies by spawn order, still line up. Keep appending.
 - **`_face_direction` and exact reversals:** `Vector3.slerp` can't turn through exactly 180°, so newer enemies nudge the facing first. A dummy spawned facing away from the survivor needs `_facing_dir` set.
+- **Ground hazards** go through `PlayerController.apply_slow()`, `take_hazard_damage()` and `corrode_armor()`, not a fake `CombatPayload` (a hazard isn't blocked or dodged).
+- **The attack token is global and one at a time** (`EncounterCoordinator.max_simultaneous_attackers = 1`). A frozen enemy that holds it starves every other attacker, so live sims that freeze enemies should clear `_active_holders`.
+- **Light-shy enemies** (the crawler) treat a lit torch and every `heat_source` node as light. Spots a few metres north of the tests' `OPEN` fall inside the shelter fire's 5.5 m, so light tests use a darker spot further east.
 - **Frozen enemies still hear.** `PROCESS_MODE_DISABLED` stops `_physics_process`, not `AcousticField` callbacks, so a loud test noise can set off distant listeners (the roost, deer). The suite freezes the `crow_roost` group too, and calls `CrowRoost.settle()` before its own checks.
 - **Enemies steer in straight lines.** The Ghoul has a simple wall-follow (`_avoid_obstacles`) because it lives among standing stones. Copy it for any enemy whose home has obstacles.
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
@@ -136,7 +141,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Godot renames duplicate sibling names** (a second `Ripple` becomes `@Node3D@N`). Find spawned nodes by group, not by `name.begins_with()`.
 - **Full-screen shader output is linear, pre-tonemap.** Constants that look tiny (0.016) come out light grey on screen. Compare against the scene with the overlay off (V) before tuning.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, K works at the fire, F1–F3 and F5–F7 are dev teleports, V toggles the vision overlay, F4 advances the weather, F8 skips three hours, F9–F11 teleport to the pasture, glade and roost.
+- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, G throws a stone, T rests (saves) at the fire, K works at the fire, F1–F3 and F5–F7 are dev teleports, V toggles the vision overlay, F4 advances the weather, F8 skips three hours, F9–F12 teleport to the pasture, glade, roost and Bile Pit.
 
 ### Writing tests (`tests/smoke_test.gd`)
 
