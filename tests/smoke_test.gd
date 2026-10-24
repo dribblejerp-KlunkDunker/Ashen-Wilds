@@ -95,6 +95,8 @@ func _run() -> void:
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
 	for e: Node in _children_of(func(n: Node) -> bool: return n.is_in_group("enemy")):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
+	for r: Node in _main.get_tree().get_nodes_in_group("crow_roost"):
+		r.process_mode = Node.PROCESS_MODE_DISABLED # its mobbing would caw over later checks
 
 	await _test_loadout_and_inventory()
 	await _test_encumbrance()
@@ -118,6 +120,7 @@ func _run() -> void:
 	await _test_survival()
 	await _test_crafting()
 	await _test_day_night()
+	await _test_bestiary_three()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -1589,7 +1592,8 @@ func _test_bestiary_one() -> void:
 	_player.camera_rig = null
 	var crows: Array = _children_of(func(n: Node) -> bool: return n is EnemyCarrionCrow)
 	var ghouls: Array = _children_of(func(n: Node) -> bool: return n is EnemyGhoul)
-	_check(crows.size() == 5 and ghouls.size() == 1, "five crows (gibbet & bone heap) and a ghoul in the world")
+	var roost_crows: Array = (_main as AshenWildsBootstrap)._roost.crows
+	_check(crows.filter(func(c: Node) -> bool: return not roost_crows.has(c)).size() == 5 and ghouls.size() == 1, "five crows (gibbet & bone heap) and a ghoul in the world")
 	_check(crows.any(func(c: Node3D) -> bool: return c.global_position.y > 2.5), "some crows perch up on the gibbet beam")
 
 	# Crows: sentinels.
@@ -2026,7 +2030,7 @@ func _test_crafting() -> void:
 				valid = false
 		if String(r["output"]) != "" and not ItemDatabase.all_ids().has(String(r["output"])):
 			valid = false
-	_check(Crafting.all().size() == 9 and valid, "nine recipes, all with real ingredients and outputs")
+	_check(Crafting.all().size() == 10 and valid, "ten recipes (M20 added roast game meat), all with real ingredients and outputs")
 
 	# Only at the fire.
 	_reset_player(OPEN)
@@ -2252,6 +2256,266 @@ func _test_day_night() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
+# Milestone 20 — Bestiary III: the Bog-Bull, the Skull-Deer, the Crows' Roost
+# ------------------------------------------------------------------------------
+func _spawn_dummy_bull(pos: Vector3) -> EnemyBogBull:
+	var b := EnemyBogBull.new()
+	b.position = pos
+	b.process_mode = Node.PROCESS_MODE_DISABLED
+	b.player_ref = _player
+	_main.add_child(b)
+	return b
+
+func _spawn_dummy_deer(pos: Vector3) -> EnemySkullDeer:
+	var d := EnemySkullDeer.new()
+	d.position = pos
+	d.process_mode = Node.PROCESS_MODE_DISABLED
+	d.player_ref = _player
+	_main.add_child(d)
+	d._facing_dir = Vector3.BACK # toward the survivor, who stands to the south (+Z)
+	return d
+
+func _test_bestiary_three() -> void:
+	_section("Bestiary III: Bog-Bull, Skull-Deer & the Crows' Roost")
+	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
+	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var B := EnemyBogBull.AIState
+	var world_bulls: Array = _children_of(func(n: Node) -> bool: return n is EnemyBogBull)
+	var world_deer: Array = _children_of(func(n: Node) -> bool: return n is EnemySkullDeer)
+	_check(world_bulls.size() == 1 and world_deer.size() == 2, "a Bog-Bull and two Skull-Deer in the world")
+	_check((world_bulls[0] as Node3D).global_position.distance_to(AshenWildsBootstrap.PASTURE_POS) < 6.0 and world_deer.all(func(d: Node3D) -> bool: return d.global_position.distance_to(AshenWildsBootstrap.GLADE_POS) < 10.0), "the bull is in the Grey Pasture, the deer in the Pale Glade")
+	_check((world_bulls[0] as EnemyBogBull)._pasture_pos.distance_to(AshenWildsBootstrap.PASTURE_POS) < 0.1, "the bull's pasture is recorded where it spawned")
+	_check(boot._all_enemies.slice(18).all(func(e: Node) -> bool: return e is EnemyBogBull or e is EnemySkullDeer or e is EnemyCarrionCrow), "M20 creatures spawn after every older enemy (old saves keep their order)")
+	var noises: Array = []
+	var rec := func(pos: Vector3, _r: float, src: Node3D, kind: String) -> void: noises.append([kind, pos, src])
+	field.noise_emitted.connect(rec)
+
+	# The bull: alert, telegraph, a locked charge.
+	_reset_player(OPEN)
+	await _ticks(1)
+	var bull := _spawn_dummy_bull(OPEN + Vector3(0, 0, -8.0))
+	var far_bull := _spawn_dummy_bull(OPEN + Vector3(0, 0, -15.0))
+	await _ticks(1)
+	_check(bull.sees_player() and not far_bull.sees_player(), "the bull notices you at 8 m, not at 15 m")
+	bull._process_ai_state(0.05)
+	_check(bull.state == B.ALERT and noises.any(func(n: Array) -> bool: return n[0] == "roar" and n[2] == bull), "seen: it snorts (a roar) and turns to face you")
+	for i in range(14):
+		bull._process_ai_state(0.05)
+	_check(bull.state == B.PAW, "then paws the ground: the telegraph")
+	for i in range(24):
+		bull._process_ai_state(0.05)
+	_check(bull.state == B.CHARGE and bull._charge_dir.dot(Vector3.BACK) > 0.95, "after ~1.1 s it charges straight at where you stood")
+	var locked: Vector3 = bull._charge_dir
+	_reset_player(OPEN + Vector3(5.0, 0, -4.0))
+	await _ticks(1)
+	bull._process_ai_state(0.1)
+	_check(bull._charge_dir.is_equal_approx(locked), "it can't steer mid-charge")
+	_check(bull.is_charging() and not bull.is_staggered(), "a charging bull isn't staggered")
+	_check(bull._hitbox._is_swing_active, "its horns gore only while it charges (hitbox live)")
+	bull._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 1.0, 999.0))
+	_check(bull.state == B.CHARGE, "...and nothing staggers it out of the charge")
+	# Staggered out of the overrun, the horns must stop goring.
+	bull.state = B.OVERRUN
+	bull._state_timer = 0.4
+	bull._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 1.0, 999.0))
+	_check(bull.state == B.STAGGER and not bull._hitbox._is_swing_active, "staggered in the overrun: its hitbox closes (no goring while it reels)")
+	bull.queue_free()
+	far_bull.queue_free()
+
+	# A real charge: trampled in line, safe to the side.
+	_reset_player(OPEN)
+	_player.health = _player.max_health
+	await _ticks(2)
+	var b2 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -7.0))
+	await _ticks(1)
+	b2._facing_dir = Vector3.BACK
+	b2._begin_charge()
+	b2.process_mode = Node.PROCESS_MODE_INHERIT
+	var start_z: float = _player.global_position.z
+	await _seconds(1.0)
+	var lost: float = _player.max_health - _player.health
+	_check(lost >= 30.0, "in its path you're gored for heavy damage (%.0f)" % lost)
+	_check(_player.global_position.z > start_z + 1.0, "...and thrown back along the charge (%.1f m)" % (_player.global_position.z - start_z))
+	b2.queue_free()
+	_reset_player(OPEN + Vector3(3.0, 0, 0))
+	_player.health = _player.max_health
+	await _ticks(2)
+	var b3 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -7.0))
+	await _ticks(1)
+	b3._facing_dir = Vector3.BACK
+	b3._begin_charge()
+	b3.process_mode = Node.PROCESS_MODE_INHERIT
+	await _seconds(1.2)
+	_check(is_equal_approx(_player.health, _player.max_health), "three metres to the side, it thunders past")
+	b3.queue_free()
+
+	# Into a standing stone: stunned.
+	var stone: Vector3 = AshenWildsBootstrap.PASTURE_STONES[0]
+	_reset_player(OPEN)
+	await _ticks(1)
+	var b4 := _spawn_dummy_bull(stone + Vector3(5.0, 0, 0))
+	await _ticks(1)
+	b4._facing_dir = Vector3.LEFT
+	noises.clear()
+	b4._begin_charge()
+	b4.process_mode = Node.PROCESS_MODE_INHERIT
+	await _seconds(1.0)
+	_check(b4.state == B.STUNNED and b4.is_staggered(), "a charge into a standing stone stuns it (it counts as staggered)")
+	_check(noises.any(func(n: Array) -> bool: return n[0] == "thud" and n[2] == b4), "the impact is loud")
+	b4.process_mode = Node.PROCESS_MODE_DISABLED
+	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
+	var saved_chance: float = axe_w.heavy_lodge_chance
+	axe_w.heavy_lodge_chance = 1.0
+	_equip_now("woodsmans_broadaxe")
+	_reset_player(b4.global_position + Vector3(1.2, 0, 0))
+	await _ticks(1)
+	_make_lodge(b4, false)
+	_check(_player.current_state == PlayerController.ActionState.LODGED, "a heavy blow on the stunned bull can lodge")
+	_player._release_lodged_weapon("")
+	_player.current_state = PlayerController.ActionState.IDLE
+	for l: Node in _lodged_piles():
+		l.queue_free()
+	axe_w.heavy_lodge_chance = saved_chance
+	_equip_now("arming_sword")
+	b4.queue_free()
+
+	# Noise, and its carcass.
+	_reset_player(OPEN)
+	await _ticks(1)
+	var b5 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -12.0))
+	await _ticks(1)
+	b5._facing_dir = Vector3.FORWARD
+	field.emit_noise(OPEN + Vector3(0, 0, -3.0), 9.0, _player, "footstep")
+	_check(b5.state == B.ALERT, "a sprinting footfall 9 m away alerts it even facing away")
+	b5._on_hurtbox_hit_received(CombatPayload.new(_player, b5.global_position, Vector3.FORWARD, 999.0, 1.0))
+	await _ticks(2)
+	var carcass: Lootable = null
+	for c: Node in b5.get_children():
+		if c is Lootable:
+			carcass = c
+	_check(b5.is_dead() and carcass != null and carcass.count_of("raw_game_meat") == 3, "a dead bull gives 3 raw game meat")
+	b5.queue_free()
+
+	# The Skull-Deer.
+	var D := EnemySkullDeer.AIState
+	_equip_now("wooden_targe")
+	_reset_player(OPEN)
+	await _ticks(1)
+	var deer := _spawn_dummy_deer(OPEN + Vector3(0, 0, -10.0))
+	var deer_far := _spawn_dummy_deer(OPEN + Vector3(0, 0, -14.0))
+	await _ticks(1)
+	_check(deer.notices_player() and not deer_far.notices_player(), "a deer notices you at 10 m, not at 14 m")
+	_equip_now("pitch_torch")
+	await _ticks(1)
+	_check(deer_far.notices_player(), "with a lit torch you're seen from 14 m (×1.5)")
+	_equip_now("wooden_targe")
+	await _ticks(1)
+	deer._process_ai_state(0.05)
+	_check(deer.state == D.WARY, "noticed: it raises its head (wary)")
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(6.0, 0, -12.0))
+	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	await _ticks(1)
+	noises.clear()
+	_reset_player(OPEN + Vector3(0, 0, -2.0))
+	await _ticks(1)
+	deer._process_ai_state(0.05)
+	_check(deer.is_fleeing() and noises.any(func(n: Array) -> bool: return n[0] == "bleat"), "keep coming and it bolts with a bleat")
+	_check(deer._flee_dir.dot(Vector3.FORWARD) > 0.9, "...away from you")
+	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "a goblin 6 m off comes to see what spooked it")
+	_check(deer_far.is_fleeing(), "the bleat sets the rest of the herd running")
+	var d3 := _spawn_dummy_deer(OPEN + Vector3(0, 0, -5.0))
+	await _ticks(1)
+	d3._process_ai_state(0.05)
+	d3._process_ai_state(0.05)
+	_check(d3.is_fleeing(), "closer than 6 m it bolts straight from wary")
+	var d4 := _spawn_dummy_deer(OPEN + Vector3(-14.0, 0, 0))
+	await _ticks(1)
+	field.emit_noise(OPEN + Vector3(-6.0, 0, 0), 9.0, _player, "footstep")
+	_check(d4.is_fleeing(), "a sprinting footfall it can hear sends it off")
+
+	# Night: it stares.
+	dn.set_hour(23.0)
+	_reset_player(OPEN)
+	var d5 := _spawn_dummy_deer(OPEN + Vector3(0, 0, -5.0))
+	await _ticks(1)
+	d5._process_ai_state(0.05)
+	d5._process_ai_state(0.05)
+	_check(d5.state == D.STARE, "at night it doesn't run: it stares at you from 5 m")
+	d5._update_visual_telegraph()
+	_check(d5._eye_mat.albedo_color.r > 0.5, "its eye sockets glow in the dark")
+	_reset_player(OPEN + Vector3(0, 0, -2.0))
+	await _ticks(1)
+	d5._process_ai_state(0.05)
+	_check(d5.is_fleeing(), "...until you're within 3.5 m")
+	dn.set_hour(8.0)
+	deer._on_hurtbox_hit_received(CombatPayload.new(_player, deer.global_position, Vector3.FORWARD, 999.0, 1.0))
+	await _ticks(2)
+	var deer_carcass: Lootable = null
+	for c: Node in deer.get_children():
+		if c is Lootable:
+			deer_carcass = c
+	_check(deer_carcass != null and deer_carcass.count_of("raw_game_meat") == 2, "a deer carcass gives 2 raw game meat")
+
+	# Roast it at the fire, no pot needed.
+	var stash: Lootable = boot._stash
+	var stash_backup: Array[ItemInstance] = stash.items.duplicate()
+	stash.items = [] as Array[ItemInstance]
+	var pot: ItemInstance = _player.inventory.find_first("cooking_pot")
+	if pot:
+		_player.inventory.remove(pot)
+	_player.inventory.add(ItemDatabase.make("raw_game_meat", 1))
+	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	await _ticks(1)
+	_check(String(Crafting.get_recipe("roast_game_meat")["tool"]) == "" and await _craft_now("roast_game_meat", stash) == "", "roasting game meat needs no pot")
+	_check(_player.inventory.count_of("roast_game_meat") == 1 and _player.inventory.count_of("raw_game_meat") == 0, "raw game meat becomes Roast Game Meat")
+	_check(ItemDatabase.get_item("roast_game_meat").food_value > ItemDatabase.get_item("raw_game_meat").food_value * 2.5 and ItemDatabase.get_item("roast_game_meat").warmth_value > 0.0, "roast fills you nearly three times as well, and warms")
+	_player.inventory.consume("roast_game_meat", 1)
+	if pot:
+		_player.inventory.add(pot)
+	stash.items = stash_backup
+
+	# The Crows' Roost.
+	var roost: CrowRoost = boot._roost
+	roost.settle() # earlier checks' clangs can carry this far
+	_check(roost.crows.size() == 6 and roost.nest != null and roost.nest.display_name == "Crows' Nest Hoard", "the roost tree holds six crows and a nest hoard")
+	_check(not roost.is_mobbing(), "(the roost is quiet)")
+	var g2 := _spawn_dummy_goblin(AshenWildsBootstrap.ROOST_POS + Vector3(6.0, 0, -7.0))
+	g2.state = EnemyGoblinScavenger.AIState.PATROL
+	_reset_player(roost.nest.global_position + Vector3(0.8, 0, 0))
+	await _ticks(1)
+	noises.clear()
+	field.emit_noise(_player.global_position, _player.rummage_noise_reach, _player, "rummage")
+	_check(roost.crows.all(func(c: EnemyCarrionCrow) -> bool: return not c.is_perched()) and roost.is_mobbing(), "rummaging in the hoard scatters the whole roost: it mobs you")
+	_reset_player(AshenWildsBootstrap.ROOST_POS + Vector3(3.0, 0, -6.0))
+	await _ticks(1)
+	noises.clear()
+	g2.state = EnemyGoblinScavenger.AIState.PATROL
+	_check(roost.mob_caw(), "while mobbing, a caw goes up...")
+	var over: Array = noises.filter(func(n: Array) -> bool: return n[0] == "caw")
+	_check(over.size() == 1 and Vector2((over[0][1] as Vector3).x - _player.global_position.x, (over[0][1] as Vector3).z - _player.global_position.z).length() < 0.1 and over[0][2] is EnemyCarrionCrow, "...right over your head, credited to a crow")
+	_check(g2.state == EnemyGoblinScavenger.AIState.INVESTIGATE and Vector2(g2._last_known_player_pos.x - _player.global_position.x, g2._last_known_player_pos.z - _player.global_position.z).length() < 1.0, "a goblin nearby comes to where the flock is screaming")
+	roost._physics_process(roost.caw_interval + 0.01)
+	_check(noises.filter(func(n: Array) -> bool: return n[0] == "caw").size() >= 2, "it keeps cawing every few seconds")
+	_reset_player(AshenWildsBootstrap.ROOST_POS + Vector3(0, 0, -20.0))
+	await _ticks(1)
+	_check(not roost.mob_caw(), "past 18 m from the tree you've shaken them off")
+	_check(is_equal_approx(roost.mob_time, 18.0), "the mobbing lasts 18 s")
+	roost._physics_process(17.0 - roost.caw_interval - 0.02)
+	_check(roost.is_mobbing(), "...still going at ~17 s")
+	roost._physics_process(1.1)
+	_check(not roost.is_mobbing(), "after 18 s the mobbing stops")
+
+	field.noise_emitted.disconnect(rec)
+	for n: Node in [deer, deer_far, gob, d3, d4, d5, g2]:
+		n.queue_free()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter
 # ------------------------------------------------------------------------------
 func _test_act_one() -> void:
@@ -2336,7 +2600,7 @@ func _test_save_load() -> void:
 	SaveGame.save_path = "user://smoke_test_save.json"
 	SaveGame.delete()
 	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_check(boot._all_enemies.size() == 18, "every enemy tracked for saving (%d)" % boot._all_enemies.size())
+	_check(boot._all_enemies.size() == 27, "every enemy tracked for saving (%d: 18 + M20's bull, two deer, six roost crows)" % boot._all_enemies.size())
 
 	# Build up some state worth saving.
 	_bg("peat_cutter")

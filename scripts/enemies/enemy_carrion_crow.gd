@@ -129,6 +129,14 @@ func scatter() -> void:
 	tween.tween_property(self, "global_position", target, 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_set_wings(true)
 
+## Back on its perch at once, wings folded (the roost settling, a load).
+func settle_on_perch() -> void:
+	if state == AIState.DEAD:
+		return
+	state = AIState.PERCHED
+	global_position = _perch_pos
+	_set_wings(false)
+
 func _return_to_perch() -> void:
 	state = AIState.RETURNING
 	_state_timer = 1.6

@@ -196,6 +196,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F7:
 				_player.global_position = WALLOW_POS + Vector3(13.0, 0.0, 2.0)
 				_hud.show_banner("Teleported: east of the Bear Wallow — keep a torch lit", Color(0.80, 0.62, 0.42))
+			KEY_F9:
+				_player.global_position = PASTURE_POS + Vector3(9.0, 0.0, 6.0)
+				_hud.show_banner("Teleported: the Grey Pasture (Bog-Bull) — sidestep the charge, or bait it into a stone", Color(0.82, 0.70, 0.52))
+			KEY_F10:
+				_player.global_position = GLADE_POS + Vector3(-12.0, 0.0, 0.0)
+				_hud.show_banner("Teleported: west of the Pale Glade (Skull-Deer) — approach slowly, without fire", Color(0.80, 0.78, 0.70))
+			KEY_F11:
+				_player.global_position = ROOST_POS + Vector3(0.0, 0.0, -9.0)
+				_hud.show_banner("Teleported: the Crows' Roost — the nest hoard is guarded by the whole flock", Color(0.72, 0.70, 0.66))
 			KEY_F4:
 				_weather.advance()
 			KEY_F8:
@@ -358,6 +367,7 @@ func _build_blackfen_test_yard() -> void:
 
 	_build_quarry(cutaway_shader)
 	_build_bestiary_landmarks(cutaway_shader)
+	_build_bestiary_three_landmarks(cutaway_shader)
 
 	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false)
 	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false)
@@ -397,6 +407,34 @@ func _build_bestiary_landmarks(cutaway_shader: Shader) -> void:
 	mud.material_override = mud_mat
 	mud.position = WALLOW_POS + Vector3(0.0, 0.012, 0.0)
 	add_child(mud)
+
+## Milestone 20: the Grey Pasture (north, the Bog-Bull) with two standing
+## stones to lure a charge into; the Pale Glade (east, Skull-Deer); the
+## Crows' Roost (a dead tree, far south).
+const PASTURE_POS := Vector3(-3.0, 0.0, -18.0)
+const PASTURE_STONES: Array[Vector3] = [Vector3(-7.0, 0.0, -20.5), Vector3(2.0, 0.0, -15.5)]
+const GLADE_POS := Vector3(20.0, 0.0, 2.0)
+const ROOST_POS := Vector3(-1.0, 0.0, 23.5)
+## Where each roost crow perches, relative to the tree.
+const ROOST_PERCHES: Array[Vector3] = [
+	Vector3(0.9, 3.4, 0.0), Vector3(-0.9, 3.0, 0.2), Vector3(0.2, 4.1, 0.8),
+	Vector3(0.3, 3.7, -0.9), Vector3(-0.6, 4.3, -0.3), Vector3(1.4, 2.6, 0.5),
+]
+var _roost: CrowRoost
+
+func _build_bestiary_three_landmarks(cutaway_shader: Shader) -> void:
+	var stone := Color(0.34, 0.34, 0.31)
+	for p: Vector3 in PASTURE_STONES:
+		_create_static_box(p + Vector3(0.0, 1.2, 0.0), Vector3(1.2, 2.4, 1.2), stone, cutaway_shader, false, false)
+	var birch := Color(0.62, 0.60, 0.55)
+	for off: Vector3 in [Vector3(-4.0, 0, -3.0), Vector3(3.5, 0, -2.5), Vector3(-3.0, 0, 3.5), Vector3(4.0, 0, 3.0)]:
+		_create_static_box(GLADE_POS + off + Vector3(0.0, 0.5, 0.0), Vector3(0.35, 1.0, 0.35), birch, cutaway_shader, false, false)
+	# The dead roost tree: a trunk and a few bare limbs.
+	var dead_wood := Color(0.19, 0.16, 0.13)
+	_create_static_box(ROOST_POS + Vector3(0.0, 2.2, 0.0), Vector3(0.5, 4.4, 0.5), dead_wood, cutaway_shader, false, false)
+	_create_static_box(ROOST_POS + Vector3(0.6, 3.3, 0.1), Vector3(1.4, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
+	_create_static_box(ROOST_POS + Vector3(-0.5, 2.9, 0.1), Vector3(1.1, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
+	_create_static_box(ROOST_POS + Vector3(0.1, 3.9, 0.3), Vector3(0.15, 0.15, 1.4), dead_wood, cutaway_shader, false, false)
 
 ## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
 ## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
@@ -567,6 +605,41 @@ func _spawn_all_archetype_encounters() -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
 	)
+	# Milestone 20 spawns come last so older saves keep their spawn order.
+	_spawn_bestiary_three()
+
+func _spawn_bestiary_three() -> void:
+	var bull := EnemyBogBull.new()
+	bull.position = PASTURE_POS
+	bull.player_ref = _player
+	bull.audio = _audio
+	bull.coordinator = _coordinator
+	add_child(bull)
+	bull.bull_event_banner.connect(_banner)
+	for off: Vector3 in [Vector3(-1.5, 0.0, 0.0), Vector3(1.8, 0.0, 1.5)]:
+		var deer := EnemySkullDeer.new()
+		deer.position = GLADE_POS + off
+		deer.player_ref = _player
+		deer.audio = _audio
+		add_child(deer)
+	_roost = CrowRoost.new()
+	_roost.position = ROOST_POS
+	_roost.player_ref = _player
+	add_child(_roost)
+	_roost.roost_event_banner.connect(_banner)
+	for perch: Vector3 in ROOST_PERCHES:
+		var crow := EnemyCarrionCrow.new()
+		crow.position = ROOST_POS + perch
+		crow.rotation_degrees.y = randf_range(0.0, 360.0)
+		crow.player_ref = _player
+		crow.audio = _audio
+		add_child(crow)
+		crow.crow_alarm.connect(_on_crow_alarm)
+		_roost.add_crow(crow)
+
+func _banner(txt: String, col: Color) -> void:
+	if _hud:
+		_hud.show_banner(txt, col)
 
 # ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives
@@ -670,6 +743,14 @@ func _spawn_scavenge_containers() -> void:
 		"Quarry Rubble Pile", Vector3(12.2, 0.0, -10.4), Vector3(1.0, 0.4, 0.8), Color(0.38, 0.36, 0.33), 2.5,
 		[ItemDatabase.make("throwing_stone", 5), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
 	)
+	# Milestone 20: the crows hoard what glints. Rummaging here is loud enough
+	# for the flock overhead to hear (they react to the ordinary rummage noise).
+	var hoard := _spawn_container(
+		"Crows' Nest Hoard", ROOST_POS + Vector3(0.7, 0.0, 0.6), Vector3(0.7, 0.3, 0.6), Color(0.26, 0.22, 0.17), 3.0,
+		[ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("salt", 1), ItemDatabase.make("clean_rag_bandage", 1)]
+	)
+	if _roost:
+		_roost.nest = hoard
 
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
 	var body := StaticBody3D.new()

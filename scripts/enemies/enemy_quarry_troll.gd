@@ -37,7 +37,7 @@ enum AIState {
 @export var search_time: float = 3.2
 @export var wall_recoil_time: float = 1.2
 
-const LOUD_KINDS: Array[String] = ["clang", "swing", "roar", "slam", "thud", "shield", "cough", "caw"]
+const LOUD_KINDS: Array[String] = ["clang", "swing", "roar", "slam", "thud", "shield", "cough", "caw", "bleat"]
 
 var health: float = 360.0
 var poise_damage: float = 0.0

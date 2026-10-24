@@ -39,6 +39,8 @@ static func _build() -> void:
 		{"raw_bear_meat": 1, "salt": 1}, Kind.MAKE, {"tool": "cooking_pot", "output": "marsh_stew"})
 	_add("cook_broth", "Cook Salted Broth", "Thin, but hot: salt and a splint of firewood.", 3.0,
 		{"salt": 2, "timber": 1}, Kind.MAKE, {"tool": "cooking_pot", "output": "salted_broth"})
+	_add("roast_game_meat", "Roast game meat", "Spit it over the fire. No pot needed.", 2.5,
+		{"raw_game_meat": 1}, Kind.MAKE, {"output": "roast_game_meat"})
 	_add("sew_bear_cloak", "Sew Bear-Pelt Cloak", "Warm, and the fur muffles your steps.", 5.0,
 		{"bear_pelt": 1, "clean_rag_bandage": 1}, Kind.MAKE, {"output": "bear_pelt_cloak"})
 	_add("sew_troll_cloak", "Sew Troll-Hide Cloak", "Tough as a cart-tarp: some protection, some warmth.", 5.0,

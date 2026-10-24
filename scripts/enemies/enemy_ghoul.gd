@@ -153,7 +153,7 @@ func _hunt(pos: Vector3) -> void:
 func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
 	if state == AIState.DEAD or source == self or not is_inside_tree():
 		return
-	if not (source is PlayerController or kind in ["clang", "caw"]):
+	if not (source is PlayerController or kind in ["clang", "caw", "bleat"]):
 		return
 	if AcousticField.can_hear(self, world_pos, reach):
 		_hunt(world_pos)

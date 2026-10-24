@@ -20,7 +20,8 @@ Milestones 1–5 shipped the combat core, three enemy archetypes, scavenging and
 | 17 | Survival: cold & hunger | ✅ shipped | M9 weather, M4 items |
 | 18 | Shelter crafting & repairs | ✅ shipped | M17, M13 stash |
 | 19 | Day & night | ✅ shipped | M9, M17 |
-| — | **Parked at the owner's request (remind them):** more of the bestiary (bog-bull, skull-deer, crows' roost, fungus zombies, rot-beast, pallid crawler) | parked | M15–16 |
+| 20 | Blackfen Bestiary III: Bog-Bull, Skull-Deer & the Crows' Roost | ✅ shipped | M15, M19 |
+| 21 | Blackfen Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler | planned | M16, M19 |
 | — | Companions, Acts II–III | later | design doc; consider Fable for companion AI |
 
 ---
@@ -152,3 +153,13 @@ A 16-minute day *(proposed)*: night 20:00–05:00, dusk and dawn easing over two
 - **Hearing:** ×1.15 at night.
 - **Creatures:** crows roost (blind, and a noise needs 4 m of spare reach to wake them). The ghoul's blood scent is ×1.5 and its run ×1.15.
 - **Sleep:** after dusk, resting at the fire sleeps until 06:00 for 15 food.
+
+## Milestone 20 — Blackfen Bestiary III
+
+Three creatures of the open fen *(all numbers proposed)*:
+
+- **The Bog-Bull** (the Grey Pasture, north; **F9**). It grazes. When it sees you within 10 m, or hears you within 14 m, it snorts, paws for 1.1 s, then charges at 9 m/s for 1.4 s in a line it can't steer. A gore deals 38 damage with heavy knockback. Nothing staggers a charging bull. A charge into a wall or one of the pasture's two standing stones stuns it for 2.6 s, and it counts as staggered, so weapons lodge. Its carcass gives 3 raw game meat.
+- **The Skull-Deer** (two, in the Pale Glade, east; **F10**). Prey: it never attacks. It notices you within 11 m (×1.5 with a lit torch) in a 260° field, turns wary, then bolts if you keep coming or get within 6 m, or straight away at a loud noise. Its **bleat** (reach 14) sets off the herd, and goblins, orks, the ghoul and the troll treat it like a caw. At night it stares instead, until you're within 3.5 m. Its carcass gives 2 raw game meat.
+- **The Crows' Roost** (a dead tree, far south; **F11**). Six crows and a **Crows' Nest Hoard**. When any roost crow scatters, the flock mobs you for 18 s. Every 2.5 s, within 18 m of the tree, it caws right over your head (reach 14, credited to a crow), so every listener knows where you are.
+- **Roast game meat** at the fire, no pot needed: 14 food raw, 40 roasted (+10 warmth).
+

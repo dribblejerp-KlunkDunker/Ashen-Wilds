@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–19 complete · verified on Godot 4.3-stable (Forward+) · **463/463** headless regression checks passing
+> **Status:** Milestones 1–20 complete · verified on Godot 4.3-stable (Forward+) · **511/511** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
@@ -240,6 +240,17 @@ The pot works from the stash, so storing it for the Act I objective doesn't stop
 
 ![Working at the shelter fire](docs/screenshots/19_crafting_at_fire.png)
 
+### Blackfen Bestiary III: the Bog-Bull, the Skull-Deer & the Crows' Roost (Milestone 20)
+- **The Bog-Bull** (the Grey Pasture, **F9**) grazes until it sees you within 10 m or hears you. Then it snorts, paws the ground for about a second, and **charges in a straight line it can't steer**. Step aside as it comes and it thunders past; get caught and it gores you for 38 and throws you back. Nothing staggers a charging bull. But bait it into one of the pasture's standing stones and it slams in and stands stunned for 2.6 s, long enough for a heavy blow to lodge.
+- **The Skull-Deer** (the Pale Glade, **F10**) are prey. A deer notices you at 11 m (further if you carry fire), raises its bone-white head, and bolts if you keep coming. Its **bleat** sets the herd running, and goblins, orks, the ghoul and the troll come to see what spooked it. By day you can only get close from behind. At night they don't run: their eye sockets glow and they **stare**, until you're within 3.5 m.
+- **The Crows' Roost** (far south, **F11**) is a dead tree with six crows and a nest hoard of shiny things. Rummage in the hoard, or make a loud noise nearby, and the whole flock **mobs you** for 18 s, cawing over your head every few seconds. Anything that hears it knows exactly where you are. Get 18 m away to shake them.
+- **Game meat** from either beast roasts at the fire without the pot: 14 food raw, 40 roasted, and it warms you a little.
+
+| | |
+|---|---|
+| ![The Bog-Bull paws the ground](docs/screenshots/21_bog_bull_paws.png) | ![Skull-Deer staring at night](docs/screenshots/22_skull_deer_stare.png) |
+| **The Bog-Bull lowers its horns.** The orange ring means it's about to charge. Don't be where it's pointing. | **At night the Skull-Deer stare.** They won't run until you're almost close enough to touch. |
+
 ### Day & night (Milestone 19)
 A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 of those minutes, and dusk and dawn ease in over two in-game hours. The HUD shows the phase and the clock next to the weather. **F8** skips three hours.
 
@@ -281,6 +292,7 @@ A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 
 | **K** | Work at the shelter fire: repairs, cooking, sewing |
 | **R** | Respawn at the shelter fire |
 | **F1 / F2 / F3 / F5 / F6 / F7** | Teleport to Watchhouse / Ork choke point / Ogre lair / Old Quarry / Drowned Barrow / Bear Wallow (dev) |
+| **F9 / F10 / F11** | Teleport to the Grey Pasture / Pale Glade / Crows' Roost (dev) |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -347,12 +359,13 @@ scripts/
               survivor_background, background_database (the eight survivors)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles), vision_cone.gd, acoustic_field.gd, acoustic_ripples.gd,
-              weather_system.gd, day_night_cycle.gd
+              weather_system.gd, day_night_cycle.gd, crow_roost.gd
   player/     player_controller.gd
-  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound
+  enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound,
+              bog-bull, skull-deer
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (463 checks)
+  smoke_test.gd            Headless regression suite (511 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -377,7 +390,8 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
-- Later: companions, the rest of the bestiary, Acts II–III.
+- Next: Blackfen Bestiary IV (fungus zombies, the Rot-Beast, the Pallid Crawler).
+- Later: companions, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
 
 ---

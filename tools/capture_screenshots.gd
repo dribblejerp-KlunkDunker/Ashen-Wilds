@@ -69,6 +69,8 @@ func _run() -> void:
 	var enemies: Array = _find(func(n: Node) -> bool: return n.is_in_group("enemy"))
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
+	for r: Node in get_nodes_in_group("crow_roost"):
+		r.process_mode = Node.PROCESS_MODE_DISABLED
 	_rig.adjust_brightness(0.4)
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
 	await _frames(10)
@@ -333,6 +335,41 @@ func _run() -> void:
 	night_gob._visual_root.visible = true
 	await _frames(40)
 	await _shot("20_night_torchlight.png")
+	dn.set_hour(8.0)
+	await _frames(5)
+
+	# 21. Milestone 20: the Bog-Bull paws the ground, horns lowered, in the Grey Pasture.
+	# Side-on to the camera (which looks along -X-Z), so its length and horns read.
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	var bull: EnemyBogBull = enemies.filter(func(e: Node) -> bool: return e is EnemyBogBull)[0]
+	bull.global_position = AshenWildsBootstrap.PASTURE_POS + Vector3(-1.0, 0.0, -0.6)
+	var bull_stand: Vector3 = bull.global_position + Vector3(3.4, 0.0, -3.4)
+	_place(bull_stand, (bull.global_position - bull_stand).normalized())
+	bull._facing_dir = (bull_stand - bull.global_position).normalized()
+	bull._visual_root.look_at(bull.global_position + bull._facing_dir, Vector3.UP)
+	bull.state = EnemyBogBull.AIState.PAW
+	bull._update_visual_telegraph()
+	bull._visual_root.visible = true
+	await _frames(40)
+	await _shot("21_bog_bull_paws.png")
+
+	# 22. Milestone 20: at night the Skull-Deer don't run. They stare.
+	dn.set_hour(21.5)
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	var glade_stand: Vector3 = AshenWildsBootstrap.GLADE_POS + Vector3(-3.6, 0.0, 3.0)
+	_place(glade_stand, Vector3(1.0, 0, -0.6))
+	for e: Node in enemies:
+		if e is EnemySkullDeer:
+			var deer: EnemySkullDeer = e
+			deer._facing_dir = (glade_stand - deer.global_position).normalized()
+			deer._visual_root.look_at(deer.global_position + deer._facing_dir, Vector3.UP)
+			deer.state = EnemySkullDeer.AIState.STARE
+			deer._update_visual_telegraph()
+			deer._visual_root.visible = true
+	await _frames(40)
+	await _shot("22_skull_deer_stare.png")
 	dn.set_hour(8.0)
 	await _frames(5)
 

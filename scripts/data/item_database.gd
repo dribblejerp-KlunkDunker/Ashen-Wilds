@@ -61,6 +61,17 @@ static func roll_bear_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	return out
 
+## Milestone 20
+static func roll_bull_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("raw_game_meat", 3))
+	return out
+
+static func roll_deer_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("raw_game_meat", 2))
+	return out
+
 static func roll_ghoul_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("iron_scrap", 1))
@@ -281,6 +292,11 @@ static func _build() -> void:
 	broth.warmth_value = 25.0
 	_register(broth)
 	_register(_food("raw_bear_meat", "Raw Bear Meat", 1.0, 4, 12.0, 2.2, "Fills the belly badly raw. Better in a pot."))
+	# Milestone 20: bull and deer.
+	_register(_food("raw_game_meat", "Raw Game Meat", 0.8, 6, 14.0, 2.0, "Bull or deer, cut from the carcass. Roast it at the fire."))
+	var roast := _food("roast_game_meat", "Roast Game Meat", 0.6, 6, 40.0, 1.6, "Charred outside, pink within. Still warm.")
+	roast.warmth_value = 10.0
+	_register(roast)
 
 	# Milestone 11
 	var stone := ItemData.new()
