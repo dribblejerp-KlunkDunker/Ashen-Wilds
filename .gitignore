@@ -16,3 +16,13 @@ export/
 .vscode/
 .idea/
 *.swp
+
+# Autonomous Project Master: keep the gate config, not the session evidence
+.agent/master/*
+!.agent/master/config.json
+
+# Python bytecode from tools/visual_benchmark.py
+__pycache__/
+
+# Every cut of the reference sheets: rebuilt by tools/slice_sheets.py, only assets/game/ is committed
+assets/sheets/

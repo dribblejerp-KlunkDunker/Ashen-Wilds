@@ -13,6 +13,8 @@ signal contents_changed
 ## Wording for the prompt and progress bar ("Search" / "Searching").
 @export var search_verb: String = "Search"
 @export var search_verb_progressive: String = "Searching"
+## Milestone 13: you can store your own things here (the shelter stash).
+@export var accepts_deposits: bool = false
 
 var items: Array[ItemInstance] = []
 var searched: bool = false
@@ -37,6 +39,13 @@ func take(inst: ItemInstance) -> void:
 	if remove_when_empty and items.is_empty():
 		queue_free()
 
+func count_of(item_id: String) -> int:
+	var n: int = 0
+	for inst: ItemInstance in items:
+		if inst.data.item_id == item_id:
+			n += inst.quantity
+	return n
+
 func total_weight() -> float:
 	var w: float = 0.0
 	for inst: ItemInstance in items:
@@ -48,6 +57,7 @@ func total_weight() -> float:
 static func attach_corpse(body: Node3D, label: String, loot: Array[ItemInstance], duration: float = 3.0) -> Lootable:
 	var l := Lootable.new()
 	l.name = "CorpseLoot"
+	l.set_meta("corpse", true)
 	l.display_name = label
 	l.search_duration = duration
 	l.interact_radius = 2.0
@@ -67,6 +77,7 @@ static func spawn_lodged_weapon(parent: Node, world_pos: Vector3, inst: ItemInst
 	l.remove_when_empty = true
 	l.interact_radius = 1.8
 	l.items.append(inst)
+	l.set_meta("save_kind", "lodged")
 
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -99,6 +110,7 @@ static func spawn_ground_pile(parent: Node, world_pos: Vector3, inst: ItemInstan
 	l.remove_when_empty = true
 	l.interact_radius = 1.4
 	l.items.append(inst)
+	l.set_meta("save_kind", "ground")
 
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()

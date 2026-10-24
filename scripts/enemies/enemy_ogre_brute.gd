@@ -15,12 +15,18 @@ enum AIState {
 	SLAM_ACTIVE,
 	LONG_RECOVERY,
 	STAGGER,
+	RECOIL,
 	DEAD
 }
 
 @export var enemy_name: String = "Blackfen Ogre"
 @export var max_health: float = 280.0
 @export var max_poise: float = 95.0
+
+# Milestone 6 — the club sweep clangs off walls and pillars; the slam doesn't.
+@export var club_reach: float = 2.6
+@export var sweep_arc_degrees: float = 150.0
+@export var wall_recoil_time: float = 1.1
 
 var health: float = 280.0
 var poise_damage: float = 0.0
@@ -34,6 +40,7 @@ var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _home_pos: Vector3 = Vector3.ZERO
 var _blocked_by_narrow_gap_timer: float = 0.0
+var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _club_pivot: Node3D
@@ -44,9 +51,11 @@ var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	_home_pos = global_position
 	_build_ogre_visuals_and_colliders()
+	AcousticField.listen(self, _on_noise_heard)
 
 func _physics_process(delta: float) -> void:
 	_update_player_los_visibility()
@@ -65,17 +74,21 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.1
 	move_and_slide()
+	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.62, 13.0)
 
 func _update_player_los_visibility() -> void:
 	if player_ref == null:
 		return
-	var space_state := get_world_3d().direct_space_state
+	_visual_root.visible = player_ref.can_see_body(self)
+
+## The Ogre's own eyes (it doesn't care where the survivor is looking).
+func _sees_player() -> bool:
 	var q := PhysicsRayQueryParameters3D.create(
+		global_position + Vector3(0.0, 2.4, 0.0),
 		player_ref.global_position + Vector3(0.0, 1.35, 0.0),
-		global_position + Vector3(0.0, 1.85, 0.0),
 		1
 	)
-	_visual_root.visible = space_state.intersect_ray(q).is_empty()
+	return get_world_3d().direct_space_state.intersect_ray(q).is_empty()
 
 func _process_ai_state(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -92,9 +105,10 @@ func _process_ai_state(delta: float) -> void:
 		AIState.IDLE:
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
-			if dist <= 13.0 and _visual_root.visible:
+			if dist <= 13.0 * WeatherSystem.factor(self, "sight") and _sees_player():
 				if audio:
 					audio.play_ogre_roar()
+				AcousticField.report(self, global_position, 20.0, "roar")
 				ogre_event_banner.emit("The Blackfen Ogre Has Spotted You!", Color(0.92, 0.35, 0.20))
 				state = AIState.PURSUE
 
@@ -120,6 +134,7 @@ func _process_ai_state(delta: float) -> void:
 					_blocked_by_narrow_gap_timer = 0.0
 					if audio:
 						audio.play_ogre_roar()
+					AcousticField.report(self, global_position, 20.0, "roar")
 					ogre_event_banner.emit("The Ogre Is Too Massive To Fit Through The Doorway!", Color(0.85, 0.72, 0.38))
 					state = AIState.DOORWAY_FRUSTRATED
 					_state_timer = 2.2
@@ -170,6 +185,13 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
+		AIState.RECOIL:
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			if _state_timer <= 0.0:
+				state = AIState.PURSUE
+
 		AIState.STAGGER:
 			_state_timer -= delta
 			_slam_ring.visible = false
@@ -178,11 +200,23 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
+## Milestone 10: a sleeping Ogre wakes to the survivor's noise.
+func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, _kind: String) -> void:
+	if state != AIState.IDLE or not (source is PlayerController) or not is_inside_tree():
+		return
+	if not AcousticField.can_hear(self, world_pos, reach):
+		return
+	if audio:
+		audio.play_ogre_roar()
+	AcousticField.report(self, global_position, 20.0, "roar")
+	ogre_event_banner.emit("The Blackfen Ogre heard you!", Color(0.92, 0.35, 0.20))
+	state = AIState.PURSUE
+
 func is_dead() -> bool:
 	return state == AIState.DEAD
 
 func is_staggered() -> bool:
-	return state == AIState.STAGGER
+	return state in [AIState.STAGGER, AIState.RECOIL]
 
 func _begin_committed_attack(dir_to_player: Vector3) -> void:
 	if coordinator:
@@ -196,10 +230,15 @@ func _begin_committed_attack(dir_to_player: Vector3) -> void:
 		_state_timer = 0.92
 
 func _enter_sweep_active() -> void:
+	var obstruction: Dictionary = SwingGeometry.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, club_reach, 1.6)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	state = AIState.SWEEP_ACTIVE
 	_state_timer = 0.24
 	if audio:
 		audio.play_swing()
+	AcousticField.report(self, global_position, 12.0, "swing")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -217,6 +256,7 @@ func _enter_slam_active() -> void:
 	_state_timer = 0.22
 	if audio:
 		audio.play_ogre_ground_slam()
+	AcousticField.report(self, global_position, 18.0, "slam")
 	ogre_ground_shockwave.emit(0.75)
 	var payload := CombatPayload.new(
 		self,
@@ -229,6 +269,21 @@ func _enter_slam_active() -> void:
 		8.5
 	)
 	_hitbox.begin_swing(payload)
+
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	state = AIState.RECOIL
+	_state_timer = wall_recoil_time
+	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 1.6
+	if audio:
+		audio.play_wall_clang()
+	AcousticField.report(self, global_position, 14.0, "clang")
+	ogre_ground_shockwave.emit(0.3)
+	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * 2.0), normal, 22)
+	ogre_event_banner.emit("The Ogre's club smashes into stone — strike now!", Color(0.48, 0.78, 0.92))
 
 func _enter_long_recovery(duration: float) -> void:
 	_hitbox.end_swing()
@@ -288,7 +343,7 @@ func _update_visual_telegraph() -> void:
 		AIState.SWEEP_ACTIVE, AIState.SLAM_ACTIVE:
 			_club_pivot.rotation_degrees = Vector3(32.0, -75.0, 0.0)
 			_status_mat.albedo_color = Color(0.95, 0.12, 0.12)
-		AIState.LONG_RECOVERY, AIState.STAGGER:
+		AIState.LONG_RECOVERY, AIState.STAGGER, AIState.RECOIL:
 			_club_pivot.rotation_degrees = Vector3(52.0, -15.0, 18.0)
 			_status_mat.albedo_color = Color(0.38, 0.75, 0.92)
 		_:
@@ -404,3 +459,5 @@ func _build_ogre_visuals_and_colliders() -> void:
 	_hurtbox.add_child(hurt_col)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
+	# Interim painted art (assets/art_map.json); falls back to the meshes above.
+	SpriteArt.dress(_visual_root, "ogre_brute")

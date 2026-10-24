@@ -5,6 +5,12 @@ uniform vec4 albedo_color : source_color = vec4(0.26, 0.24, 0.22, 1.0);
 uniform float roughness_val : hint_range(0.0, 1.0) = 0.88;
 uniform float metallic_val : hint_range(0.0, 1.0) = 0.08;
 uniform float grime_strength : hint_range(0.0, 1.0) = 0.35;
+// Optional painted surface (interim art from the reference sheets), sampled
+// triplanar in world space so it tiles across any box size.
+uniform bool use_texture = false;
+uniform sampler2D albedo_tex : source_color, filter_linear_mipmap, repeat_enable;
+uniform float tex_metres = 1.5;
+uniform vec3 tex_tint : source_color = vec3(1.0);
 
 // Updated every frame by IsoCameraRig
 uniform vec3 player_world_pos = vec3(0.0, 0.0, 0.0);
@@ -14,6 +20,7 @@ uniform bool enable_foreground_cutaway = true;
 uniform float cutaway_radius : hint_range(0.5, 6.0) = 2.4;
 
 varying vec3 world_pos;
+varying vec3 world_normal;
 
 float bayer4x4(vec2 screen_px) {
 	int x = int(mod(screen_px.x, 4.0));
@@ -36,12 +43,22 @@ float hash_noise(vec3 p) {
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
 void fragment() {
 	float n = hash_noise(floor(world_pos * 6.0));
 	float damp_gradient = clamp(world_pos.y * 0.45, 0.0, 1.0);
-	vec3 base = albedo_color.rgb * mix(0.62, 1.0, damp_gradient);
+	vec3 surface = albedo_color.rgb;
+	if (use_texture) {
+		vec3 w = pow(abs(world_normal), vec3(4.0));
+		w /= (w.x + w.y + w.z);
+		vec3 tx = texture(albedo_tex, world_pos.zy / tex_metres * vec2(1.0, -1.0)).rgb;
+		vec3 ty = texture(albedo_tex, world_pos.xz / tex_metres).rgb;
+		vec3 tz = texture(albedo_tex, world_pos.xy / tex_metres * vec2(1.0, -1.0)).rgb;
+		surface = (tx * w.x + ty * w.y + tz * w.z) * tex_tint;
+	}
+	vec3 base = surface * mix(0.62, 1.0, damp_gradient);
 	base = mix(base, base * (0.75 + 0.5 * n), grime_strength);
 
 	ALBEDO = base;

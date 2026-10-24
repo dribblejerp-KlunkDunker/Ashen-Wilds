@@ -154,20 +154,26 @@ func _rebuild_inventory() -> void:
 			prefix = "[MAIN] "
 		elif inst == inv.off_hand:
 			prefix = "[OFF] " if _player._offhand_active() else "[OFF·stowed] "
+		elif inv.is_equipped(inst) and inst.data.category == ItemData.Category.ARMOR:
+			prefix = "[%s] " % ItemData.ArmorSlot.keys()[inst.data.armor_slot]
 		var name_lbl := _make_label(prefix + inst.get_label(), 13, TEXT_WARN if inst.is_broken() else TEXT_MAIN)
 		name_lbl.custom_minimum_size = Vector2(250, 0)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.clip_text = true
 		name_lbl.tooltip_text = inst.data.description
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(_icon_rect(inst))
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
 		row.add_child(w_lbl)
+		if _loot_panel.visible and _loot_target != null and is_instance_valid(_loot_target) and _loot_target.accepts_deposits:
+			var dest: Lootable = _loot_target
+			_add_button(row, "Store", func() -> void: _player.store_in(dest, inst))
 		if inst.data.is_equippable():
 			_add_button(row, "Unequip" if inv.is_equipped(inst) else "Equip", func() -> void: _player.request_equip(inst))
 		elif inst.data.category == ItemData.Category.CONSUMABLE:
-			_add_button(row, "Use", func() -> void: _player.use_item(inst))
+			_add_button(row, "Eat" if inst.data.food_value > 0.0 else "Use", func() -> void: _player.use_item(inst))
 		_add_button(row, "Drop", func() -> void: _player.drop_item(inst))
 		_inv_list.add_child(row)
 
@@ -188,6 +194,7 @@ func _rebuild_loot() -> void:
 		name_lbl.clip_text = true
 		name_lbl.tooltip_text = inst.data.description
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(_icon_rect(inst))
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
@@ -234,6 +241,19 @@ func _make_scroll_list(parent: VBoxContainer, height: float) -> VBoxContainer:
 	list.add_theme_constant_override("separation", 4)
 	scroll.add_child(list)
 	return list
+
+## The item's painted icon (interim art from the reference sheets), or an
+## empty square of the same size so the rows stay aligned.
+func _icon_rect(inst: ItemInstance) -> TextureRect:
+	var r := TextureRect.new()
+	r.custom_minimum_size = Vector2(36, 36)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.texture = SpriteArt.icon(inst.data.item_id)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if inst.is_broken():
+		r.modulate = Color(0.9, 0.5, 0.4)
+	return r
 
 func _make_label(text: String, font_size: int, color: Color) -> Label:
 	var lbl := Label.new()

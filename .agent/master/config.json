@@ -1,0 +1,38 @@
+{
+  "kit_version": "1.0.0",
+  "gates": [
+    {
+      "id": "compile",
+      "cmd": "G=${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}; $G --headless --path . --import >/dev/null 2>&1; bad=0; for f in $(find scripts tests tools -name '*.gd' | sort); do out=$($G --headless --path . --check-only --script res://$f 2>&1 | grep -E 'ERROR|WARNING'); [ -n \"$out\" ] && echo \"--- $f\" && echo \"$out\" && bad=1; done; exit $bad",
+      "required": true,
+      "timeout_s": 600
+    },
+    {
+      "id": "suite",
+      "cmd": "G=${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}; $G --headless --path . --script res://tests/smoke_test.gd 2>&1 | grep -E 'FAIL|passed|SCRIPT ERROR'; exit ${PIPESTATUS[0]}",
+      "required": true,
+      "timeout_s": 900
+    },
+    {
+      "id": "boot",
+      "cmd": "G=${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}; out=$($G --headless --path . --quit-after 1200 2>&1 | grep -vE 'mesh_get_surface_count|Parameter \"m\" is null|^\\s*$|ObjectDB|cleanup \\(core|^Godot Engine'); [ -z \"$out\" ] || { echo \"$out\"; exit 1; }",
+      "required": true,
+      "timeout_s": 300
+    },
+    {
+      "id": "benchmark-selftest",
+      "cmd": "python3 tools/visual_benchmark.py --selftest",
+      "required": true,
+      "timeout_s": 120
+    },
+    {
+      "id": "screenshots",
+      "cmd": "echo 'not a gate: tools/capture_screenshots.gd rewrites docs/screenshots. Run .claude/skills/ashen-wilds-milestone/scripts/capture.sh and look at every image.'",
+      "required": false,
+      "note": "rewrites tracked files, so it can't be a gate; checked by eye"
+    }
+  ],
+  "protected_tests": [
+    "tests/**"
+  ]
+}

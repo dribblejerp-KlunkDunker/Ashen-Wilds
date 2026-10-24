@@ -1,0 +1,16 @@
+{
+  "survivor_sprite": {"score": 0, "note": "Capsule-and-sphere placeholder"},
+  "enemy_sprites": {"score": 0, "note": "Primitive meshes; silhouettes differ by shape only"},
+  "telegraph_poses": {"score": 0, "note": "Telegraphs rely on the coloured status rings and body tilts"},
+  "stone_walls": {"score": 0, "note": "Flat untextured boxes"},
+  "wet_ground": {"score": 0, "note": "One flat ground colour; no flagstone, moss or puddles"},
+  "props": {"score": 0, "note": "Containers are plain boxes; no barrels, banner, timbers or leaning shield"},
+  "torch_light": {"score": 0.5, "note": "A warm torch pool on a dark world with fast falloff is there; the cold blue-grey ambient and wet highlights aren't"},
+  "fire_vfx": {"score": 0, "note": "Flames are emissive spheres; no flipbooks"},
+  "backdrop": {"score": 0, "note": "No mist or pines beyond the walls"},
+  "palette_discipline": {"score": 0.5, "note": "Mostly muted, but the status rings add saturated colour that isn't fire, blood or rot"},
+  "pack_grid": {"score": 0, "note": "The pack is a text list"},
+  "pack_detail": {"score": 0, "note": "No detail pane; Use/Drop buttons sit on each row"},
+  "item_icons": {"score": 0, "note": "No icons"},
+  "hud_minimal": {"score": 0, "note": "Six bars and several text lines top-left, plus a key-help panel"}
+}
