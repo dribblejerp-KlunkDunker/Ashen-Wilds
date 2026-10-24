@@ -72,6 +72,15 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 
 **Look at every image after rendering** (open the PNGs). The script poses enemies and freezes them, and the shots have exposed real bugs before: torch self-shadowing, and an occluding wall without the cutaway. `docs/.gdignore` keeps the images out of Godot's import pipeline.
 
+## Visual benchmark
+
+`.claude/skills/ashen-wilds-milestone/scripts/benchmark.sh <run> "what changed"` renders a fixed shot set into `docs/benchmark/runs/<run>/` and scores it against the target mockup (`tools/visual_benchmark.py`, report in `docs/benchmark/REPORT.md`).
+- Run it after any art or lighting change.
+- Name runs `NNN-<what>` so they sort. Each run keeps its own folder: that's the visual history.
+- Copy and re-score the rubric by hand. Re-scoring keeps a run's label and render date.
+- The scorer's `--selftest` is a gate.
+- Bump `SCORER_VERSION` when you change a metric. Rows from different versions aren't compared.
+
 ## Layout
 
 ```

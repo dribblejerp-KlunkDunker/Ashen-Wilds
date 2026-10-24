@@ -47,6 +47,7 @@ A golden loop for this repo: **plan → test → code → debug → clean → co
 
 - **Every push that changes something visible adds or updates a screenshot.** Add a numbered shot to `tools/capture_screenshots.gd` (pose and freeze the scene, set the state directly). Then run `scripts/capture.sh` in the background (10–15 min).
 - **Open and look at every new or changed PNG.** If the subject isn't readable (an enemy hidden behind a wall, out of the torchlight, outside the cone), re-pose and re-render. Shots have exposed real bugs before.
+- Art, lighting or UI-look changes also get a **visual benchmark run** (`scripts/benchmark.sh 00N-<name> "what changed"`). Re-score the copied rubric, commit the new run folder, and say in the hand-back how the scores moved.
 - Re-commit older shots only when their content really changed (for example a HUD line was added). Otherwise `git checkout -- docs/screenshots/<file>` to avoid render-noise churn.
 - Update the README: the status line test count, a feature section with the new image, the controls table, the project structure, and "How the pieces fit" if wiring changed. Also update `docs/ROADMAP.md` (status ✅ plus a section) and `CLAUDE.md` (milestone list, test count, a "How the systems connect" bullet, the keybindings line).
 
@@ -63,5 +64,6 @@ A golden loop for this repo: **plan → test → code → debug → clean → co
 | `scripts/setup_godot.sh [--screenshots]` | Installs Godot 4.3-stable to `~/godot`, plus Mesa Vulkan for screenshots |
 | `scripts/verify.sh [--twice]` | Import, compile-check, smoke suite, live boot. Non-zero exit on any problem |
 | `scripts/capture.sh` | Renders all README screenshots and lists the changed files |
+| `scripts/benchmark.sh <run> "label"` | Renders the visual-benchmark shots into a new run folder and scores them against the target mockup |
 
-All three resolve the repo root themselves, so they run from anywhere inside it.
+All four resolve the repo root themselves, so they run from anywhere inside it.

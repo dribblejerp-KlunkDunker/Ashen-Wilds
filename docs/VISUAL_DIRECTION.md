@@ -69,6 +69,30 @@ The sheets so far are AI-generated **contact sheets: previews on a white backgro
 7. **Licensing:** confirm the generator's terms allow use in a shipped game.
 8. **Where to put them:** committed to the repo under `assets/` (that ends the "everything built in code" rule for art, deliberately).
 
+## Measuring progress: the visual benchmark
+
+`docs/benchmark/` tracks how close each art pass gets to the mockup. [`REPORT.md`](benchmark/REPORT.md) has the latest run, the history and the rubric.
+
+- `tools/visual_benchmark.gd` renders a fixed shot set the same way every time, with and without the HUD:
+  - **B1:** the mockup's composition, night inside the watchhouse with a torch, plus a pack-open frame.
+  - **B2:** the shelter fire at night.
+  - **B3:** the marsh by day.
+  - **B4:** a creature line-up.
+
+  The vision cone's charcoal overlay is off, because the mockup shows the whole room. If the pack UI grows a `select_item(item)` method, B1 selects the rag bandage like the mockup.
+- `tools/visual_benchmark.py` scores each world shot against the mockup's world area on eight readings of the style pillars: palette, darkness, light pool, torch pool, ambient share, ambient tint, saturation and surface detail. It also scores a hand-marked rubric of this doc's must-haves (`docs/benchmark/rubric.json`).
+- Run it after every art pass, with a new run name so older shots stay: `.claude/skills/ashen-wilds-milestone/scripts/benchmark.sh 001-<what> "what changed"`. Then re-score the copied rubric and re-run the scorer.
+- The numbers are a compass, not a judge. A high score with the wrong mood is still wrong, so look at the side-by-side too. Every reading also moves with overall brightness, and `detail` rises with grain or dithering, so treat a jump from a lighting or post-process change with suspicion.
+
+The baseline (`000-baseline-placeholders`) measured 32/100, with a rubric of 7/100. Against the mockup's world, its night shots are:
+- **Too black:** 99.9% of the frame is near-black, against 88.6%.
+- **No visible ambient:** the mockup's dim blue-grey stone and ground cover 21% of its frame, and ours cover 0%. Nothing reads outside the torch.
+- **A small torch pool:** it covers 0.1% of the frame, against 1.7%.
+- **About half the chroma.**
+- **About 4% of the surface detail.**
+
+The palette readings sit at 66–73.
+
 ## Current game → reference mapping (quick lookup)
 
 | In game now (placeholder) | Use from the references |

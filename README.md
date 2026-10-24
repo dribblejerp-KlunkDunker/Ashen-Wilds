@@ -354,7 +354,8 @@ On a desktop with a GPU, drop the `xvfb-run …` prefix.
 
 ```
 CLAUDE.md                  Working notes for AI agents: Godot setup, verify steps, conventions
-.claude/skills/ashen-wilds-milestone/   The agents' work loop + setup / verify / capture scripts
+.claude/skills/ashen-wilds-milestone/   The agents' work loop + setup / verify / capture / benchmark scripts
+docs/benchmark/            Visual benchmark: runs scored against the target mockup (REPORT.md)
 project.godot              Engine config, physics layer names
 main.tscn                  Single root node → scene_bootstrap.gd
 shaders/
@@ -402,6 +403,7 @@ Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers ar
 
 - Later: companions, Acts II–III.
 - An art and audio pass, once the look is settled. See *Known limitations*.
+- The art pass is measured by the **visual benchmark** ([`docs/benchmark/REPORT.md`](docs/benchmark/REPORT.md)): fixed shots scored against the target mockup. The baseline of today's placeholders is 32/100 measured, with a rubric of 7/100. A **performance benchmark** (frame time, draw calls and memory before and after each art swap) comes later.
 
 ---
 

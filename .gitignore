@@ -20,3 +20,6 @@ export/
 # Autonomous Project Master: keep the gate config, not the session evidence
 .agent/master/*
 !.agent/master/config.json
+
+# Python bytecode from tools/visual_benchmark.py
+__pycache__/
