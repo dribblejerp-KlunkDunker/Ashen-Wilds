@@ -12,7 +12,12 @@ PREV=$(ls -1 docs/benchmark/runs | grep -v "^$RUN$" | sort | tail -1 || true)
 timeout 900 xvfb-run -a -s "-screen 0 1920x1080x24" "$GODOT" --path . --rendering-driver vulkan \
   --script res://tools/visual_benchmark.gd -- --run="$RUN" 2>&1 | grep -E "^saved|SCRIPT ERROR"
 if [ ! -f "docs/benchmark/runs/$RUN/rubric.json" ] && [ -n "$PREV" ]; then
-  cp "docs/benchmark/runs/$PREV/rubric.json" "docs/benchmark/runs/$RUN/rubric.json"
-  echo "Copied the rubric from $PREV: re-score what this run's art changed, then re-run the scorer."
+  python3 - "$PREV" "docs/benchmark/runs/$PREV/rubric.json" "docs/benchmark/runs/$RUN/rubric.json" <<'PY'
+import json, sys
+marks = json.load(open(sys.argv[2]))
+marks["_unreviewed"] = f"copied from {sys.argv[1]}: re-score what this run changed, then delete this key"
+json.dump(marks, open(sys.argv[3], "w"), indent=2)
+PY
+  echo "Copied the rubric from $PREV (marked unreviewed): re-score what this run's art changed, delete \"_unreviewed\", then re-run the scorer."
 fi
 python3 tools/visual_benchmark.py --run "$RUN" --label "$LABEL"

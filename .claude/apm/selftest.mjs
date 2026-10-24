@@ -116,6 +116,13 @@ try {
   check(t("Bash", { command: "echo '{}' >> .agent/master/reviews.jsonl" }) === "deny", "appending to reviews by shell is denied");
   check(t("Bash", { command: "rm -rf .agent/master" }) === "deny", "deleting the state directory is denied");
   check(t("Bash", { command: "node .claude/apm/verify.mjs" }) === "allow", "running verify.mjs is allowed");
+  check(t("Bash", { command: "ls .agent/master/archive/ 2>&1 | head" }) === "allow", "a read-only look with 2>&1 is allowed");
+  check(t("Bash", { command: "cat .agent/master/evidence.jsonl > /dev/null && node .claude/apm/mission.mjs status 2>&1" }) === "allow", "reading evidence with >/dev/null is allowed");
+  check(t("Bash", { command: "echo x 2>&1 > .agent/master/evidence.jsonl" }) === "deny", "...but a real redirect into the evidence is still denied");
+  check(t("Bash", { command: "grep -c x tests/check.sh 2>&1" }) === "allow", "reading a test file with 2>&1 doesn't ask");
+  check(t("Bash", { command: "echo '{}' >& .agent/master/reviews.jsonl" }) === "deny", "'>& file' into the reviews is a write, denied");
+  check(t("Bash", { command: "echo '{}' >&.agent/master/evidence.jsonl" }) === "deny", "'>&file' into the evidence is a write, denied");
+  check(t("Bash", { command: "echo x >/dev/null.agent/master/evidence.jsonl" }) === "deny", "a path that only starts with /dev/null is still a write");
   check(t("Bash", { command: "node .claude/apm/mission.mjs review --verdict PASS --summary x" }) === "deny", "the main agent can't record a review");
   check(t("Bash", { command: "node .claude/apm/mission.mjs review --verdict PASS --summary x" }, { agent_type: "evidence-reviewer" }) === "allow", "the evidence-reviewer can");
   node("mission.mjs", ["set", "--status", "active"]);
@@ -127,6 +134,7 @@ try {
   check(t("Write", { file_path: path.join(tmp, "tests/new_test.sh"), content: "true\n" }) === "allow", "a new test file is fine");
   check(t("Bash", { command: "sed -i 's/v/x/' tests/check.sh" }) === "ask", "sed -i on an existing test asks");
   check(t("Bash", { command: "rm tests/check.sh" }) === "ask", "deleting an existing test asks");
+  check(t("Bash", { command: "echo gone >& tests/check.sh" }) === "ask", "'>& file' onto an existing test asks");
   check(t("Write", { file_path: path.join(tmp, "app.txt"), content: "v4\n" }) === "allow", "ordinary edits are untouched");
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });

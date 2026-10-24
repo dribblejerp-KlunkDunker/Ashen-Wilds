@@ -162,6 +162,7 @@ func _rebuild_inventory() -> void:
 		name_lbl.clip_text = true
 		name_lbl.tooltip_text = inst.data.description
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(_icon_rect(inst))
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
@@ -193,6 +194,7 @@ func _rebuild_loot() -> void:
 		name_lbl.clip_text = true
 		name_lbl.tooltip_text = inst.data.description
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(_icon_rect(inst))
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
@@ -239,6 +241,19 @@ func _make_scroll_list(parent: VBoxContainer, height: float) -> VBoxContainer:
 	list.add_theme_constant_override("separation", 4)
 	scroll.add_child(list)
 	return list
+
+## The item's painted icon (interim art from the reference sheets), or an
+## empty square of the same size so the rows stay aligned.
+func _icon_rect(inst: ItemInstance) -> TextureRect:
+	var r := TextureRect.new()
+	r.custom_minimum_size = Vector2(36, 36)
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	r.texture = SpriteArt.icon(inst.data.item_id)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if inst.is_broken():
+		r.modulate = Color(0.9, 0.5, 0.4)
+	return r
 
 func _make_label(text: String, font_size: int, color: Color) -> Label:
 	var lbl := Label.new()

@@ -1,0 +1,16 @@
+{
+  "survivor_sprite": {"score": 0.5, "note": "Hooded leather painted sprite, mirrored to its facing; one frame cut from a ~60 px preview, so it's soft, and the sword and torch are still primitive rods"},
+  "enemy_sprites": {"score": 0.5, "note": "Nine creature classes are painted with distinct silhouettes; the bog-bull, skull-deer, crows and rot mounds are still primitives, and nothing animates"},
+  "telegraph_poses": {"score": 0, "note": "Single-frame sprites: telegraphs still rely on the coloured status rings"},
+  "stone_walls": {"score": 0.5, "note": "Walls carry a painted stone texture, but they're still straight boxes with no crumbling or damage variants"},
+  "wet_ground": {"score": 0, "note": "A painted ground texture, but flat and faint: no flagstone, moss, mud or puddle sheen"},
+  "props": {"score": 0.5, "note": "Painted chest, stash, crates, sacks and campfire; no barrels placed, banner, collapsed timbers or leaning shield"},
+  "torch_light": {"score": 0.5, "note": "Warm torch pool with fast falloff, and a dim blue-grey ambient now reads outside it; no wet highlights"},
+  "fire_vfx": {"score": 0, "note": "The campfire is a painted still; torch flames are emissive spheres; no flipbooks"},
+  "backdrop": {"score": 0, "note": "No mist or pines beyond the walls"},
+  "palette_discipline": {"score": 0.5, "note": "Sprites are muted and earthy, but the status rings still add saturated colour"},
+  "pack_grid": {"score": 0, "note": "The pack is still a list (now with icons)"},
+  "pack_detail": {"score": 0, "note": "No detail pane; Use/Drop buttons sit on each row"},
+  "item_icons": {"score": 1, "note": "Every item id has a painted icon from sheets 05, 06 and 10, in the pack and loot windows"},
+  "hud_minimal": {"score": 0, "note": "Six bars and several text lines top-left, plus a key-help panel"}
+}

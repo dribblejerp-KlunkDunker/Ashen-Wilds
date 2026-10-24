@@ -1,0 +1,101 @@
+{
+  "run": "001-interim-art",
+  "label": "Interim painted art: sheet-cut sprites for the survivor and nine creatures, props, icons, stone/wood/ground textures; brighter day and colder night",
+  "date": "2026-10-24",
+  "scorer_version": 2,
+  "measured": 42.2,
+  "rubric": 29.4,
+  "rubric_complete": true,
+  "shots": {
+    "b1_watchhouse_night": {
+      "values": {
+        "palette": 5.299,
+        "darkness": 0.999,
+        "light_pool": 10.639,
+        "torch_pool": 0.001,
+        "ambient_share": 0.006,
+        "ambient_tint": -0.49,
+        "saturation": 3.797,
+        "detail": 1.359
+      },
+      "scores": {
+        "palette": 64.7,
+        "darkness": 24.6,
+        "light_pool": 35.4,
+        "torch_pool": 7.2,
+        "ambient_share": 2.9,
+        "ambient_tint": 59.0,
+        "saturation": 82.8,
+        "detail": 22.3
+      },
+      "overall": 37.4
+    },
+    "b2_shelter_fire_night": {
+      "values": {
+        "palette": 5.711,
+        "darkness": 0.995,
+        "light_pool": 13.822,
+        "torch_pool": 0.005,
+        "ambient_share": 0.026,
+        "ambient_tint": 8.359,
+        "saturation": 4.045,
+        "detail": 0.872
+      },
+      "scores": {
+        "palette": 61.9,
+        "darkness": 27.4,
+        "light_pool": 45.9,
+        "torch_pool": 28.8,
+        "ambient_share": 12.3,
+        "ambient_tint": 0.0,
+        "saturation": 88.2,
+        "detail": 14.3
+      },
+      "overall": 34.9
+    },
+    "b3_marsh_day": {
+      "values": {
+        "palette": 6.467,
+        "darkness": 0.968,
+        "light_pool": 13.87,
+        "torch_pool": 0.012,
+        "ambient_share": 0.873,
+        "ambient_tint": -1.282,
+        "saturation": 2.719,
+        "detail": 1.397
+      },
+      "scores": {
+        "palette": 56.9,
+        "saturation": 59.3,
+        "detail": 22.9
+      },
+      "overall": 46.4
+    },
+    "b4_bestiary_lineup": {
+      "values": {
+        "palette": 6.037,
+        "darkness": 0.929,
+        "light_pool": 31.062,
+        "torch_pool": 0.022,
+        "ambient_share": 0.874,
+        "ambient_tint": -0.675,
+        "saturation": 3.117,
+        "detail": 1.942
+      },
+      "scores": {
+        "saturation": 68.0,
+        "detail": 31.9
+      },
+      "overall": 50.0
+    }
+  },
+  "target": {
+    "darkness": 0.886,
+    "light_pool": 30.088,
+    "torch_pool": 0.017,
+    "ambient_share": 0.214,
+    "ambient_tint": -3.768,
+    "saturation": 4.585,
+    "detail": 6.089
+  }
+}

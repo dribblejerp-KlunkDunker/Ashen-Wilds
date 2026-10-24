@@ -76,13 +76,17 @@ if (tool === "Bash") {
   if (/mission\.mjs\s+review\b/.test(c) && input.agent_type !== "evidence-reviewer") {
     decide("deny", "reviews are recorded only by the evidence-reviewer subagent. Spawn it, or set --status awaiting_review.");
   }
+  // fd duplication (2>&1, >&2, >&-) and output thrown away (>/dev/null) write no
+  // file. Only a bare fd number or '-' counts: '>&file' and '>& file' send
+  // stdout and stderr into that file, so they stay writes.
+  const cw = c.replace(/\d*>&(?:\d+|-)(?![\w.\/~$-])/g, " ").replace(/\d*>>?\s*\/dev\/null(?![\w.\/])/g, " ");
   const writes = /(>>?|\btee\b|\brm\b|\bmv\b|\bcp\b|\btruncate\b|\bsed\s+-i|\bperl\s+-[a-z]*i|\bdd\b|\bln\b|\bchmod\b|writeFile|appendFile|open\([^)]*['"][wa])/;
-  if (/\.agent\/master/.test(c) && writes.test(c) && !/^\s*node\s+(\S*\/)?\.claude\/apm\/(verify|mission)\.mjs\b[^;&|>]*$/.test(c)) {
+  if (/\.agent\/master/.test(c) && writes.test(cw) &&!/^\s*node\s+(\S*\/)?\.claude\/apm\/(verify|mission)\.mjs\b[^;&|>]*$/.test(c)) {
     if (/\.agent\/master\/(evidence|reviews|mission|\.stop_blocks|archive)/.test(c) || /\.agent\/master\/?(\s|$|\*)/.test(c)) decide("deny", "the evidence files are written only by verify.mjs / mission.mjs.");
     if (/\.agent\/master\/config\.json/.test(c) && live) decide("deny", "the gate config is frozen while a mission is live.");
   }
   if (/\bgit\s+(checkout|restore|reset|clean|stash)\b/.test(c) && /\.agent/.test(c)) decide("deny", "don't restore or clean the evidence directory.");
-  if (/\bsed\s+-i|\bperl\s+-[a-z]*i|\brm\b|\bmv\b|>|\btruncate\b|\bgit\s+(rm|checkout|restore)\b/.test(c)) {
+  if (/\bsed\s+-i|\bperl\s+-[a-z]*i|\brm\b|\bmv\b|>|\btruncate\b|\bgit\s+(rm|checkout|restore)\b/.test(cw)) {
     for (const tok of c.split(/[\s;|&<>()]+/)) {
       const word = tok.replace(/^["']+|["']+$/g, "");
       if (!word || word.startsWith("-")) continue;

@@ -459,3 +459,5 @@ func _build_ogre_visuals_and_colliders() -> void:
 	_hurtbox.add_child(hurt_col)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
+	# Interim painted art (assets/art_map.json); falls back to the meshes above.
+	SpriteArt.dress(_visual_root, "ogre_brute")

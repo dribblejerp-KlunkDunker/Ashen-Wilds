@@ -45,6 +45,7 @@ var _step_timer: float = 0.0
 
 var _visual_root: Node3D
 var _status_mat: StandardMaterial3D
+var _status_pip: MeshInstance3D
 var _pip: MeshInstance3D
 var _hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
@@ -261,6 +262,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_hurtbox.set_deferred("monitorable", false)
 		_visual_root.rotation_degrees.z = 75.0
 		_visual_root.position.y = 0.35
+		_status_pip.visible = false
 		Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_rot_beast_loot(), 3.5)
 		return
 	poise_damage += payload.poise_damage
@@ -356,6 +358,7 @@ func _build_beast_visuals_and_colliders() -> void:
 	_status_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_status_mat.albedo_color = Color(0.40, 0.38, 0.24)
 	var pip := MeshInstance3D.new()
+	_status_pip = pip
 	var pip_mesh := CylinderMesh.new()
 	pip_mesh.top_radius = 0.9
 	pip_mesh.bottom_radius = 0.9
@@ -391,3 +394,5 @@ func _build_beast_visuals_and_colliders() -> void:
 	_hurtbox.add_child(hurt_col)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
+	# Interim painted art (assets/art_map.json); falls back to the meshes above.
+	SpriteArt.dress(_visual_root, "rot_beast")

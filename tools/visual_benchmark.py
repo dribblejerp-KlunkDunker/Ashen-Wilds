@@ -187,6 +187,9 @@ def load_rubric(run_dir):
     template = json.load(open(RUBRIC))
     path = os.path.join(run_dir, "rubric.json")
     marks = json.load(open(path)) if os.path.exists(path) else {}
+    # benchmark.sh copies the previous run's marks and flags them; a person
+    # deletes "_unreviewed" once they've re-scored what the new art changed.
+    unreviewed = marks.get("_unreviewed")
     items = []
     for it in template["items"]:
         m = marks.get(it["id"], {})
@@ -194,7 +197,7 @@ def load_rubric(run_dir):
     scored = [i for i in items if i["score"] is not None]
     total = sum(i["weight"] for i in scored)
     pct = round(100.0 * sum(i["score"] * i["weight"] for i in scored) / total, 1) if total else None
-    return items, pct, len(scored) == len(items)
+    return items, pct, len(scored) == len(items) and not unreviewed
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +225,7 @@ def score_run(name, label=None, quiet=False):
     result = {
         "run": name,
         "label": label,
-        "date": datetime.date.fromtimestamp(rendered).isoformat(),
+        "date": old["date"] if old else datetime.date.fromtimestamp(rendered).isoformat(),
         "scorer_version": SCORER_VERSION,
         "measured": round(float(np.mean([s["overall"] for s in shots.values()])), 1),
         "rubric": rubric_pct,
@@ -360,7 +363,7 @@ def selftest():
     warm_amb[amb] = np.clip(warm_amb[amb] * np.array([1.18, 1.0, 0.72]), 0, 255)  # brown the ambient, keep the torch
     browned = score_image(Image.fromarray(warm_amb.astype(np.uint8)), "all", target)
     check(browned["scores"]["ambient_tint"] < 30.0, f"warm brown shadows instead of the cold blue-grey ambient fail ambient_tint ({browned['scores']['ambient_tint']})")
-    check(history_selftest(), "re-scoring an older run keeps history in run order, the report on the latest run, deltas right, labels kept")
+    check(history_selftest(), "re-scoring keeps history in run order, the report on the latest run, deltas right, labels and render dates kept; a copied rubric reads as incomplete")
     template = json.load(open(RUBRIC))
     ids = [i["id"] for i in template["items"]]
     check(len(ids) == len(set(ids)) and all(i["weight"] > 0 for i in template["items"]), "the rubric's items have unique ids and positive weights")
@@ -387,7 +390,12 @@ def history_selftest():
         score_run("000-a", "first", quiet=True)
         score_run("002-c", "third", quiet=True)
         score_run("001-b", "second", quiet=True)
+        first_date = next(h for h in json.load(open(os.path.join(BENCH, "history.json"))) if h["run"] == "000-a")["date"]
+        os.utime(os.path.join(RUNS, "000-a", f"{next(iter(SHOTS))}_world.png"), (0, 0))  # as if freshly checked out
         score_run("000-a", None, quiet=True)  # re-score an older run, no label
+        json.dump({"_unreviewed": "copied from 001-b", **{i["id"]: {"score": 0} for i in json.load(open(RUBRIC))["items"]}},
+                  open(os.path.join(RUNS, "002-c", "rubric.json"), "w"))
+        score_run("002-c", None, quiet=True)
         hist = json.load(open(os.path.join(BENCH, "history.json")))
         report = open(os.path.join(BENCH, "REPORT.md")).read()
         c = next(h for h in hist if h["run"] == "002-c")
@@ -396,6 +404,8 @@ def history_selftest():
         ok = [h["run"] for h in hist] == ["000-a", "001-b", "002-c"]
         ok = ok and "Latest run: `002-c`" in report and f"({'+' if delta >= 0 else ''}{delta:.1f})" in report
         ok = ok and hist[0]["label"] == "first" and all(h["scorer_version"] == SCORER_VERSION for h in hist)
+        ok = ok and hist[0]["date"] == first_date  # the render date survives a re-score
+        ok = ok and hist[2]["rubric_complete"] is False and "(incomplete)" in report  # a copied rubric isn't finished
         return ok
     finally:
         BENCH, RUNS = saved

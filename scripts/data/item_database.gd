@@ -241,7 +241,7 @@ static func _build() -> void:
 	torch.weight_kg = 0.8
 	torch.max_condition = 240.0 # seconds of fuel
 	torch.light_range = 7.5
-	torch.light_energy = 1.35
+	torch.light_energy = 2.1
 	_register(torch)
 
 	# --- Consumables & materials --------------------------------------------

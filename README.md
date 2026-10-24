@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–21 complete · verified on Godot 4.3-stable (Forward+) · **558/558** headless regression checks passing
-> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
+> **Status:** Milestones 1–21 complete · verified on Godot 4.3-stable (Forward+) · **579/579** headless regression checks passing
+> Interim painted art: the survivor, most creatures, props, item icons and the stone, timber and ground surfaces are cut from the owner's reference sheets. Audio is still procedural. The target look is in [`docs/VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md).
 
 ---
 
@@ -264,7 +264,7 @@ The pot works from the stash, so storing it for the Act I objective doesn't stop
 ### Day & night (Milestone 19)
 A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 of those minutes, and dusk and dawn ease in over two in-game hours. The HUD shows the phase and the clock next to the weather. **F8** skips three hours.
 
-- **Darker.** At full dark the sun gives way to dim blue moonlight (×0.2), ambient light drops by half and the fog goes black. The weather still blends on top.
+- **Darker.** At full dark the sun gives way to dim blue moonlight (28% of the day's light), the ambient light turns a cold blue-grey and the fog darkens. The weather still blends on top.
 - **Colder.** Warmth drains ×1.7 at night, on top of the weather.
 - **Fire cuts both ways.** Without a lit torch you see only 55% as far. With one you keep 85%, but anything looking at you sees you as if it were day.
 - **Quieter.** The still night carries sound a little further (×1.15).
@@ -272,6 +272,18 @@ A day in the Blackfen lasts 16 minutes. Night runs from 20:00 to 05:00, about 6 
 - **Sleep until dawn.** After dusk, resting at the fire (**T**) means sleeping until 06:00. It heals and saves as usual and costs 15 food. The hour is saved.
 
 ![Night in the yard by torchlight](docs/screenshots/20_night_torchlight.png)
+
+### Painted art (interim)
+The primitive placeholders are giving way to the owner's reference art. `tools/slice_sheets.py` cuts the sheets in `docs/art_reference/` into single transparent sprites (1,791 of them, with a manifest), and `assets/art_map.json` names which cut the game uses for each thing.
+
+- **Characters:** the survivor and nine creature types (goblins, orks, the Ogre, the Quarry-Troll, the bog bear, the ghoul, fungus zombies, the Rot-Beast and the Pallid Crawler) are painted billboards, lit by the torch and fire and mirrored to the way they face. The colliders, hitboxes, weapon, torch and the gameplay markers (slam rings, telegraphs, status pips) are unchanged.
+- **Surfaces:** stone walls, timber and the ground carry seamless painted textures.
+- **Props:** the stash and chests, crates and plunder sacks, and the shelter's campfire.
+- **Icons:** every item in the pack and loot windows has its painted icon.
+
+The bog-bull, skull-deer, crows and rot mounds are still primitives: the sheets have no usable cut of them at size. The sheets are small previews, so the cuts look soft up close. The art agent's full-resolution files replace them file for file (see `docs/VISUAL_DIRECTION.md`).
+
+![The shelter fire with painted art](docs/screenshots/26_painted_art_shelter.png)
 
 ### Save & load (Milestone 14)
 **Rest at the shelter fire (T)** to heal, stop bleeding and save. The start screen offers **Continue from your last rest (C)** when a save exists. A save keeps your survivor, pack and worn gear, every container (including what you stored), which enemies are dead and what's left on their corpses, dropped piles and lodged weapons, objectives, the weather, the hour and the explored memory map. It lives in Godot's `user://` folder as `ashen_wilds_save.json`.
@@ -375,10 +387,15 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute, quarry troll, carrion crow, ghoul, bog bear, rot mound,
               bog-bull, skull-deer, fungus zombie, rot-beast, pallid crawler
   ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd, crafting_ui.gd
+  visuals/    sprite_art.gd (painted billboards, icons, surface textures), facing_sprite.gd
+assets/
+  art_map.json             Which sheet cut the game uses for each sprite, icon and texture
+  game/                    The cuts the game loads (built by tools/slice_sheets.py --build)
 tests/
-  smoke_test.gd            Headless regression suite (558 checks)
+  smoke_test.gd            Headless regression suite (579 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
+  slice_sheets.py          Cuts the reference sheets into sprites; --build copies the used ones to assets/game/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 ```
 
@@ -402,14 +419,14 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 Milestones 6–9 followed [`docs/ROADMAP.md`](docs/ROADMAP.md). Their numbers are first-pass proposals to be checked against the design document and tuned in playtests. Next candidates:
 
 - Later: companions, Acts II–III.
-- An art and audio pass, once the look is settled. See *Known limitations*.
-- The art pass is measured by the **visual benchmark** ([`docs/benchmark/REPORT.md`](docs/benchmark/REPORT.md)): fixed shots scored against the target mockup. The baseline of today's placeholders is 32/100 measured, with a rubric of 7/100. A **performance benchmark** (frame time, draw calls and memory before and after each art swap) comes later.
+- The rest of the art pass: full-resolution sprites with direction frames and animations, the bog-bull, skull-deer, crows and rot mounds, normal maps, the mockup's icon-grid pack window and minimal HUD; then audio.
+- The art pass is measured by the **visual benchmark** ([`docs/benchmark/REPORT.md`](docs/benchmark/REPORT.md)): fixed shots scored against the target mockup. The baseline of the placeholders was 32/100 measured, with a rubric of 7/100; the interim art run is in the report. A **performance benchmark** (frame time, draw calls and memory before and after each art swap) comes later.
 
 ---
 
 ## Known limitations
 
-- Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
+- Interim visuals: the painted sprites are single frames cut from small preview sheets (no walk or attack animation yet), four creatures are still primitive meshes, and audio is synthesized at runtime.
 - One save slot, made only at the shelter fire. Act I has no failure state: death sends you back to the fire with your pack.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel. Swap times, light levels, charcoal contrast, ripple readability, ice handling and UI layout still need hands-on tuning.

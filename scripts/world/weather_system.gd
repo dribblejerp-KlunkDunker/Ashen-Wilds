@@ -35,7 +35,18 @@ var sun: DirectionalLight3D
 var acoustics: AcousticField
 var day_night: DayNightCycle
 ## Moonlight replaces the sun's colour at full dark.
-const MOON_COLOR := Color(0.40, 0.48, 0.66)
+const MOON_COLOR := Color(0.52, 0.58, 0.72)
+## The night look (tuned against the target mockup with the visual benchmark):
+## a dim, cold blue-grey world you can still make out, not a black void.
+## The ambient blends toward NIGHT_AMBIENT, the sun keeps NIGHT_SUN_KEEP of
+## its energy as moonlight, and the fog darkens by NIGHT_FOG_DARKEN.
+const NIGHT_AMBIENT := Color(0.08, 0.095, 0.135)
+## All weather sun energies are scaled by this (raised with the painted art:
+## the profiles' 0.35-0.8 left even the day darker than the mockup's night).
+const SUN_SCALE: float = 3.0
+const NIGHT_AMBIENT_MIX: float = 1.0
+const NIGHT_SUN_KEEP: float = 0.28
+const NIGHT_FOG_DARKEN: float = 0.35
 
 var _from: Dictionary = {}
 var _to: Dictionary = {}
@@ -229,14 +240,14 @@ func refresh_environment() -> void:
 		acoustics.hearing_multiplier = value("hearing") * (1.0 + DayNightCycle.NIGHT_HEARING * dark)
 	if environment:
 		var fog: Color = (_from["fog_color"] as Color).lerp(_to["fog_color"], _blend)
-		environment.fog_light_color = fog.darkened(0.6 * dark)
+		environment.fog_light_color = fog.darkened(NIGHT_FOG_DARKEN * dark)
 		environment.fog_density = value("fog_density")
 		var amb: Color = (_from["ambient_color"] as Color).lerp(_to["ambient_color"], _blend)
-		environment.ambient_light_color = amb.darkened(0.55 * dark).lerp(Color(0.05, 0.06, 0.09), 0.25 * dark)
+		environment.ambient_light_color = amb.lerp(NIGHT_AMBIENT, NIGHT_AMBIENT_MIX * dark)
 	if sun:
 		var sun_col: Color = (_from["sun_color"] as Color).lerp(_to["sun_color"], _blend)
 		sun.light_color = sun_col.lerp(MOON_COLOR, dark)
-		sun.light_energy = value("sun_energy") * (1.0 - 0.8 * dark)
+		sun.light_energy = value("sun_energy") * SUN_SCALE * lerpf(1.0, NIGHT_SUN_KEEP, dark)
 
 # ------------------------------------------------------------------------------
 # Cinder-squall gusts

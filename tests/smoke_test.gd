@@ -122,6 +122,7 @@ func _run() -> void:
 	await _test_day_night()
 	await _test_bestiary_three()
 	await _test_bestiary_four()
+	await _test_painted_art()
 	await _test_act_one()
 	await _test_save_load() # last: it replaces the world
 
@@ -2177,7 +2178,8 @@ func _test_day_night() -> void:
 	_check(env.ambient_light_color.get_luminance() < day_amb * 0.6, "ambient light darkens at night")
 	_check(field.hearing_multiplier > day_hearing * 1.1, "the still night carries sound further (×%.2f)" % (field.hearing_multiplier / day_hearing))
 	weather.set_weather(WeatherSystem.Weather.SLEET, true)
-	_check(sun.light_energy < 0.2, "weather changes keep the night dark")
+	# Relative to that weather's daylight (the absolute light scale changed with the painted art).
+	_check(sun.light_energy < WeatherSystem.profile(WeatherSystem.Weather.SLEET)["sun_energy"] * WeatherSystem.SUN_SCALE * 0.3, "weather changes keep the night dark")
 	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
 
 	# Cold and sight.
@@ -2734,6 +2736,68 @@ func _test_bestiary_four() -> void:
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Interim painted art (assets/art_map.json, scripts/visuals/)
+# ------------------------------------------------------------------------------
+func _test_painted_art() -> void:
+	_section("Painted art from the reference sheets")
+	var missing: Array = ItemDatabase.all_ids().filter(func(id: String) -> bool: return SpriteArt.icon(id) == null)
+	_check(missing.is_empty(), "every item has a painted icon (missing: %s)" % [missing])
+	var painted := func(n: Node) -> bool: return n.find_children("PaintedSprite", "FacingSprite", true, false).size() > 0
+	_check(painted.call(_player), "the survivor is a painted sprite")
+	for cls: Variant in [EnemyGoblinScavenger, EnemyOrkWarrior, EnemyOgreBrute, EnemyQuarryTroll, EnemyBogBear, EnemyGhoul, EnemyFungusZombie, EnemyRotBeast, EnemyPallidCrawler]:
+		var e: Array = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))
+		_check(not e.is_empty() and painted.call(e[0]), "%s is a painted sprite" % ((e[0] as Node).get_script().get_global_name() if not e.is_empty() else "(missing)"))
+	var gob := _spawn_dummy_goblin(OPEN + Vector3(5.0, 0, 0))
+	await _ticks(1)
+	var shown: Array = gob._visual_root.find_children("*", "MeshInstance3D", true, false).filter(func(m: MeshInstance3D) -> bool: return m.visible)
+	_check(not shown.is_empty() and shown.all(func(m: MeshInstance3D) -> bool: return (m.material_override as StandardMaterial3D).shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED), "placeholder meshes are hidden; the gameplay status ring stays")
+	_check(_player._weapon_mesh.visible, "the survivor's weapon is still drawn (swings stay readable)")
+	var gob_sprite: FacingSprite = gob._visual_root.find_child("PaintedSprite", false, false)
+	await process_frame
+	_check(gob_sprite.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and gob_sprite.shaded, "a live creature's sprite stands up and is lit by the torch")
+	gob._on_hurtbox_hit_received(CombatPayload.new(_player, gob.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
+	await process_frame
+	await process_frame
+	_check(gob.is_dead() and gob_sprite.is_fallen() and gob_sprite.billboard == BaseMaterial3D.BILLBOARD_DISABLED and gob_sprite.is_lying_flat(),
+		"a killed creature's sprite lies flat on the ground (a corpse doesn't stand)")
+	# The bear, rot-beast and crawler tip over about Z instead of X; the sprite must still lie flat, not edge-on.
+	var gob_z := _spawn_dummy_goblin(OPEN + Vector3(7.0, 0, 0))
+	gob_z._visual_root.look_at(gob_z.global_position + Vector3(1, 0, -1), Vector3.UP) # across the 45° camera: the edge-on case
+	gob_z._visual_root.rotation_degrees.z = 80.0
+	var z_sprite: FacingSprite = gob_z._visual_root.find_child("PaintedSprite", false, false)
+	await process_frame
+	await process_frame
+	var cam: Camera3D = root.get_viewport().get_camera_3d()
+	var seen: bool = cam == null or absf(z_sprite.global_basis.z.normalized().dot(cam.global_basis.z)) > 0.3
+	_check(z_sprite.is_fallen() and z_sprite.is_lying_flat() and seen, "a body tipped about Z still lies flat and faces the camera (bear, rot-beast, crawler)")
+	gob_z.queue_free()
+	var chest: Lootable = _lootable_named("Watchhouse Supply Chest")
+	_check(chest != null and painted.call(chest.get_parent()), "the supply chest is the painted iron-banded chest")
+	var textured := func(file: String) -> bool:
+		return root.find_children("*", "MeshInstance3D", true, false).any(func(m: MeshInstance3D) -> bool:
+			var mat := m.material_override as ShaderMaterial
+			var tex: Variant = mat.get_shader_parameter("albedo_tex") if mat else null
+			return mat != null and mat.get_shader_parameter("use_texture") == true and tex is Texture2D and (tex as Texture2D).resource_path.ends_with(file))
+	_check(textured.call("ground.png") and textured.call("stone.png"), "the ground and the walls carry painted textures")
+	var fires: Array = root.find_children("PaintedSprite", "FacingSprite", true, false).filter(func(s: FacingSprite) -> bool: return s.texture.resource_path.ends_with("campfire.png"))
+	_check(fires.size() == 1 and not (fires[0] as FacingSprite).shaded, "the shelter hearth is the painted campfire (unshaded: it's the light)")
+	var inv_ui: InventoryUI = _hud.inventory_ui
+	inv_ui.toggle_inventory()
+	await process_frame
+	var icons: Array = inv_ui._inv_list.find_children("*", "TextureRect", true, false).filter(func(t: TextureRect) -> bool: return t.texture != null)
+	_check(icons.size() >= _player.inventory.items.size(), "the pack shows an icon on every row (%d)" % icons.size())
+	inv_ui.toggle_inventory()
+	await process_frame
+	_check(not inv_ui.is_inventory_open(), "(pack closed again)")
+	gob.queue_free()
+
+func _lootable_named(label: String) -> Lootable:
+	for n: Node in get_nodes_in_group("lootable"):
+		if n is Lootable and (n as Lootable).display_name == label:
+			return n
+	return null
 
 # ------------------------------------------------------------------------------
 # Milestone 13 — Act I objectives & the shelter

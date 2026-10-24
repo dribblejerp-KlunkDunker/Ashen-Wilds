@@ -13,5 +13,20 @@
       "b3_marsh_day": 41.0,
       "b4_bestiary_lineup": 39.9
     }
+  },
+  {
+    "run": "001-interim-art",
+    "label": "Interim painted art: sheet-cut sprites for the survivor and nine creatures, props, icons, stone/wood/ground textures; brighter day and colder night",
+    "date": "2026-10-24",
+    "scorer_version": 2,
+    "measured": 42.2,
+    "rubric": 29.4,
+    "rubric_complete": true,
+    "per_shot": {
+      "b1_watchhouse_night": 37.4,
+      "b2_shelter_fire_night": 34.9,
+      "b3_marsh_day": 46.4,
+      "b4_bestiary_lineup": 50.0
+    }
   }
 ]

@@ -260,10 +260,11 @@ func _run() -> void:
 	_equip_now("pitch_torch")
 	var ghoul: EnemyGhoul = enemies.filter(func(e: Node) -> bool: return e is EnemyGhoul)[0]
 	var meal: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
-	meal.global_position = Vector3(10.6, 0.0, 16.4)
+	meal.global_position = Vector3(10.4, 0.0, 17.9) # screen-right of the ghoul, so the flat corpse shows
 	meal.state = EnemyGoblinScavenger.AIState.DEAD
 	meal._visual_root.rotation_degrees.x = -85.0
 	meal._visual_root.position.y = 0.2
+	meal._status_pip.visible = false # as the death code does
 	meal._visual_root.visible = true
 	ghoul.global_position = Vector3(11.4, 0.0, 16.9)
 	ghoul._face_direction((meal.global_position - ghoul.global_position).normalized(), 50.0, 1.0)
@@ -423,6 +424,27 @@ func _run() -> void:
 	crawler._visual_root.visible = true
 	await _frames(40)
 	await _shot("25_pallid_crawler_torchlight.png")
+
+	# 26. Interim art: dusk at the shelter fire. Painted survivor, creatures, stash and campfire.
+	# The creatures stand inside the torch's cone so the charcoal overlay doesn't grey them.
+	dn.set_hour(20.5)
+	var a_stand: Vector3 = AshenWildsBootstrap.FIRE_POS + Vector3(1.3, 0.0, -1.3)
+	_place(a_stand, Vector3(1, 0, -0.35))
+	var posed: Array = [
+		[enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0], Vector3(2.3, 0.0, -1.1)],
+		[enemies.filter(func(e: Node) -> bool: return e is EnemyOrkWarrior)[0], Vector3(3.0, 0.0, 0.5)],
+		[enemies.filter(func(e: Node) -> bool: return e is EnemyBogBear)[0], Vector3(4.4, 0.0, -2.0)],
+	]
+	for pair: Array in posed:
+		var e: Node3D = pair[0]
+		e.global_position = a_stand + (pair[1] as Vector3)
+		var to_survivor: Vector3 = (a_stand - e.global_position).normalized()
+		var vis: Node3D = e.get("_visual_root")
+		e.set("_facing_dir", to_survivor)
+		vis.look_at(e.global_position + to_survivor, Vector3.UP)
+		vis.visible = true
+	await _frames(40)
+	await _shot("26_painted_art_shelter.png")
 	dn.set_hour(8.0)
 	await _frames(5)
 

@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
+An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no `.tres` resources or `.tscn` files beyond `main.tscn`. The one exception is painted art: PNGs under `assets/game/`, cut from the reference sheets (see *Painted art* below).
 
 Milestones 1–21 are complete: combat core, eight enemy types, scavenging and equipment, wall deflection and weapon lodging, enemy wall clangs, survivor backgrounds, vision cone and acoustic ripples, weather, enemy ears, the Blind Quarry-Troll and thrown stones, armor slots, Act I objectives and the shelter stash, save & load, carrion crows and the ghoul, the bog bear and rot mounds, cold & hunger, shelter crafting & repairs, day & night, the bog-bull, skull-deer and crows' roost, fungus zombies, the rot-beast and the pallid crawler. `docs/ROADMAP.md` has the plan through M14 and the proposed numbers. The design document (not in the repo) has the final say on specifics.
 
@@ -16,7 +16,7 @@ For gated, autonomous runs, the Autonomous Project Master kit is in `.claude/apm
 
 ## Visual direction (read before any visual work)
 
-The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets (13) and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Today's primitive meshes are placeholders. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
+The owner's target look is in **`docs/VISUAL_DIRECTION.md`**, with reference sheets (13) and the target mockup in `docs/art_reference/`. In short: painterly dark-fantasy isometric, muted earthy palette, warm torchlight in cold darkness, wet and broken surfaces, an icon-grid pack UI and a minimal HUD. Interim painted art is in (see *Painted art* below); the bog-bull, skull-deer, crows and rot mounds are still primitives. Keep the 3D world for gameplay and swap only the visuals (sprites and textured surfaces). Read the doc's "What the art needs" section before integrating anything.
 
 ## Get Godot (cloud sessions don't have it)
 
@@ -56,7 +56,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **558 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **579 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -104,9 +104,11 @@ scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute,
                     enemy_fungus_zombie (spore spew, burns), enemy_rot_beast (bile line + BilePool),
                     enemy_pallid_crawler (buried by day, night hunter, shuns torch and fire light)
 scripts/ui/         tactical_hud.gd, inventory_ui.gd, background_picker.gd (start screen; pauses the tree), crafting_ui.gd
+scripts/visuals/    sprite_art.gd (dress / prop / icon / paint_surface), facing_sprite.gd (billboard that mirrors to its facing)
+assets/             art_map.json (which cut is used for what), game/ (the PNGs Godot loads), sheets/ (all cuts; .gdignore'd, not committed)
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway), vision_memory.gdshader (full-screen cone/charcoal pass)
 tests/smoke_test.gd headless regression suite
-tools/              capture_screenshots.gd
+tools/              capture_screenshots.gd, visual_benchmark.gd/.py, slice_sheets.py (cuts the reference sheets)
 ```
 
 Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders.
@@ -131,6 +133,9 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Enemies steer in straight lines.** The Ghoul has a simple wall-follow (`_avoid_obstacles`) because it lives among standing stones. Copy it for any enemy whose home has obstacles.
 - **A noise credited to someone else** (a thrown stone's thud is the thrower's) goes through `AcousticField.report_as()`.
 - **Art is being made separately** (sprites from another agent, to the brief in `docs/VISUAL_DIRECTION.md`). Keep visuals inside each class's `_build_*_visuals*` function so they can be swapped without touching gameplay.
+- **Painted art.** `python3 tools/slice_sheets.py` cuts `docs/art_reference/*.webp` into `assets/sheets/<sheet>/rNN_cNN.png` plus `manifest.json` (not committed; regenerate it). `assets/art_map.json` names the cut for each sprite, icon and texture, and `python3 tools/slice_sheets.py --build` copies those into `assets/game/` (textures are mirror-tiled 2×2 so they repeat without seams). Then `--import`. To use better art, drop a file at the same `assets/game/` path or point the map at another cut.
+- **`SpriteArt.dress(_visual_root, key)`** goes at the end of each class's `_build_*_visuals*`. It hides the primitive meshes and adds a `FacingSprite`. Unshaded meshes survive (they're gameplay markers: slam rings, telegraphs, pips), and so does anything under the `keep` nodes (the survivor's weapon and torch). Give a new marker an unshaded material, or it disappears under the sprite. Without a PNG, `dress()` returns null and the primitives stay. A `FacingSprite` is a Y-locked billboard, so it ignores body tilts; once its parent tips past 60° (the −85° death poses) it stops billboarding and lies down with the body. It runs with `PROCESS_MODE_ALWAYS` so frozen enemies still fall.
+- **Surfaces** are painted by `_create_static_box()` through the cutaway shader's triplanar `use_texture`: the big slab gets ground, brown boxes (`r > b + 0.058`) wood, the rest stone; roofs stay flat.
 - **Weather:** read effects via `WeatherSystem.factor(node, key)`, never by checking `current`. Fire and footing keys (`SHELTERED_KEYS`) are neutral under a roof. Register new interiors with both the camera rig and `WeatherSystem.register_interior()`. Tests and tools set `weather_cycle_enabled = false` before `add_child` so the weather can't change mid-check.
 - **Day & night:** `DayNightCycle` keeps the hour. Ask `DayNightCycle.darkness(node)`. Night is already folded into `WeatherSystem.factor()` for "sight" and "cold", so don't apply it twice. A creature that sees in the dark sets `night_eyed = true`. Tests and tools set `day_cycle_enabled = false` (the clock stays at 08:00, darkness 0). Call `set_hour()`, never write `hour`, so the light refreshes.
 - **Survival (cold & hunger):** `PlayerController.survival_enabled` gates all draining. Tests and tools set the bootstrap's `survival_enabled = false` before `add_child`, so long runs can't freeze or starve the survivor. The survival test turns it on locally and calls `_update_survival(dt)` directly. Heat sources are nodes in the `heat_source` group with a `heat_radius` meta. Stamina regen and max stamina go through `_survival_regen_mult()` and `get_stamina_cap()`.

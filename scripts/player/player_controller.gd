@@ -1701,7 +1701,7 @@ func _build_survivor_visuals_and_colliders() -> void:
 	# threw a huge dark wedge across rooms.)
 	_torch_light = OmniLight3D.new()
 	_torch_light.light_color = Color(0.95, 0.62, 0.28)
-	_torch_light.light_energy = 1.35
+	_torch_light.light_energy = 2.1
 	_torch_light.omni_range = 7.5
 	_torch_light.shadow_enabled = true
 	_torch_light.position = Vector3(0.0, 0.48, 0.0)
@@ -1732,6 +1732,15 @@ func _build_survivor_visuals_and_colliders() -> void:
 	_hurtbox.add_child(hurt_shape)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
+	# Interim painted art (assets/art_map.json); the weapon and torch stay 3D.
+	SpriteArt.dress(_visual_root, "survivor", [_weapon_pivot, _torch_root] as Array[Node])
+	# The shield: the painted targe on the old box (its show/hide logic still applies).
+	var targe_icon: Texture2D = SpriteArt.icon("wooden_targe")
+	if _shield_mesh and targe_icon and SpriteArt.has_sprite("survivor"):
+		_shield_mesh.transparency = 1.0
+		var targe: Sprite3D = SpriteArt.make_sprite(targe_icon, 0.62)
+		targe.offset = Vector2.ZERO
+		_shield_mesh.add_child(targe)
 
 func _on_confirmed_hit_landed(target: Node3D, payload: CombatPayload) -> void:
 	if audio:

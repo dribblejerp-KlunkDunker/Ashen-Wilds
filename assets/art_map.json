@@ -1,0 +1,111 @@
+{
+  "about": "Which cut from assets/sheets/ the game uses for each thing (tools/slice_sheets.py --build copies them to assets/game/<key>.png). 'height' is the in-world height in metres for billboards. Replace a 'cut' with the art agent's file when better art arrives. Textures are mirror-tiled 2x2 by the build (seamless), so 'metres' is the size of the mirrored tile.",
+  "sprites": {
+    "survivor": {
+      "cut": "05_tiles_props_items_characters_b/r05_c00.png",
+      "height": 1.85
+    },
+    "goblin_scavenger": {
+      "cut": "05_tiles_props_items_characters_b/r06_c00.png",
+      "height": 1.45
+    },
+    "ork_warrior": {
+      "cut": "05_tiles_props_items_characters_b/r07_c00.png",
+      "height": 2.05
+    },
+    "ogre_brute": {
+      "cut": "12_creatures_beasts/r01_c05.png",
+      "height": 3.3
+    },
+    "quarry_troll": {
+      "cut": "12_creatures_beasts/r01_c06.png",
+      "height": 3.6
+    },
+    "bog_bear": {
+      "cut": "12_creatures_beasts/r00_c00.png",
+      "height": 1.75
+    },
+    "ghoul": {
+      "cut": "12_creatures_beasts/r02_c07.png",
+      "height": 1.7
+    },
+    "fungus_zombie": {
+      "cut": "12_creatures_beasts/r05_c02.png",
+      "height": 1.85
+    },
+    "rot_beast": {
+      "cut": "12_creatures_beasts/r04_c00.png",
+      "height": 2.2
+    },
+    "pallid_crawler": {
+      "cut": "12_creatures_beasts/r04_c06.png",
+      "height": 1.1
+    },
+    "chest": {
+      "cut": "05_tiles_props_items_characters_b/r03_c03.png",
+      "height": 0.75
+    },
+    "crate": {
+      "cut": "05_tiles_props_items_characters_b/r02_c10.png",
+      "height": 0.8
+    },
+    "barrel": {
+      "cut": "05_tiles_props_items_characters_b/r02_c12.png",
+      "height": 0.9
+    },
+    "sack": {
+      "cut": "05_tiles_props_items_characters_b/r03_c05.png",
+      "height": 0.6
+    },
+    "campfire": {
+      "cut": "05_tiles_props_items_characters_b/r02_c07.png",
+      "height": 0.9
+    }
+  },
+  "icons": {
+    "arming_sword": "05_tiles_props_items_characters_b/r04_c00.png",
+    "boar_spear": "05_tiles_props_items_characters_b/r04_c01.png",
+    "woodsmans_broadaxe": "05_tiles_props_items_characters_b/r04_c02.png",
+    "wooden_targe": "05_tiles_props_items_characters_b/r04_c03.png",
+    "clean_rag_bandage": "05_tiles_props_items_characters_b/r04_c04.png",
+    "iron_scrap": "05_tiles_props_items_characters_b/r04_c05.png",
+    "salt": "05_tiles_props_items_characters_b/r04_c06.png",
+    "lamp_oil": "05_tiles_props_items_characters_b/r04_c07.png",
+    "timber": "05_tiles_props_items_characters_b/r04_c08.png",
+    "cooking_pot": "05_tiles_props_items_characters_b/r04_c10.png",
+    "pitch_torch": "05_tiles_props_items_characters_b/r04_c11.png",
+    "raw_bear_meat": "10_item_icons/r02_c00.png",
+    "raw_game_meat": "10_item_icons/r02_c01.png",
+    "roast_game_meat": "10_item_icons/r02_c03.png",
+    "dried_meat": "10_item_icons/r02_c05.png",
+    "hardtack": "10_item_icons/r02_c08.png",
+    "marsh_stew": "10_item_icons/r06_c01.png",
+    "salted_broth": "10_item_icons/r06_c02.png",
+    "throwing_stone": "10_item_icons/r04_c03.png",
+    "bear_pelt": "06_armor_clothing_shields/r03_c07.png",
+    "troll_hide": "06_armor_clothing_shields/r03_c11.png",
+    "bear_pelt_cloak": "06_armor_clothing_shields/r03_c08.png",
+    "troll_hide_cloak": "06_armor_clothing_shields/r03_c05.png",
+    "padded_hood": "06_armor_clothing_shields/r00_c05.png",
+    "iron_skullcap": "06_armor_clothing_shields/r01_c00.png",
+    "quilted_gambeson": "06_armor_clothing_shields/r02_c00.png",
+    "riveted_mail": "06_armor_clothing_shields/r02_c03.png",
+    "leather_leggings": "06_armor_clothing_shields/r06_c01.png",
+    "splinted_greaves": "06_armor_clothing_shields/r08_c03.png"
+  },
+  "textures": {
+    "ground": {
+      "cut": "03_bushes_reeds_rocks_ground/r11_c05.png",
+      "metres": 2.8,
+      "contrast": 0.45
+    },
+    "stone": {
+      "cut": "09_modular_architecture/r00_c00.png",
+      "metres": 3.2
+    },
+    "wood": {
+      "cut": "09_modular_architecture/r04_c08.png",
+      "metres": 2.4
+    }
+  }
+}

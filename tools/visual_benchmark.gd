@@ -30,7 +30,7 @@ func _run_name() -> String:
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("--run="):
 			return a.substr(6)
-	return "latest"
+	return ""
 
 func _shot(file_name: String) -> void:
 	await RenderingServer.frame_post_draw
@@ -84,6 +84,10 @@ func _pose(e: Node3D, pos: Vector3, face_toward: Vector3) -> void:
 	(e.get("_visual_root") as Node3D).visible = true
 
 func _run() -> void:
+	if _run_name() == "":
+		push_error("visual_benchmark: give a run name, e.g. -- --run=001-lighting (runs sort by name; the last is the report's latest)")
+		quit(1)
+		return
 	_out = "%s/%s" % [OUT_ROOT, _run_name()]
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_out))
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
@@ -130,7 +134,8 @@ func _run() -> void:
 
 	# B2. Light is precious: the shelter fire at night, no torch.
 	_equip("wooden_targe")
-	_place(AshenWildsBootstrap.FIRE_POS + Vector3(1.4, 0.0, 1.4), Vector3(-1.0, 0.0, -0.6))
+	# Beside the fire, across the view, so the survivor doesn't hide it.
+	_place(AshenWildsBootstrap.FIRE_POS + Vector3(1.3, 0.0, -1.3), Vector3(-1.0, 0.0, 1.0))
 	await _frames(40)
 	await _pair("b2_shelter_fire_night")
 

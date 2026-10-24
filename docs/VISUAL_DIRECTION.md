@@ -56,9 +56,20 @@ The current primitive-mesh visuals are placeholders. Systems came first. A separ
 - **VFX:** keep using tweened mesh/sprite flipbooks, not `GPUParticles3D` (see CLAUDE.md: particles don't render under software Vulkan). Sheet 01 strips are flipbooks.
 - **UI:** rebuild the pack window as the mockup's icon grid + detail pane, and the HUD as two thin bars + three quick slots. Icons come straight from sheets 05 and 10.
 
+### What's in the game now (interim art)
+
+The sheets are cut and in use, so the game no longer waits on the final files:
+
+- `tools/slice_sheets.py` cuts every sheet along its transparency into single sprites (1,791, in `assets/sheets/`, rebuilt on demand). Sheet 13 is opaque and isn't cut.
+- `assets/art_map.json` names the cut used for each sprite, icon and texture. `--build` copies them to `assets/game/sprites/<key>.png`, `icons/<item_id>.png` and `textures/<ground|stone|wood>.png`.
+- In game: the survivor and nine creature classes are torch-lit billboards (one frame, mirrored to their facing); the stash, chests, crates, sacks and campfire are props; every item has an icon; walls, timber and ground are triplanar-textured through the cutaway shader.
+- Still primitive: the bog-bull, skull-deer, carrion crows and rot mounds (the sheet cuts are too small or merged with neighbours).
+
+**Swapping in the art agent's files:** save each one over its `assets/game/` file (same name, transparent PNG, feet at the bottom edge), set its height in metres in `art_map.json` if it differs, and run Godot's `--import`. Nothing in the code changes. Direction frames and animation strips need a small addition to `FacingSprite` (pick a frame from the facing and the class's state); the list below still applies to them.
+
 ### What the art needs before it can go into the game
 
-The sheets so far are AI-generated **contact sheets: previews on a white background**. Before integration, the art agent should deliver:
+The sheets so far are AI-generated **contact sheets: small previews** (transparent, though they look white in a viewer). For the final art, the art agent should deliver:
 
 1. **Full resolution.** On the sheets characters are about 60 px tall and icons about 40 px; in game, a character is about 150 px tall at 1080p and an icon is 64–96 px. Provide originals at 2× display size.
 2. **Transparent PNGs**, one per sprite (or a fixed grid with a stated cell size). No white background: keying it out leaves halos on soft edges like smoke, fur and flames.

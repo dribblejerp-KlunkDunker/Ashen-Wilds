@@ -273,7 +273,10 @@ func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	env.background_color = Color(0.05, 0.05, 0.06)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.16, 0.17, 0.19)
-	env.ambient_light_energy = 0.65
+	# Raised from 0.65 with the painted art (tuned with the visual benchmark):
+	# the overcast day reads clearly, and night (a darker blue ambient, weaker
+	# moon) still lands near the target mockup's moonlit look.
+	env.ambient_light_energy = 4.5
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = 1.05
 	env.fog_enabled = true
@@ -305,7 +308,7 @@ func _build_blackfen_test_yard() -> void:
 		false
 	)
 
-	_create_static_box(
+	var hearth: StaticBody3D = _create_static_box(
 		Vector3(-6.5, 0.2, 4.8),
 		Vector3(0.9, 0.4, 0.9),
 		Color(0.25, 0.22, 0.20),
@@ -313,10 +316,19 @@ func _build_blackfen_test_yard() -> void:
 		false,
 		false
 	)
+	# Interim painted campfire over the hearth stone (which stays for collision).
+	var campfire: FacingSprite = SpriteArt.prop("campfire")
+	if campfire:
+		for m: Node in hearth.get_children():
+			if m is MeshInstance3D:
+				(m as MeshInstance3D).visible = false
+		campfire.position = Vector3(0.0, -0.2, 0.0)
+		campfire.shaded = false # it's the light source
+		hearth.add_child(campfire)
 	var fire_light := OmniLight3D.new()
 	fire_light.position = Vector3(-6.5, 1.1, 4.8)
 	fire_light.light_color = Color(0.96, 0.54, 0.22)
-	fire_light.light_energy = 2.4
+	fire_light.light_energy = 3.4
 	fire_light.omni_range = 9.0
 	fire_light.shadow_enabled = true
 	add_child(fire_light)
@@ -485,7 +497,7 @@ func _create_static_box(
 	shader: Shader,
 	enable_cutaway: bool,
 	is_roof: bool
-) -> void:
+) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.position = pos
 	body.collision_layer = 32 if is_roof else 1
@@ -508,11 +520,20 @@ func _create_static_box(
 	mat.shader = shader
 	mat.set_shader_parameter("albedo_color", col)
 	mat.set_shader_parameter("enable_foreground_cutaway", enable_cutaway)
+	# Interim painted surfaces: the big ground slab, brownish timber, the rest stone.
+	if not is_roof:
+		var surface: String = "stone"
+		if size.x >= 20.0 and size.z >= 20.0:
+			surface = "ground"
+		elif col.r > col.b + 0.058: # timber is browner than any stone here
+			surface = "wood"
+		SpriteArt.paint_surface(mat, surface)
 	mesh_inst.material_override = mat
 	body.add_child(mesh_inst)
 
 	if enable_cutaway or is_roof:
 		_camera_rig.register_cutaway_material(mat, is_roof)
+	return body
 
 func _spawn_all_archetype_encounters() -> void:
 	var goblin_yard := EnemyGoblinScavenger.new()
@@ -810,6 +831,12 @@ func _spawn_scavenge_containers() -> void:
 	if _roost:
 		_roost.nest = hoard
 
+## Which painted prop stands in for each container (assets/art_map.json).
+const CONTAINER_ART: Dictionary = {
+	"Shelter Stash": "chest", "Watchhouse Supply Chest": "chest", "Rotted Grain Crate": "crate",
+	"Ork Plunder Pile": "sack", "Crows' Nest Hoard": "sack",
+}
+
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
 	var body := StaticBody3D.new()
 	body.name = label.replace(" ", "")
@@ -833,6 +860,12 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 	mat.roughness = 0.92
 	mesh.material_override = mat
 	body.add_child(mesh)
+	# Interim painted prop for the container, standing on the ground.
+	var prop: FacingSprite = SpriteArt.prop(CONTAINER_ART.get(label, ""))
+	if prop:
+		mesh.visible = false
+		prop.position = Vector3(0.0, -size.y * 0.5, 0.0)
+		body.add_child(prop)
 
 	var loot := Lootable.new()
 	loot.display_name = label
