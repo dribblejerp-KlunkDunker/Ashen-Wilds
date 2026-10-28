@@ -910,3 +910,133 @@ func _test_ork_clang() -> void:
 # ------------------------------------------------------------------------------
 func _test_ogre_clang() -> void:
 	_section("Enemy deflection: ogre")
+	# The ogre is too big for the entry hall, so build a cramped spot in open
+	# ground ~13 m from the player: a stone wall running along the ogre's left
+	# side, inside the 150-degree sweep arc but clear of its 0.85 m body.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var spot: Vector3 = OGRE_YARD
+	var wall := _make_ogre_test_wall(spot + Vector3(0.8, 1.25, -1.5), Vector3(4.0, 2.5, 0.4))
+	var level_ogre: EnemyOgreBrute = _children_of(func(n: Node) -> bool: return n is EnemyOgreBrute)[0]
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var saved_holders: Dictionary = coord._active_holders.duplicate()
+	coord._active_holders.clear()
+
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = level_ogre.audio
+	ogre.coordinator = coord
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	var banners: Array[String] = []
+	ogre.ogre_event_banner.connect(func(txt: String, _col: Color) -> void: banners.append(txt))
+	_check(_player.current_state != PlayerController.ActionState.DEAD and _player.global_position.distance_to(spot) > 10.0,
+		"ogre test: player parked alive, %.1f m away" % _player.global_position.distance_to(spot))
+
+	# 1) Sweep beside the wall clangs. Driven through the real state machine:
+	#    SWEEP_STARTUP with its timer expired goes active on the next tick.
+	#    player_ref is the live, distant player so _process_ai_state runs its
+	#    match normally (it forces IDLE only for a missing or dead player).
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	coord.request_attack_token(ogre, true)
+	_check(coord._active_holders.has(ogre.get_instance_id()), "ogre holds the attack token before its sweep")
+	var sparks_before: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	var hb_ever_active: bool = false
+	var reached_sweep_active: bool = false
+	for i in range(3):
+		await physics_frame
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(ogre.state == EnemyOgreBrute.AIState.RECOIL,
+		"wall beside the ogre: club sweep clangs into RECOIL (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() > sparks_before, "ogre clang throws sparks")
+	_check(ogre.is_staggered() and not ogre.is_dead(), "recoiling ogre counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ogre.get_instance_id()), "clang releases the ogre's attack token")
+	_check(banners.any(func(t: String) -> bool: return t.contains("smashes into the wall")), "clang raises the 'smashes into the wall' banner")
+	_check(not ogre._slam_ring.visible, "no slam ring shown during recoil")
+	var ticks_in_recoil: int = 0
+	while ogre.state == EnemyOgreBrute.AIState.RECOIL and ticks_in_recoil < 600:
+		await physics_frame
+		ticks_in_recoil += 1
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(not hb_ever_active and not reached_sweep_active, "a clanged ogre sweep never opens its hitbox")
+	# The wall is on the -Z side; the knockback (1.2 m/s, decaying at 18 m/s^2)
+	# is a ~4 cm nudge, so compare against the pre-swing position.
+	_check(ogre.global_position.z > spot.z + 0.02,
+		"recoil knocks the ogre away from the wall (z %.3f -> %.3f)" % [spot.z, ogre.global_position.z])
+
+	# 2) Recoil length. Still the real state machine with the live player as
+	#    player_ref, so this also proves RECOIL isn't cut short while the
+	#    player is alive.
+	var recoil_secs: float = float(ticks_in_recoil) / float(Engine.physics_ticks_per_second)
+	_check(absf(recoil_secs - ogre.wall_recoil_time) < 0.1,
+		"recoil lasts wall_recoil_time (%.2f s of %.2f s)" % [recoil_secs, ogre.wall_recoil_time])
+	await _seconds(0.05)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre.is_staggered(),
+		"after recoil the ogre resumes PURSUE (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# 3) Ground slam beside the same wall: vertical, never deflected.
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	var sparks_pre_slam: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
+	ogre.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE and ogre._hitbox._is_swing_active,
+		"beside the wall: ground slam reaches SLAM_ACTIVE with its hitbox open")
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() == sparks_pre_slam, "ground slam throws no sparks")
+	await _seconds(0.3)
+	_check(ogre.state == EnemyOgreBrute.AIState.LONG_RECOVERY and not ogre._slam_ring.visible and not ogre._hitbox._is_swing_active,
+		"after the slam: long recovery, slam ring hidden, hitbox closed")
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# 4) Same spot with the wall gone: the sweep connects exactly as before.
+	wall.queue_free()
+	await _ticks(3)
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE and ogre._hitbox._is_swing_active,
+		"no wall nearby: club sweep reaches SWEEP_ACTIVE with its hitbox open (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	ogre.queue_free()
+	coord._active_holders = saved_holders
+	await _ticks(2)
+
+const OGRE_YARD := Vector3(-12.0, 0.0, 18.0)   # open ground, ~13 m north-west of OPEN
+
+func _make_ogre_test_wall(center: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = "OgreTestWall"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	_main.add_child(body)
+	return body
+
+## Places a frozen ogre on its feet, still, idle and facing `facing`.
+func _pose_ogre(ogre: EnemyOgreBrute, pos: Vector3, facing: Vector3) -> void:
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre._hitbox.end_swing()
+	ogre._slam_ring.visible = false
+	ogre.global_position = pos
+	ogre.velocity = Vector3.ZERO
+	ogre._knockback_vel = Vector3.ZERO
+	ogre._home_pos = pos
+	ogre._facing_dir = facing.normalized()
+	ogre._visual_root.look_at(pos + facing.normalized(), Vector3.UP)
+	ogre.state = EnemyOgreBrute.AIState.IDLE
+	await _ticks(2)

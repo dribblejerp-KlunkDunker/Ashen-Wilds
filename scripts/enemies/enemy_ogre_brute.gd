@@ -15,12 +15,21 @@ enum AIState {
 	SLAM_ACTIVE,
 	LONG_RECOVERY,
 	STAGGER,
+	RECOIL,
 	DEAD
 }
 
 @export var enemy_name: String = "Blackfen Ogre"
 @export var max_health: float = 280.0
 @export var max_poise: float = 95.0
+## Width of the club sweep in degrees, centred on the facing direction. Walls
+## inside this arc (within `sweep_reach`) make the sweep clang.
+@export var sweep_arc_degrees: float = 150.0
+## How far the club sweep reaches from the ogre's centre, in metres. Matches the
+## sweep hitbox, which extends about 3 m forward and 1.5 m to each side.
+@export var sweep_reach: float = 2.6
+## Seconds the ogre reels after its club clangs off a wall: the player's opening.
+@export var wall_recoil_time: float = 1.1
 
 var health: float = 280.0
 var poise_damage: float = 0.0
@@ -170,7 +179,7 @@ func _process_ai_state(delta: float) -> void:
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
-		AIState.STAGGER:
+		AIState.STAGGER, AIState.RECOIL:
 			_state_timer -= delta
 			_slam_ring.visible = false
 			velocity.x = _knockback_vel.x
@@ -182,7 +191,7 @@ func is_dead() -> bool:
 	return state == AIState.DEAD
 
 func is_staggered() -> bool:
-	return state == AIState.STAGGER
+	return state == AIState.STAGGER or state == AIState.RECOIL
 
 func _begin_committed_attack(dir_to_player: Vector3) -> void:
 	if coordinator:
@@ -196,6 +205,14 @@ func _begin_committed_attack(dir_to_player: Vector3) -> void:
 		_state_timer = 0.92
 
 func _enter_sweep_active() -> void:
+	# Blade height 1.6: the club pivot (the ogre's fist) sits 1.65 m up; the
+	# club tip runs from about 1.1 m (wound-up pose) to 2.9 m (follow-through
+	# pose), and the sweep hitbox covers 0-2.2 m. 1.6 lies inside both, at
+	# fist height. Knee-high crates (0.45-0.7 m) don't stop it; walls do.
+	var obstruction: Dictionary = WallDeflection.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, sweep_reach, 1.6)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	state = AIState.SWEEP_ACTIVE
 	_state_timer = 0.24
 	if audio:
@@ -236,6 +253,21 @@ func _enter_long_recovery(duration: float) -> void:
 		coordinator.release_attack_token(self)
 	state = AIState.LONG_RECOVERY
 	_state_timer = duration
+
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	_slam_ring.visible = false
+	if coordinator:
+		coordinator.release_attack_token(self)
+	state = AIState.RECOIL
+	_state_timer = wall_recoil_time
+
+	var normal: Vector3 = WallDeflection.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 1.2
+	if audio:
+		audio.play_wall_clang()
+	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * sweep_reach), normal)
+	ogre_event_banner.emit("The Ogre's club smashes into the wall — Strike Now!", Color(0.48, 0.78, 0.92))
 
 func _steer_toward(dir: Vector3, speed: float, delta: float) -> void:
 	_face_direction(dir, 3.8, delta)
@@ -291,6 +323,11 @@ func _update_visual_telegraph() -> void:
 		AIState.LONG_RECOVERY, AIState.STAGGER:
 			_club_pivot.rotation_degrees = Vector3(52.0, -15.0, 18.0)
 			_status_mat.albedo_color = Color(0.38, 0.75, 0.92)
+		AIState.RECOIL:
+			# Club jarred back past the wind-up; a paler blue than recovery so
+			# the clang reads as its own opening.
+			_club_pivot.rotation_degrees = Vector3(-30.0, 120.0, 35.0)
+			_status_mat.albedo_color = Color(0.58, 0.86, 0.98)
 		_:
 			_club_pivot.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_status_mat.albedo_color = Color(0.48, 0.28, 0.24)
