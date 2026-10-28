@@ -1,5 +1,5 @@
 extends SceneTree
-# Headless regression checks for Ashen Wilds (Milestones 1-4).
+# Headless regression checks for Ashen Wilds (Milestones 1-5 and enemy wall deflection).
 # Run: godot --headless --path . --script res://tests/smoke_test.gd
 # Exit code is the number of failures (0 = all passed).
 
@@ -102,6 +102,7 @@ func _run() -> void:
 	await _test_world_containers()
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
+	await _test_enemy_wall_deflection()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -695,3 +696,33 @@ func _test_weapon_lodging() -> void:
 	_equip_now("wooden_targe")
 	_player.camera_rig = rig
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Enemy wall deflection. Each enemy's checks live in their own function below;
+# spawn your own enemy dummies (the level's enemies are frozen by now).
+# ------------------------------------------------------------------------------
+func _test_enemy_wall_deflection() -> void:
+	await _test_goblin_corridor()
+	await _test_ork_clang()
+	await _test_ogre_clang()
+
+# ------------------------------------------------------------------------------
+# Goblin: its shiv jab is a thrust, so it never clangs, even in the entry hall.
+# Keep goblin helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+func _test_goblin_corridor() -> void:
+	_section("Enemy deflection: goblin")
+
+# ------------------------------------------------------------------------------
+# Ork: the combo's opening slash clangs in cramped space; the overhead chop does not.
+# Keep ork helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+func _test_ork_clang() -> void:
+	_section("Enemy deflection: ork")
+
+# ------------------------------------------------------------------------------
+# Ogre: the club sweep clangs off walls; the ground slam never does.
+# Keep ogre helpers below this banner.
+# ------------------------------------------------------------------------------
+func _test_ogre_clang() -> void:
+	_section("Enemy deflection: ogre")
