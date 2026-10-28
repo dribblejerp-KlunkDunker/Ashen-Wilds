@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **126/126** headless regression checks passing
+> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **172/172** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -74,6 +74,12 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
 - **Wall & corridor deflection.** When a swing goes live, the game sweeps its arc at blade height. If a *sweeping* stroke would meet stone, it **clangs**: no damage, a 0.5 s recoil stagger, sparks, a metallic ring, and triple the usual wear. **Thrusts never clang.**
 - **You're warned before you commit.** While a sweep would clang, your aim arc turns orange and the HUD shows `CRAMPED: SWEEPS WILL CLANG`.
 - **The Watchhouse entry hall** is a 1.7 m-wide corridor inside the doorway: sword slashes, axe cleaves and the spear's shaft-sweep all clang there, while spear thrusts and the sword's lunge work.
+- **Enemies clang too.** The same rule applies to them:
+  - The *Ork*'s opening slash clangs off the walls of a cramped space and leaves it reeling, guard down. Its overhead chop does not.
+  - The *Ogre*'s club sweep smashes into stone for a long recoil. Its ground slam does not.
+  - The *Goblin* jabs with a shiv, a thrust, so it stays dangerous in corridors.
+
+  Draw a sweeping enemy into tight quarters and punish the clang. A clanging enemy counts as staggered, so a heavy blow can lodge.
 - **Weapon lodging.** A heavy blow that kills or staggers can bite too deep (axe 40%, sword 15%, spear never: the boar spear's lugs exist to stop exactly that). You're rooted for a 0.35 s wrench, then recover. Mid-wrench you can:
   - **press Space** to let go and leap clear, leaving the weapon in the body; or
   - **get hit**, and it's torn from your grip.
@@ -132,7 +138,7 @@ godot --headless --path . --import          # first run only: builds the class c
 godot --headless --path . --script res://tests/smoke_test.gd
 ```
 
-The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway), and every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge).
+The process exit code is the number of failures (`0` = all passed). It covers spawning, the damage pipeline, the attack state machine, attack tokens, inventory stacking and weight, encumbrance, searching and every way to cancel it, equipment swaps and hitbox reshaping, torch fuel, durability and shield splintering, bandaging, dropping and picking up, the pack/loot UI, corpse loot, the world containers, which strokes clang where (per weapon, per stroke, hall vs. open ground vs. doorway, and for each enemy's attacks), and every lodging outcome (tug free, let go, torn free, work loose, and the cases that must *not* lodge).
 
 > Headless runs print `Parameter "m" is null` and an "instances leaked at exit" warning. Both come from Godot's dummy renderer and audio driver, which are only used in headless mode — not from the game.
 
@@ -158,7 +164,7 @@ shaders/
 scripts/
   core/       scene_bootstrap.gd (builds the level, input map, containers), procedural_audio.gd
   camera/     iso_camera_rig.gd
-  combat/     hitbox / hurtbox components, encounter_coordinator.gd
+  combat/     hitbox / hurtbox components, encounter_coordinator.gd, wall_deflection.gd
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles)
@@ -166,7 +172,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (126 checks)
+  smoke_test.gd            Headless regression suite (172 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
@@ -178,7 +184,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Physics layers:** 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders (roofs).
 - **Items:** `ItemData` is the shared definition (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
-- **Deflection:** `WeaponData` marks each stroke as a thrust or a sweep. When a sweep goes active, `_sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the player into `RECOIL` instead of opening the hitbox. The same check runs every frame while idle to drive the orange "cramped" warning.
+- **Deflection:** `WeaponData` marks each player stroke as a thrust or a sweep, and each enemy declares its own attacks. When a sweep goes active, `WallDeflection.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Player and enemies share the same helper. For the player, the same check runs every frame while idle to drive the orange "cramped" warning.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
 
 ---
@@ -199,7 +205,6 @@ Next milestone not yet chosen. Candidates from the design document:
 - Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
-- Wall deflection applies to the survivor only; enemy swings don't clang yet.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
 
 ---

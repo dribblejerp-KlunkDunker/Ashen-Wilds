@@ -858,6 +858,9 @@ func _test_ork_clang() -> void:
 	ork._memory_timer = 0.0
 
 	# 2) Still reeling just before wall_recoil_time; recovered just after, without the combo resuming.
+	# A clang must leave a longer opening than a whiffed slash (active + link + recovery).
+	_check(ork.wall_recoil_time > 0.16 + 0.24 + 0.78,
+		"ork: a clang opens a longer window than a whiffed slash (%.2f s > 1.18 s)" % ork.wall_recoil_time)
 	ork.guard_stamina = 20.0
 	await _seconds(ork.wall_recoil_time - 0.12)
 	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: still in RECOIL before %.2f s" % ork.wall_recoil_time)
@@ -973,6 +976,9 @@ func _test_ogre_clang() -> void:
 	#    player_ref, so this also proves RECOIL isn't cut short while the
 	#    player is alive.
 	var recoil_secs: float = float(ticks_in_recoil) / float(Engine.physics_ticks_per_second)
+	# A clang must leave a longer opening than a whiffed sweep (active + long recovery).
+	_check(ogre.wall_recoil_time > 0.24 + 1.30,
+		"a clang opens a longer window than a whiffed sweep (%.2f s > 1.54 s)" % ogre.wall_recoil_time)
 	_check(absf(recoil_secs - ogre.wall_recoil_time) < 0.1,
 		"recoil lasts wall_recoil_time (%.2f s of %.2f s)" % [recoil_secs, ogre.wall_recoil_time])
 	await _seconds(0.05)

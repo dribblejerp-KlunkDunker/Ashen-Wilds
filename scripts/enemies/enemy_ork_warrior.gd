@@ -34,7 +34,10 @@ enum AIState {
 @export var combo_slash_reach: float = 1.6
 ## Seconds the Ork is stunned after its slash clangs off a wall. The shield
 ## guard is down for the whole recoil, so it is an opening for the player.
-@export var wall_recoil_time: float = 0.65
+## Keep it longer than a whiffed opening slash leaves the Ork open
+## (0.16 s active + 0.24 s link + 0.78 s recovery = 1.18 s), or clanging
+## would be the better outcome for the Ork.
+@export var wall_recoil_time: float = 1.25
 
 var health: float = 115.0
 var poise_damage: float = 0.0

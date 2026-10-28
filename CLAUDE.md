@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **126 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **172 checks, 0 failures**.
 
 ## Screenshots (README images)
 
@@ -65,7 +65,7 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 ```
 scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers), procedural_audio.gd
 scripts/camera/     iso_camera_rig.gd (45° yaw / -30° pitch ortho, shake, brightness)
-scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens)
+scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), wall_deflection (shared clang rules)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
@@ -84,7 +84,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Damage:** the attacker builds a `CombatPayload` and calls `HitboxComponent.begin_swing()` during its ACTIVE phase. The hitbox rejects repeat hits and targets behind walls, then calls `HurtboxComponent.receive_attack()`. The defender decides dodge, block or take.
 - **Player states** (`PlayerController.ActionState`): IDLE, MOVE, SPRINT, BLOCK are "neutral". ATTACK_STARTUP → ATTACK_ACTIVE → ATTACK_RECOVERY. DODGE, BLOCK_IMPACT, STAGGER. CHANNEL is shared by search, bandage and equip swap; a hit, move, attack or dodge cancels it. RECOIL is a wall clang. LODGED is a stuck weapon. DEAD.
 - **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
-- **Deflection:** `WeaponData.is_thrust(heavy)` marks each stroke. Sweeps raycast their arc (layer 1) when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang.
+- **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `WallDeflection.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies use the same helper: the Ork's opening slash and the Ogre's sweep clang into an `AIState.RECOIL` that counts as staggered; the Goblin's jab (`attack_is_thrust`), the Ork's chop and the Ogre's slam never clang.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
@@ -93,7 +93,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Typed GDScript everywhere**: `var x: float`, `-> void`, typed arrays and loop variables. Fix warnings; don't ignore them.
 - **GDScript is not shader language.** `mix()` doesn't exist in GDScript; use `lerpf()` / `lerp()`. This broke the whole project once, because every enemy references the audio class.
 - **Set `position`, not `global_position`, before `add_child()`.** Global transforms need the node in the tree.
-- **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`_spawn_sparks`).
+- **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`WallDeflection.spawn_sparks`).
 - **Lights must not sit inside meshes that cast shadows.** The torch light hangs off `_torch_root` at the flame. When it was at the torso's centre, it shadowed the survivor black.
 - **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors.
 - **Unused parameters** are prefixed `_`. Rename them when they become used.

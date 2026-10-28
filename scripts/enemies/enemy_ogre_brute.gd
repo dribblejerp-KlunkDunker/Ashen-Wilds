@@ -29,7 +29,9 @@ enum AIState {
 ## sweep hitbox, which extends about 3 m forward and 1.5 m to each side.
 @export var sweep_reach: float = 2.6
 ## Seconds the ogre reels after its club clangs off a wall: the player's opening.
-@export var wall_recoil_time: float = 1.1
+## Keep it longer than a whiffed sweep leaves the ogre open (0.24 s active +
+## 1.30 s recovery = 1.54 s), or clanging would be the better outcome for it.
+@export var wall_recoil_time: float = 1.8
 
 var health: float = 280.0
 var poise_damage: float = 0.0
