@@ -1,5 +1,5 @@
 extends SceneTree
-# Headless regression checks for Ashen Wilds (Milestones 1-4).
+# Headless regression checks for Ashen Wilds (Milestones 1-5 and enemy wall deflection).
 # Run: godot --headless --path . --script res://tests/smoke_test.gd
 # Exit code is the number of failures (0 = all passed).
 
@@ -102,6 +102,7 @@ func _run() -> void:
 	await _test_world_containers()
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
+	await _test_enemy_wall_deflection()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -694,4 +695,354 @@ func _test_weapon_lodging() -> void:
 	_equip_now("arming_sword")
 	_equip_now("wooden_targe")
 	_player.camera_rig = rig
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Enemy wall deflection. Each enemy's checks live in their own function below;
+# spawn your own enemy dummies (the level's enemies are frozen by now).
+# ------------------------------------------------------------------------------
+func _test_enemy_wall_deflection() -> void:
+	await _test_goblin_corridor()
+	await _test_ork_clang()
+	await _test_ogre_clang()
+
+# ------------------------------------------------------------------------------
+# Goblin: its shiv jab is a thrust, so it never clangs, even in the entry hall.
+# Keep goblin helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+## A live (processing) goblin with no player or coordinator, facing `dir`.
+func _spawn_attacking_goblin(pos: Vector3, dir: Vector3) -> EnemyGoblinScavenger:
+	var g := EnemyGoblinScavenger.new()
+	g.audio = _player.audio
+	_main.add_child(g)
+	g.global_position = pos
+	g._facing_dir = dir.normalized()
+	g._visual_root.look_at(g.global_position + g._facing_dir, Vector3.UP)
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	return g
+
+func _wall_sparks_now() -> Array:
+	return _main.get_children().filter(func(c: Node) -> bool: return String(c.name).contains("WallSparks"))
+
+## Starts the goblin's real windup and watches it tick by tick until its
+## startup ends. Returns the state it resolves into and whether the hitbox
+## opened at any point up to `watch_after` seconds afterwards.
+func _goblin_attack_resolve(g: EnemyGoblinScavenger, watch_after: float) -> Dictionary:
+	var result: Dictionary = {"state": g.state, "hitbox": false, "new_sparks": 0}
+	var sparks_before: Array = _wall_sparks_now()
+	if not g._try_begin_attack_windup():
+		return result
+	var limit: int = int(ceil(1.2 * Engine.physics_ticks_per_second))
+	for i in range(limit):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+		if g.state != EnemyGoblinScavenger.AIState.ATTACK_STARTUP:
+			break
+	result["state"] = g.state
+	for i in range(int(ceil(watch_after * Engine.physics_ticks_per_second))):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+	result["new_sparks"] = _wall_sparks_now().filter(func(c: Node) -> bool: return not sparks_before.has(c)).size()
+	return result
+
+func _test_goblin_corridor() -> void:
+	_section("Enemy deflection: goblin")
+
+	# 1) Default: the shiv jab is a thrust and connects even in the entry hall.
+	var g1 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	await _ticks(2)
+	_check(g1.attack_is_thrust, "goblin jab is a thrust by default")
+	_check(not WallDeflection.sweep_obstruction(g1, Vector3.RIGHT, EnemyGoblinScavenger.SWEEP_ARC_DEGREES, EnemyGoblinScavenger.SWEEP_REACH).is_empty(),
+		"entry hall: a goblin-sized sweep would be obstructed (sanity)")
+	var r1: Dictionary = await _goblin_attack_resolve(g1, 0.0)
+	_check(r1["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g1._hitbox._is_swing_active,
+		"entry hall: goblin jab reaches ATTACK_ACTIVE with its hitbox open (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r1["state"]])
+	_check(r1["new_sparks"] == 0, "entry hall: goblin jab throws no sparks")
+	g1.queue_free()
+	await _ticks(2)
+
+	# 2) As a sweep, the same placement clangs through the shared rule.
+	var g2 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	g2.attack_is_thrust = false
+	await _ticks(2)
+	var r2: Dictionary = await _goblin_attack_resolve(g2, 0.3)
+	_check(r2["state"] == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY, "entry hall: goblin sweep clangs into ATTACK_RECOVERY (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r2["state"]])
+	_check(not r2["hitbox"], "entry hall: a clanged goblin sweep never opens its hitbox")
+	_check(r2["new_sparks"] > 0, "entry hall: goblin clang throws WallSparks")
+	_check(g2.state == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY and g2._state_timer > 0.0 and g2._state_timer <= 0.31,
+		"goblin clang recovery lasts 0.6 s (%.2f s left after 0.3 s)" % g2._state_timer)
+	g2.attack_is_thrust = true
+	g2.queue_free()
+	await _ticks(2)
+
+	# 3) As a sweep on open ground, nothing obstructs it.
+	var g3 := _spawn_attacking_goblin(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	g3.attack_is_thrust = false
+	await _ticks(2)
+	var r3: Dictionary = await _goblin_attack_resolve(g3, 0.0)
+	_check(r3["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g3._hitbox._is_swing_active,
+		"open ground: goblin sweep is not deflected (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r3["state"]])
+	_check(r3["new_sparks"] == 0, "open ground: goblin sweep throws no sparks")
+	g3.attack_is_thrust = true
+	g3.queue_free()
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Ork: the combo's opening slash clangs in cramped space; the overhead chop does not.
+# Keep ork helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+func _spawn_dummy_ork(pos: Vector3, facing: Vector3) -> EnemyOrkWarrior:
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	_main.add_child(o)
+	o.global_position = pos
+	o._facing_dir = facing.normalized()
+	o._visual_root.look_at(o.global_position + o._facing_dir, Vector3.UP)
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	return o
+
+func _ork_sparks() -> int:
+	return _main.find_children("WallSparks*", "Node3D", false, false).size()
+
+## Ticks until the ork leaves `from_state` (max ~1 s). Returns true if the
+## hitbox was ever active on any sampled tick.
+func _ork_wait_leave(o: EnemyOrkWarrior, from_state: EnemyOrkWarrior.AIState) -> bool:
+	var hb_seen: bool = o._hitbox._is_swing_active
+	for i in range(60):
+		if o.state != from_state:
+			break
+		await physics_frame
+		hb_seen = hb_seen or o._hitbox._is_swing_active
+	return hb_seen
+
+func _test_ork_clang() -> void:
+	_section("Enemy deflection: ork")
+	# Park the player on open ground, well clear of both dummies' swings.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var audio_list: Array = _children_of(func(n: Node) -> bool: return n is ProceduralAudio)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+
+	# 1) In the entry hall, facing down it: the opening slash clangs.
+	var ork := _spawn_dummy_ork(HALL, Vector3.RIGHT)
+	ork.coordinator = coord
+	if not audio_list.is_empty():
+		ork.audio = audio_list[0]
+	var barks: Array[String] = []
+	ork.ork_combat_bark.connect(func(msg: String) -> void: barks.append(msg))
+	await _ticks(2)
+	var sparks_before: int = _ork_sparks()
+	_check(ork._try_begin_combo() and coord._active_holders.has(ork.get_instance_id()), "ork: combo takes an attack token")
+	var hb_seen: bool = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL,
+		"ork: entry hall combo slash clangs into RECOIL (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(not hb_seen and not ork._hitbox._is_swing_active, "ork: a clanged slash never opens its hitbox")
+	_check(_ork_sparks() > sparks_before, "ork: clang throws WallSparks")
+	_check(ork.is_staggered(), "ork: RECOIL counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ork.get_instance_id()), "ork: clang releases the attack token")
+	_check(barks.size() == 1 and barks[0].contains("Clang"), "ork: clang barks once (%s)" % [barks])
+	_check(ork._knockback_vel.length() > 0.5, "ork: clang pushes the ork back off the wall (%.2f m/s)" % ork._knockback_vel.length())
+
+	# Guard is down during the recoil: a frontal hit lands instead of being blocked.
+	var hp: float = ork.health
+	var guard: float = ork.guard_stamina
+	ork._on_hurtbox_hit_received(CombatPayload.new(_player, ork.global_position + Vector3.RIGHT * 1.2, Vector3.LEFT, 5.0, 1.0))
+	_check(ork.health < hp and is_equal_approx(ork.guard_stamina, guard), "ork: shield guard is down during RECOIL (frontal hit lands)")
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: a light hit doesn't cut the recoil short")
+	# Forget the attacker so the dummy doesn't start a fresh combo afterwards.
+	ork._has_last_known_pos = false
+	ork._memory_timer = 0.0
+
+	# 2) Still reeling just before wall_recoil_time; recovered just after, without the combo resuming.
+	# A clang must leave a longer opening than a whiffed slash (active + link + recovery).
+	_check(ork.wall_recoil_time > 0.16 + 0.24 + 0.78,
+		"ork: a clang opens a longer window than a whiffed slash (%.2f s > 1.18 s)" % ork.wall_recoil_time)
+	ork.guard_stamina = 20.0
+	await _seconds(ork.wall_recoil_time - 0.12)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: still in RECOIL before %.2f s" % ork.wall_recoil_time)
+	await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.RECOIL)
+	_check(ork.state == EnemyOrkWarrior.AIState.SHIELD_ADVANCE,
+		"ork: shielded ork returns to SHIELD_ADVANCE (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(ork.guard_stamina < 21.0, "ork: recoil doesn't refill guard stamina (%.1f)" % ork.guard_stamina)
+	await _seconds(0.2)
+	_check(ork.state not in [EnemyOrkWarrior.AIState.RECOIL, EnemyOrkWarrior.AIState.COMBO_LINK,
+		EnemyOrkWarrior.AIState.COMBO_2_STARTUP, EnemyOrkWarrior.AIState.COMBO_2_ACTIVE],
+		"ork: combo does not continue after a clang (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+
+	# 3) In the hall, the overhead chop is never deflected.
+	ork.global_position = HALL
+	ork._facing_dir = Vector3.RIGHT
+	ork._knockback_vel = Vector3.ZERO
+	await _ticks(2)
+	ork.state = EnemyOrkWarrior.AIState.COMBO_2_STARTUP
+	ork._state_timer = 0.05
+	hb_seen = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_2_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.COMBO_2_ACTIVE and hb_seen,
+		"ork: entry hall overhead chop reaches COMBO_2_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	await _seconds(0.3)
+	ork.queue_free()
+
+	# 4) On open ground (3 m from the player, swinging away from them) the slash connects as before.
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	var ork_open := _spawn_dummy_ork(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	ork_open.coordinator = coord
+	await _ticks(2)
+	sparks_before = _ork_sparks()
+	ork_open._try_begin_combo()
+	hb_seen = await _ork_wait_leave(ork_open, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_1_ACTIVE and hb_seen,
+		"ork: open ground combo slash reaches COMBO_1_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	_check(_ork_sparks() == sparks_before, "ork: no sparks when nothing obstructs")
+	await _seconds(0.25)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_LINK or ork_open.state == EnemyOrkWarrior.AIState.ATTACK_RECOVERY,
+		"ork: unobstructed slash flows into the combo link (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	await _seconds(0.3)
+	ork_open.queue_free()
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Ogre: the club sweep clangs off walls; the ground slam never does.
+# Keep ogre helpers below this banner.
+# ------------------------------------------------------------------------------
+func _test_ogre_clang() -> void:
+	_section("Enemy deflection: ogre")
+	# The ogre is too big for the entry hall, so build a cramped spot in open
+	# ground ~13 m from the player: a stone wall running along the ogre's left
+	# side, inside the 150-degree sweep arc but clear of its 0.85 m body.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var spot: Vector3 = OGRE_YARD
+	var wall := _make_ogre_test_wall(spot + Vector3(0.8, 1.25, -1.5), Vector3(4.0, 2.5, 0.4))
+	var level_ogre: EnemyOgreBrute = _children_of(func(n: Node) -> bool: return n is EnemyOgreBrute)[0]
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var saved_holders: Dictionary = coord._active_holders.duplicate()
+	coord._active_holders.clear()
+
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = level_ogre.audio
+	ogre.coordinator = coord
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	var banners: Array[String] = []
+	ogre.ogre_event_banner.connect(func(txt: String, _col: Color) -> void: banners.append(txt))
+	_check(_player.current_state != PlayerController.ActionState.DEAD and _player.global_position.distance_to(spot) > 10.0,
+		"ogre test: player parked alive, %.1f m away" % _player.global_position.distance_to(spot))
+
+	# 1) Sweep beside the wall clangs. Driven through the real state machine:
+	#    SWEEP_STARTUP with its timer expired goes active on the next tick.
+	#    player_ref is the live, distant player so _process_ai_state runs its
+	#    match normally (it forces IDLE only for a missing or dead player).
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	coord.request_attack_token(ogre, true)
+	_check(coord._active_holders.has(ogre.get_instance_id()), "ogre holds the attack token before its sweep")
+	var sparks_before: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	var hb_ever_active: bool = false
+	var reached_sweep_active: bool = false
+	for i in range(3):
+		await physics_frame
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(ogre.state == EnemyOgreBrute.AIState.RECOIL,
+		"wall beside the ogre: club sweep clangs into RECOIL (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() > sparks_before, "ogre clang throws sparks")
+	_check(ogre.is_staggered() and not ogre.is_dead(), "recoiling ogre counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ogre.get_instance_id()), "clang releases the ogre's attack token")
+	_check(banners.any(func(t: String) -> bool: return t.contains("smashes into the wall")), "clang raises the 'smashes into the wall' banner")
+	_check(not ogre._slam_ring.visible, "no slam ring shown during recoil")
+	var ticks_in_recoil: int = 0
+	while ogre.state == EnemyOgreBrute.AIState.RECOIL and ticks_in_recoil < 600:
+		await physics_frame
+		ticks_in_recoil += 1
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(not hb_ever_active and not reached_sweep_active, "a clanged ogre sweep never opens its hitbox")
+	# The wall is on the -Z side; the knockback (1.2 m/s, decaying at 18 m/s^2)
+	# is a ~4 cm nudge, so compare against the pre-swing position.
+	_check(ogre.global_position.z > spot.z + 0.02,
+		"recoil knocks the ogre away from the wall (z %.3f -> %.3f)" % [spot.z, ogre.global_position.z])
+
+	# 2) Recoil length. Still the real state machine with the live player as
+	#    player_ref, so this also proves RECOIL isn't cut short while the
+	#    player is alive.
+	var recoil_secs: float = float(ticks_in_recoil) / float(Engine.physics_ticks_per_second)
+	# A clang must leave a longer opening than a whiffed sweep (active + long recovery).
+	_check(ogre.wall_recoil_time > 0.24 + 1.30,
+		"a clang opens a longer window than a whiffed sweep (%.2f s > 1.54 s)" % ogre.wall_recoil_time)
+	_check(absf(recoil_secs - ogre.wall_recoil_time) < 0.1,
+		"recoil lasts wall_recoil_time (%.2f s of %.2f s)" % [recoil_secs, ogre.wall_recoil_time])
+	await _seconds(0.05)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre.is_staggered(),
+		"after recoil the ogre resumes PURSUE (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# 3) Ground slam beside the same wall: vertical, never deflected.
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	var sparks_pre_slam: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
+	ogre.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE and ogre._hitbox._is_swing_active,
+		"beside the wall: ground slam reaches SLAM_ACTIVE with its hitbox open")
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() == sparks_pre_slam, "ground slam throws no sparks")
+	await _seconds(0.3)
+	_check(ogre.state == EnemyOgreBrute.AIState.LONG_RECOVERY and not ogre._slam_ring.visible and not ogre._hitbox._is_swing_active,
+		"after the slam: long recovery, slam ring hidden, hitbox closed")
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# 4) Same spot with the wall gone: the sweep connects exactly as before.
+	wall.queue_free()
+	await _ticks(3)
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE and ogre._hitbox._is_swing_active,
+		"no wall nearby: club sweep reaches SWEEP_ACTIVE with its hitbox open (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	ogre.queue_free()
+	coord._active_holders = saved_holders
+	await _ticks(2)
+
+const OGRE_YARD := Vector3(-12.0, 0.0, 18.0)   # open ground, ~13 m north-west of OPEN
+
+func _make_ogre_test_wall(center: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = "OgreTestWall"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	_main.add_child(body)
+	return body
+
+## Places a frozen ogre on its feet, still, idle and facing `facing`.
+func _pose_ogre(ogre: EnemyOgreBrute, pos: Vector3, facing: Vector3) -> void:
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre._hitbox.end_swing()
+	ogre._slam_ring.visible = false
+	ogre.global_position = pos
+	ogre.velocity = Vector3.ZERO
+	ogre._knockback_vel = Vector3.ZERO
+	ogre._home_pos = pos
+	ogre._facing_dir = facing.normalized()
+	ogre._visual_root.look_at(pos + facing.normalized(), Vector3.UP)
+	ogre.state = EnemyOgreBrute.AIState.IDLE
 	await _ticks(2)

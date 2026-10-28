@@ -3,6 +3,10 @@ extends CharacterBody3D
 
 signal goblin_alert_sound(world_pos: Vector3)
 
+## Arc and reach of the wall check, used only when the attack is not a thrust.
+const SWEEP_ARC_DEGREES: float = 90.0
+const SWEEP_REACH: float = 1.35
+
 enum AIState {
 	IDLE,
 	PATROL,
@@ -22,6 +26,11 @@ enum AIState {
 @export var max_health: float = 65.0
 @export var max_poise: float = 22.0
 @export var patrol_points: Array[Vector3] = []
+## The shiv attack is a jab: a thrust, which never clangs off walls (Milestone 5
+## deflection rule). Deliberate: goblins stay dangerous in corridors, so the
+## entry-hall goblin keeps its teeth. Set false to treat it as a sweep that
+## raycasts its arc through WallDeflection and clangs when stone is in the way.
+@export var attack_is_thrust: bool = true
 
 var health: float = 65.0
 var poise_damage: float = 0.0
@@ -288,6 +297,11 @@ func _try_begin_attack_windup() -> bool:
 	return true
 
 func _enter_attack_active() -> void:
+	if not attack_is_thrust:
+		var obstruction: Dictionary = WallDeflection.sweep_obstruction(self, _facing_dir, SWEEP_ARC_DEGREES, SWEEP_REACH)
+		if not obstruction.is_empty():
+			_enter_wall_recoil(obstruction)
+			return
 	state = AIState.ATTACK_ACTIVE
 	_state_timer = 0.16
 	if audio:
@@ -303,6 +317,20 @@ func _enter_attack_active() -> void:
 		3.0
 	)
 	_hitbox.begin_swing(payload)
+
+## A sweep that met stone: the hitbox never opens. Release the token, take a
+## short shove off the wall, throw sparks and clang, then recover for 0.6 s.
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	var normal: Vector3 = WallDeflection.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 2.2
+	if audio:
+		audio.play_wall_clang()
+	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
+	state = AIState.ATTACK_RECOVERY
+	_state_timer = 0.6
 
 func _steer_toward(dir: Vector3, speed: float, delta: float) -> void:
 	_face_direction(dir, 9.0, delta)
