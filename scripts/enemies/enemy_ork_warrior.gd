@@ -17,6 +17,7 @@ enum AIState {
 	ATTACK_RECOVERY,
 	GUARD_BROKEN,
 	STAGGER,
+	RECOIL,
 	DEAD
 }
 
@@ -26,6 +27,14 @@ enum AIState {
 @export var max_poise: float = 42.0
 @export var max_guard_stamina: float = 55.0
 @export var patrol_points: Array[Vector3] = []
+## Horizontal arc of the opening combo slash, in degrees. If this arc meets a
+## wall within reach, the slash clangs off it instead of opening the hitbox.
+@export var combo_slash_arc_degrees: float = 110.0
+## How far the opening combo slash reaches, in meters, for the wall check.
+@export var combo_slash_reach: float = 1.6
+## Seconds the Ork is stunned after its slash clangs off a wall. The shield
+## guard is down for the whole recoil, so it is an opening for the player.
+@export var wall_recoil_time: float = 0.65
 
 var health: float = 115.0
 var poise_damage: float = 0.0
@@ -247,11 +256,19 @@ func _process_ai_state(delta: float) -> void:
 				guard_stamina = max_guard_stamina * 0.6
 				state = AIState.PURSUE
 
+		AIState.RECOIL:
+			# Wall clang: the shield guard is down but guard stamina is untouched.
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			if _state_timer <= 0.0:
+				state = AIState.SHIELD_ADVANCE if has_shield else AIState.PURSUE
+
 func is_dead() -> bool:
 	return state == AIState.DEAD
 
 func is_staggered() -> bool:
-	return state in [AIState.STAGGER, AIState.GUARD_BROKEN]
+	return state in [AIState.STAGGER, AIState.GUARD_BROKEN, AIState.RECOIL]
 
 func _try_begin_combo() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
@@ -261,6 +278,11 @@ func _try_begin_combo() -> bool:
 	return true
 
 func _enter_combo_1_active() -> void:
+	# The opening slash is a horizontal sweep: in cramped space it clangs.
+	var obstruction: Dictionary = WallDeflection.sweep_obstruction(self, _facing_dir, combo_slash_arc_degrees, combo_slash_reach)
+	if not obstruction.is_empty():
+		_enter_wall_recoil(obstruction)
+		return
 	state = AIState.COMBO_1_ACTIVE
 	_state_timer = 0.16
 	if audio:
@@ -278,6 +300,7 @@ func _enter_combo_1_active() -> void:
 	_hitbox.begin_swing(payload)
 
 func _enter_combo_2_active() -> void:
+	# The overhead chop is vertical, so it never clangs off walls.
 	state = AIState.COMBO_2_ACTIVE
 	_state_timer = 0.18
 	if audio:
@@ -293,6 +316,23 @@ func _enter_combo_2_active() -> void:
 		5.2
 	)
 	_hitbox.begin_swing(payload)
+
+## The opening slash struck stone: no damage, the combo is abandoned and the
+## Ork reels back with its guard down for `wall_recoil_time`.
+func _enter_wall_recoil(hit: Dictionary) -> void:
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	state = AIState.RECOIL
+	_state_timer = wall_recoil_time
+
+	var normal: Vector3 = WallDeflection.recoil_normal(hit, _facing_dir)
+	_knockback_vel = normal * 2.0
+
+	if audio:
+		audio.play_wall_clang()
+	ork_combat_bark.emit("Ork Cleaver Clangs Off the Wall — Punish Opening!")
+	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
 
 func _finish_attack_sequence(recovery_duration: float) -> void:
 	_hitbox.end_swing()
@@ -400,6 +440,13 @@ func _update_visual_telegraph() -> void:
 			if _shield_mesh:
 				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
 			_status_mat.albedo_color = Color(0.42, 0.72, 0.88)
+		AIState.RECOIL:
+			# Cleaver jarred up and back, shield swung wide: same "punish" blue
+			# family as a stagger, a touch brighter so the clang reads.
+			_weapon_arm.rotation_degrees = Vector3(-55.0, -60.0, 30.0)
+			if _shield_mesh:
+				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
+			_status_mat.albedo_color = Color(0.58, 0.84, 0.96)
 		_:
 			_weapon_arm.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			if _shield_mesh:

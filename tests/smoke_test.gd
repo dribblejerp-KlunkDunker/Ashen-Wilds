@@ -792,8 +792,117 @@ func _test_goblin_corridor() -> void:
 # Ork: the combo's opening slash clangs in cramped space; the overhead chop does not.
 # Keep ork helpers between this banner and the next one.
 # ------------------------------------------------------------------------------
+func _spawn_dummy_ork(pos: Vector3, facing: Vector3) -> EnemyOrkWarrior:
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	_main.add_child(o)
+	o.global_position = pos
+	o._facing_dir = facing.normalized()
+	o._visual_root.look_at(o.global_position + o._facing_dir, Vector3.UP)
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	return o
+
+func _ork_sparks() -> int:
+	return _main.find_children("WallSparks*", "Node3D", false, false).size()
+
+## Ticks until the ork leaves `from_state` (max ~1 s). Returns true if the
+## hitbox was ever active on any sampled tick.
+func _ork_wait_leave(o: EnemyOrkWarrior, from_state: EnemyOrkWarrior.AIState) -> bool:
+	var hb_seen: bool = o._hitbox._is_swing_active
+	for i in range(60):
+		if o.state != from_state:
+			break
+		await physics_frame
+		hb_seen = hb_seen or o._hitbox._is_swing_active
+	return hb_seen
+
 func _test_ork_clang() -> void:
 	_section("Enemy deflection: ork")
+	# Park the player on open ground, well clear of both dummies' swings.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var audio_list: Array = _children_of(func(n: Node) -> bool: return n is ProceduralAudio)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+
+	# 1) In the entry hall, facing down it: the opening slash clangs.
+	var ork := _spawn_dummy_ork(HALL, Vector3.RIGHT)
+	ork.coordinator = coord
+	if not audio_list.is_empty():
+		ork.audio = audio_list[0]
+	var barks: Array[String] = []
+	ork.ork_combat_bark.connect(func(msg: String) -> void: barks.append(msg))
+	await _ticks(2)
+	var sparks_before: int = _ork_sparks()
+	_check(ork._try_begin_combo() and coord._active_holders.has(ork.get_instance_id()), "ork: combo takes an attack token")
+	var hb_seen: bool = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL,
+		"ork: entry hall combo slash clangs into RECOIL (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(not hb_seen and not ork._hitbox._is_swing_active, "ork: a clanged slash never opens its hitbox")
+	_check(_ork_sparks() > sparks_before, "ork: clang throws WallSparks")
+	_check(ork.is_staggered(), "ork: RECOIL counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ork.get_instance_id()), "ork: clang releases the attack token")
+	_check(barks.size() == 1 and barks[0].contains("Clang"), "ork: clang barks once (%s)" % [barks])
+	_check(ork._knockback_vel.length() > 0.5, "ork: clang pushes the ork back off the wall (%.2f m/s)" % ork._knockback_vel.length())
+
+	# Guard is down during the recoil: a frontal hit lands instead of being blocked.
+	var hp: float = ork.health
+	var guard: float = ork.guard_stamina
+	ork._on_hurtbox_hit_received(CombatPayload.new(_player, ork.global_position + Vector3.RIGHT * 1.2, Vector3.LEFT, 5.0, 1.0))
+	_check(ork.health < hp and is_equal_approx(ork.guard_stamina, guard), "ork: shield guard is down during RECOIL (frontal hit lands)")
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: a light hit doesn't cut the recoil short")
+	# Forget the attacker so the dummy doesn't start a fresh combo afterwards.
+	ork._has_last_known_pos = false
+	ork._memory_timer = 0.0
+
+	# 2) Still reeling just before wall_recoil_time; recovered just after, without the combo resuming.
+	ork.guard_stamina = 20.0
+	await _seconds(ork.wall_recoil_time - 0.12)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: still in RECOIL before %.2f s" % ork.wall_recoil_time)
+	await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.RECOIL)
+	_check(ork.state == EnemyOrkWarrior.AIState.SHIELD_ADVANCE,
+		"ork: shielded ork returns to SHIELD_ADVANCE (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(ork.guard_stamina < 21.0, "ork: recoil doesn't refill guard stamina (%.1f)" % ork.guard_stamina)
+	await _seconds(0.2)
+	_check(ork.state not in [EnemyOrkWarrior.AIState.RECOIL, EnemyOrkWarrior.AIState.COMBO_LINK,
+		EnemyOrkWarrior.AIState.COMBO_2_STARTUP, EnemyOrkWarrior.AIState.COMBO_2_ACTIVE],
+		"ork: combo does not continue after a clang (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+
+	# 3) In the hall, the overhead chop is never deflected.
+	ork.global_position = HALL
+	ork._facing_dir = Vector3.RIGHT
+	ork._knockback_vel = Vector3.ZERO
+	await _ticks(2)
+	ork.state = EnemyOrkWarrior.AIState.COMBO_2_STARTUP
+	ork._state_timer = 0.05
+	hb_seen = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_2_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.COMBO_2_ACTIVE and hb_seen,
+		"ork: entry hall overhead chop reaches COMBO_2_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	await _seconds(0.3)
+	ork.queue_free()
+
+	# 4) On open ground (3 m from the player, swinging away from them) the slash connects as before.
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	var ork_open := _spawn_dummy_ork(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	ork_open.coordinator = coord
+	await _ticks(2)
+	sparks_before = _ork_sparks()
+	ork_open._try_begin_combo()
+	hb_seen = await _ork_wait_leave(ork_open, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_1_ACTIVE and hb_seen,
+		"ork: open ground combo slash reaches COMBO_1_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	_check(_ork_sparks() == sparks_before, "ork: no sparks when nothing obstructs")
+	await _seconds(0.25)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_LINK or ork_open.state == EnemyOrkWarrior.AIState.ATTACK_RECOVERY,
+		"ork: unobstructed slash flows into the combo link (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	await _seconds(0.3)
+	ork_open.queue_free()
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	await _ticks(2)
 
 # ------------------------------------------------------------------------------
 # Ogre: the club sweep clangs off walls; the ground slam never does.
