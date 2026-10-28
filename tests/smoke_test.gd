@@ -710,8 +710,83 @@ func _test_enemy_wall_deflection() -> void:
 # Goblin: its shiv jab is a thrust, so it never clangs, even in the entry hall.
 # Keep goblin helpers between this banner and the next one.
 # ------------------------------------------------------------------------------
+## A live (processing) goblin with no player or coordinator, facing `dir`.
+func _spawn_attacking_goblin(pos: Vector3, dir: Vector3) -> EnemyGoblinScavenger:
+	var g := EnemyGoblinScavenger.new()
+	g.audio = _player.audio
+	_main.add_child(g)
+	g.global_position = pos
+	g._facing_dir = dir.normalized()
+	g._visual_root.look_at(g.global_position + g._facing_dir, Vector3.UP)
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	return g
+
+func _wall_sparks_now() -> Array:
+	return _main.get_children().filter(func(c: Node) -> bool: return String(c.name).contains("WallSparks"))
+
+## Starts the goblin's real windup and watches it tick by tick until its
+## startup ends. Returns the state it resolves into and whether the hitbox
+## opened at any point up to `watch_after` seconds afterwards.
+func _goblin_attack_resolve(g: EnemyGoblinScavenger, watch_after: float) -> Dictionary:
+	var result: Dictionary = {"state": g.state, "hitbox": false, "new_sparks": 0}
+	var sparks_before: Array = _wall_sparks_now()
+	if not g._try_begin_attack_windup():
+		return result
+	var limit: int = int(ceil(1.2 * Engine.physics_ticks_per_second))
+	for i in range(limit):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+		if g.state != EnemyGoblinScavenger.AIState.ATTACK_STARTUP:
+			break
+	result["state"] = g.state
+	for i in range(int(ceil(watch_after * Engine.physics_ticks_per_second))):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+	result["new_sparks"] = _wall_sparks_now().filter(func(c: Node) -> bool: return not sparks_before.has(c)).size()
+	return result
+
 func _test_goblin_corridor() -> void:
 	_section("Enemy deflection: goblin")
+
+	# 1) Default: the shiv jab is a thrust and connects even in the entry hall.
+	var g1 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	await _ticks(2)
+	_check(g1.attack_is_thrust, "goblin jab is a thrust by default")
+	_check(not WallDeflection.sweep_obstruction(g1, Vector3.RIGHT, EnemyGoblinScavenger.SWEEP_ARC_DEGREES, EnemyGoblinScavenger.SWEEP_REACH).is_empty(),
+		"entry hall: a goblin-sized sweep would be obstructed (sanity)")
+	var r1: Dictionary = await _goblin_attack_resolve(g1, 0.0)
+	_check(r1["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g1._hitbox._is_swing_active,
+		"entry hall: goblin jab reaches ATTACK_ACTIVE with its hitbox open (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r1["state"]])
+	_check(r1["new_sparks"] == 0, "entry hall: goblin jab throws no sparks")
+	g1.queue_free()
+	await _ticks(2)
+
+	# 2) As a sweep, the same placement clangs through the shared rule.
+	var g2 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	g2.attack_is_thrust = false
+	await _ticks(2)
+	var r2: Dictionary = await _goblin_attack_resolve(g2, 0.3)
+	_check(r2["state"] == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY, "entry hall: goblin sweep clangs into ATTACK_RECOVERY (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r2["state"]])
+	_check(not r2["hitbox"], "entry hall: a clanged goblin sweep never opens its hitbox")
+	_check(r2["new_sparks"] > 0, "entry hall: goblin clang throws WallSparks")
+	_check(g2.state == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY and g2._state_timer > 0.0 and g2._state_timer <= 0.31,
+		"goblin clang recovery lasts 0.6 s (%.2f s left after 0.3 s)" % g2._state_timer)
+	g2.attack_is_thrust = true
+	g2.queue_free()
+	await _ticks(2)
+
+	# 3) As a sweep on open ground, nothing obstructs it.
+	var g3 := _spawn_attacking_goblin(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	g3.attack_is_thrust = false
+	await _ticks(2)
+	var r3: Dictionary = await _goblin_attack_resolve(g3, 0.0)
+	_check(r3["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g3._hitbox._is_swing_active,
+		"open ground: goblin sweep is not deflected (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r3["state"]])
+	_check(r3["new_sparks"] == 0, "open ground: goblin sweep throws no sparks")
+	g3.attack_is_thrust = true
+	g3.queue_free()
+	await _ticks(2)
 
 # ------------------------------------------------------------------------------
 # Ork: the combo's opening slash clangs in cramped space; the overhead chop does not.
