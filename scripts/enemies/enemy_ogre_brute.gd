@@ -92,6 +92,8 @@ func _sees_player() -> bool:
 
 func _process_ai_state(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
+		if state != AIState.IDLE:
+			_abandon_attack()
 		state = AIState.IDLE
 		velocity = Vector3.ZERO
 		return
@@ -285,6 +287,14 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * 2.0), normal, 22)
 	ogre_event_banner.emit("The Ogre's club smashes into stone — strike now!", Color(0.48, 0.78, 0.92))
 
+## Drops an attack when the player dies or the Ogre loses its target.
+## Closing the hitbox and releasing the token keeps respawns safe.
+func _abandon_attack() -> void:
+	_hitbox.end_swing()
+	_slam_ring.visible = false
+	if coordinator:
+		coordinator.release_attack_token(self)
+
 func _enter_long_recovery(duration: float) -> void:
 	_hitbox.end_swing()
 	if coordinator:
@@ -304,6 +314,7 @@ func _face_direction(dir: Vector3, turn_speed: float, delta: float) -> void:
 func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if state == AIState.DEAD:
 		return
+
 	health = maxf(0.0, health - payload.physical_damage)
 	poise_damage += payload.poise_damage
 
