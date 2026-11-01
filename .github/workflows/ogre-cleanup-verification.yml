@@ -1,0 +1,75 @@
+name: Ogre cleanup verification
+on:
+  push:
+    branches: [claude/busy-rubin-w16zts]
+    paths: [.github/workflows/ogre-cleanup-verification.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    env:
+      TARGET_COMMIT: 41945737f3c693ff3dbf2e2e715bde25979c4ca9
+      GODOT_SILENCE_ROOT_WARNING: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the exact Ogre fix
+        uses: actions/checkout@v4
+        with:
+          ref: 41945737f3c693ff3dbf2e2e715bde25979c4ca9
+          persist-credentials: false
+      - name: Install Godot 4.3 stable
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot" "$RUNNER_TEMP/ogre-logs"
+          curl --fail --location --retry 3 --max-time 180 \
+            https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip \
+            -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Verify identity and import project
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_COMMIT"
+          "$GODOT" --version | tee "$RUNNER_TEMP/ogre-logs/version.log"
+          grep -q '^4\.3\.stable' "$RUNNER_TEMP/ogre-logs/version.log"
+          timeout 300 "$GODOT" --headless --path . --editor --import 2>&1 | tee "$RUNNER_TEMP/ogre-logs/import.log"
+          if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing' "$RUNNER_TEMP/ogre-logs/import.log"; then exit 1; fi
+      - name: Compile the changed scripts
+        run: |
+          set -euo pipefail
+          for script in scripts/enemies/enemy_ogre_brute.gd tests/ogre_target_cleanup_test.gd; do
+            log="$RUNNER_TEMP/ogre-logs/compile-$(basename "$script").log"
+            timeout 180 "$GODOT" --headless --path . --check-only --script "res://$script" 2>&1 | tee "$log"
+            if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script' "$log"; then exit 1; fi
+          done
+      - name: Run Ogre regression twice
+        run: |
+          set -euo pipefail
+          for run in 1 2; do
+            log="$RUNNER_TEMP/ogre-logs/ogre-$run.log"
+            timeout 300 "$GODOT" --headless --path . --script res://tests/ogre_target_cleanup_test.gd 2>&1 | tee "$log"
+            grep -Eq '^--- Ogre cleanup: [1-9][0-9]* passed, 0 failure\(s\) ---$' "$log"
+            if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script|^FAIL[[:space:]]' "$log"; then exit 1; fi
+          done
+      - name: Run full smoke suite twice
+        run: |
+          set -euo pipefail
+          for run in 1 2; do
+            log="$RUNNER_TEMP/ogre-logs/smoke-$run.log"
+            timeout 900 "$GODOT" --headless --path . --script res://tests/smoke_test.gd 2>&1 | tee "$log"
+            grep -Eq '^--- [1-9][0-9]* passed, 0 failure\(s\) ---$' "$log"
+            if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script|^FAIL[[:space:]]' "$log"; then exit 1; fi
+          done
+      - name: Upload complete verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ogre-cleanup-41945737-verification-logs
+          path: ${{ runner.temp }}/ogre-logs
+          if-no-files-found: warn
+          retention-days: 14
