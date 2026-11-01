@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **172/172** headless regression checks passing
+> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
 
 ---
@@ -172,7 +172,7 @@ scripts/
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd
 tests/
-  smoke_test.gd            Headless regression suite (172 checks)
+  smoke_test.gd            Headless regression suite (177 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)

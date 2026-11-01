@@ -103,6 +103,7 @@ func _run() -> void:
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
 	await _test_enemy_wall_deflection()
+	await _test_ogre_drops_attack_when_player_dies()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1046,3 +1047,46 @@ func _pose_ogre(ogre: EnemyOgreBrute, pos: Vector3, facing: Vector3) -> void:
 	ogre._visual_root.look_at(pos + facing.normalized(), Vector3.UP)
 	ogre.state = EnemyOgreBrute.AIState.IDLE
 	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Ogre: if the player dies mid-attack, the ogre goes idle without leaving its
+# hitbox open or keeping the attack token (which would stop every other enemy
+# attacking after the respawn).
+# ------------------------------------------------------------------------------
+func _test_ogre_drops_attack_when_player_dies() -> void:
+	_section("Ogre drops its attack when the player dies")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var level_ogre: EnemyOgreBrute = _children_of(func(n: Node) -> bool: return n is EnemyOgreBrute)[0]
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var saved_holders: Dictionary = coord._active_holders.duplicate()
+	coord._active_holders.clear()
+
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = level_ogre.audio
+	ogre.coordinator = coord
+	await _pose_ogre(ogre, OGRE_YARD, Vector3.RIGHT)
+
+	# Mid-slam: hitbox open, slam ring shown, token held. (The slam never clangs.)
+	coord.request_attack_token(ogre, true)
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	ogre._state_timer = 0.0
+	ogre._slam_ring.visible = true
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(2)
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE and ogre._hitbox._is_swing_active,
+		"ogre is mid-slam with its hitbox open (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(2)
+	_check(ogre.state == EnemyOgreBrute.AIState.IDLE, "player died: ogre goes idle")
+	_check(not ogre._hitbox._is_swing_active, "player died: ogre's hitbox is closed")
+	_check(not ogre._slam_ring.visible, "player died: slam ring is hidden")
+	_check(not coord._active_holders.has(ogre.get_instance_id()), "player died: ogre hands back its attack token")
+
+	_reset_player(OPEN)
+	ogre.queue_free()
+	await _ticks(2)
+	coord._active_holders = saved_holders

@@ -90,6 +90,8 @@ func _update_player_los_visibility() -> void:
 
 func _process_ai_state(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
+		if state != AIState.IDLE:
+			_abandon_attack()
 		state = AIState.IDLE
 		velocity = Vector3.ZERO
 		return
@@ -270,6 +272,15 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 		audio.play_wall_clang()
 	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * sweep_reach), normal)
 	ogre_event_banner.emit("The Ogre's club smashes into the wall — Strike Now!", Color(0.48, 0.78, 0.92))
+
+## Drops whatever attack was under way when the ogre loses its target (the
+## player died or is gone): closes the hitbox, hides the slam ring and hands
+## back the attack token so other enemies can attack after a respawn.
+func _abandon_attack() -> void:
+	_hitbox.end_swing()
+	_slam_ring.visible = false
+	if coordinator:
+		coordinator.release_attack_token(self)
 
 func _steer_toward(dir: Vector3, speed: float, delta: float) -> void:
 	_face_direction(dir, 3.8, delta)
