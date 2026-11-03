@@ -33,8 +33,8 @@ import json, math, os, shutil, subprocess, sys, tempfile, time
 GODOT = os.environ.get("GODOT", os.path.expanduser("~/godot/Godot_v4.3-stable_linux.x86_64"))
 EXPORTED = sys.argv[sys.argv.index("--exported") + 1] if "--exported" in sys.argv else None
 PORT = int(os.environ.get("NET_SPIKE_PORT", "7795"))
-SERVER_SECONDS = 24.0
-PROCESS_TIMEOUT = 60.0
+SERVER_SECONDS = 26.0
+PROCESS_TIMEOUT = 70.0
 WALK_SPEED = 3.2
 
 checks = []
@@ -125,7 +125,8 @@ def main():
     procs = {}
     t0 = time.time()
     # With --shots the server admits a third, rendered client (a development setting, §85).
-    procs["server"] = launch(["--server", "--port", str(PORT), "--max-players", "3" if shots else "2", "--quit-after", str(SERVER_SECONDS), "--report", rep("server")], log("server"))
+    save = os.path.join(out, "world.json")
+    procs["server"] = launch(["--server", "--port", str(PORT), "--max-players", "3" if shots else "2", "--quit-after", str(SERVER_SECONDS), "--save", save, "--report", rep("server")], log("server"))
     time.sleep(1.0)
     common = ["--client", "--host", "127.0.0.1", "--port", str(PORT)]
     if shots:
@@ -135,7 +136,7 @@ def main():
     procs["B"] = launch(common + ["--player-key", "bravo", "--drive", "B", "--report", rep("B")], log("B"))
     time.sleep(6.0)
     procs["MISMATCH"] = launch(common + ["--player-key", "late", "--drive", "MISMATCH", "--protocol", "999", "--quit-after", "4", "--report", rep("MISMATCH")], log("MISMATCH"))
-    time.sleep(1.0)
+    time.sleep(1.5)
     procs["B2"] = launch(common + ["--player-key", "bravo", "--drive", "B2", "--report", rep("B2")], log("B2"))
 
     deadline = t0 + PROCESS_TIMEOUT
@@ -179,10 +180,11 @@ def main():
         check(a_exit and srv_a and length(sub(vec(a_exit["position"]), vec(srv_a))) < 0.3, "A's own predicted position matches the server's authoritative one", {"client": a_exit and a_exit["position"], "server": srv_a})
         check(float(A["stats"]["max_correction"]) < 0.5, "A's prediction corrections stayed small (max %.2f m)" % float(A["stats"]["max_correction"]))
         # Shared presence: B saw A at a position near where A was at that time (A's move1_end ~ B's final).
-        b_final = sample(B, "final")
-        seen = b_final and next((p for p in b_final["players_seen"] if p["player_key"] == "alpha"), None)
-        a_then = sample(A, "move2_start")
-        check(seen and a_then and length(sub(vec(seen["position"]), vec(a_then["position"]))) < 1.5, "B saw A move through the same courtyard", {"B_saw": seen and seen["position"], "A_was": a_then and a_then["position"]})
+        # B looks at A at B's t=3.0, while A stands still between its walks (A's t=2.5 to 3.5).
+        b_look = sample(B, "see_A")
+        seen = b_look and next((p for p in b_look["players_seen"] if p["player_key"] == "alpha"), None)
+        a_then = sample(A, "move1_end")
+        check(seen and a_then and length(sub(vec(seen["position"]), vec(a_then["position"]))) < 0.5, "B saw A move through the same courtyard (B's view of A within 0.5 m of where A stood)", {"B_saw": seen and seen["position"], "A_was": a_then and a_then["position"]})
 
     # --- disconnect and rejoin (criteria 8, 9; matrix B)
     if server and A and B and B2:
@@ -200,7 +202,7 @@ def main():
     if shots:
         S = load(rep("SHOTS"))
         written = [e for e in (S or {}).get("events", []) if e["event"] == "screenshot" and e.get("ok")]
-        check(S and S["connection_state"] in ("playing", "disconnected") and len(written) == 7, "the SHOTS client rendered and saved seven images: four views, two zoom limits, the open crate window (look at them)", {"written": [os.path.basename(e["path"]) for e in written]})
+        check(S and S["connection_state"] in ("playing", "disconnected") and len(written) == 8, "the SHOTS client rendered and saved eight images: four views, two zoom limits, the open crate window, the refuge (look at them)", {"written": [os.path.basename(e["path"]) for e in written]})
 
     # --- shared container and item transfer (brief §17, §62 criteria 5 and 6; matrix D)
     if server and A and B and B2:
@@ -247,15 +249,19 @@ def main():
         check(store_far and store_far[0]["code"] == "OUT_OF_RANGE", "a store from 4 m away is OUT_OF_RANGE", store_far and store_far[0]["code"])
         crate_timber = totals(crate.get("stacks", [])).get("timber", 0)
         a_timber = totals(server["packs"].get("alpha", {}).get("stacks", [])).get("timber", 0)
-        check(crate_timber == 2 and a_timber == 2, "after 6 − 4 (A) − 2 (B) + 2 (A stores) the crate holds 2 timber and A holds 2", {"crate": crate_timber, "A": a_timber})
+        check(crate_timber == 2 and a_timber == 0, "after 6 − 4 (A) − 2 (B) + 2 (A stores) the crate holds 2 timber, and A spent its last 2 on the breach", {"crate": crate_timber, "A": a_timber})
         b_view = B["container_views"].get("courtyard/supply-crate", {})
         check(totals(b_view.get("stacks", [])).get("timber", 0) == 2 or B["connection_state"] != "playing", "B saw the crate refilled by A's store before leaving", totals(b_view.get("stacks", [])))
-        # Conservation: seeded == crate + every pack the server knows (live or retained), item by item.
+        # Conservation: seeded == crate + every pack the server knows (live or retained) + what the
+        # fixtures consumed (breach 2 timber, hearth 1 timber, when done), item by item.
         held = totals(crate.get("stacks", []))
         for key, pack in server["packs"].items():
             for item, n in totals(pack["stacks"]).items():
                 held[item] = held.get(item, 0) + n
-        check(held == seeded, "every seeded item is accounted for across the crate and all packs (no duplication, no loss)", {"seeded": seeded, "held": held})
+        fx = server.get("fixtures", {})
+        consumed = (2 if fx.get("courtyard/breach", {}).get("done") else 0) + (1 if fx.get("courtyard/hearth", {}).get("done") else 0)
+        held["timber"] = held.get("timber", 0) + consumed
+        check(held == seeded, "every seeded item is accounted for across the crate, all packs and the fixtures' consumption (no duplication, no loss)", {"seeded": seeded, "held": held, "consumed_timber": consumed})
         a_pack = totals(A["pack_view"]["stacks"])
         srv_a = totals(server["packs"].get("alpha", {}).get("stacks", []))
         check(a_pack == srv_a and abs(float(A["pack_view"]["weight"]) - float(server["packs"].get("alpha", {}).get("weight", -1))) < 0.01, "A's pack view equals the server's pack for A, weight included", {"client": a_pack, "server": srv_a})
@@ -263,10 +269,125 @@ def main():
         b_salt_server = totals(server["packs"].get("bravo", {}).get("stacks", [])).get("salt", 0)
         b_salt_req = req(B, "salt")
         check(b_salt_server in (0, 1) and (not b_salt_req or b_salt_req[0]["ok"] == (b_salt_server == 1) or not b_salt_req[0].get("done_t")), "B's take in the instant of leaving was either applied once or not at all", {"server_salt": b_salt_server, "B_answer": b_salt_req and b_salt_req[0]["code"]})
-        check(totals(B2["pack_view"]["stacks"]) == totals(server["packs"].get("bravo", {}).get("stacks", [])) and totals(B2["pack_view"]["stacks"]).get("timber", 0) == 2, "the rejoin received B's pack back from the server's record", {"B2": totals(B2["pack_view"]["stacks"])})
+        check(totals(B2["pack_view"]["stacks"]) == totals(server["packs"].get("bravo", {}).get("stacks", [])) and totals(B2["pack_view"]["stacks"]).get("timber", 0) == 1, "the rejoin received B's pack back from the server's record (1 timber after lighting the hearth)", {"B2": totals(B2["pack_view"]["stacks"])})
         a_view = A["container_views"].get("courtyard/supply-crate", {})
         check(a_view.get("version") == crate.get("version") and totals(a_view.get("stacks", [])) == totals(crate.get("stacks", [])), "A's final view of the crate matches the server's (version and contents)", {"client_v": a_view.get("version"), "server_v": crate.get("version")})
         check(not A["pending_at_exit"], "A had no unanswered requests at exit", A["pending_at_exit"])
+
+    # --- Milestone 3: repair and hearth (brief §62 criterion 7; matrix E)
+    if server and A and B and B2:
+        def uses(report, object_id):
+            return [r for r in report["requests"] if r["kind"] == "use" and r["object_id"] == object_id]
+        b_light, b_rep = uses(B, "courtyard/hearth"), uses(B, "courtyard/breach")
+        check(b_light and b_light[0]["ok"], "B lit the hearth with one timber", b_light and b_light[0]["code"])
+        check(b_rep and b_rep[0]["code"] == "INSUFFICIENT_RESOURCES", "B, left with one timber, cannot repair the breach (needs two): INSUFFICIENT_RESOURCES", b_rep and b_rep[0]["code"])
+        b_gap = sample(B, "through_gap")
+        check(b_gap and b_gap["position"][2] > 7.0, "before the repair, the breach is open: B walked through it (z %.2f > 7)" % (b_gap["position"][2] if b_gap else -99), b_gap and b_gap["position"])
+        a_light, a_rep = uses(A, "courtyard/hearth"), uses(A, "courtyard/breach")
+        check(a_light and a_light[0]["code"] == "STATE_CHANGED", "lighting an already lit hearth is STATE_CHANGED", a_light and a_light[0]["code"])
+        check(a_rep and a_rep[0]["ok"], "A repaired the breach with two timber", a_rep and a_rep[0]["code"])
+        a_gap = sample(A, "after_gap")
+        check(a_gap and a_gap["position"][2] < 6.2, "after the repair, the barricade blocks: A walking at the gap stopped at z %.2f (< 6.2)" % (a_gap["position"][2] if a_gap else 99), a_gap and a_gap["position"])
+        fx = server.get("fixtures", {})
+        check(fx.get("courtyard/breach", {}).get("done_by") == "alpha" and fx.get("courtyard/hearth", {}).get("done_by") == "bravo", "the server records who repaired and who lit", fx)
+        b2_fx = [e for e in B2["events"] if e["event"] == "fixture_state" and e["object_id"] == "courtyard/breach"]
+        check(len(b2_fx) >= 2 and b2_fx[0]["done"] is False and b2_fx[-1]["done"] is True, "B2 joined with the breach open and received the repair live, from the other player's action", [(e["t"], e["done"]) for e in b2_fx])
+        check(B2["fixture_views"].get("courtyard/hearth", {}).get("done") is True and B2["fixture_views"].get("courtyard/breach", {}).get("done") is True, "B2's final view: hearth lit, breach repaired", B2["fixture_views"])
+        sv = server.get("save", {})
+        check(sv.get("info", {}).get("loaded") == "NEW_WORLD" and int(sv.get("info", {}).get("saves_written", 0)) >= 3 and int(sv.get("info", {}).get("save_failures", 1)) == 0, "the server started a new world and saved it (%s saves, 0 failures)" % sv.get("info", {}).get("saves_written"), sv.get("info"))
+
+    # --- Milestone 3: restart recovery (brief §62 criterion 10; matrix G)
+    saved = load(save)
+    check(saved and saved.get("schema") == 1 and set(saved.get("players", {})) >= {"alpha", "bravo"}, "the save file exists, schema 1, with both players", saved and {k: saved[k] for k in ("schema", "world_id", "save_seq")})
+    if saved and server:
+        procs2 = {"server2": launch(["--server", "--port", str(PORT), "--quit-after", "8", "--save", save, "--report", rep("server2")], log("server2"))}
+        time.sleep(1.5)
+        procs2["R"] = launch(common + ["--player-key", "alpha", "--drive", "R", "--report", rep("R")], log("R"))
+        for name, p in procs2.items():
+            try:
+                p.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                p.kill()
+                check(False, "%s process finished on its own" % name)
+        s2, R = load(rep("server2")), load(rep("R"))
+        check(s2 and s2["save"]["info"]["loaded"] == "LOADED" and s2["save"]["world_id"] == saved["world_id"], "the restarted server loaded the same world (%s)" % (s2 and s2["save"]["world_id"]), s2 and s2["save"]["info"])
+        if R:
+            alpha_rec = saved["players"]["alpha"]
+            check(length(sub(vec(R["spawn_position"]), vec(alpha_rec["position"]))) < 0.05, "alpha rejoined the restarted server where the save left them", {"save": alpha_rec["position"], "spawn": R["spawn_position"]})
+            check(totals(R["pack_view"]["stacks"]) == totals(alpha_rec["pack"]), "alpha's pack came back across the restart", {"save": totals(alpha_rec["pack"]), "rejoin": totals(R["pack_view"]["stacks"])})
+            rv = R["container_views"].get("courtyard/supply-crate", {})
+            sc = saved["containers"]["courtyard/supply-crate"]
+            check(totals(rv.get("stacks", [])) == totals(sc["stacks"]) and rv.get("version") == sc["version"] and [st[0] for st in rv.get("stacks", [])] == [st[0] for st in sc["stacks"]], "the crate came back with the same contents, version and stack ids", {"save_v": sc["version"], "view_v": rv.get("version")})
+            check(R["fixture_views"].get("courtyard/breach", {}).get("done") is True and R["fixture_views"].get("courtyard/hearth", {}).get("done") is True, "the repaired breach and the lit hearth came back across the restart", R["fixture_views"])
+
+    # --- Milestone 3: save failure policy (brief §18, appendix §88; matrix G)
+    if saved:
+        def server_only(tag, extra=()):
+            p = launch(["--server", "--port", str(PORT), "--quit-after", "1.5", "--save", save, "--report", rep(tag)] + list(extra), log(tag))
+            try:
+                p.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                p.kill()
+            return p.returncode, load(rep(tag))
+        def read(path):
+            with open(path, "rb") as f:
+                return f.read()
+        world_id = saved["world_id"]
+        # a. corrupt primary, valid backup -> backup loaded, bad file kept aside, primary rewritten
+        with open(save, "w") as f:
+            f.write("{ this is not json")
+        code, r = server_only("server_backup")
+        aside = r and r["save"]["info"]["moved_aside"]
+        check(code == 0 and r and r["save"]["info"]["loaded"] == "LOADED_BACKUP" and r["save"]["world_id"] == world_id, "a corrupt primary falls back to the backup of the same world", r and r["save"]["info"])
+        check(aside and os.path.exists(aside[0]) and read(aside[0]) == b"{ this is not json", "the corrupt file is kept aside, not deleted (%s)" % (aside and os.path.basename(aside[0])), aside)
+        fixed = load(save)
+        check(fixed and fixed.get("world_id") == world_id, "after the backup load the primary is a valid save again", fixed and fixed.get("save_seq"))
+        # b. a save from a newer build is refused and never overwritten
+        newer = dict(fixed or {})
+        newer["schema"] = 99
+        with open(save, "w") as f:
+            json.dump(newer, f)
+        before = read(save)
+        code, r = server_only("server_newer")
+        check(code == 4 and r and r["save"]["info"]["loaded"] == "SAVE_SCHEMA_NEWER" and not r["started"], "a save from a newer build stops the server with exit code 4 (got %s)" % code, r and r["save"]["info"])
+        check(read(save) == before, "the newer save is byte-for-byte untouched")
+        # c. primary and backup both unusable -> refuse, files untouched
+        with open(save, "w") as f:
+            f.write("garbage")
+        with open(save + ".bak", "w") as f:
+            f.write("also garbage")
+        code, r = server_only("server_unreadable")
+        check(code == 3 and r and r["save"]["info"]["loaded"] == "SAVE_UNREADABLE" and read(save) == b"garbage" and read(save + ".bak") == b"also garbage", "with both files unusable the server refuses (exit 3) and touches neither (got %s)" % code, r and r["save"]["info"])
+        # d. --reset-world: explicit, keeps the bad files aside, starts a new world
+        code, r = server_only("server_reset", ["--reset-world"])
+        moved = (r and r["save"]["info"]["moved_aside"]) or []
+        fresh = load(save)
+        check(code == 0 and r and r["save"]["info"]["loaded"] == "RESET_NEW_WORLD" and len(moved) == 2 and all(os.path.exists(m) for m in moved) and fresh and fresh["world_id"] != world_id, "--reset-world moves both bad files aside and starts a new world", {"moved": [os.path.basename(m) for m in moved], "new": fresh and fresh.get("world_id")})
+        # e. a server killed outright (SIGKILL: no shutdown save) keeps every change older than the
+        #    one-second save window: a take made 3 s before the kill survives the restart.
+        crash = launch(["--server", "--port", str(PORT), "--quit-after", "30", "--save", save, "--report", rep("server_crash")], log("server_crash"))
+        time.sleep(1.5)
+        victim = launch(common + ["--player-key", "crashy", "--drive", "CRASH", "--report", rep("CRASH")], log("CRASH"))
+        time.sleep(4.0)
+        crash.kill()
+        crash.wait(timeout=10)
+        try:
+            victim.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            victim.kill()
+        took = [x for x in (load(rep("CRASH")) or {}).get("requests", []) if x["kind"] == "take"]
+        after = launch(["--server", "--port", str(PORT), "--quit-after", "6", "--save", save, "--report", rep("server_after")], log("server_after"))
+        time.sleep(1.5)
+        back = launch(common + ["--player-key", "crashy", "--drive", "R", "--report", rep("R_crash")], log("R_crash"))
+        for p in (back, after):
+            try:
+                p.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                p.kill()
+        sa, rc = load(rep("server_after")), load(rep("R_crash"))
+        crate_after = rc and totals(rc["container_views"].get("courtyard/supply-crate", {}).get("stacks", [])).get("timber", 0)
+        check(took and took[0]["ok"] and crash.returncode != 0, "the crash victim took one timber and the server was then killed outright (exit %s)" % crash.returncode, took and took[0]["code"])
+        check(sa and sa["save"]["info"]["loaded"] == "LOADED" and rc and totals(rc["pack_view"]["stacks"]).get("timber", 0) == 1 and crate_after == 5, "after the kill and a restart, the take survived: the player has 1 timber, the crate 5", {"loaded": sa and sa["save"]["info"]["loaded"], "pack": rc and totals(rc["pack_view"]["stacks"]), "crate_timber": crate_after})
 
     failed = [c for c in checks if not c[0]]
     print("--- %d passed, %d failed ---" % (len(checks) - len(failed), len(failed)))

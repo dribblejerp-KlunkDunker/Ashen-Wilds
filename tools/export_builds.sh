@@ -99,8 +99,16 @@ HOW TO PLAY TOGETHER (temporary rules P4/A1: one of you runs the server, the oth
   Keys: WASD/arrows move · Q/E turn the camera · wheel zoom · C recenter · F search a crate · Esc closes.
   With no arguments the binary opens the single-player Watchhouse prototype instead.
 
+SAVES (server only)
+  The server keeps the world in ashen_world.json in Godot's user data folder (see Logs below) and
+  writes it after every change and on shutdown. Choose another file with --save <path> after the
+  `--`. A save from a newer build is refused, never overwritten; if the save and its backup are
+  both unreadable the server refuses to start until it is given --reset-world (which keeps the bad
+  files aside). Save compatibility: schema 1, written by protocol-4 builds.
+
 KNOWN LIMITATIONS
-  No saves: a server restart loses packs and the crate. No enemies, no repair, no hearth yet.
+  No enemies or combat yet. A position is saved at most every 30 seconds while playing (packs,
+  the crate, the breach and the hearth are saved within a second of changing).
   Placeholder art (capsules and boxes). Two players by default (--max-players on the server).
   Logs: Godot's user data folder, e.g. ~/.local/share/godot/app_userdata/<project name>/logs/ on
   Linux, %APPDATA%\\Godot\\app_userdata\\<project name>\\logs\\ on Windows.

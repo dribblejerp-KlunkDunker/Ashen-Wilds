@@ -80,6 +80,27 @@ func put(inst: ItemInstance) -> void:
 	version += 1
 
 
+## Server side, on load: replace the contents with saved stacks, keeping their stack ids so a
+## client that saw them before the restart names the same stacks after it.
+func restore(stacks: Array, saved_version: int, saved_next_id: int) -> void:
+	contents.items.clear()
+	_stack_ids.clear()
+	var highest: int = 0
+	for s: Array in stacks:
+		var inst: ItemInstance = ItemDatabase.make(str(s[1]), int(s[2]), float(s[3]))
+		if inst == null:
+			continue
+		contents.items.append(inst)
+		_stack_ids[inst] = int(s[0])
+		highest = maxi(highest, int(s[0]))
+	_next_stack_id = maxi(saved_next_id, highest + 1)
+	version = maxi(saved_version, 1)
+
+
+func next_stack_id() -> int:
+	return _next_stack_id
+
+
 func find(stack_id: int) -> ItemInstance:
 	for inst: ItemInstance in contents.items:
 		if int(_stack_ids.get(inst, -1)) == stack_id:
