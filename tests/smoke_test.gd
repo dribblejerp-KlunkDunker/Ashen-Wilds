@@ -104,6 +104,7 @@ func _run() -> void:
 	await _test_weapon_lodging()
 	await _test_enemy_wall_deflection()
 	await _test_ogre_drops_attack_when_player_dies()
+	await _test_survivor_model()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1090,3 +1091,59 @@ func _test_ogre_drops_attack_when_player_dies() -> void:
 	ogre.queue_free()
 	await _ticks(2)
 	coord._active_holders = saved_holders
+
+# ------------------------------------------------------------------------------
+# Look and feel: the survivor is an animated character driven by the state machine.
+func _test_survivor_model() -> void:
+	_section("Survivor model (KayKit, presentation only)")
+	_reset_player(OPEN)
+	_player.camera_rig = null
+	var model: SurvivorModel = _player._model
+	_check(model != null and model.is_inside_tree(), "player has an animated survivor model")
+	var needed: Array[StringName] = [&"Idle_A", &"Running_B", &"Melee_1H_Attack_Stab", &"Melee_1H_Attack_Slice_Horizontal",
+		&"Melee_1H_Attack_Chop", &"Melee_2H_Attack_Stab", &"Melee_Blocking", &"Dodge_Forward", &"Hit_A", &"Death_A", &"Interact", &"Use_Item"]
+	var missing: Array[StringName] = needed.filter(func(n: StringName) -> bool: return not model.has_animation(n))
+	_check(missing.is_empty(), "every animation the states use is loaded (missing: %s)" % str(missing))
+	_check(_player._weapon_mesh.get_parent().get_parent() == model.right_socket, "the weapon hangs off the right-hand socket")
+	_check(_player._shield_mesh.get_parent() == model.left_socket and _player._torch_root.get_parent() == model.left_socket,
+		"shield and torch hang off the left-hand socket")
+
+	await _ticks(3)
+	_check(model.current_animation() == &"Idle_A", "idle with a sword plays Idle_A (got %s)" % model.current_animation())
+
+	_player.stamina = _player.max_stamina
+	_face(Vector3.FORWARD)
+	_player._start_attack(true)
+	await _ticks(2)
+	var heavy_clip: StringName = model.current_animation()
+	_check(heavy_clip == &"Melee_1H_Attack_Stab", "the sword's heavy (a thrust) plays the stab (got %s)" % heavy_clip)
+	await _seconds(1.5)
+	_player.stamina = _player.max_stamina
+	_player._start_attack(false)
+	await _ticks(2)
+	var light_clip: StringName = model.current_animation()
+	_check(String(light_clip).begins_with("Melee_1H_Attack_Slice"), "the sword's light (a sweep) plays a slice (got %s)" % light_clip)
+	var expected_speed: float = model.anim.get_animation(light_clip).length / (_player.weapon.light_startup_time + _player.weapon.light_active_time + _player.weapon.light_recovery_time)
+	_check(absf(model.anim.speed_scale - expected_speed) < 0.05, "the swing animation is fitted to the attack's duration (%.2f vs %.2f)" % [model.anim.speed_scale, expected_speed])
+	await _seconds(1.5)
+
+	# The torch stays upright whatever the hand does, and its light hangs well above the hood.
+	var torch: ItemInstance = ItemDatabase.make("pitch_torch")
+	_player.inventory.add(torch)
+	_player.inventory.equip(torch)
+	await _ticks(3)
+	var torch_up: Vector3 = _player._torch_root.global_basis.y.normalized()
+	_check(torch_up.y > 0.9, "the torch points up (up·y = %.2f)" % torch_up.y)
+	_check(_player._torch_light.global_position.y - _player.global_position.y > 2.0,
+		"the torch light hangs above the hood (%.2f m up)" % (_player._torch_light.global_position.y - _player.global_position.y))
+
+	var hp: float = _player.health
+	_player.health = 1.0
+	_player._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position + Vector3.FORWARD, Vector3.BACK, 50.0, 10.0))
+	await _ticks(2)
+	_check(_player.current_state == PlayerController.ActionState.DEAD and model.current_animation() == &"Death_A", "death plays Death_A")
+	_player.health = hp
+	_reset_player(OPEN)
+	await _ticks(3)
+	_check(model.current_animation() == &"Idle_A", "respawn returns to idle (got %s)" % model.current_animation())
+	_player.inventory.remove(torch)

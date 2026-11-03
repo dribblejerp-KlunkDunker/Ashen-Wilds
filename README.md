@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
-> Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **189/189** headless regression checks passing
+> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: [KayKit Adventurers](https://kaylousberg.itch.io/kaykit-adventurers) by Kay Lousberg (CC0), recoloured for the Blackfen and replaceable later.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
 >
@@ -172,13 +172,15 @@ scripts/
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
   world/      lootable.gd (crates, corpses, ground piles)
-  player/     player_controller.gd
+  player/     player_controller.gd, survivor_model.gd (the animated character)
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd
+art/kaykit/                The survivor character and its animations (CC0; see the README there)
 tests/
-  smoke_test.gd            Headless regression suite (177 checks)
+  smoke_test.gd            Headless regression suite (189 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
+  recolor_survivor_texture.py   Rebuilds the survivor's muted texture from KayKit's
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 ```
 
@@ -187,6 +189,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 - **Damage flow:** an attacker builds a `CombatPayload` and opens its `HitboxComponent` during the *active* phase. The hitbox finds overlapping `HurtboxComponent`s, rejects repeat hits and anything behind a wall (raycast), then calls `receive_attack()`. The defender decides whether it was dodged, blocked or taken.
 - **Physics layers:** 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders (roofs).
 - **Items:** `ItemData` is the shared definition (one instance per id, built in code by `ItemDatabase`); `ItemInstance` carries quantity and condition. `Inventory` holds instances plus the main-hand and off-hand slots — equipped items still count toward weight.
+- **Survivor look:** `SurvivorModel` is the body only. The controller picks an animation from its action state and stretches timed ones (swings, dodges, staggers) to the state's own duration, so combat timing is unchanged. The sword, shield and torch hang off the character's hand bones; hitboxes and collision never read the mesh.
 - **Timed actions:** searching, bandaging and equipment swaps all share the player's `CHANNEL` state, so they're interrupted by the same rules and drive the same HUD progress bar.
 - **Deflection:** `WeaponData` marks each player stroke as a thrust or a sweep, and each enemy declares its own attacks. When a sweep goes active, `WallDeflection.sweep_obstruction()` casts 3–9 rays across the arc against the Environment layer. A hit sends the attacker into `RECOIL` instead of opening the hitbox. Player and enemies share the same helper. For the player, the same check runs every frame while idle to drive the orange "cramped" warning.
 - **Lodging:** on a confirmed heavy hit, the player asks the target `is_dead()` / `is_staggered()` and rolls `heavy_lodge_chance`. A lodge enters the `LODGED` state; releasing the weapon spawns a `Lootable` with a "Work loose" verb at the body.
@@ -206,7 +209,7 @@ Next milestone not yet chosen. Candidates from the design document:
 
 ## Known limitations
 
-- Placeholder visuals: characters and props are primitive meshes; audio is synthesized at runtime.
+- Placeholder visuals: enemies and props are primitive meshes, and the survivor is a stylised stand-in (KayKit, CC0); audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
