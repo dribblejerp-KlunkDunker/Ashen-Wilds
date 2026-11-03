@@ -172,6 +172,7 @@ func _start_client() -> void:
 	add_child(hud)
 	loot = NetLootWindow.new()
 	loot.take_requested.connect(func(object_id: String, stack_id: int, quantity: int) -> void: _request_take(object_id, stack_id, quantity))
+	loot.store_requested.connect(func(object_id: String, item_id: String, quantity: int) -> void: _request_store(object_id, item_id, quantity))
 	add_child(loot)
 	var peer := ENetMultiplayerPeer.new()
 	var err: Error = peer.create_client(host, port)
@@ -405,6 +406,16 @@ func request_take_item(request_id: int, object_id: String, stack_id: int, quanti
 	_serve_request(multiplayer.get_remote_sender_id(), "take", request_id, object_id, stack_id, quantity)
 
 
+## Client -> server: move `quantity` of item `item_id` from my pack into the container. Pack
+## stacks have no ids, so the item id names what moves; the server pulls from the pack's own
+## stacks in order and keeps each portion's condition.
+@rpc("any_peer", "call_remote", "reliable")
+func request_store_item(request_id: int, object_id: String, item_id: String, quantity: int) -> void:
+	if role != "server":
+		return
+	_serve_request(multiplayer.get_remote_sender_id(), "store", request_id, object_id, 0, quantity, item_id)
+
+
 ## Server -> the requester: the answer to one request id. data on success:
 ## {object_id, stack_id, item_id, quantity, pack_weight}.
 @rpc("authority", "call_remote", "reliable")
@@ -422,14 +433,15 @@ func request_result(request_id: int, ok: bool, code: int, data: Dictionary) -> v
 		"repeat": repeat, "ok": ok, "code": NetProtocol.result_name(code), "data": data,
 		"sent_t": req.get("t", 0.0), "done_t": snappedf(session_time, 0.01)}
 	requests.append(entry)
-	if req.get("kind", "") == "take" and loot:
+	var kind: String = str(req.get("kind", ""))
+	if kind in ["take", "store"] and loot:
 		var text: String
 		if ok:
 			var item: ItemData = ItemDatabase.get_item(str(data.get("item_id", "")))
-			text = "Took %d × %s." % [int(data.get("quantity", 0)), item.display_name if item else str(data.get("item_id", ""))]
+			text = "%s %d × %s." % ["Took" if kind == "take" else "Stored", int(data.get("quantity", 0)), item.display_name if item else str(data.get("item_id", ""))]
 		else:
 			text = NetProtocol.result_text(code)
-		loot.show_result(int(req.get("stack_id", 0)), ok, text)
+		loot.show_result(ok, text)
 		if hud and not ok:
 			hud.set_message(text)
 
@@ -449,14 +461,14 @@ func container_contents(object_id: String, version: int, stacks: Array) -> void:
 func pack_state(stacks: Array, weight: float, capacity: float, hard_limit: float) -> void:
 	pack_view = {"stacks": stacks, "weight": weight, "capacity": capacity, "hard_limit": hard_limit}
 	if loot:
-		loot.show_pack(weight, capacity, hard_limit)
+		loot.show_pack(stacks, weight, capacity, hard_limit)
 
 
 # ---------------------------------------------------------------- server: requests
 
 ## One path for every interaction request: identity from the connection, rate limit, repeat
 ## detection, validation, apply, answer, then push the changed durable state to everyone.
-func _serve_request(id: int, kind: String, request_id: int, object_id: String, stack_id: int, quantity: int) -> void:
+func _serve_request(id: int, kind: String, request_id: int, object_id: String, stack_id: int, quantity: int, item_id: String = "") -> void:
 	if request_id < 1:
 		return  # cannot even be answered; a malformed client
 	if not live_by_peer.has(id):
@@ -476,6 +488,7 @@ func _serve_request(id: int, kind: String, request_id: int, object_id: String, s
 	match kind:
 		"contents": outcome = _contents_for(id, object_id)
 		"take": outcome = _take_for(id, object_id, stack_id, quantity)
+		"store": outcome = _store_for(id, object_id, item_id, quantity)
 		_: outcome = [false, NetProtocol.Result.INVALID_REQUEST, {}]
 	log_[request_id] = outcome
 	var order: Array = request_order[id]
@@ -487,7 +500,7 @@ func _serve_request(id: int, kind: String, request_id: int, object_id: String, s
 	var container: NetContainer = courtyard.containers.get(object_id)
 	if container == null:
 		return
-	if kind == "take" and outcome[0]:
+	if kind in ["take", "store"] and outcome[0]:
 		for pid: int in live_by_peer:
 			container_contents.rpc_id(pid, container.object_id, container.version, container.snapshot())
 		_send_pack(id)
@@ -531,10 +544,39 @@ func _take_for(id: int, object_id: String, stack_id: int, quantity: int) -> Arra
 		return [false, NetProtocol.Result.STATE_CHANGED, {"object_id": object_id, "stack_id": stack_id}]
 	if not inventory.add(taken):
 		# Cannot happen after can_carry, but never lose an item: put it back.
-		container._put(taken)
+		container.put(taken)
 		return [false, NetProtocol.Result.CAPACITY_EXCEEDED, {"object_id": object_id, "stack_id": stack_id}]
 	return [true, NetProtocol.Result.OK, {"object_id": object_id, "stack_id": stack_id, "item_id": taken.data.item_id,
 		"quantity": quantity, "pack_weight": inventory.total_weight()}]
+
+
+func _store_for(id: int, object_id: String, item_id: String, quantity: int) -> Array:
+	if not NetProtocol.valid_object_id(object_id) or quantity < 1 or quantity > 999 or not ItemDatabase.all_ids().has(item_id):
+		return [false, NetProtocol.Result.INVALID_REQUEST, {"object_id": object_id, "item_id": item_id}]
+	var container: NetContainer = courtyard.containers.get(object_id)
+	if container == null:
+		return [false, NetProtocol.Result.OBJECT_UNAVAILABLE, {"object_id": object_id}]
+	var p: NetPlayer = _player_node(id)
+	if p == null or container.reach_from(p.position) > NetProtocol.INTERACT_RADIUS:
+		return [false, NetProtocol.Result.OUT_OF_RANGE, {"object_id": object_id}]
+	var inventory: Inventory = inventories[id]
+	if inventory.count_of(item_id) < quantity:
+		return [false, NetProtocol.Result.STATE_CHANGED, {"object_id": object_id, "item_id": item_id, "held": inventory.count_of(item_id)}]
+	var portion := ItemInstance.new(ItemDatabase.get_item(item_id), quantity)
+	if not container.contents.can_carry(portion):
+		return [false, NetProtocol.Result.CAPACITY_EXCEEDED, {"object_id": object_id, "item_id": item_id}]
+	# Pull from the pack's stacks in order; each portion keeps its own condition.
+	var left: int = quantity
+	for inst: ItemInstance in inventory.items.duplicate():
+		if left <= 0:
+			break
+		if inst.data.item_id != item_id:
+			continue
+		var n: int = mini(left, inst.quantity)
+		var moved: ItemInstance = inventory.remove(inst, n if n < inst.quantity else -1)
+		container.put(moved)
+		left -= n
+	return [true, NetProtocol.Result.OK, {"object_id": object_id, "item_id": item_id, "quantity": quantity, "pack_weight": inventory.total_weight()}]
 
 
 func _send_pack(id: int) -> void:
@@ -701,7 +743,7 @@ func _update_nearby() -> void:
 
 func _open_container(c: NetContainer) -> void:
 	loot.open_window(c.object_id, c.display_name)
-	loot.show_pack(float(pack_view["weight"]), float(pack_view["capacity"]), float(pack_view["hard_limit"]))
+	loot.show_pack(pack_view["stacks"], float(pack_view["weight"]), float(pack_view["capacity"]), float(pack_view["hard_limit"]))
 	if container_views.has(c.object_id):
 		loot.show_contents(c.object_id, container_views[c.object_id]["stacks"])
 	_request_contents(c.object_id)
@@ -727,6 +769,16 @@ func _request_take(object_id: String, stack_id: int, quantity: int, item_hint: S
 	if loot and loot.visible:
 		loot.mark_pending(stack_id, rid)
 	request_take_item.rpc_id(1, rid, object_id, stack_id, quantity)
+	return rid
+
+
+func _request_store(object_id: String, item_id: String, quantity: int) -> int:
+	var rid: int = next_request_id
+	next_request_id += 1
+	pending[rid] = {"kind": "store", "object_id": object_id, "stack_id": 0, "quantity": quantity, "item_id": item_id, "t": snappedf(session_time, 0.01)}
+	if loot and loot.visible:
+		loot.mark_pending_item(item_id)
+	request_store_item.rpc_id(1, rid, object_id, item_id, quantity)
 	return rid
 
 
@@ -797,6 +849,9 @@ func _drive(_delta: float) -> void:
 			_at(t, 0.8, "take_targe", func() -> void: _take_item(crate, "wooden_targe", 1))
 			_at(t, 0.85, "take_timber", func() -> void: _take_item(crate, "timber", 4))
 			_at(t, 0.9, "take_scrap", func() -> void: _take_item(crate, "iron_scrap", 8))
+			_at(t, 0.95, "store_timber", func() -> void: _request_store(crate, "timber", 2))
+			_at(t, 0.97, "store_none", func() -> void: _request_store(crate, "salt", 99))
+			_at(t, 0.98, "store_unknown", func() -> void: _request_store(crate, "dragon_egg", 1))
 			_at(t, 1.0, "move1_start", func() -> void: _push(Vector2(0.0, -1.0)))
 			_at(t, 2.5, "move1_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 2.6, "turn", func() -> void: camera_rig.rotate_quarter(1))
@@ -804,6 +859,7 @@ func _drive(_delta: float) -> void:
 			_at(t, 3.5, "move2_start", func() -> void: _push(Vector2(0.0, -1.0)))
 			_at(t, 5.0, "move2_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 5.2, "take_far", func() -> void: _take_item(crate, "salt", 1))
+			_at(t, 5.3, "store_far", func() -> void: _request_store(crate, "timber", 1))
 			_at(t, 14.0, "final", func() -> void: _finish_client())
 		"B":
 			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))

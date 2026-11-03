@@ -89,11 +89,32 @@ payload (§74).
 | leave | — | — | — | ENet disconnect | rules R1, R4 | — |
 | `request_container_contents` | client → server | reliable | request id, object id | sender has a live avatar; ≤ 20 requests/s; repeat id → first answer again; object id well-formed; object exists; survivor within 2.5 m on the ground plane | `request_result(id, ok)` then `container_contents(object, version, stacks)` to the requester | `request_result(id, false, code)`: `NOT_READY`, `RATE_LIMITED`, `INVALID_REQUEST`, `OBJECT_UNAVAILABLE`, `OUT_OF_RANGE` |
 | `request_take_item` | client → server | reliable | request id, object id, stack id, quantity | as above, plus: stack id ≥ 1, 1 ≤ quantity ≤ 999, stack still exists with at least that quantity, the portion fits under the pack's hard limit | removes the portion from the container, adds it to the requester's server-side pack, bumps the container version; `request_result(id, true, {item, quantity, pack_weight})` to the requester; `container_contents` to **every** live client; `pack_state` to the requester | nothing changes; `request_result` with `STATE_CHANGED` (someone was first, or the view was stale), `CAPACITY_EXCEEDED`, or the codes above; on `STATE_CHANGED`, `CAPACITY_EXCEEDED` and `OUT_OF_RANGE` the requester also gets a fresh `container_contents` |
+| `request_store_item` | client → server | reliable | request id, object id, item id, quantity | as for take, plus: item id is a defined item, the pack holds at least that quantity, the portion fits the container | pulls the quantity from the pack's own stacks in order (each portion keeps its condition), merges stackables into an existing crate stack or opens a new stack id, bumps the version; same answers and pushes as a successful take | `STATE_CHANGED` (the pack no longer holds it), `CAPACITY_EXCEEDED`, or the codes above |
 | `container_contents` | server → client(s) | reliable | object id, version, `[[stack id, item id, quantity, condition], …]` | — | the client replaces its view; the loot window redraws | — |
 | `pack_state` | server → owner only | reliable | stacks, weight, capacity, hard limit | — | private player data (§71); sent on join and after every change | — |
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Milestone 1c — store-item: evidence (brief §24)
+
+Branch `claude/gifted-babbage-vbbmgl-m1c`. Protocol 3. Changed: `net_protocol.gd`,
+`net_container.gd` (`put` with stack merging), `net_main.gd` (`request_store_item`, `_store_for`,
+drive steps), `net_loot_window.gd` (a "your pack" section with Store 1 / Store all),
+`tools/net_spike.py` (six checks), this file.
+
+| Check | Kind | Result |
+|---|---|---|
+| Compile-check of every script | syntax | clean |
+| `tests/smoke_test.gd` | single-player regression | 177 passed, 0 failed |
+| `tools/net_spike.py` | two-client local loopback test | **40 passed, 0 failed**, two runs; logs clean |
+| `tools/net_spike.py --shots` | plus a rendered client | 41 passed, 0 failed |
+
+New checks: A stores two timber back (OK) · storing 99 salt A does not hold is `STATE_CHANGED`
+with nothing moved · an undefined item id is `INVALID_REQUEST` · a store from 4 m away is
+`OUT_OF_RANGE` · after 6 − 4 − 2 + 2 the crate holds 2 timber and A holds 2, and the whole-world
+conservation check still holds · B saw the crate refilled before leaving. The crate-window
+screenshot now shows the pack section (visually reviewed by the agent).
 
 ## Milestone 1b — shared container and take-item: evidence (brief §24)
 
@@ -166,7 +187,7 @@ No human has played it. Frame time on the developers' machines is unmeasured.
 
 ## Next
 
-Milestone 1 closes with: `request_store_item` (the reverse transfer, needed before repair can
-consume materials), the exported server and client test builds with a build identifier and
-connection steps (appendix §57, §91), and the two developers' first playtest record (§94).
-Then Milestone 3's persistence (temporary rule A4) and Milestone 1b's latency and loss tests.
+Milestone 1 closes with the exported server and client test builds, a build identifier and
+connection steps (appendix §57, §91), a CI workflow that runs the same checks as `CLAUDE.md`
+(§90), and the two developers' first playtest record (§94). Then Milestone 3's persistence
+(temporary rule A4), the repair interaction, and the latency and loss tests.

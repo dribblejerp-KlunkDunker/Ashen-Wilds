@@ -67,6 +67,19 @@ func _put(inst: ItemInstance) -> void:
 	_next_stack_id += 1
 
 
+## Server side: add an instance from a player, merging into an existing stack of the same item
+## when it fits (so a crate does not fill with one-timber stacks); otherwise a new stack id.
+func put(inst: ItemInstance) -> void:
+	if inst.data.is_stackable():
+		for existing: ItemInstance in contents.items:
+			if existing.data.item_id == inst.data.item_id and existing.quantity + inst.quantity <= existing.data.max_stack:
+				existing.quantity += inst.quantity
+				version += 1
+				return
+	_put(inst)
+	version += 1
+
+
 func find(stack_id: int) -> ItemInstance:
 	for inst: ItemInstance in contents.items:
 		if int(_stack_ids.get(inst, -1)) == stack_id:
