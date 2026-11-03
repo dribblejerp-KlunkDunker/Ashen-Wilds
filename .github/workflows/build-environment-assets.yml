@@ -1,0 +1,126 @@
+name: Generate and commit environment assets
+
+on:
+  push:
+    branches:
+      - assets/env-001-crate-barrel
+    paths:
+      - ".github/workflows/build-environment-assets.yml"
+      - "tools/generate_env*.py"
+      - "tools/optimize_open_barrels_v3.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-environment-assets
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.ref == 'refs/heads/assets/env-001-crate-barrel'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the asset branch
+        uses: actions/checkout@v7
+        with:
+          ref: assets/env-001-crate-barrel
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned mesh dependencies
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1
+
+      - name: Generate committed batches and report missing sources
+        id: generate
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > "$RUNNER_TEMP/env-generated-batches.txt"
+          echo "## Environment asset generation" >> "$GITHUB_STEP_SUMMARY"
+          for batch in 001 002 003 004 005 006 007; do
+            script="tools/generate_env${batch}.py"
+            if [ ! -f "$script" ]; then
+              if [[ "$batch" < "006" ]]; then
+                echo "::error::Required generator missing: $script"
+                exit 1
+              fi
+              echo "::warning::ENV-$batch is not generated: $script is not committed yet."
+              echo "- NOT GENERATED: ENV-$batch (missing source)" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            if [ "$batch" = "006" ] || [ "$batch" = "007" ]; then
+              python "$script" "assets/environment/env${batch}"
+            else
+              python "$script"
+            fi
+            echo "$batch" >> "$RUNNER_TEMP/env-generated-batches.txt"
+            echo "- Generated ENV-$batch" >> "$GITHUB_STEP_SUMMARY"
+          done
+          if grep -qx 007 "$RUNNER_TEMP/env-generated-batches.txt" && [ -f tools/optimize_open_barrels_v3.py ]; then
+            python tools/optimize_open_barrels_v3.py assets/environment/env007 --replace-existing
+            echo "- Generated optimized barrel collision scenes" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Optimized barrel collisions NOT GENERATED: required sources are not yet available" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Verify GLB headers and stage generated files only
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os, struct, subprocess
+          batches = (Path(os.environ["RUNNER_TEMP"]) / "env-generated-batches.txt").read_text().splitlines()
+          if not batches:
+              raise SystemExit("No batches generated")
+          staged = []
+          summary = []
+          for batch in batches:
+              folder = Path(f"assets/environment/env{batch}")
+              glbs = sorted(folder.rglob("*.glb"))
+              if not glbs:
+                  raise SystemExit(f"No GLBs generated in {folder}")
+              for path in glbs:
+                  data = path.read_bytes()
+                  if len(data) < 12:
+                      raise SystemExit(f"Truncated GLB: {path}")
+                  magic, version, length = struct.unpack_from("<4sII", data)
+                  if magic != b"glTF" or version != 2 or length != len(data):
+                      raise SystemExit(f"Invalid GLB header: {path}")
+              for path in sorted(folder.rglob("*")):
+                  if path.is_file() and (path.suffix == ".glb" or path.name.endswith("_collision.tscn") or path.name.endswith("manifest.json") or path.name == "generated-assets.json"):
+                      staged.append(str(path))
+              summary.append(f"- ENV-{batch}: {len(glbs)} GLB headers verified")
+          subprocess.run(["git", "add", "-f", "--", *staged], check=True)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
+              stream.write("\n### Verification\n" + "\n".join(summary) + "\n")
+          PY
+
+      - name: Commit and push actual generated assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "No generated-file changes to commit." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git commit -m "Generate environment GLBs and available collision scenes"
+          git push origin HEAD:refs/heads/assets/env-001-crate-barrel
+          echo "Generated binary assets pushed to the asset branch." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save a downloadable GLB backup
+        if: always() && steps.generate.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: environment-glbs-${{ github.run_number }}
+          path: assets/environment/env*/**/*.glb
+          if-no-files-found: error
+          retention-days: 14
