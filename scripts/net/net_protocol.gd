@@ -5,8 +5,9 @@ extends RefCounted
 ## Everything here is a server rule or a shared definition, never a client preference (§86).
 
 ## 1: Milestone 1a (join, movement). 2: Milestone 1b (container contents, take item, pack state).
-const PROTOCOL_VERSION: int = 2
-const BUILD_ID: String = "m1b-courtyard-container"
+## 3: Milestone 1c (store item).
+const PROTOCOL_VERSION: int = 3
+const BUILD_ID: String = "m1c-courtyard-store"
 const DEFAULT_PORT: int = 7788
 
 ## Default for the server's --max-players setting (§85): two for the spike (brief §7). Not a

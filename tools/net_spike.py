@@ -218,6 +218,20 @@ def main():
         check(far and far[0]["code"] == "OUT_OF_RANGE", "a take from 4 m away is OUT_OF_RANGE", far and far[0]["code"])
         timber_b = req(B, "timber")
         check(timber_b and timber_b[0]["ok"], "B took two timber", timber_b and timber_b[0]["code"])
+        # Storing back (Milestone 1c): the reverse transfer through the same pipeline.
+        stored = [r for r in A["requests"] if r["kind"] == "store" and r["item_id"] == "timber" and r["quantity"] == 2]
+        check(stored and stored[0]["ok"], "A stored two timber back into the crate", stored and stored[0]["code"])
+        none_held = [r for r in A["requests"] if r["kind"] == "store" and r["item_id"] == "salt"]
+        check(none_held and none_held[0]["code"] == "STATE_CHANGED", "storing 99 salt A does not hold is STATE_CHANGED, nothing moved", none_held and none_held[0]["code"])
+        unknown = [r for r in A["requests"] if r["kind"] == "store" and r["item_id"] == "dragon_egg"]
+        check(unknown and unknown[0]["code"] == "INVALID_REQUEST", "storing an item id the game does not define is INVALID_REQUEST", unknown and unknown[0]["code"])
+        store_far = [r for r in A["requests"] if r["kind"] == "store" and r["item_id"] == "timber" and r["quantity"] == 1]
+        check(store_far and store_far[0]["code"] == "OUT_OF_RANGE", "a store from 4 m away is OUT_OF_RANGE", store_far and store_far[0]["code"])
+        crate_timber = totals(crate.get("stacks", [])).get("timber", 0)
+        a_timber = totals(server["packs"].get("alpha", {}).get("stacks", [])).get("timber", 0)
+        check(crate_timber == 2 and a_timber == 2, "after 6 − 4 (A) − 2 (B) + 2 (A stores) the crate holds 2 timber and A holds 2", {"crate": crate_timber, "A": a_timber})
+        b_view = B["container_views"].get("courtyard/supply-crate", {})
+        check(totals(b_view.get("stacks", [])).get("timber", 0) == 2 or B["connection_state"] != "playing", "B saw the crate refilled by A's store before leaving", totals(b_view.get("stacks", [])))
         # Conservation: seeded == crate + every pack the server knows (live or retained), item by item.
         held = totals(crate.get("stacks", []))
         for key, pack in server["packs"].items():
