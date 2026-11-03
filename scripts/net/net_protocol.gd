@@ -5,9 +5,9 @@ extends RefCounted
 ## Everything here is a server rule or a shared definition, never a client preference (§86).
 
 ## 1: Milestone 1a (join, movement). 2: Milestone 1b (container contents, take item, pack state).
-## 3: Milestone 1c (store item).
-const PROTOCOL_VERSION: int = 3
-const BUILD_ID: String = "m1c-courtyard-store"
+## 3: Milestone 1c (store item). 4: Milestone 3 (fixture use, fixture state).
+const PROTOCOL_VERSION: int = 4
+const BUILD_ID: String = "m3-persistent-refuge"
 const DEFAULT_PORT: int = 7788
 
 ## Default for the server's --max-players setting (§85): two for the spike (brief §7). Not a
@@ -41,6 +41,11 @@ const INTERACT_RADIUS: float = 2.5
 const PACK_CAPACITY_KG: float = 12.0
 ## Request ids a server remembers per connection, so a repeated request gets its first answer.
 const REQUEST_MEMORY: int = 64
+## Persistence (temporary rule A4). The server writes after a durable change at most this often,
+## records live players' positions this often, and always writes on a clean shutdown.
+const SAVE_DEBOUNCE_SECONDS: float = 1.0
+const POSITION_SAVE_SECONDS: float = 30.0
+const DEFAULT_SAVE_PATH: String = "user://ashen_world.json"
 
 ## Join rejection categories (appendix §80). Names are what logs and the HUD show.
 enum Reject {
@@ -65,6 +70,7 @@ enum Result {
 	STATE_CHANGED,
 	CAPACITY_EXCEEDED,
 	RATE_LIMITED,
+	INSUFFICIENT_RESOURCES,
 }
 
 static func reject_name(reason: int) -> String:
@@ -114,6 +120,8 @@ static func result_text(code: int) -> String:
 			return "Too heavy to carry."
 		Result.RATE_LIMITED:
 			return "Slow down."
+		Result.INSUFFICIENT_RESOURCES:
+			return "You don't carry enough for that."
 		_:
 			return "Rejected: %s." % result_name(code)
 

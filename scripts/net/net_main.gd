@@ -29,6 +29,8 @@ var report_path: String = ""
 var quit_after: float = 0.0
 var drive: String = ""
 var shots_dir: String = ""
+var save_path: String = NetProtocol.DEFAULT_SAVE_PATH  # server: where the world is persisted (§85)
+var reset_world: bool = false  # server: move unusable saves aside and start a new world (never implicit)
 
 # ---- scene ----
 var players: Node3D
@@ -52,6 +54,13 @@ var disconnect_log: Array = []
 var rejoins: int = 0
 var tick: int = 0
 var next_color: int = 0
+var world_id: String = ""
+var save_seq: int = 0
+var save_enabled: bool = false     # true only once a load succeeded; a refused load never writes
+var save_dirty: bool = false
+var save_timer: float = 0.0
+var position_timer: float = 0.0
+var save_info: Dictionary = {"loaded": "", "warnings": [], "moved_aside": [], "saves_written": 0, "save_failures": 0, "last": ""}
 
 # ---- client state ----
 var connection_state: String = "idle"
@@ -73,6 +82,9 @@ var container_views: Dictionary = {}  # object_id -> {version, stacks}
 var first_views: Dictionary = {}    # object_id -> the first snapshot ever received (test drives use it)
 var pack_view: Dictionary = {"stacks": [], "weight": 0.0, "capacity": 0.0, "hard_limit": 0.0}
 var near_container: NetContainer = null
+var near_fixture: NetFixture = null
+var fixture_views: Dictionary = {}  # object_id -> {done, by}, as the server last said
+var waypoints: Array = []           # test drives: world points to walk to, in order
 var samples: Array = []
 var events: Array = []
 var session_time: float = 0.0
@@ -122,6 +134,8 @@ func _parse_args() -> void:
 			"--quit-after": quit_after = float(next); i += 1
 			"--drive": drive = next; i += 1
 			"--shots": shots_dir = next; i += 1
+			"--save": save_path = next; i += 1
+			"--reset-world": reset_world = true
 			_: push_warning("Unknown argument: %s" % a)
 		i += 1
 	if role == "client" and player_key.is_empty():
@@ -153,6 +167,8 @@ func _bind_key(action: String, key: Key) -> void:
 # ---------------------------------------------------------------- lifecycle (§43)
 
 func _start_server() -> void:
+	if not _load_world():
+		return  # refused; nothing is written and the process exits with a specific code
 	var peer := ENetMultiplayerPeer.new()
 	var err: Error = peer.create_server(port, 32)
 	if err != OK:
@@ -162,6 +178,7 @@ func _start_server() -> void:
 	connection_state = "listening"
 	_log("server listening on %d, build %s, protocol %d, max players %d, headless=%s" % [
 		port, NetProtocol.BUILD_ID, NetProtocol.PROTOCOL_VERSION, max_players, str(_is_headless())])
+	_log("world %s (%s) at %s, save %d" % [world_id, save_info["loaded"], save_path, save_seq])
 
 
 func _start_client() -> void:
@@ -206,6 +223,7 @@ func _on_peer_disconnected(id: int) -> void:
 				"pack": _pack_to_wire(inventories[id])}
 		live_by_peer.erase(id)
 		inventories.erase(id)
+		save_dirty = true
 		disconnect_log.append({"peer_id": id, "player_key": key, "t": session_time, "retained": true})
 		_despawn_local(id)
 		despawn_player.rpc(id)
@@ -283,6 +301,7 @@ func hello(protocol: int, key: String) -> void:
 		color_index = next_color % PLAYER_COLORS.size()
 		next_color += 1
 		records[key] = {"position": pos, "facing": yaw, "color": color_index, "pack": []}
+		save_dirty = true
 	# Initial world sync (§76): the newcomer learns the world, then everyone learns the newcomer.
 	var existing: Array = []
 	for pid: int in live_by_peer:
@@ -291,6 +310,8 @@ func hello(protocol: int, key: String) -> void:
 	welcome.rpc_id(id, id, existing, NetProtocol.BUILD_ID)
 	for c: NetContainer in courtyard.containers.values():
 		container_contents.rpc_id(id, c.object_id, c.version, c.snapshot())
+	for f: NetFixture in courtyard.fixtures.values():
+		fixture_state.rpc_id(id, f.object_id, f.done, f.done_by)
 	live_by_peer[id] = key
 	inventories[id] = inventory
 	request_log[id] = {}
@@ -416,6 +437,25 @@ func request_store_item(request_id: int, object_id: String, item_id: String, qua
 	_serve_request(multiplayer.get_remote_sender_id(), "store", request_id, object_id, 0, quantity, item_id)
 
 
+## Client -> server: use a fixture (repair the breach, light the hearth). The cost comes from the
+## server's own fixture definition, never from the request.
+@rpc("any_peer", "call_remote", "reliable")
+func request_use_fixture(request_id: int, object_id: String) -> void:
+	if role != "server":
+		return
+	_serve_request(multiplayer.get_remote_sender_id(), "use", request_id, object_id, 0, 0)
+
+
+## Server -> client(s): a fixture's durable state (§75), on join and after every change.
+@rpc("authority", "call_remote", "reliable")
+func fixture_state(object_id: String, done: bool, by: String) -> void:
+	fixture_views[object_id] = {"done": done, "by": by}
+	var f: NetFixture = courtyard.fixtures.get(object_id)
+	if f:
+		f.set_done(done, by)
+	_event("fixture_state", {"object_id": object_id, "done": done, "by": by})
+
+
 ## Server -> the requester: the answer to one request id. data on success:
 ## {object_id, stack_id, item_id, quantity, pack_weight}.
 @rpc("authority", "call_remote", "reliable")
@@ -444,6 +484,17 @@ func request_result(request_id: int, ok: bool, code: int, data: Dictionary) -> v
 		loot.show_result(ok, text)
 		if hud and not ok:
 			hud.set_message(text)
+	elif kind == "use" and hud:
+		var f: NetFixture = courtyard.fixtures.get(str(req.get("object_id", "")))
+		if ok and f:
+			hud.set_message("You %s %s." % [f.verb, f.display_name])
+		elif not ok and code == NetProtocol.Result.STATE_CHANGED and f:
+			hud.set_message("%s is already %s." % [f.display_name.capitalize(), "repaired" if f.kind == NetFixture.Kind.BREACH else "lit"])
+		elif not ok and code == NetProtocol.Result.INSUFFICIENT_RESOURCES and f:
+			var item: ItemData = ItemDatabase.get_item(f.cost_item)
+			hud.set_message("You need %d %s to %s %s." % [f.cost_qty, item.display_name.to_lower() if item else f.cost_item, f.verb, f.display_name])
+		else:
+			hud.set_message(NetProtocol.result_text(code))
 
 
 ## Server -> client(s): the current contents of a container (durable state, §75).
@@ -489,6 +540,7 @@ func _serve_request(id: int, kind: String, request_id: int, object_id: String, s
 		"contents": outcome = _contents_for(id, object_id)
 		"take": outcome = _take_for(id, object_id, stack_id, quantity)
 		"store": outcome = _store_for(id, object_id, item_id, quantity)
+		"use": outcome = _use_fixture_for(id, object_id)
 		_: outcome = [false, NetProtocol.Result.INVALID_REQUEST, {}]
 	log_[request_id] = outcome
 	var order: Array = request_order[id]
@@ -497,10 +549,18 @@ func _serve_request(id: int, kind: String, request_id: int, object_id: String, s
 		log_.erase(order.pop_front())
 	requests_handled += 1
 	request_result.rpc_id(id, request_id, outcome[0], outcome[1], outcome[2])
+	if kind == "use":
+		if outcome[0]:
+			var f: NetFixture = courtyard.fixtures[object_id]
+			for pid: int in live_by_peer:
+				fixture_state.rpc_id(pid, f.object_id, f.done, f.done_by)
+			_send_pack(id)
+		return
 	var container: NetContainer = courtyard.containers.get(object_id)
 	if container == null:
 		return
 	if kind in ["take", "store"] and outcome[0]:
+		save_dirty = true
 		for pid: int in live_by_peer:
 			container_contents.rpc_id(pid, container.object_id, container.version, container.snapshot())
 		_send_pack(id)
@@ -579,6 +639,132 @@ func _store_for(id: int, object_id: String, item_id: String, quantity: int) -> A
 	return [true, NetProtocol.Result.OK, {"object_id": object_id, "item_id": item_id, "quantity": quantity, "pack_weight": inventory.total_weight()}]
 
 
+func _use_fixture_for(id: int, object_id: String) -> Array:
+	if not NetProtocol.valid_object_id(object_id):
+		return [false, NetProtocol.Result.INVALID_REQUEST, {"object_id": object_id}]
+	var f: NetFixture = courtyard.fixtures.get(object_id)
+	if f == null:
+		return [false, NetProtocol.Result.OBJECT_UNAVAILABLE, {"object_id": object_id}]
+	var p: NetPlayer = _player_node(id)
+	if p == null or f.reach_from(p.position) > NetProtocol.INTERACT_RADIUS:
+		return [false, NetProtocol.Result.OUT_OF_RANGE, {"object_id": object_id}]
+	if f.done:
+		return [false, NetProtocol.Result.STATE_CHANGED, {"object_id": object_id, "done_by": f.done_by}]
+	var inventory: Inventory = inventories[id]
+	var held: int = inventory.count_of(f.cost_item)
+	if held < f.cost_qty:
+		return [false, NetProtocol.Result.INSUFFICIENT_RESOURCES, {"object_id": object_id, "needs": f.cost_qty, "item_id": f.cost_item, "held": held}]
+	inventory.consume(f.cost_item, f.cost_qty)
+	f.set_done(true, live_by_peer[id])
+	save_dirty = true
+	return [true, NetProtocol.Result.OK, {"object_id": object_id, "item_id": f.cost_item, "quantity": f.cost_qty, "pack_weight": inventory.total_weight()}]
+
+
+# ---------------------------------------------------------------- server: persistence (A4)
+
+## Load the world before accepting anyone. Returns false (after writing the report and quitting
+## with a specific exit code) when the save policy refuses to start (see NetSave).
+func _load_world() -> bool:
+	if save_path.begins_with("user://") or save_path.begins_with("res://"):
+		save_path = ProjectSettings.globalize_path(save_path)
+	var r: Dictionary = NetSave.load_world(save_path, reset_world)
+	save_info["loaded"] = r["code"]
+	save_info["warnings"] = r["warnings"].duplicate()
+	save_info["moved_aside"] = r["moved_aside"].duplicate()
+	for w: String in r["warnings"]:
+		push_warning(w)
+		_log("save: " + w)
+	if not r["ok"]:
+		_fatal("%s: %s" % [r["code"], save_path], 4 if r["code"] == "SAVE_SCHEMA_NEWER" else 3)
+		return false
+	if r["code"] in ["LOADED", "LOADED_BACKUP"]:
+		_apply_save(r["data"])
+	else:
+		world_id = "%08x-%08x" % [randi(), int(Time.get_unix_time_from_system())]
+	save_enabled = true
+	# A backup load or a reset writes a fresh primary straight away; a new world on its first change.
+	save_dirty = r["code"] in ["LOADED_BACKUP", "RESET_NEW_WORLD"]
+	return true
+
+
+func _apply_save(d: Dictionary) -> void:
+	world_id = str(d["world_id"])
+	save_seq = int(d.get("save_seq", 0))
+	for object_id: String in d["containers"]:
+		var c: NetContainer = courtyard.containers.get(object_id)
+		if c == null:
+			save_info["warnings"].append("container %s is not in this build's world; its contents were not restored" % object_id)
+			continue
+		var stacks: Array = []
+		for st: Array in d["containers"][object_id]["stacks"]:
+			if NetSave.usable_stack(st):
+				stacks.append(st)
+		c.restore(stacks, int(d["containers"][object_id].get("version", 1)), int(d["containers"][object_id].get("next_stack_id", 1)))
+	for object_id: String in d["fixtures"]:
+		var f: NetFixture = courtyard.fixtures.get(object_id)
+		if f == null:
+			save_info["warnings"].append("fixture %s is not in this build's world" % object_id)
+			continue
+		f.set_done(bool(d["fixtures"][object_id]["done"]), str(d["fixtures"][object_id].get("done_by", "")))
+	var highest_color: int = -1
+	for key: String in d["players"]:
+		if not NetProtocol.valid_player_key(key):
+			save_info["warnings"].append("player key %s is malformed; record skipped" % key)
+			continue
+		var rec: Dictionary = d["players"][key]
+		var pos: Vector3
+		if NetSave.trusted_position(rec["position"]):
+			pos = Vector3(float(rec["position"][0]), 0.0, float(rec["position"][2]))
+		else:
+			pos = courtyard.spawn_points[0]
+			save_info["warnings"].append("player %s had an untrusted position; moved to a spawn point" % key)
+		var pack: Array = []
+		for st: Array in rec["pack"]:
+			if NetSave.usable_stack(st):
+				pack.append(st)
+		var color: int = int(rec.get("color", 0))
+		highest_color = maxi(highest_color, color)
+		records[key] = {"position": pos, "facing": float(rec.get("facing", 0.0)), "color": color, "pack": pack}
+	next_color = highest_color + 1
+
+
+## The whole persistent world as one dictionary (schema NetSave.SCHEMA). Live players are taken
+## from their avatars and server-side packs; everyone else from their retained record.
+func _world_snapshot() -> Dictionary:
+	var conts: Dictionary = {}
+	for c: NetContainer in courtyard.containers.values():
+		conts[c.object_id] = {"version": c.version, "next_stack_id": c.next_stack_id(), "stacks": c.snapshot()}
+	var fx: Dictionary = {}
+	for f: NetFixture in courtyard.fixtures.values():
+		fx[f.object_id] = {"done": f.done, "done_by": f.done_by}
+	var people: Dictionary = {}
+	for key: String in records:
+		var rec: Dictionary = records[key]
+		people[key] = {"position": _v(rec["position"]), "facing": rec["facing"], "color": rec["color"], "pack": rec["pack"]}
+	for pid: int in live_by_peer:
+		var p: NetPlayer = _player_node(pid)
+		if p:
+			people[live_by_peer[pid]] = {"position": _v(p.position), "facing": p.facing_yaw, "color": records[live_by_peer[pid]]["color"], "pack": _pack_to_wire(inventories[pid])}
+	return {"schema": NetSave.SCHEMA, "world_id": world_id, "save_seq": save_seq, "build": NetProtocol.BUILD_ID,
+		"protocol": NetProtocol.PROTOCOL_VERSION, "saved_at_unix": int(Time.get_unix_time_from_system()),
+		"containers": conts, "fixtures": fx, "players": people}
+
+
+func _save_now(reason: String) -> void:
+	if not save_enabled:
+		return
+	save_seq += 1
+	var r: Dictionary = NetSave.write_world(save_path, _world_snapshot())
+	save_info["last"] = "%s (%s)" % [r["code"], reason]
+	if r["ok"]:
+		save_info["saves_written"] = int(save_info["saves_written"]) + 1
+		save_dirty = false
+	else:
+		save_info["save_failures"] = int(save_info["save_failures"]) + 1
+		push_error("save failed: %s %s" % [r["code"], str(r.get("detail", ""))])
+		_log("save FAILED: %s %s; will retry" % [r["code"], str(r.get("detail", ""))])
+
+
 func _send_pack(id: int) -> void:
 	var inv: Inventory = inventories[id]
 	pack_state.rpc_id(id, _pack_to_wire(inv), inv.total_weight(), inv.capacity_kg, inv.hard_limit_kg())
@@ -619,6 +805,15 @@ func _physics_process(delta: float) -> void:
 
 func _server_tick(delta: float) -> void:
 	tick += 1
+	if save_enabled:
+		save_timer += delta
+		position_timer += delta
+		if position_timer >= NetProtocol.POSITION_SAVE_SECONDS and not live_by_peer.is_empty():
+			position_timer = 0.0
+			save_dirty = true
+		if save_dirty and save_timer >= NetProtocol.SAVE_DEBOUNCE_SECONDS:
+			save_timer = 0.0
+			_save_now("change")
 	if tick % 60 == 0:
 		requests_this_second.clear()
 	for id: int in pending_hello.keys():
@@ -650,7 +845,7 @@ func _client_tick(delta: float) -> void:
 		_drive(delta)
 	if own:
 		var screen_input: Vector2 = synthetic_input if synthetic_active else _read_input()
-		var dir: Vector3 = _camera_relative(screen_input)
+		var dir: Vector3 = _goto_dir() if not waypoints.is_empty() else _camera_relative(screen_input)
 		own.integrate(dir, delta)
 		var moving: bool = dir.length_squared() > 0.0001
 		if moving or zero_sends_left > 0 or dir != last_sent_dir:
@@ -684,6 +879,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			loot.close_window()
 		elif near_container:
 			_open_container(near_container)
+		elif near_fixture and not near_fixture.done:
+			_request_use(near_fixture.object_id)
 	elif event.is_action_pressed("ui_cancel") and loot.visible:
 		loot.close_window()
 
@@ -735,7 +932,15 @@ func _update_nearby() -> void:
 		if d <= best_d:
 			best_d = d
 			best = c
+	var best_f: NetFixture = null
+	for f: NetFixture in courtyard.fixtures.values():
+		var d: float = f.reach_from(own.position)
+		if d < best_d:
+			best_d = d
+			best_f = f
+			best = null
 	near_container = best
+	near_fixture = best_f
 	# The window follows reach: walking away closes it, the way the search would be interrupted.
 	if loot.visible and (near_container == null or near_container.object_id != loot.object_id):
 		loot.close_window()
@@ -780,6 +985,29 @@ func _request_store(object_id: String, item_id: String, quantity: int) -> int:
 		loot.mark_pending_item(item_id)
 	request_store_item.rpc_id(1, rid, object_id, item_id, quantity)
 	return rid
+
+
+func _request_use(object_id: String) -> int:
+	var rid: int = next_request_id
+	next_request_id += 1
+	pending[rid] = {"kind": "use", "object_id": object_id, "stack_id": 0, "quantity": 0, "item_id": "", "t": snappedf(session_time, 0.01)}
+	request_use_fixture.rpc_id(1, rid, object_id)
+	return rid
+
+
+## Test drives: walk to each world point in turn, straight at it (no camera involved).
+func _goto(points: Array) -> void:
+	waypoints = points.duplicate()
+
+
+func _goto_dir() -> Vector3:
+	while not waypoints.is_empty():
+		var d: Vector3 = (waypoints[0] as Vector3) - own.position
+		d.y = 0.0
+		if d.length() > 0.12:
+			return d / maxf(d.length(), 0.3) if d.length() < 0.3 else d.normalized()
+		waypoints.pop_front()
+	return Vector3.ZERO
 
 
 ## Test helper: send the same take again under the same request id (a repeated request). The
@@ -840,6 +1068,11 @@ func _drive(_delta: float) -> void:
 		return
 	var t: float = session_time - spawned_at
 	var crate: String = NetCourtyard.SUPPLY_CRATE_ID
+	var breach: String = NetCourtyard.BREACH_ID
+	var hearth: String = NetCourtyard.HEARTH_ID
+	# Milestone 3 stand point: within reach of both the breach (1.5, 6.5) and the hearth (3.0, 4.8).
+	var stand := Vector3(2.0, 0.0, 5.5)
+	var through_gap: Array = [Vector3(1.5, 0.0, 5.6), Vector3(1.5, 0.0, 8.0)]
 	match drive:
 		"A":
 			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))
@@ -860,6 +1093,13 @@ func _drive(_delta: float) -> void:
 			_at(t, 5.0, "move2_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 5.2, "take_far", func() -> void: _take_item(crate, "salt", 1))
 			_at(t, 5.3, "store_far", func() -> void: _request_store(crate, "timber", 1))
+			# Milestone 3: B lit the hearth already; A repairs the breach with its two timber, then
+			# tries to walk through the gap it just closed.
+			_at(t, 5.5, "goto_stand", func() -> void: _goto([stand]))
+			_at(t, 9.0, "light_again", func() -> void: _request_use(hearth))
+			_at(t, 9.1, "repair", func() -> void: _request_use(breach))
+			_at(t, 9.4, "goto_gap", func() -> void: _goto(through_gap))
+			_at(t, 11.0, "after_gap", func() -> void: _goto([]))
 			_at(t, 14.0, "final", func() -> void: _finish_client())
 		"B":
 			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))
@@ -869,11 +1109,28 @@ func _drive(_delta: float) -> void:
 			_at(t, 1.0, "move1_start", func() -> void: _push(Vector2(1.0, 0.0)))
 			_at(t, 2.0, "move1_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 2.2, "shot_initial", func() -> void: _shot("view0"))
-			_at(t, 4.0, "final", func() -> void:
+			# Milestone 3: B lights the hearth (1 timber), cannot repair with the 1 left, and walks
+			# out through the still-open breach.
+			_at(t, 2.3, "goto_stand", func() -> void: _goto([stand]))
+			_at(t, 3.0, "see_A", func() -> void: pass)  # A stands still between its walks (2.5 to 3.5)
+			_at(t, 4.5, "light", func() -> void: _request_use(hearth))
+			_at(t, 4.6, "repair_short", func() -> void: _request_use(breach))
+			_at(t, 4.8, "goto_gap", func() -> void: _goto(through_gap))
+			_at(t, 6.2, "through_gap", func() -> void: _goto([]))
+			_at(t, 6.4, "final", func() -> void:
 				_take_item(crate, "salt", 1)  # a take sent in the same instant the client leaves
 				_finish_client())
 		"B2":
-			_at(t, 1.0, "final", func() -> void: _finish_client())
+			# Stays long enough to watch A's repair arrive live.
+			_at(t, 4.0, "final", func() -> void: _finish_client())
+		"CRASH":
+			# Milestone 3 crash test: take one timber, then wait for the server to be killed.
+			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))
+			_at(t, 0.6, "take_one", func() -> void: _take_item(crate, "timber", 1))
+			_at(t, 8.0, "final", func() -> void: _finish_client())
+		"R":
+			# Milestone 3 restart test: rejoin a restarted server and report what came back.
+			_at(t, 1.5, "final", func() -> void: _finish_client())
 		"SHOTS":
 			# Camera acceptance (appendix §78): every view, then the zoom limits. Stands still.
 			_at(t, 0.6, "view0", func() -> void: _shot("view0"))
@@ -896,7 +1153,9 @@ func _drive(_delta: float) -> void:
 				if near_container:
 					_open_container(near_container))
 			_at(t, 8.0, "crate_window", func() -> void: _shot("crate-window"))
-			_at(t, 8.5, "final", func() -> void: _finish_client())
+			_at(t, 8.6, "close_crate", func() -> void: loot.close_window())
+			_at(t, 13.5, "refuge", func() -> void: _shot("refuge"))
+			_at(t, 14.0, "final", func() -> void: _finish_client())
 		_:
 			pass
 
@@ -948,6 +1207,8 @@ func _update_hud() -> void:
 	var prompt: String = ""
 	if near_container and not loot.visible:
 		prompt = "F · search %s" % near_container.display_name.to_lower()
+	elif near_fixture and not loot.visible:
+		prompt = near_fixture.prompt()
 	hud.set_lines(PackedStringArray([
 		"%s · protocol %d" % [NetProtocol.BUILD_ID, NetProtocol.PROTOCOL_VERSION],
 		"client peer %d · key %s" % [own_peer_id, player_key],
@@ -981,14 +1242,20 @@ func _report() -> Dictionary:
 		var conts: Dictionary = {}
 		for c: NetContainer in courtyard.containers.values():
 			conts[c.object_id] = {"version": c.version, "stacks": c.snapshot()}
-		out.merge({"started": true, "port": port, "max_players": max_players, "ticks": tick,
+		var fx: Dictionary = {}
+		for f: NetFixture in courtyard.fixtures.values():
+			fx[f.object_id] = {"done": f.done, "done_by": f.done_by}
+		out.merge({"save": {"path": save_path, "world_id": world_id, "save_seq": save_seq, "enabled": save_enabled, "dirty": save_dirty, "info": save_info},
+			"fixtures": fx, "exit": connection_state})
+		out.merge({"started": save_enabled, "port": port, "max_players": max_players, "ticks": tick,
 			"players_live_end": live, "records": recs, "packs": packs, "containers": conts, "requests_handled": requests_handled,
 			"disconnects": disconnect_log, "rejoins": rejoins, "rejections": rejections})
 	else:
 		out.merge({"peer_id": own_peer_id, "player_key": player_key,
 			"drive": drive, "connection_state": connection_state, "rejected_reason": rejected_reason,
 			"spawn_position": _v(spawn_position), "samples": samples, "events": events, "stats": stats,
-			"requests": requests, "pending_at_exit": pending.keys(), "pack_view": pack_view, "container_views": container_views})
+			"requests": requests, "pending_at_exit": pending.keys(), "pack_view": pack_view, "container_views": container_views,
+			"fixture_views": fixture_views})
 	return out
 
 
@@ -1016,6 +1283,8 @@ func _finish_client() -> void:
 
 func _finish_server() -> void:
 	_quitting = true
+	if save_enabled:
+		_save_now("shutdown")
 	_write_report()
 	_log("server stopping after %.1fs, %d ticks" % [session_time, tick])
 	_drop_peer()
@@ -1031,12 +1300,14 @@ func _drop_peer() -> void:
 		multiplayer.multiplayer_peer.close()
 
 
-func _fatal(message: String) -> void:
+func _fatal(message: String, exit_code: int = 1) -> void:
 	push_error(message)
+	_log("FATAL " + message)
 	events.append({"t": snappedf(session_time, 0.01), "event": "fatal", "message": message})
 	connection_state = "fatal"
+	_quitting = true
 	_write_report()
-	get_tree().quit(1)
+	get_tree().quit(exit_code)
 
 
 func _count_reject(reason: int) -> void:

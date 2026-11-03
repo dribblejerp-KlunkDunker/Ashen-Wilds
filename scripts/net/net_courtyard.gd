@@ -11,6 +11,11 @@ extends Node3D
 const YARD: float = 24.0
 const WALL_HEIGHT: float = 1.2
 const SUPPLY_CRATE_ID: String = "courtyard/supply-crate"
+const BREACH_ID: String = "courtyard/breach"
+const HEARTH_ID: String = "courtyard/hearth"
+## Milestone 3: a low wall crosses the yard at this z; its only gap is the breach.
+const FENCE_Z: float = 6.5
+const BREACH_X: float = 1.5
 
 var spawn_points: Array[Vector3] = [
 	Vector3(-2.0, 0.0, 3.0),
@@ -21,6 +26,8 @@ var spawn_points: Array[Vector3] = [
 ## object_id -> NetContainer. The server's copies hold the truth; clients' copies are only
 ## places to stand near.
 var containers: Dictionary = {}
+## object_id -> NetFixture (the breach and the hearth). Same rule: the server's `done` is the truth.
+var fixtures: Dictionary = {}
 
 
 ## The crate's seed, in a fixed order so stack ids are the same on every run.
@@ -35,6 +42,12 @@ func _ready() -> void:
 	var crate: NetContainer = NetContainer.create(SUPPLY_CRATE_ID, "Supply crate", Vector3(0.0, 0.0, 2.0), supply_crate_seed())
 	add_child(crate)
 	containers[SUPPLY_CRATE_ID] = crate
+	var breach: NetFixture = NetFixture.breach(BREACH_ID, Vector3(BREACH_X, 0.0, FENCE_Z))
+	add_child(breach)
+	fixtures[BREACH_ID] = breach
+	var hearth: NetFixture = NetFixture.hearth(HEARTH_ID, Vector3(3.0, 0.0, 4.8))
+	add_child(hearth)
+	fixtures[HEARTH_ID] = hearth
 	_box(Vector3(0.0, -0.5, 0.0), Vector3(YARD, 1.0, YARD), Color(0.23, 0.2, 0.16))  # packed dirt
 	var half: float = YARD * 0.5 - 0.5
 	var wall_colour := Color(0.36, 0.36, 0.34)
@@ -47,7 +60,14 @@ func _ready() -> void:
 	# Crates and a woodpile, placeholder props with real collision.
 	_box(Vector3(-6.0, 0.5, -4.0), Vector3(1.0, 1.0, 1.0), Color(0.4, 0.3, 0.18))
 	_box(Vector3(-5.0, 0.4, -5.2), Vector3(0.8, 0.8, 0.8), Color(0.38, 0.28, 0.17))
-	_box(Vector3(4.0, 0.35, 6.0), Vector3(2.2, 0.7, 1.0), Color(0.33, 0.24, 0.14))
+	_box(Vector3(5.2, 0.35, 4.4), Vector3(2.2, 0.7, 1.0), Color(0.33, 0.24, 0.14))  # woodpile
+	# The low wall across the yard, broken by the breach (1.6 m gap centred on BREACH_X).
+	var fence_colour := Color(0.34, 0.33, 0.31)
+	var gap_l: float = BREACH_X - 0.8
+	var gap_r: float = BREACH_X + 0.8
+	var inner: float = YARD * 0.5 - 1.0
+	_box(Vector3((-inner + gap_l) * 0.5, 0.5, FENCE_Z), Vector3(gap_l + inner, 1.0, 0.5), fence_colour)
+	_box(Vector3((gap_r + inner) * 0.5, 0.5, FENCE_Z), Vector3(inner - gap_r, 1.0, 0.5), fence_colour)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52.0, 28.0, 0.0)

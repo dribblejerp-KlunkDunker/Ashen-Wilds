@@ -81,7 +81,7 @@ download per run).
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
 | P5 | Player count | **CONFIRMED direction** (owner, 2026-11-03): multiplayer stays small, friends-scale. Exact number OPEN. Spike server default: 2 (`--max-players` dev setting). | 2026-11-03 | Brief §7: two is the test, not the limit. Rules out MMO-scale design (brief §25). | Measured server and network cost with two, then a number. |
 | P6 | PvP | OPEN. **TEMPORARY A2**: none. | 2026-11-03 | Affects hit validation and death rules, not transport. | The owners' answer. |
-| P7 | Persistence | OPEN. **TEMPORARY A4** (not yet built): versioned JSON on the server with the browser build's tested rules (validate before write, keep a backup, never overwrite a newer format, never silently reset). | 2026-11-03 | One courtyard and one container do not justify a database (brief §18). | Measured save size or concurrency at Milestone 3. |
+| P7 | Persistence | **TEMPORARY A4, built in Milestone 3**: one versioned JSON file on the server (`--save`, default `user://ashen_world.json`), schema 1, written by `NetSave`: atomic write (temp file, verify, back up the previous save, rename), after any durable change at most once a second, live positions every 30 s, and on clean shutdown. Load policy: newer schema refused and never overwritten (exit 4); unusable primary falls back to the backup and the bad file is kept aside; both unusable refuses to start (exit 3) unless `--reset-world`, which keeps them aside. | 2026-11-03 | One courtyard does not justify a database (brief §18); the rules are the browser build's tested ones. A save is about 2 KB. | Save size or write time measured as a problem, or a dedicated server that runs for weeks. |
 | P8 | Camera | PROPOSED → built in M1a: elevated orthographic, pitch fixed at −30°, four quarter-turn views eased over 0.35 s, wheel zoom between fixed limits, C recenters, per client. No pan yet. | 2026-11-03 | Brief §5: controlled first, free rotation only if it reads. | Playtest of the four views in a real interior (appendix §84). |
 | P9 | Movement controls | PROPOSED → built in M1a: camera-relative intent resolved on the client, basis frozen while a key is held (a mid-walk turn does not swerve you), server integrates at 60 Hz, immediate velocity, 3.2 m/s, no acceleration. | 2026-11-03 | Appendix §77. | Feel in the first human playtest. |
 | P10 | Network rates | **TEMPORARY A3**: input up to 60/s unreliable-ordered; state 30/s unreliable-ordered; join, spawn, leave reliable. | 2026-11-03 | Constants in `net_protocol.gd`. | Latency and loss tests (Milestone 1b). |
@@ -99,7 +99,10 @@ download per run).
 | R1 disconnect | On disconnect the avatar is removed at once; the server keeps the player's record (position, facing, colour) in memory; a rejoin with the same player key spawns there. | Brief §62 criterion 8 needs an explicit rule; this one is the least surprising for a two-player test. | A "body stays for N seconds" rule changes `_on_peer_disconnected` only. Records are in memory: a server restart loses them until Milestone 3's saves. |
 | R2 identity | `--player-key` (a string the developer chooses) is the persistent player identity; the ENet connection id is only the connection. | Appendix §45, §72: never key ownership on a connection id. | This is a development mechanism, not authentication. Any real identity scheme replaces the key's source, not its role. |
 | R3 request ids | A client numbers its requests from 1 per connection. The server remembers the last 64 answers per connection and answers a repeated id identically without acting again. The memory is dropped on disconnect, so a rejoin starts at 1 again. | Appendix §74: duplicate-request policy with a stated scope. | Reconnect-safe idempotency (surviving a disconnect) would need request ids keyed by player identity and persisted; not needed while the only transfer is a take from a container. |
-| R4 pack on disconnect | The pack is stored in the player's record with position and facing, and restored on rejoin. | Brief §17: disconnect must not create unexplained ownership. | Persisting it across a server restart is Milestone 3. |
+| R4 pack on disconnect | The pack is stored in the player's record with position and facing, and restored on rejoin; since Milestone 3 the record is saved, so it also survives a server restart. | Brief §17: disconnect must not create unexplained ownership. | — |
+| R5 fixture cost | A fixture (breach, hearth) is used by one player, who pays the whole cost from their own pack. | The simplest shared rule; both players see the result. | Pooling materials from two packs is a later option if playtests want it. |
+| R6 instant actions | Repair and lighting happen at once; no timer, no interruption. | Supplement §34 leaves timed actions open. | A timer (and interruption by damage) when Milestone 4 adds danger. |
+| R7 crash window | A server killed outright loses at most the last second of changes (the save debounce) and up to 30 s of walking. | The debounce keeps writes rare; positions matter least. | A playtest that loses something that mattered. |
 
 ## Identifiers (appendix §72)
 
@@ -112,6 +115,9 @@ download per run).
 | Stack id | `3` | yes, while anything is left of the stack | no | Server-assigned per container; names exactly the stack a client saw. Packs have none yet. |
 | Item definition id | `timber` | yes | yes | `ItemDatabase`, one shared `ItemData` per id. No item instance ids yet: no mechanic needs them (supplement §35). |
 | Request id | `7` | no (rule R3) | no | Per connection, client-numbered. |
+| Fixture id | `courtyard/breach`, `courtyard/hearth` | yes | yes (authored; state saved) | Hand-assigned in `net_courtyard.gd`. |
+| World id | `0c39e843-6ae95265` | yes | yes (saved) | Generated when a new world is created; a restored save keeps it. |
+| Player key in a save | `alpha` | yes | yes | Rule R2; the save maps each key to its position, facing, colour and pack (appendix §87, player identity mapping). |
 
 ## Network operation contracts (appendix §73) — Milestone 1a
 
@@ -131,10 +137,50 @@ payload (§74).
 | `request_take_item` | client → server | reliable | request id, object id, stack id, quantity | as above, plus: stack id ≥ 1, 1 ≤ quantity ≤ 999, stack still exists with at least that quantity, the portion fits under the pack's hard limit | removes the portion from the container, adds it to the requester's server-side pack, bumps the container version; `request_result(id, true, {item, quantity, pack_weight})` to the requester; `container_contents` to **every** live client; `pack_state` to the requester | nothing changes; `request_result` with `STATE_CHANGED` (someone was first, or the view was stale), `CAPACITY_EXCEEDED`, or the codes above; on `STATE_CHANGED`, `CAPACITY_EXCEEDED` and `OUT_OF_RANGE` the requester also gets a fresh `container_contents` |
 | `request_store_item` | client → server | reliable | request id, object id, item id, quantity | as for take, plus: item id is a defined item, the pack holds at least that quantity, the portion fits the container | pulls the quantity from the pack's own stacks in order (each portion keeps its condition), merges stackables into an existing crate stack or opens a new stack id, bumps the version; same answers and pushes as a successful take | `STATE_CHANGED` (the pack no longer holds it), `CAPACITY_EXCEEDED`, or the codes above |
 | `container_contents` | server → client(s) | reliable | object id, version, `[[stack id, item id, quantity, condition], …]` | — | the client replaces its view; the loot window redraws | — |
+| `request_use_fixture` | client → server | reliable | request id, object id | sender live; ≤ 20/s; repeat id → first answer; object id well-formed; fixture exists; within 2.5 m; not already done (`STATE_CHANGED`); the pack holds the fixture's own cost (`INSUFFICIENT_RESOURCES`; the cost is never taken from the request) | consumes the cost from the requester's pack, marks the fixture done by that player, `fixture_state` to every live client, `pack_state` to the requester, save within a second | nothing changes; `request_result` with the code |
+| `fixture_state` | server → client(s) | reliable | object id, done, done by | — | on join (initial sync, before spawn) and after every change; the client toggles the barricade (and its collision) or the fire and light | — |
 | `pack_state` | server → owner only | reliable | stacks, weight, capacity, hard limit | — | private player data (§71); sent on join and after every change | — |
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Milestone 3 — persistent refuge: evidence (brief §24)
+
+Branch `claude/gifted-babbage-vbbmgl-m3`. Protocol 4, build `m3-persistent-refuge`. Changed:
+`scripts/net/net_save.gd` (new), `scripts/net/net_fixture.gd` (new), `net_courtyard.gd` (the low
+wall with the breach, the hearth, the woodpile moved), `net_container.gd` (`restore`),
+`net_protocol.gd`, `net_main.gd` (load before listening, save on change and shutdown, the fixture
+request, fixture state, interaction prompts, drives), `tools/net_spike.py` (25 checks),
+`tools/export_builds.sh` (ARM64 client, start scripts, Chromebook and save notes),
+`export_presets.cfg` (Linux Client ARM64), this file, `CLAUDE.md`, `README.md`.
+
+| Check | Kind | Result |
+|---|---|---|
+| Compile-check of every script | syntax | clean |
+| `tests/smoke_test.gd` | single-player regression | 177 passed, 0 failed |
+| `tools/net_spike.py` | loopback: five processes, then a restart, four broken-save cases, a hard kill | **65 passed, 0 failed**; logs clean apart from the deliberate refusals |
+| `tools/net_spike.py --shots` | plus a rendered client | 66 passed, 0 failed |
+| `tools/net_spike.py --exported builds` | the same 65 checks on the exported Linux binaries from `1e69f3f` | **65 passed, 0 failed** |
+| Compatibility renderer (`--rendering-method gl_compatibility`) | rendered client under Mesa OpenGL | runs and draws the courtyard like Forward+; the start scripts use it by default for Chromebooks |
+| `play-here.sh` | the exported start script, x86_64 | started a server and a player; a second player joined that server and saw the first and the crate |
+| Screenshot `camera-refuge.png` | visual | **reviewed by the agent**: the lit hearth casts a warm pool of light on the ground, crate and fence; the barricade fills the breach. The planks read small at this zoom (placeholder art). |
+| ARM64 Linux client | — | **exported, not run** (no ARM machine here) |
+
+What the tests establish (brief §62 criteria 7 and 10; matrix E and G): B lights the hearth and,
+left with one timber, cannot repair (`INSUFFICIENT_RESOURCES`) · before the repair B walks out
+through the breach (z > 7) · A repairs it with two timber; lighting the lit hearth is
+`STATE_CHANGED` · after the repair the barricade stops A at the gap (z < 6.2) · B2, joined with the
+breach open, receives the repair live from A's action · conservation now counts what fixtures
+consumed · the server starts a new world and saves it with no failures · a restarted server loads
+the same world id; alpha comes back where the save left them, with the same pack; the crate comes
+back with the same contents, version and stack ids; the breach and the hearth come back done ·
+a corrupt primary falls back to the backup and is kept aside, and the primary is rewritten · a
+newer-schema save stops the server (exit 4) and stays byte-identical · two unusable files stop
+it (exit 3) and stay untouched · `--reset-world` keeps both aside and starts a new world · a
+server killed outright (SIGKILL) three seconds after a take keeps the take across the restart.
+
+Not established: a human playtest, Windows or ARM runs, internet play, a disk-full or
+read-only-folder failure (the code retries and reports a failed write; untested).
 
 ## Milestone 1d — exported test builds and CI: evidence (brief §24)
 
@@ -250,6 +296,6 @@ No human has played it. Frame time on the developers' machines is unmeasured.
 
 ## Next
 
-The two developers' first playtest on their own machines, recorded per appendix §94 (that record is
-the evidence no loopback test can give). Then Milestone 3's persistence (temporary rule A4), the
-repair interaction and the hearth, and the latency and loss tests.
+The two developers' first playtest, recorded per appendix §94: it decides whether Milestone 4
+(one enemy, one attack, damage and death, online) comes next or feel comes first. The latency and
+loss tests still need a decision on tooling (`tc netem` needs root on the test machine).
