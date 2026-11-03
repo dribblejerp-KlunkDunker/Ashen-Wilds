@@ -1022,12 +1022,13 @@ func _finish_server() -> void:
 	get_tree().quit()
 
 
-## Close and detach the peer. Detaching matters: a closed peer left attached makes the engine's
-## own teardown call get_unique_id() on an inactive instance and log an error.
+## Close the peer so the other side gets a clean disconnect; the quit follows in the same frame.
+## (Exported release builds log one "Attempt to disconnect a nonexistent connection ... tree_exited"
+## line for NetMain at shutdown whether or not the peer is detached here; the editor binary never
+## does. Engine teardown noise: see CLAUDE.md.)
 func _drop_peer() -> void:
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
-	multiplayer.multiplayer_peer = null
 
 
 func _fatal(message: String) -> void:

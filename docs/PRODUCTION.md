@@ -31,6 +31,46 @@ $GODOT --headless --path . net_main.tscn -- --server --port 7788   # a dedicated
 $GODOT --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-key alice
 ```
 
+## Clean build procedure (appendix §90, §91)
+
+Inputs: this repository at a known commit; Godot **4.3-stable** (`Godot_v4.3-stable_linux.x86_64`,
+the editor binary, which also exports); its **export templates** from the same release
+(`Godot_v4.3-stable_export_templates.tpz`, 1.07 GB). Nothing outside the repository is read
+except those two downloads; no editor clicks are involved.
+
+```bash
+# 1. Godot (once)
+mkdir -p ~/godot && cd ~/godot
+curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+unzip -o godot.zip && export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
+
+# 2. Export templates (once; 1 GB). The archive's `templates` folder becomes `4.3.stable`.
+mkdir -p ~/godot-templates && cd ~/godot-templates
+curl -sSL -o templates.tpz https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+unzip -q templates.tpz && mkdir -p ~/.local/share/godot/export_templates
+mv templates ~/.local/share/godot/export_templates/4.3.stable && rm templates.tpz
+
+# 3. From the repository root: three builds and BUILD_INFO.txt into builds/ (git-ignored)
+tools/export_builds.sh
+
+# 4. Prove the exported binaries run: the loopback test on the exported server and client
+python3 tools/net_spike.py --exported builds
+```
+
+Outputs: `builds/linux-client/ashen-wilds-client.x86_64`, `builds/linux-server/ashen-wilds-server.x86_64`
+(the dedicated-server export preset), `builds/windows-client/ashen-wilds-client.exe`, and
+`builds/BUILD_INFO.txt` with the build id (`NetProtocol.BUILD_ID`), protocol version, source commit
+(`-dirty` if uncommitted changes were included), export time, platforms, connection steps, known
+limitations, save compatibility (none yet) and log locations. These are **internal playtest builds**
+(appendix §57), not release candidates. On Windows the editor binary's path differs; the steps are
+otherwise the same, and the Windows build has not been run in this session.
+
+One binary serves every role: `launcher.tscn` is the main scene and opens the networked courtyard
+when the arguments after `--` contain `--server` or `--client`, otherwise the single-player
+prototype. CI (`.github/workflows/checks.yml`) runs import, compile-check, the regression suite and
+the loopback test on every push and pull request; it does not export (the templates are a 1 GB
+download per run).
+
 ## Decision register (appendix §63)
 
 | # | Decision | Status | Date | Reason / consequence | Revisit trigger |
@@ -95,6 +135,29 @@ payload (§74).
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Milestone 1d — exported test builds and CI: evidence (brief §24)
+
+Branch `claude/gifted-babbage-vbbmgl-m1d`. Changed: `launcher.tscn` + `scripts/core/launcher.gd`
+(the new main scene), `project.godot` (`run/main_scene`), `export_presets.cfg` (Linux Client,
+Linux Server with `dedicated_server`, Windows Client; x86_64, embedded pack),
+`tools/export_builds.sh`, `tools/net_spike.py --exported`, `.github/workflows/checks.yml`,
+this file, `CLAUDE.md`, `README.md`.
+
+| Check | Kind | Result |
+|---|---|---|
+| Compile-check of every script | syntax | clean |
+| `tests/smoke_test.gd` | single-player regression | 177 passed, 0 failed |
+| Boot with no arguments through the launcher (`--quit-after 600`) | runtime | opens the single-player prototype; nothing in the log beyond the documented noise |
+| `tools/export_builds.sh` | export | three builds produced from the installed 4.3-stable templates: Linux client 66 MB, Linux server 66 MB, Windows client 84 MB, plus `BUILD_INFO.txt` |
+| `tools/net_spike.py --exported builds` | **the exported Linux server and client, five processes on loopback** | **40 passed, 0 failed**, three runs; the only log line beyond the documented noise is the release-template shutdown message recorded in `CLAUDE.md` |
+| `tools/net_spike.py` (editor binary) | loopback | 40 passed, 0 failed |
+| Windows client | — | **not executed**: no Windows machine in this session. The file was produced; nothing more is claimed. |
+| CI workflow | — | **not executed here**: it runs on the first push of this branch; its result is the first CI evidence this repository has. |
+
+What this establishes: the exported server runs headless (criterion 1 of brief §62 with a real
+export, not the editor), the exported client joins it, and every Milestone 1 behaviour holds on the
+exported binaries. What it does not: a Windows run, an internet run, or a human playtest.
 
 ## Milestone 1c — store-item: evidence (brief §24)
 
@@ -187,7 +250,6 @@ No human has played it. Frame time on the developers' machines is unmeasured.
 
 ## Next
 
-Milestone 1 closes with the exported server and client test builds, a build identifier and
-connection steps (appendix §57, §91), a CI workflow that runs the same checks as `CLAUDE.md`
-(§90), and the two developers' first playtest record (§94). Then Milestone 3's persistence
-(temporary rule A4), the repair interaction, and the latency and loss tests.
+The two developers' first playtest on their own machines, recorded per appendix §94 (that record is
+the evidence no loopback test can give). Then Milestone 3's persistence (temporary rule A4), the
+repair interaction and the hearth, and the latency and loss tests.
