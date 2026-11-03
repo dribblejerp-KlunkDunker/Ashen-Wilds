@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets, `.tres` resources or `.tscn` files beyond `main.tscn`.
+An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, so there are no imported assets or `.tres` resources; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
 
 Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
 
@@ -46,7 +46,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
   | grep -vE 'mesh_get_surface_count|Parameter "m" is null|^\s*$|ObjectDB|cleanup \(core|^Godot Engine'
 ```
 
-**Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card.
+**Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
 
 Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **177 checks, 0 failures**.
 
@@ -58,7 +58,13 @@ python3 tools/net_spike.py
 # 6. The same with a rendered client under Xvfb (needs mesa-vulkan-drivers; apt-get update first if it
 #    has "no installation candidate"). Look at every PNG it writes.
 python3 tools/net_spike.py --shots docs/screenshots/net
+
+# 7. Exported builds (needs the 4.3-stable export templates; docs/PRODUCTION.md "Clean build procedure"),
+#    then the loopback test on the exported binaries. An archive is not proof it runs; this is.
+tools/export_builds.sh && python3 tools/net_spike.py --exported builds
 ```
+
+CI (`.github/workflows/checks.yml`) runs steps 1–3 and 5 on every push and pull request.
 
 ## Screenshots (README images)
 

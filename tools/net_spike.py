@@ -21,6 +21,9 @@ Scenario (times are approximate, each client's drive runs from its own spawn):
 Exit code is the number of failed checks. Set GODOT to the 4.3-stable binary, or put it at
 ~/godot/Godot_v4.3-stable_linux.x86_64. Run from the project root:  python3 tools/net_spike.py
 Pass --keep to leave the report directory in place; its path is printed either way.
+Pass --exported DIR to run the exported binaries from tools/export_builds.sh instead of the editor
+binary and the project (DIR/linux-server/ashen-wilds-server.x86_64 serves, DIR/linux-client/
+ashen-wilds-client.x86_64 joins): the proof that the archives contain a working game (§91).
 Pass --shots DIR to also run a SHOTS client with real rendering under Xvfb (Mesa's software
 Vulkan), which saves every camera view and both zoom limits as PNGs into DIR (appendix §78).
 Those images must be looked at by a person; the script only checks that they were written.
@@ -28,6 +31,7 @@ Those images must be looked at by a person; the script only checks that they wer
 import json, math, os, shutil, subprocess, sys, tempfile, time
 
 GODOT = os.environ.get("GODOT", os.path.expanduser("~/godot/Godot_v4.3-stable_linux.x86_64"))
+EXPORTED = sys.argv[sys.argv.index("--exported") + 1] if "--exported" in sys.argv else None
 PORT = int(os.environ.get("NET_SPIKE_PORT", "7795"))
 SERVER_SECONDS = 24.0
 PROCESS_TIMEOUT = 60.0
@@ -42,7 +46,14 @@ def check(ok, name, details=None):
 
 
 def launch(args, log, rendered=False):
-    if rendered:
+    if EXPORTED:
+        role = "server" if "--server" in args else "client"
+        binary = os.path.join(EXPORTED, "linux-%s" % role, "ashen-wilds-%s.x86_64" % role)
+        if rendered:
+            cmd = ["xvfb-run", "-a", "-s", "-screen 0 1280x800x24", binary, "--rendering-driver", "vulkan", "--resolution", "1280x800", "--"] + args
+        else:
+            cmd = [binary, "--headless", "--"] + args
+    elif rendered:
         cmd = ["xvfb-run", "-a", "-s", "-screen 0 1280x800x24", GODOT, "--path", ".", "--rendering-driver", "vulkan",
                "--resolution", "1280x800", "net_main.tscn", "--"] + args
     else:
@@ -93,7 +104,14 @@ def sample(report, label):
 
 
 def main():
-    if not os.path.exists(GODOT):
+    if EXPORTED:
+        for role in ("server", "client"):
+            b = os.path.join(EXPORTED, "linux-%s" % role, "ashen-wilds-%s.x86_64" % role)
+            if not os.access(b, os.X_OK):
+                print("exported binary missing or not executable: %s" % b)
+                return 2
+        print("running the EXPORTED binaries from", EXPORTED)
+    elif not os.path.exists(GODOT):
         print("Godot binary not found at %s (set GODOT)" % GODOT)
         return 2
     keep = "--keep" in sys.argv
