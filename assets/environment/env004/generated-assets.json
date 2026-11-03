@@ -1,0 +1,65 @@
+{
+  "status": "draft; no engine validation",
+  "assets": [
+    {
+      "id": "env_wall_plank_doorway_a",
+      "file": "exports/env_wall_plank_doorway_a.glb",
+      "triangles": 452,
+      "sha256": "07814e6ee95c2212a41e1d9b5ecd954ea1bd79194e333106b63171d216761390"
+    },
+    {
+      "id": "doorway_with_reference_door",
+      "file": "review/doorway_with_reference_door.glb",
+      "triangles": 1132,
+      "sha256": "99431dafb63b0ff68d67bf9712f94d2dacfc6b849f4117d5d3b61c60583bf238"
+    }
+  ],
+  "hinge": [
+    -0.47,
+    0.0,
+    -0.095
+  ],
+  "continuous_leaf_x_bounds": [
+    -0.47000000000000003,
+    0.4737246685342076
+  ],
+  "sampled_poses": 19,
+  "collision_proposals": [
+    {
+      "center": [
+        -0.815,
+        1.2,
+        -0.015
+      ],
+      "size": [
+        0.37,
+        2.4,
+        0.19
+      ]
+    },
+    {
+      "center": [
+        0.815,
+        1.2,
+        -0.015
+      ],
+      "size": [
+        0.37,
+        2.4,
+        0.19
+      ]
+    },
+    {
+      "center": [
+        0,
+        2.28,
+        -0.015
+      ],
+      "size": [
+        1.26,
+        0.24,
+        0.19
+      ]
+    }
+  ]
+}
