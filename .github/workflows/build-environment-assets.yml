@@ -1,13 +1,13 @@
-name: Generate and commit environment assets
+name: Generate and validate environment assets
 
 on:
   push:
-    branches:
-      - assets/env-001-crate-barrel
+    branches: [assets/env-001-crate-barrel]
     paths:
       - ".github/workflows/build-environment-assets.yml"
       - "tools/generate_env*.py"
-      - "tools/optimize_open_barrels_v3.py"
+      - "tools/env_variation_common.py"
+      - "tests/test_env007_collisions.gd"
   workflow_dispatch:
 
 permissions:
@@ -23,104 +23,127 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out the asset branch
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: assets/env-001-crate-barrel
           fetch-depth: 1
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
-      - name: Install pinned mesh dependencies
+      - name: Install mesh dependencies
         run: python -m pip install numpy==1.26.4 scipy==1.13.1
 
-      - name: Generate committed batches and report missing sources
-        id: generate
+      - name: Generate all seven visual batches and 24 collision wrappers
         shell: bash
         run: |
           set -euo pipefail
-          : > "$RUNNER_TEMP/env-generated-batches.txt"
-          echo "## Environment asset generation" >> "$GITHUB_STEP_SUMMARY"
           for batch in 001 002 003 004 005 006 007; do
-            script="tools/generate_env${batch}.py"
-            if [ ! -f "$script" ]; then
-              if [[ "$batch" < "006" ]]; then
-                echo "::error::Required generator missing: $script"
-                exit 1
-              fi
-              echo "::warning::ENV-$batch is not generated: $script is not committed yet."
-              echo "- NOT GENERATED: ENV-$batch (missing source)" >> "$GITHUB_STEP_SUMMARY"
-              continue
-            fi
             if [ "$batch" = "006" ] || [ "$batch" = "007" ]; then
-              python "$script" "assets/environment/env${batch}"
+              python "tools/generate_env${batch}.py" "assets/environment/env${batch}"
             else
-              python "$script"
+              python "tools/generate_env${batch}.py"
             fi
-            echo "$batch" >> "$RUNNER_TEMP/env-generated-batches.txt"
-            echo "- Generated ENV-$batch" >> "$GITHUB_STEP_SUMMARY"
           done
-          if grep -qx 007 "$RUNNER_TEMP/env-generated-batches.txt" && [ -f tools/optimize_open_barrels_v3.py ]; then
-            python tools/optimize_open_barrels_v3.py assets/environment/env007 --replace-existing
-            echo "- Generated optimized barrel collision scenes" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "- Optimized barrel collisions NOT GENERATED: required sources are not yet available" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          python tools/generate_env007_collisions.py assets/environment/env007 --replace-existing
 
-      - name: Verify GLB headers and stage generated files only
-        shell: bash
+      - name: Verify GLB headers
         run: |
           python - <<'PY'
           from pathlib import Path
-          import os, struct, subprocess
-          batches = (Path(os.environ["RUNNER_TEMP"]) / "env-generated-batches.txt").read_text().splitlines()
-          if not batches:
-              raise SystemExit("No batches generated")
-          staged = []
-          summary = []
-          for batch in batches:
-              folder = Path(f"assets/environment/env{batch}")
-              glbs = sorted(folder.rglob("*.glb"))
-              if not glbs:
-                  raise SystemExit(f"No GLBs generated in {folder}")
-              for path in glbs:
-                  data = path.read_bytes()
-                  if len(data) < 12:
-                      raise SystemExit(f"Truncated GLB: {path}")
-                  magic, version, length = struct.unpack_from("<4sII", data)
-                  if magic != b"glTF" or version != 2 or length != len(data):
+          import struct
+          for batch in range(1, 8):
+              files = sorted(Path(f"assets/environment/env{batch:03d}").rglob("*.glb"))
+              if not files:
+                  raise SystemExit(f"No GLBs in batch {batch}")
+              for path in files:
+                  raw = path.read_bytes()
+                  if len(raw) < 12 or struct.unpack_from("<4sII", raw) != (b"glTF", 2, len(raw)):
                       raise SystemExit(f"Invalid GLB header: {path}")
-              for path in sorted(folder.rglob("*")):
-                  if path.is_file() and (path.suffix == ".glb" or path.name.endswith("_collision.tscn") or path.name.endswith("manifest.json") or path.name == "generated-assets.json"):
-                      staged.append(str(path))
-              summary.append(f"- ENV-{batch}: {len(glbs)} GLB headers verified")
-          subprocess.run(["git", "add", "-f", "--", *staged], check=True)
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
-              stream.write("\n### Verification\n" + "\n".join(summary) + "\n")
+              print(f"ENV-{batch:03d}: {len(files)} GLB headers verified")
           PY
 
-      - name: Commit and push actual generated assets
+      - name: Install Godot and validate assets in an isolated project
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip" \
+            -o "$RUNNER_TEMP/godot.zip"
+          unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          engine="$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          chmod +x "$engine"
+          "$engine" --version
+          validation="$RUNNER_TEMP/ashen-asset-validation"
+          mkdir -p "$validation/assets/environment"
+          cp -R assets/environment/. "$validation/assets/environment/"
+          cp tests/test_env007_collisions.gd "$validation/test_env007_collisions.gd"
+          cat > "$validation/project.godot" <<'GODOT'
+          config_version=5
+          [application]
+          config/name="Ashen asset validation"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          GODOT
+          timeout 180s "$engine" --headless --path "$validation" --editor --import --quit 2>&1 | tee "$RUNNER_TEMP/asset-import.log"
+          timeout 180s "$engine" --headless --path "$validation" --script res://test_env007_collisions.gd 2>&1 | tee "$RUNNER_TEMP/asset-physics.log"
+          python - <<'PY'
+          from pathlib import Path
+          import os, json
+          p = Path(os.environ["RUNNER_TEMP"]) / "ashen-asset-validation/validation-report.json"
+          report = json.loads(p.read_text())
+          if not report.get("passed") or report.get("scene_pose_cases") != 48:
+              raise SystemExit("Godot asset checks did not pass all 48 scene/pose cases")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
+              stream.write(f"## Godot asset validation passed\n24 scenes, 48 scene/pose cases, {report['checks']} assertions.\n")
+              stream.write("Scope: import, box structure, rays and sphere overlaps; not player traversal or performance.\n")
+          PY
+
+      - name: Commit generated assets only after engine validation passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files = []
+          for batch in range(1, 8):
+              for p in sorted(Path(f"assets/environment/env{batch:03d}").rglob("*")):
+                  if p.is_file() and (p.suffix == ".glb" or p.name.endswith("_collision.tscn") or p.name.endswith("manifest.json") or p.name == "generated-assets.json"):
+                      files.append(str(p))
+          subprocess.run(["git", "add", "-f", "--", *files], check=True)
+          PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --cached --quiet; then
-            echo "No generated-file changes to commit." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo "Generated assets already match the validated files." >> "$GITHUB_STEP_SUMMARY"
+          else
+            git commit -m "Generate environment assets and Godot-validated prop colliders"
+            git push origin HEAD:refs/heads/assets/env-001-crate-barrel
           fi
-          git commit -m "Generate environment GLBs and available collision scenes"
-          git push origin HEAD:refs/heads/assets/env-001-crate-barrel
-          echo "Generated binary assets pushed to the asset branch." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Save a downloadable GLB backup
-        if: always() && steps.generate.outcome == 'success'
+      - name: Keep validation logs and report
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: environment-glbs-${{ github.run_number }}
-          path: assets/environment/env*/**/*.glb
+          name: asset-validation-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/asset-import.log
+            ${{ runner.temp }}/asset-physics.log
+            ${{ runner.temp }}/ashen-asset-validation/validation-report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Keep generated GLB and collision backup
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: environment-assets-${{ github.run_number }}
+          path: |
+            assets/environment/env*/**/*.glb
+            assets/environment/env007/scenes/*_collision.tscn
+            assets/environment/env007/collision-manifest.json
           if-no-files-found: error
           retention-days: 14
