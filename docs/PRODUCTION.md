@@ -44,21 +44,24 @@ mkdir -p ~/godot && cd ~/godot
 curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
 unzip -o godot.zip && export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
 
-# 2. Export templates (once; 1 GB). The archive's `templates` folder becomes `4.3.stable`.
-mkdir -p ~/godot-templates && cd ~/godot-templates
-curl -sSL -o templates.tpz https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-unzip -q templates.tpz && mkdir -p ~/.local/share/godot/export_templates
-mv templates ~/.local/share/godot/export_templates/4.3.stable && rm templates.tpz
+# 2. Export templates (once). Downloads the 1 GB archive and keeps only the five release
+#    templates the presets use (~200 MB) in ~/.local/share/godot/export_templates/4.3.stable.
+tools/get_export_templates.sh
 
-# 3. From the repository root: three builds and BUILD_INFO.txt into builds/ (git-ignored)
+# 3. From the repository root: five builds and BUILD_INFO.txt into builds/ (git-ignored)
 tools/export_builds.sh
 
 # 4. Prove the exported binaries run: the loopback test on the exported server and client
 python3 tools/net_spike.py --exported builds
+
+# 5. Optional: the desktop zips (each with BUILD_INFO.txt inside) into builds/release/
+tools/package_builds.sh
 ```
 
 Outputs: `builds/linux-client/ashen-wilds-client.x86_64`, `builds/linux-server/ashen-wilds-server.x86_64`
-(the dedicated-server export preset), `builds/windows-client/ashen-wilds-client.exe`, and
+(the dedicated-server export preset), `builds/windows-client/ashen-wilds-client.exe`,
+`builds/linux-arm64-client/ashen-wilds-client.arm64`, `builds/web/index.html` (the browser build:
+single-threaded, WebGL 2 through the Compatibility renderer, opens the single-player prototype), and
 `builds/BUILD_INFO.txt` with the build id (`NetProtocol.BUILD_ID`), protocol version, source commit
 (`-dirty` if uncommitted changes were included), export time, platforms, connection steps, known
 limitations, save compatibility (none yet) and log locations. These are **internal playtest builds**
@@ -68,8 +71,17 @@ otherwise the same, and the Windows build has not been run in this session.
 One binary serves every role: `launcher.tscn` is the main scene and opens the networked courtyard
 when the arguments after `--` contain `--server` or `--client`, otherwise the single-player
 prototype. CI (`.github/workflows/checks.yml`) runs import, compile-check, the regression suite and
-the loopback test on every push and pull request; it does not export (the templates are a 1 GB
-download per run).
+the loopback test on every push and pull request.
+
+**Published playtest builds (P17).** `.github/workflows/publish.yml` runs steps 1–5 above on every
+pull request and every push to `main`, with the trimmed templates cached, and keeps the desktop zips
+as a workflow artifact for 14 days. On `main`, once the exported server and client have passed the
+loopback test, it deploys `builds/web/` to GitHub Pages
+(https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) and replaces the assets of the rolling
+pre-release tagged `playtest` (https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest).
+Pages needs a one-time setting by the owner: Settings > Pages > Build and deployment > Source:
+GitHub Actions. The browser build's procedural sound streams through the browser's audio worklet
+(`playback_type = STREAM`; the web default plays samples, which a generator cannot be).
 
 ## Decision register (appendix §63)
 
@@ -78,6 +90,7 @@ download per run).
 | P1 | Base the 3D game on this Godot repo | CONFIRMED | 2026-11-03 | Already real-time 3D, elevated orthographic rig with roof hiding and wall cutaway, built-in multiplayer, GLB import. The browser build would need a renderer first. | Only if the developers' machines cannot run the Godot editor (test: open the project, press F5). |
 | P2 | Godot 4.3-stable | CONFIRMED | 2026-11-03 | Project pins it; its own suite passes on it. | A blocking engine bug, or a feature that needs 4.4+, recorded here first. |
 | P3 | Target platforms | PROPOSED desktop first (Windows/Linux/macOS exports); browser export as a later option | 2026-11-03 | Brief §48. The owner's Chromebook is unmeasured. | The F5 test above, and the first exported build. |
+| P17 | Playtest distribution | **CONFIRMED** (owner, 2026-11-03: "yes set it up"): every merge to `main` publishes a browser build of the single-player prototype to GitHub Pages and replaces the desktop zips on the rolling `playtest` pre-release; pull requests get the zips as a workflow artifact. Browser multiplayer is not included: the courtyard uses ENet (UDP), which browsers cannot open; it needs a WebSocket transport and a publicly hosted `wss://` server (P4). | 2026-11-03 | Easier testing per update, no Linux setup needed on the Chromebook for the single-player build. Pages is free because the repository is public. | A decision on server hosting (P4), which is what browser multiplayer waits on. |
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
 | P5 | Player count | **CONFIRMED direction** (owner, 2026-11-03): multiplayer stays small, friends-scale. Exact number OPEN. Spike server default: 2 (`--max-players` dev setting). | 2026-11-03 | Brief §7: two is the test, not the limit. Rules out MMO-scale design (brief §25). | Measured server and network cost with two, then a number. |
 | P6 | PvP | OPEN. **TEMPORARY A2**: none. | 2026-11-03 | Affects hit validation and death rules, not transport. | The owners' answer. |

@@ -19,6 +19,9 @@ func _ready() -> void:
 	gen.buffer_length = 0.1
 	_sfx_player.stream = gen
 	_sfx_player.volume_db = -6.0
+	# Web builds play sounds as browser samples by default, which a generator cannot be; stream it
+	# through the audio worklet instead (desktop is unaffected: it always streams).
+	_sfx_player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 	add_child(_sfx_player)
 	_sfx_player.play()
 	_playback = _sfx_player.get_stream_playback() as AudioStreamGeneratorPlayback

@@ -12,8 +12,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 GODOT="${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}"
 [ -x "$GODOT" ] || { echo "Godot not found at $GODOT (set GODOT)"; exit 2; }
-TEMPLATES="$HOME/.local/share/godot/export_templates/4.3.stable"
-[ -f "$TEMPLATES/version.txt" ] || { echo "Export templates not installed at $TEMPLATES"; exit 2; }
+TEMPLATES="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/4.3.stable"
+[ -f "$TEMPLATES/version.txt" ] || { echo "Export templates not installed at $TEMPLATES (run tools/get_export_templates.sh)"; exit 2; }
 
 COMMIT="$(git rev-parse --short HEAD)"
 git diff --quiet && git diff --cached --quiet || COMMIT="$COMMIT-dirty"
@@ -22,7 +22,7 @@ PROTOCOL="$(grep -oP 'PROTOCOL_VERSION: int = \K[0-9]+' scripts/net/net_protocol
 STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 rm -rf builds
-mkdir -p builds/linux-client builds/linux-server builds/windows-client builds/linux-arm64-client
+mkdir -p builds/linux-client builds/linux-server builds/windows-client builds/linux-arm64-client builds/web
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 
 export_one() {
@@ -35,6 +35,10 @@ export_one "Linux Client" builds/linux-client/ashen-wilds-client.x86_64
 export_one "Linux Server" builds/linux-server/ashen-wilds-server.x86_64
 export_one "Windows Client" builds/windows-client/ashen-wilds-client.exe
 export_one "Linux Client ARM64" builds/linux-arm64-client/ashen-wilds-client.arm64
+# The browser build (single-threaded, so any static host such as GitHub Pages can serve it; WebGL 2
+# through the Compatibility renderer). It opens the single-player prototype: a browser cannot use
+# the courtyard's UDP transport.
+export_one "Web" builds/web/index.html
 
 # Start scripts for the Linux folders (Chromebooks run these in the Linux terminal). Clients use
 # Godot's OpenGL Compatibility renderer by default because ChromeOS's Linux container often has no
@@ -79,7 +83,8 @@ protocol      $PROTOCOL  (server and client must match; a mismatch is refused wi
 source        $COMMIT  (git short SHA; -dirty means uncommitted changes were included)
 exported      $STAMP with Godot 4.3-stable export templates
 platforms     linux-client (x86_64), linux-arm64-client (ARM Chromebooks and ARM Linux; not run in this session),
-              linux-server (x86_64, dedicated-server export), windows-client (x86_64, not run in this session)
+              linux-server (x86_64, dedicated-server export), windows-client (x86_64, not run in this session),
+              web (the single-player prototype only, for a browser; CI publishes it to GitHub Pages)
 
 CHROMEBOOK
   Turn on Linux (Settings > About ChromeOS > Developers > Linux development environment), copy the
