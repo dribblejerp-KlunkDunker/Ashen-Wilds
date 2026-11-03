@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env008/exports/env_rocks_06_pebble_scatter.glb" id="1_visual"]
+
+[node name="env_rocks_06_pebble_scatter" type="Node3D"]
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]

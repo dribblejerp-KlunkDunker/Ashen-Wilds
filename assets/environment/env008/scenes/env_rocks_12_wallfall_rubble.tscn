@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env008/exports/env_rocks_12_wallfall_rubble.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(0.697816418535, 0.264, 0.833402334221)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.725068605816, 0.264, 0.684586749147)
+
+[node name="env_rocks_12_wallfall_rubble" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Rubble0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000807719466296, 0.132, -0.143950055536)
+shape = SubResource("Box_0")
+
+[node name="Rubble1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25844733473, 0.132, 0.218357848073)
+shape = SubResource("Box_1")
