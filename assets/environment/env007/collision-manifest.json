@@ -1,0 +1,3201 @@
+{
+  "batch": "ENV-007",
+  "revision": 3,
+  "scene_count": 24,
+  "total_shapes": 121,
+  "engine_validation": "See CI report; generator does not certify physics",
+  "assets": [
+    {
+      "id": "env_crate_v01_cross_braced",
+      "family": "crate",
+      "style": "cross_braced",
+      "scene": "scenes/env_crate_v01_cross_braced_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "4b5045d1765fb83f5af976cbb180e4aef79d379a11eaaed8de5e62b6d0ebca3b",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            -0.0030000000000000027
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.641
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v02_single_brace",
+      "family": "crate",
+      "style": "single_brace",
+      "scene": "scenes/env_crate_v02_single_brace_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "2604d0176f228a452254495076983629e9ca4902ce322dc427c1e3ab5b19e889",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.635
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v03_iron_bound",
+      "family": "crate",
+      "style": "iron_bound",
+      "scene": "scenes/env_crate_v03_iron_bound_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "d0db4f2ed9697ca745a71bafcdaddce8d222fabb3cff8fdfabab83495cf576ca",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v04_vertical_battens",
+      "family": "crate",
+      "style": "vertical_battens",
+      "scene": "scenes/env_crate_v04_vertical_battens_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "433360eed9374b82945108339783fb4bd8954dea637003af4743609a6b5a3651",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.645
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v05_face_patch",
+      "family": "crate",
+      "style": "face_patch",
+      "scene": "scenes/env_crate_v05_face_patch_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "3032b46c9e8579873dffdea6aab88c3b7321fc9754110b4bcf79bd94129da91a",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            -0.013750000000000012
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.6275
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v06_cross_plank_lid",
+      "family": "crate",
+      "style": "cross_plank_lid",
+      "scene": "scenes/env_crate_v06_cross_plank_lid_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "8e526cf5c4e9cd1640a6584e1478ada1ffe8d5710383a95796a3303936ad4fc6",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v07_cleated_lid",
+      "family": "crate",
+      "style": "cleated_lid",
+      "scene": "scenes/env_crate_v07_cleated_lid_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "15848a81fbfb0e37938577f11b9e60562e81e6246d221d7a0c16eee74e75d597",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v08_open_top",
+      "family": "crate",
+      "style": "open_top",
+      "scene": "scenes/env_crate_v08_open_top_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 14,
+      "open_interior": true,
+      "visual_sha256": "c7a6dd26c06d6f18beead5f57062668308ddb944d843276ec1001511b426f9e4",
+      "boxes": [
+        {
+          "name": "Floor",
+          "center": [
+            0,
+            0.035,
+            0
+          ],
+          "size": [
+            0.72,
+            0.07,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FacePanel0",
+          "center": [
+            0,
+            0.295,
+            -0.245
+          ],
+          "size": [
+            0.72,
+            0.49,
+            0.035
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SidePanel0",
+          "center": [
+            -0.345,
+            0.295,
+            0
+          ],
+          "size": [
+            0.035,
+            0.49,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner0_0",
+          "center": [
+            -0.36,
+            0.3,
+            -0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner0_1",
+          "center": [
+            -0.36,
+            0.3,
+            0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail0_0",
+          "center": [
+            0,
+            0.1,
+            -0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail0_1",
+          "center": [
+            0,
+            0.49,
+            -0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FacePanel1",
+          "center": [
+            0,
+            0.295,
+            0.245
+          ],
+          "size": [
+            0.72,
+            0.49,
+            0.035
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SidePanel1",
+          "center": [
+            0.345,
+            0.295,
+            0
+          ],
+          "size": [
+            0.035,
+            0.49,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner1_0",
+          "center": [
+            0.36,
+            0.3,
+            -0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner1_1",
+          "center": [
+            0.36,
+            0.3,
+            0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail1_0",
+          "center": [
+            0,
+            0.1,
+            0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail1_1",
+          "center": [
+            0,
+            0.49,
+            0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "OldRepair",
+          "center": [
+            0.075,
+            0.285,
+            -0.275
+          ],
+          "size": [
+            0.36,
+            0.075,
+            0.026
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v09_braced_open",
+      "family": "crate",
+      "style": "braced_open",
+      "scene": "scenes/env_crate_v09_braced_open_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 16,
+      "open_interior": true,
+      "visual_sha256": "d11d7f118dd6a81df61f091558ca05c7d35394691c59f91362db2b31fc99ab38",
+      "boxes": [
+        {
+          "name": "Floor",
+          "center": [
+            0,
+            0.035,
+            0
+          ],
+          "size": [
+            0.72,
+            0.07,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FacePanel0",
+          "center": [
+            0,
+            0.295,
+            -0.245
+          ],
+          "size": [
+            0.72,
+            0.49,
+            0.035
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SidePanel0",
+          "center": [
+            -0.345,
+            0.295,
+            0
+          ],
+          "size": [
+            0.035,
+            0.49,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner0_0",
+          "center": [
+            -0.36,
+            0.3,
+            -0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner0_1",
+          "center": [
+            -0.36,
+            0.3,
+            0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail0_0",
+          "center": [
+            0,
+            0.1,
+            -0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail0_1",
+          "center": [
+            0,
+            0.49,
+            -0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FacePanel1",
+          "center": [
+            0,
+            0.295,
+            0.245
+          ],
+          "size": [
+            0.72,
+            0.49,
+            0.035
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "SidePanel1",
+          "center": [
+            0.345,
+            0.295,
+            0
+          ],
+          "size": [
+            0.035,
+            0.49,
+            0.52
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner1_0",
+          "center": [
+            0.36,
+            0.3,
+            -0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Corner1_1",
+          "center": [
+            0.36,
+            0.3,
+            0.26
+          ],
+          "size": [
+            0.08,
+            0.6,
+            0.08
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail1_0",
+          "center": [
+            0,
+            0.1,
+            0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Rail1_1",
+          "center": [
+            0,
+            0.49,
+            0.27
+          ],
+          "size": [
+            0.72,
+            0.065,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "OldRepair",
+          "center": [
+            0.075,
+            0.285,
+            -0.275
+          ],
+          "size": [
+            0.36,
+            0.075,
+            0.026
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Diagonal0",
+          "center": [
+            0,
+            0.3,
+            -0.305
+          ],
+          "size": [
+            0.045,
+            0.6260990336999411,
+            0.025
+          ],
+          "basis": [
+            0.447213595499958,
+            -0.894427190999916,
+            0,
+            0.894427190999916,
+            0.447213595499958,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Diagonal1",
+          "center": [
+            0,
+            0.3,
+            0.305
+          ],
+          "size": [
+            0.045,
+            0.6260990336999411,
+            0.025
+          ],
+          "basis": [
+            0.447213595499958,
+            -0.894427190999916,
+            0,
+            0.894427190999916,
+            0.447213595499958,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v10_carry_handles",
+      "family": "crate",
+      "style": "carry_handles",
+      "scene": "scenes/env_crate_v10_carry_handles_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "e9be47f9b6cc8fb81d244defbccd0c1ce3b6bf5a25ce1323da38ac77875316eb",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            0.0
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.715
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v11_hinged_lid",
+      "family": "crate",
+      "style": "hinged_lid",
+      "scene": "scenes/env_crate_v11_hinged_lid_collision.tscn",
+      "height_m": 0.6,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "32edc3841a4fa5c26b961ca14dac79682a70ab10006fd09f5a7a23538e455c90",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.3,
+            -0.0012500000000000011
+          ],
+          "size": [
+            0.7999999999999999,
+            0.6,
+            0.6275
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_crate_v12_wide_low",
+      "family": "crate",
+      "style": "wide_low",
+      "scene": "scenes/env_crate_v12_wide_low_collision.tscn",
+      "height_m": 0.432,
+      "shape_count": 1,
+      "open_interior": false,
+      "visual_sha256": "642d2501219b3ee220c5536fec5f07dc8ed88824937c67fbbed6d7075fd90a6e",
+      "boxes": [
+        {
+          "name": "SolidProxy",
+          "center": [
+            0.0,
+            0.216,
+            0.0
+          ],
+          "size": [
+            1.08,
+            0.432,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v01_five_hoops",
+      "family": "barrel",
+      "style": "five_hoops",
+      "scene": "scenes/env_barrel_v01_five_hoops_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "1589678166f61015fe01e533280bf8e7b5f3384673338d23d0e581ff6cf8d9e1",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v02_three_hoops",
+      "family": "barrel",
+      "style": "three_hoops",
+      "scene": "scenes/env_barrel_v02_three_hoops_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "1cf10e165728c84d1a480f00c73ea2a650b242a2d06905a85f457592938369ec",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v03_wide_hoops",
+      "family": "barrel",
+      "style": "wide_hoops",
+      "scene": "scenes/env_barrel_v03_wide_hoops_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "b6338acaabea60f65db59fd12e925fb04c65efe9c8416d5d1c2267784eed0734",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v04_stave_repairs",
+      "family": "barrel",
+      "style": "stave_repairs",
+      "scene": "scenes/env_barrel_v04_stave_repairs_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "483c943162014bd8ace930711582047308663fb634e7898af65df38d7fb71bd7",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.624,
+            0.12,
+            0.624
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.686,
+            0.2,
+            0.686
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.6940000000000001,
+            0.15999999999999998,
+            0.6940000000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.6940000000000001,
+            0.24,
+            0.6940000000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.654,
+            0.18000000000000005,
+            0.654
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v05_replacement_staves",
+      "family": "barrel",
+      "style": "replacement_staves",
+      "scene": "scenes/env_barrel_v05_replacement_staves_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "ae9e4ddd25ef5ee2a35701f498b9307219cc158728e832d05ab8ee226e49ce01",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.6,
+            0.12,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.662,
+            0.2,
+            0.662
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.67,
+            0.15999999999999998,
+            0.67
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.67,
+            0.24,
+            0.67
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.63,
+            0.18000000000000005,
+            0.63
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v06_open_empty",
+      "family": "barrel",
+      "style": "open_empty",
+      "scene": "scenes/env_barrel_v06_open_empty_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 10,
+      "open_interior": true,
+      "visual_sha256": "4a19475c90d3a1e4402da7cafb47e618e646f8987ccc4abadc6b5b1977e343c6",
+      "boxes": [
+        {
+          "name": "Wall0",
+          "center": [
+            0.2419823862331931,
+            0.464,
+            0.10023238623319311
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650898,
+            0,
+            0.9238795325112867,
+            0,
+            1,
+            0,
+            -0.9238795325112867,
+            0,
+            -0.3826834323650898
+          ]
+        },
+        {
+          "name": "Wall1",
+          "center": [
+            0.10023238623319312,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            0.38268343236508984,
+            0,
+            1,
+            0,
+            -0.38268343236508984,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall2",
+          "center": [
+            -0.1002323862331931,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            -0.3826834323650897,
+            0,
+            1,
+            0,
+            0.3826834323650897,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall3",
+          "center": [
+            -0.2419823862331931,
+            0.464,
+            0.10023238623319314
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650899,
+            0,
+            -0.9238795325112867,
+            0,
+            1,
+            0,
+            0.9238795325112867,
+            0,
+            -0.3826834323650899
+          ]
+        },
+        {
+          "name": "Wall4",
+          "center": [
+            -0.24198238623319313,
+            0.464,
+            -0.10023238623319308
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.38268343236508967,
+            0,
+            -0.9238795325112868,
+            0,
+            1,
+            0,
+            0.9238795325112868,
+            0,
+            0.38268343236508967
+          ]
+        },
+        {
+          "name": "Wall5",
+          "center": [
+            -0.10023238623319326,
+            0.464,
+            -0.24198238623319304
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112865,
+            0,
+            -0.38268343236509034,
+            0,
+            1,
+            0,
+            0.38268343236509034,
+            0,
+            0.9238795325112865
+          ]
+        },
+        {
+          "name": "Wall6",
+          "center": [
+            0.10023238623319317,
+            0.464,
+            -0.24198238623319307
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112866,
+            0,
+            0.38268343236509,
+            0,
+            1,
+            0,
+            -0.38268343236509,
+            0,
+            0.9238795325112866
+          ]
+        },
+        {
+          "name": "Wall7",
+          "center": [
+            0.24198238623319304,
+            0.464,
+            -0.10023238623319328
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.3826834323650904,
+            0,
+            0.9238795325112865,
+            0,
+            1,
+            0,
+            -0.9238795325112865,
+            0,
+            0.3826834323650904
+          ]
+        },
+        {
+          "name": "FloorAcrossX",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.484,
+            0.028,
+            0.34223968209428896
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FloorAcrossZ",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.34223968209428896,
+            0.028,
+            0.484
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v07_open_crossbar",
+      "family": "barrel",
+      "style": "open_crossbar",
+      "scene": "scenes/env_barrel_v07_open_crossbar_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 11,
+      "open_interior": true,
+      "visual_sha256": "0583becd6b9baffce007b989af2cf1dfcb1b285b7c8a3f43593e151050c02ed7",
+      "boxes": [
+        {
+          "name": "Wall0",
+          "center": [
+            0.2419823862331931,
+            0.464,
+            0.10023238623319311
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650898,
+            0,
+            0.9238795325112867,
+            0,
+            1,
+            0,
+            -0.9238795325112867,
+            0,
+            -0.3826834323650898
+          ]
+        },
+        {
+          "name": "Wall1",
+          "center": [
+            0.10023238623319312,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            0.38268343236508984,
+            0,
+            1,
+            0,
+            -0.38268343236508984,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall2",
+          "center": [
+            -0.1002323862331931,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            -0.3826834323650897,
+            0,
+            1,
+            0,
+            0.3826834323650897,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall3",
+          "center": [
+            -0.2419823862331931,
+            0.464,
+            0.10023238623319314
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650899,
+            0,
+            -0.9238795325112867,
+            0,
+            1,
+            0,
+            0.9238795325112867,
+            0,
+            -0.3826834323650899
+          ]
+        },
+        {
+          "name": "Wall4",
+          "center": [
+            -0.24198238623319313,
+            0.464,
+            -0.10023238623319308
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.38268343236508967,
+            0,
+            -0.9238795325112868,
+            0,
+            1,
+            0,
+            0.9238795325112868,
+            0,
+            0.38268343236508967
+          ]
+        },
+        {
+          "name": "Wall5",
+          "center": [
+            -0.10023238623319326,
+            0.464,
+            -0.24198238623319304
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112865,
+            0,
+            -0.38268343236509034,
+            0,
+            1,
+            0,
+            0.38268343236509034,
+            0,
+            0.9238795325112865
+          ]
+        },
+        {
+          "name": "Wall6",
+          "center": [
+            0.10023238623319317,
+            0.464,
+            -0.24198238623319307
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112866,
+            0,
+            0.38268343236509,
+            0,
+            1,
+            0,
+            -0.38268343236509,
+            0,
+            0.9238795325112866
+          ]
+        },
+        {
+          "name": "Wall7",
+          "center": [
+            0.24198238623319304,
+            0.464,
+            -0.10023238623319328
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.3826834323650904,
+            0,
+            0.9238795325112865,
+            0,
+            1,
+            0,
+            -0.9238795325112865,
+            0,
+            0.3826834323650904
+          ]
+        },
+        {
+          "name": "FloorAcrossX",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.484,
+            0.028,
+            0.34223968209428896
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FloorAcrossZ",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.34223968209428896,
+            0.028,
+            0.484
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Crossbar",
+          "center": [
+            0,
+            0.887,
+            0
+          ],
+          "size": [
+            0.55,
+            0.026,
+            0.055
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v08_partial_lid",
+      "family": "barrel",
+      "style": "partial_lid",
+      "scene": "scenes/env_barrel_v08_partial_lid_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 13,
+      "open_interior": true,
+      "visual_sha256": "bf90d317052bcf07c432e6c7fdab918790cf22eae3e7f69dfa2f455f7e6e896a",
+      "boxes": [
+        {
+          "name": "Wall0",
+          "center": [
+            0.2419823862331931,
+            0.464,
+            0.10023238623319311
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650898,
+            0,
+            0.9238795325112867,
+            0,
+            1,
+            0,
+            -0.9238795325112867,
+            0,
+            -0.3826834323650898
+          ]
+        },
+        {
+          "name": "Wall1",
+          "center": [
+            0.10023238623319312,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            0.38268343236508984,
+            0,
+            1,
+            0,
+            -0.38268343236508984,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall2",
+          "center": [
+            -0.1002323862331931,
+            0.464,
+            0.2419823862331931
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.9238795325112867,
+            0,
+            -0.3826834323650897,
+            0,
+            1,
+            0,
+            0.3826834323650897,
+            0,
+            -0.9238795325112867
+          ]
+        },
+        {
+          "name": "Wall3",
+          "center": [
+            -0.2419823862331931,
+            0.464,
+            0.10023238623319314
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            -0.3826834323650899,
+            0,
+            -0.9238795325112867,
+            0,
+            1,
+            0,
+            0.9238795325112867,
+            0,
+            -0.3826834323650899
+          ]
+        },
+        {
+          "name": "Wall4",
+          "center": [
+            -0.24198238623319313,
+            0.464,
+            -0.10023238623319308
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.38268343236508967,
+            0,
+            -0.9238795325112868,
+            0,
+            1,
+            0,
+            0.9238795325112868,
+            0,
+            0.38268343236508967
+          ]
+        },
+        {
+          "name": "Wall5",
+          "center": [
+            -0.10023238623319326,
+            0.464,
+            -0.24198238623319304
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112865,
+            0,
+            -0.38268343236509034,
+            0,
+            1,
+            0,
+            0.38268343236509034,
+            0,
+            0.9238795325112865
+          ]
+        },
+        {
+          "name": "Wall6",
+          "center": [
+            0.10023238623319317,
+            0.464,
+            -0.24198238623319307
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.9238795325112866,
+            0,
+            0.38268343236509,
+            0,
+            1,
+            0,
+            -0.38268343236509,
+            0,
+            0.9238795325112866
+          ]
+        },
+        {
+          "name": "Wall7",
+          "center": [
+            0.24198238623319304,
+            0.464,
+            -0.10023238623319328
+          ],
+          "size": [
+            0.24874423103730836,
+            0.872,
+            0.07668200119843682
+          ],
+          "basis": [
+            0.3826834323650904,
+            0,
+            0.9238795325112865,
+            0,
+            1,
+            0,
+            -0.9238795325112865,
+            0,
+            0.3826834323650904
+          ]
+        },
+        {
+          "name": "FloorAcrossX",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.484,
+            0.028,
+            0.34223968209428896
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "FloorAcrossZ",
+          "center": [
+            0,
+            0.014,
+            0
+          ],
+          "size": [
+            0.34223968209428896,
+            0.028,
+            0.484
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LidPlank0",
+          "center": [
+            -0.19424999999999998,
+            0.868,
+            0
+          ],
+          "size": [
+            0.0945,
+            0.018,
+            0.38321403940878784
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LidPlank2",
+          "center": [
+            2.7755575615628914e-17,
+            0.868,
+            0
+          ],
+          "size": [
+            0.09800000000000003,
+            0.018,
+            0.483
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "LidPlank4",
+          "center": [
+            0.19425,
+            0.868,
+            0
+          ],
+          "size": [
+            0.09449999999999997,
+            0.018,
+            0.3832140394087878
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v09_cleated_lid",
+      "family": "barrel",
+      "style": "cleated_lid",
+      "scene": "scenes/env_barrel_v09_cleated_lid_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "530c8a4b7f5a5c8c072a852fd6e8fff9964c3b6895b7e6924259237c372e9991",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v10_bung_head",
+      "family": "barrel",
+      "style": "bung_head",
+      "scene": "scenes/env_barrel_v10_bung_head_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "14608cb627d2184804b908ca332a9068d1c0ce29dcf7bb048c1dc02f433047b2",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v11_iron_handles",
+      "family": "barrel",
+      "style": "iron_handles",
+      "scene": "scenes/env_barrel_v11_iron_handles_collision.tscn",
+      "height_m": 0.9,
+      "shape_count": 7,
+      "open_interior": false,
+      "visual_sha256": "9c3f69d5e81ad10bf7e90851ad7e59013ea9fb0536841802b36f39b394a32eee",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.06,
+            0
+          ],
+          "size": [
+            0.588,
+            0.12,
+            0.588
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.22,
+            0
+          ],
+          "size": [
+            0.65,
+            0.2,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.4,
+            0
+          ],
+          "size": [
+            0.658,
+            0.15999999999999998,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.6,
+            0
+          ],
+          "size": [
+            0.658,
+            0.24,
+            0.658
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.81,
+            0
+          ],
+          "size": [
+            0.618,
+            0.18000000000000005,
+            0.618
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Handle0",
+          "center": [
+            -0.338,
+            0.48275,
+            0
+          ],
+          "size": [
+            0.05,
+            0.1315,
+            0.126
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Handle1",
+          "center": [
+            0.338,
+            0.48275,
+            0
+          ],
+          "size": [
+            0.05,
+            0.1315,
+            0.126
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "env_barrel_v12_squat",
+      "family": "barrel",
+      "style": "squat",
+      "scene": "scenes/env_barrel_v12_squat_collision.tscn",
+      "height_m": 0.648,
+      "shape_count": 5,
+      "open_interior": false,
+      "visual_sha256": "6522e8b1f66e84de10aeb5c740033202fe97792f6c05377212ff0696ec444e7f",
+      "boxes": [
+        {
+          "name": "BodyBand0",
+          "center": [
+            0,
+            0.043199999999999995,
+            0
+          ],
+          "size": [
+            0.65856,
+            0.08639999999999999,
+            0.65856
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand1",
+          "center": [
+            0,
+            0.15839999999999999,
+            0
+          ],
+          "size": [
+            0.7280000000000001,
+            0.144,
+            0.7280000000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand2",
+          "center": [
+            0,
+            0.288,
+            0
+          ],
+          "size": [
+            0.7369600000000001,
+            0.11519999999999998,
+            0.7369600000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand3",
+          "center": [
+            0,
+            0.432,
+            0
+          ],
+          "size": [
+            0.7369600000000001,
+            0.17279999999999998,
+            0.7369600000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "BodyBand4",
+          "center": [
+            0,
+            0.5832,
+            0
+          ],
+          "size": [
+            0.6921600000000001,
+            0.12960000000000002,
+            0.6921600000000001
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}
