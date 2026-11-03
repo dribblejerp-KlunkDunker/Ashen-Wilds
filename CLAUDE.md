@@ -59,12 +59,12 @@ python3 tools/net_spike.py
 #    has "no installation candidate"). Look at every PNG it writes.
 python3 tools/net_spike.py --shots docs/screenshots/net
 
-# 7. Exported builds (needs the 4.3-stable export templates; docs/PRODUCTION.md "Clean build procedure"),
-#    then the loopback test on the exported binaries. An archive is not proof it runs; this is.
+# 7. Exported builds (tools/get_export_templates.sh installs the 4.3-stable templates once), then the
+#    loopback test on the exported binaries. An archive is not proof it runs; this is.
 tools/export_builds.sh && python3 tools/net_spike.py --exported builds
 ```
 
-CI (`.github/workflows/checks.yml`) runs steps 1–3 and 5 on every push and pull request.
+CI (`.github/workflows/checks.yml`) runs steps 1–3 and 5 on every push and pull request. `.github/workflows/publish.yml` runs step 7 on every pull request and push to `main`; on `main` it then deploys the browser build (`builds/web/`, the single-player prototype) to GitHub Pages and replaces the zips on the rolling `playtest` pre-release. Anything that breaks the web export breaks that publish. The browser has no system fonts: UI text must stay within Godot's default font (no arrows or symbols like ⇄), and audio generators must set `playback_type = AudioServer.PLAYBACK_TYPE_STREAM`.
 
 ## Screenshots (README images)
 
@@ -96,7 +96,8 @@ scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
 scripts/ui/         tactical_hud.gd, inventory_ui.gd
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
 tests/smoke_test.gd headless regression suite
-tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots)
+tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots),
+                    get_export_templates.sh, export_builds.sh, package_builds.sh (the five builds and their zips)
 ```
 
 Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders.
