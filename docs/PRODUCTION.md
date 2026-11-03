@@ -39,13 +39,13 @@ $GODOT --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-
 | P2 | Godot 4.3-stable | CONFIRMED | 2026-11-03 | Project pins it; its own suite passes on it. | A blocking engine bug, or a feature that needs 4.4+, recorded here first. |
 | P3 | Target platforms | PROPOSED desktop first (Windows/Linux/macOS exports); browser export as a later option | 2026-11-03 | Brief §48. The owner's Chromebook is unmeasured. | The F5 test above, and the first exported build. |
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
-| P5 | Player count | OPEN. Spike server default: 2 (`--max-players` dev setting). | 2026-11-03 | Brief §7: two is the test, not the limit. | Measured server and network cost with two, then a decision. |
+| P5 | Player count | **CONFIRMED direction** (owner, 2026-11-03): multiplayer stays small, friends-scale. Exact number OPEN. Spike server default: 2 (`--max-players` dev setting). | 2026-11-03 | Brief §7: two is the test, not the limit. Rules out MMO-scale design (brief §25). | Measured server and network cost with two, then a number. |
 | P6 | PvP | OPEN. **TEMPORARY A2**: none. | 2026-11-03 | Affects hit validation and death rules, not transport. | The owners' answer. |
 | P7 | Persistence | OPEN. **TEMPORARY A4** (not yet built): versioned JSON on the server with the browser build's tested rules (validate before write, keep a backup, never overwrite a newer format, never silently reset). | 2026-11-03 | One courtyard and one container do not justify a database (brief §18). | Measured save size or concurrency at Milestone 3. |
 | P8 | Camera | PROPOSED → built in M1a: elevated orthographic, pitch fixed at −30°, four quarter-turn views eased over 0.35 s, wheel zoom between fixed limits, C recenters, per client. No pan yet. | 2026-11-03 | Brief §5: controlled first, free rotation only if it reads. | Playtest of the four views in a real interior (appendix §84). |
 | P9 | Movement controls | PROPOSED → built in M1a: camera-relative intent resolved on the client, basis frozen while a key is held (a mid-walk turn does not swerve you), server integrates at 60 Hz, immediate velocity, 3.2 m/s, no acceleration. | 2026-11-03 | Appendix §77. | Feel in the first human playtest. |
 | P10 | Network rates | **TEMPORARY A3**: input up to 60/s unreliable-ordered; state 30/s unreliable-ordered; join, spawn, leave reliable. | 2026-11-03 | Constants in `net_protocol.gd`. | Latency and loss tests (Milestone 1b). |
-| P11 | Inventory capacity model | OPEN | | Supplement §36. Weight-only is what the single-player code already does. | Needed before the container slice is designed; see Next. |
+| P11 | Inventory capacity model | **CONFIRMED** (owner, 2026-11-03): weight only. Built in M1b: the server holds an `Inventory` per player, `PACK_CAPACITY_KG` = 12 with the existing 1.5× hard limit (encumbrance above capacity, refusal above the hard limit). | 2026-11-03 | Supplement §36: one model, explicit buttons. Reuses the single-player classes unchanged. | Playtest: does 12 kg produce the carrying decision the brief wants? |
 | P12 | Death and recovery | OPEN | | Supplement §42. Not needed before Milestone 4. | Before Milestone 4. |
 | P13 | Asset pipeline | PROPOSED: Blender → GLB → `res://art/exports/`, metadata per asset (brief §14), a 20-piece test kit first. | 2026-11-03 | Brief §12–§14, appendix §82. | The first exported module placed beside the capsule placeholder. |
 | P14 | Superseded earlier decisions | Random world per expedition, browser-only delivery (old D42), and the generated 48×48 Blackfen before a small location: all superseded by the briefs and the owner's decisions. The procedural generator remains in the browser repo as reference. | 2026-11-03 | Brief §11, §25. | A demonstrated need for a larger world after the vertical slice. |
@@ -56,6 +56,8 @@ $GODOT --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-
 |---|---|---|---|
 | R1 disconnect | On disconnect the avatar is removed at once; the server keeps the player's record (position, facing, colour) in memory; a rejoin with the same player key spawns there. | Brief §62 criterion 8 needs an explicit rule; this one is the least surprising for a two-player test. | A "body stays for N seconds" rule changes `_on_peer_disconnected` only. Records are in memory: a server restart loses them until Milestone 3's saves. |
 | R2 identity | `--player-key` (a string the developer chooses) is the persistent player identity; the ENet connection id is only the connection. | Appendix §45, §72: never key ownership on a connection id. | This is a development mechanism, not authentication. Any real identity scheme replaces the key's source, not its role. |
+| R3 request ids | A client numbers its requests from 1 per connection. The server remembers the last 64 answers per connection and answers a repeated id identically without acting again. The memory is dropped on disconnect, so a rejoin starts at 1 again. | Appendix §74: duplicate-request policy with a stated scope. | Reconnect-safe idempotency (surviving a disconnect) would need request ids keyed by player identity and persisted; not needed while the only transfer is a take from a container. |
+| R4 pack on disconnect | The pack is stored in the player's record with position and facing, and restored on rejoin. | Brief §17: disconnect must not create unexplained ownership. | Persisting it across a server restart is Milestone 3. |
 
 ## Identifiers (appendix §72)
 
@@ -64,8 +66,10 @@ $GODOT --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-
 | Connection id | `442489596` | no | no | ENet peer id; the server is always 1. |
 | Player key (identity) | `alice` | yes | yes (once saved) | Dev-chosen string, R2. |
 | Avatar node | `/root/NetMain/Players/<connection id>` | no | no | Presentation and simulation handle; never persisted. |
-| World object id | — | — | — | Not assigned yet: nothing in the courtyard is interactable or persistent. Assigned in the container slice. |
-| Item definition / instance id | — | — | — | Exist in the single-player `ItemData`/`ItemInstance`; adopted by the container slice. |
+| World object id | `courtyard/supply-crate` | yes | yes (authored) | Hand-assigned in `net_courtyard.gd`; a copied scene never inherits one (appendix §52). |
+| Stack id | `3` | yes, while anything is left of the stack | no | Server-assigned per container; names exactly the stack a client saw. Packs have none yet. |
+| Item definition id | `timber` | yes | yes | `ItemDatabase`, one shared `ItemData` per id. No item instance ids yet: no mechanic needs them (supplement §35). |
+| Request id | `7` | no (rule R3) | no | Per connection, client-numbered. |
 
 ## Network operation contracts (appendix §73) — Milestone 1a
 
@@ -80,10 +84,46 @@ payload (§74).
 | `spawn_player` / `despawn_player` | server → all | reliable | id, key, position, yaw, colour / id | — | avatar created / removed on every client; the owner's camera attaches on spawn | — |
 | `submit_input` | client → server | unreliable ordered | sequence number, world-space direction | sender has a live avatar; components finite; no vertical part; length ≤ 1; sequence newer than the last; ≤ 200 per second | stored as that avatar's intent until replaced, or zeroed after 0.25 s without input (lost packet) | counted, never answered: `NO_PLAYER`, `BAD_INPUT`, `RATE_LIMIT`; stale sequences ignored |
 | `player_state` | server → live clients | unreliable ordered, 30 Hz | id, position, yaw, last accepted sequence | — | remote avatars ease toward it; the owner corrects its prediction (snap above 1 m, else 30 % per packet) | — |
-| leave | — | — | — | ENet disconnect | rule R1 | — |
+| leave | — | — | — | ENet disconnect | rules R1, R4 | — |
+| `request_container_contents` | client → server | reliable | request id, object id | sender has a live avatar; ≤ 20 requests/s; repeat id → first answer again; object id well-formed; object exists; survivor within 2.5 m on the ground plane | `request_result(id, ok)` then `container_contents(object, version, stacks)` to the requester | `request_result(id, false, code)`: `NOT_READY`, `RATE_LIMITED`, `INVALID_REQUEST`, `OBJECT_UNAVAILABLE`, `OUT_OF_RANGE` |
+| `request_take_item` | client → server | reliable | request id, object id, stack id, quantity | as above, plus: stack id ≥ 1, 1 ≤ quantity ≤ 999, stack still exists with at least that quantity, the portion fits under the pack's hard limit | removes the portion from the container, adds it to the requester's server-side pack, bumps the container version; `request_result(id, true, {item, quantity, pack_weight})` to the requester; `container_contents` to **every** live client; `pack_state` to the requester | nothing changes; `request_result` with `STATE_CHANGED` (someone was first, or the view was stale), `CAPACITY_EXCEEDED`, or the codes above; on `STATE_CHANGED`, `CAPACITY_EXCEEDED` and `OUT_OF_RANGE` the requester also gets a fresh `container_contents` |
+| `container_contents` | server → client(s) | reliable | object id, version, `[[stack id, item id, quantity, condition], …]` | — | the client replaces its view; the loot window redraws | — |
+| `pack_state` | server → owner only | reliable | stacks, weight, capacity, hard limit | — | private player data (§71); sent on join and after every change | — |
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Milestone 1b — shared container and take-item: evidence (brief §24)
+
+Branch `claude/gifted-babbage-vbbmgl-m1b`. Changed files: `scripts/net/net_container.gd` (new),
+`scripts/net/net_loot_window.gd` (new), `scripts/net/net_protocol.gd` (protocol 2, results,
+`PACK_CAPACITY_KG`, `INTERACT_RADIUS`), `scripts/net/net_courtyard.gd` (the crate and its seed),
+`scripts/net/net_main.gd` (request pipeline, server packs, initial sync, interaction, drives),
+`tools/net_spike.py` (matrix D checks), this file, `CLAUDE.md`, `README.md`.
+
+| Check | Kind | Result |
+|---|---|---|
+| Import and compile-check of every script | syntax | clean |
+| `tests/smoke_test.gd` | single-player regression | 177 passed, 0 failed |
+| `tools/net_spike.py` | **two-client local loopback test**, five Godot processes | **34 passed, 0 failed** (19 from M1a plus 15 for the crate), three runs after the last code change; logs clean |
+| `tools/net_spike.py --shots` | plus a rendered client under Xvfb | 35 passed, 0 failed, two runs |
+| Screenshots | `docs/screenshots/net/camera-crate-window.png` plus the six M1a views, re-taken | **Visually reviewed** by the agent: the open crate window lists the stacks the other two players left, with weights, explicit Take 1 / Take all buttons, the pack line and the close hint; the review caught two faults that were then fixed (a wrong key in the close hint, the panel overlapping the HUD). Not yet reviewed by a developer. |
+
+What the loopback test establishes (brief §17, §62 criteria 5 and 6): both clients receive the
+crate on joining · two clients asking for the one flask of lamp oil in the same instant: exactly
+one gets it, the other is told `STATE_CHANGED` and gets a fresh view · a repeated request id gets
+its first answer again and moves nothing · quantity 0 is `INVALID_REQUEST`, an unknown container
+`OBJECT_UNAVAILABLE`, a take from 4 m away `OUT_OF_RANGE` · 14 kg of pot, targe and timber go
+into a 12 kg pack (under the 18 kg hard limit) and 4.8 kg more is `CAPACITY_EXCEEDED` with
+nothing moved · every seeded item is accounted for across the crate and every pack the server
+knows, live or retained · a take sent in the instant of disconnecting is applied once or not at
+all · the rejoin gets the pack back · each client's final view of the crate equals the server's,
+version and contents · no request is left unanswered.
+
+Not established: storing items back (next), persistence across a server restart (Milestone 3,
+criterion 10), repair (criterion 7). **Still loopback only; no internet test, no human playtest.**
+The one-process-at-a-time nature of the server means "simultaneous" is decided by arrival order,
+which is the intended rule; under real latency the loser's wait is longer, not different.
 
 ## Milestone 1a — networked courtyard: evidence (brief §24)
 
@@ -124,8 +164,7 @@ No human has played it. Frame time on the developers' machines is unmeasured.
 
 ## Next
 
-The second slice of Milestone 1 (appendix §67): one shared container with world object id and
-server-owned contents; `request_container_contents` and `request_take_item` with request ids,
-distance checks and capacity; the simultaneous-last-item, repeated-request and
-disconnect-mid-transfer tests from brief §17 added to the loopback test. It needs decision P11
-(capacity model); the proposal is weight-only, as the single-player `Inventory` already is.
+Milestone 1 closes with: `request_store_item` (the reverse transfer, needed before repair can
+consume materials), the exported server and client test builds with a build identifier and
+connection steps (appendix §57, §91), and the two developers' first playtest record (§94).
+Then Milestone 3's persistence (temporary rule A4) and Milestone 1b's latency and loss tests.

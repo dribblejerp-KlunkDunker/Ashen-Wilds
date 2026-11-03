@@ -4,6 +4,13 @@ Godot processes on this machine (appendix §56 A-C, brief §62 criteria 1-4, 8, 
 
 This is a two-client LOCAL test. It says nothing about internet reliability (brief §8).
 
+Milestone 1b adds the shared supply crate: both clients read it, both ask for the single flask of
+lamp oil at the same moment, A repeats a request id, sends an impossible quantity and overloads
+its pack, B asks for a container that does not exist, A asks from out of reach, and B sends a
+take in the instant it disconnects. The checks are the brief §17 list: quantities conserved,
+capacity enforced, no duplicate from concurrent access or repeats, invalid requests rejected,
+disconnect leaves no unexplained ownership, the rejoin gets the pack back.
+
 Scenario (times are approximate, each client's drive runs from its own spawn):
   t0      server starts, headless, quits after SERVER_SECONDS writing its report
   t0+1.0  A and B connect. A walks screen-up, turns its camera a quarter, walks screen-up again,
@@ -175,7 +182,59 @@ def main():
     if shots:
         S = load(rep("SHOTS"))
         written = [e for e in (S or {}).get("events", []) if e["event"] == "screenshot" and e.get("ok")]
-        check(S and S["connection_state"] in ("playing", "disconnected") and len(written) == 6, "the SHOTS client rendered and saved six camera images (look at them)", {"written": [os.path.basename(e["path"]) for e in written]})
+        check(S and S["connection_state"] in ("playing", "disconnected") and len(written) == 7, "the SHOTS client rendered and saved seven images: four views, two zoom limits, the open crate window (look at them)", {"written": [os.path.basename(e["path"]) for e in written]})
+
+    # --- shared container and item transfer (brief §17, §62 criteria 5 and 6; matrix D)
+    if server and A and B and B2:
+        crate = server["containers"].get("courtyard/supply-crate", {})
+        seeded = {"timber": 6, "salt": 4, "iron_scrap": 8, "lamp_oil": 1, "clean_rag_bandage": 3, "cooking_pot": 1, "wooden_targe": 1}
+
+        def totals(stacks):
+            out = {}
+            for s in stacks:
+                out[s[1]] = out.get(s[1], 0) + int(s[2])
+            return out
+
+        def req(report, label_item, kind="take", repeat=None):
+            return [r for r in report["requests"] if r["kind"] == kind and (r.get("item_id") == label_item or r.get("object_id") == label_item) and (repeat is None or bool(r.get("repeat")) == repeat)]
+
+        check(A["container_views"].get("courtyard/supply-crate") and B["container_views"].get("courtyard/supply-crate"), "both clients received the crate's contents on joining (initial world sync)")
+        a_oil = req(A, "lamp_oil", repeat=False)
+        b_oil = req(B, "lamp_oil")
+        oil_ok = [r for r in a_oil + b_oil if r["ok"]]
+        oil_lost = [r for r in a_oil + b_oil if not r["ok"]]
+        check(len(a_oil) == 1 and len(b_oil) == 1 and len(oil_ok) == 1 and len(oil_lost) == 1 and oil_lost[0]["code"] == "STATE_CHANGED", "the single flask of lamp oil went to exactly one of two simultaneous takers; the other was told STATE_CHANGED", {"A": [r["code"] for r in a_oil], "B": [r["code"] for r in b_oil]})
+        a_repeat = req(A, "lamp_oil", repeat=True)
+        check(len(a_repeat) == 1 and a_repeat[0]["ok"] == a_oil[0]["ok"] and a_repeat[0]["code"] == a_oil[0]["code"] and a_repeat[0]["data"] == a_oil[0]["data"], "a repeated request id got the identical first answer", {"first": a_oil and a_oil[0]["code"], "repeat": a_repeat and a_repeat[0]["code"]})
+        zero = [r for r in A["requests"] if r["kind"] == "take" and r["quantity"] == 0]
+        check(zero and zero[0]["code"] == "INVALID_REQUEST", "a take of quantity 0 is INVALID_REQUEST", zero and zero[0]["code"])
+        nowhere = req(B, "nowhere/none")
+        check(nowhere and nowhere[0]["code"] == "OBJECT_UNAVAILABLE", "a take from an unknown container is OBJECT_UNAVAILABLE", nowhere and nowhere[0]["code"])
+        pot, targe, timber_a, scrap = (req(A, i) for i in ("cooking_pot", "wooden_targe", "timber", "iron_scrap"))
+        timber_a = [r for r in timber_a if r["quantity"] == 4]
+        check(pot and pot[0]["ok"] and targe and targe[0]["ok"] and timber_a and timber_a[0]["ok"], "A took the pot, the targe and four timber (14 kg, under the 18 kg hard limit)", {"pot": pot and pot[0]["code"], "targe": targe and targe[0]["code"], "timber": timber_a and timber_a[0]["code"]})
+        check(scrap and scrap[0]["code"] == "CAPACITY_EXCEEDED", "eight iron scrap more would pass the hard limit: CAPACITY_EXCEEDED, nothing moved", scrap and scrap[0]["code"])
+        far = req(A, "salt")
+        check(far and far[0]["code"] == "OUT_OF_RANGE", "a take from 4 m away is OUT_OF_RANGE", far and far[0]["code"])
+        timber_b = req(B, "timber")
+        check(timber_b and timber_b[0]["ok"], "B took two timber", timber_b and timber_b[0]["code"])
+        # Conservation: seeded == crate + every pack the server knows (live or retained), item by item.
+        held = totals(crate.get("stacks", []))
+        for key, pack in server["packs"].items():
+            for item, n in totals(pack["stacks"]).items():
+                held[item] = held.get(item, 0) + n
+        check(held == seeded, "every seeded item is accounted for across the crate and all packs (no duplication, no loss)", {"seeded": seeded, "held": held})
+        a_pack = totals(A["pack_view"]["stacks"])
+        srv_a = totals(server["packs"].get("alpha", {}).get("stacks", []))
+        check(a_pack == srv_a and abs(float(A["pack_view"]["weight"]) - float(server["packs"].get("alpha", {}).get("weight", -1))) < 0.01, "A's pack view equals the server's pack for A, weight included", {"client": a_pack, "server": srv_a})
+        # B's parting take: applied before the disconnect, or rejected; either way accounted for above.
+        b_salt_server = totals(server["packs"].get("bravo", {}).get("stacks", [])).get("salt", 0)
+        b_salt_req = req(B, "salt")
+        check(b_salt_server in (0, 1) and (not b_salt_req or b_salt_req[0]["ok"] == (b_salt_server == 1) or not b_salt_req[0].get("done_t")), "B's take in the instant of leaving was either applied once or not at all", {"server_salt": b_salt_server, "B_answer": b_salt_req and b_salt_req[0]["code"]})
+        check(totals(B2["pack_view"]["stacks"]) == totals(server["packs"].get("bravo", {}).get("stacks", [])) and totals(B2["pack_view"]["stacks"]).get("timber", 0) == 2, "the rejoin received B's pack back from the server's record", {"B2": totals(B2["pack_view"]["stacks"])})
+        a_view = A["container_views"].get("courtyard/supply-crate", {})
+        check(a_view.get("version") == crate.get("version") and totals(a_view.get("stacks", [])) == totals(crate.get("stacks", [])), "A's final view of the crate matches the server's (version and contents)", {"client_v": a_view.get("version"), "server_v": crate.get("version")})
+        check(not A["pending_at_exit"], "A had no unanswered requests at exit", A["pending_at_exit"])
 
     failed = [c for c in checks if not c[0]]
     print("--- %d passed, %d failed ---" % (len(checks) - len(failed), len(failed)))

@@ -4,10 +4,13 @@ extends Node3D
 ## the watchhouse will stand, and a few crates. Blocks only (appendix §78): the scene proves
 ## camera and networking before it proves art. Walls stay low so every quarter-turn view can
 ## see both players without any transparency tricks; interiors arrive with the roof policy (§84).
-## World object ids are not assigned yet: nothing here is interactable or persistent.
+## One world object exists: the supply crate `courtyard/supply-crate` (Milestone 1b), seeded with
+## a fixed inventory so tests and both developers see the same thing. Its id is hand-assigned
+## here, never derived from a scene copy (appendix §52).
 
 const YARD: float = 24.0
 const WALL_HEIGHT: float = 1.2
+const SUPPLY_CRATE_ID: String = "courtyard/supply-crate"
 
 var spawn_points: Array[Vector3] = [
 	Vector3(-2.0, 0.0, 3.0),
@@ -15,9 +18,23 @@ var spawn_points: Array[Vector3] = [
 	Vector3(-2.0, 0.0, -1.0),
 	Vector3(2.0, 0.0, -1.0),
 ]
+## object_id -> NetContainer. The server's copies hold the truth; clients' copies are only
+## places to stand near.
+var containers: Dictionary = {}
+
+
+## The crate's seed, in a fixed order so stack ids are the same on every run.
+static func supply_crate_seed() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	for entry: Array in [["timber", 6], ["salt", 4], ["iron_scrap", 8], ["lamp_oil", 1], ["clean_rag_bandage", 3], ["cooking_pot", 1], ["wooden_targe", 1]]:
+		out.append(ItemDatabase.make(str(entry[0]), int(entry[1])))
+	return out
 
 
 func _ready() -> void:
+	var crate: NetContainer = NetContainer.create(SUPPLY_CRATE_ID, "Supply crate", Vector3(0.0, 0.0, 2.0), supply_crate_seed())
+	add_child(crate)
+	containers[SUPPLY_CRATE_ID] = crate
 	_box(Vector3(0.0, -0.5, 0.0), Vector3(YARD, 1.0, YARD), Color(0.23, 0.2, 0.16))  # packed dirt
 	var half: float = YARD * 0.5 - 0.5
 	var wall_colour := Color(0.36, 0.36, 0.34)

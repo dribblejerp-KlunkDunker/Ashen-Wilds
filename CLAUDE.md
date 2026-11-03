@@ -77,8 +77,9 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
 ```
 scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers), procedural_audio.gd
 scripts/camera/     iso_camera_rig.gd (-30° pitch ortho; four quarter-turn views, zoom, recenter, shake, brightness)
-scripts/net/        net_main.gd (session: roles, every RPC, test drives), net_protocol.gd (constants, rejections),
-                    net_player.gd (identity, state, the one walking rule), net_player_view.gd, net_courtyard.gd, net_hud.gd
+scripts/net/        net_main.gd (session: roles, every RPC, the request pipeline, test drives), net_protocol.gd (constants, rejections, results),
+                    net_player.gd (identity, state, the one walking rule), net_player_view.gd, net_courtyard.gd (the crate and its seed),
+                    net_container.gd (a world object: stable id, server-owned contents, stack ids, version), net_hud.gd, net_loot_window.gd
 scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), wall_deflection (shared clang rules)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
@@ -112,7 +113,8 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors.
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports. The networked scene binds its own (WASD/arrows, Q/E turn, C recenter) in `NetMain`; the camera rig only reacts to `camera_rotate_*` and `camera_recenter` when a scene has bound them.
-- **Networked code:** never move an avatar on a client except through `integrate()` for prediction; never read `multiplayer.get_unique_id()` after a peer may have closed (use `own_peer_id`); send state per live peer, not broadcast, so a peer mid-handshake or being rejected gets nothing.
+- **Networked code:** never move an avatar on a client except through `integrate()` for prediction; never read `multiplayer.get_unique_id()` or `multiplayer.is_server()` after a peer may have closed (use `own_peer_id` and `role`); send state per live peer, not broadcast, so a peer mid-handshake or being rejected gets nothing. Every interaction goes through `_serve_request()`: identity from the sender, rate limit, repeat detection, validate, apply, answer, then push the changed durable state to everyone. A client never changes a pack or a container itself; it waits for `pack_state` and `container_contents`.
+- **Test drives read the first snapshot** (`first_views`) when two clients must ask for the same stack, because the loser's live view has already lost it.
 
 ### Writing tests (`tests/smoke_test.gd`)
 
