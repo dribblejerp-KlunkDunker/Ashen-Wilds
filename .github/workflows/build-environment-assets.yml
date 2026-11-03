@@ -7,12 +7,12 @@ on:
       - ".github/workflows/build-environment-assets.yml"
       - "tools/generate_env*.py"
       - "tools/env_variation_common.py"
+      - "tests/test_env006_collisions.gd"
       - "tests/test_env007_collisions.gd"
   workflow_dispatch:
 
 permissions:
   contents: write
-
 concurrency:
   group: generate-environment-assets
   cancel-in-progress: false
@@ -27,15 +27,13 @@ jobs:
         with:
           ref: assets/env-001-crate-barrel
           fetch-depth: 1
-
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-
       - name: Install mesh dependencies
         run: python -m pip install numpy==1.26.4 scipy==1.13.1
 
-      - name: Generate all seven visual batches and 24 collision wrappers
+      - name: Generate visuals and ENV-006/007 collision scenes
         shell: bash
         run: |
           set -euo pipefail
@@ -47,6 +45,7 @@ jobs:
             fi
           done
           python tools/generate_env007_collisions.py assets/environment/env007 --replace-existing
+          python tools/generate_env006_collisions.py assets/environment/env006 --replace-existing
 
       - name: Verify GLB headers
         run: |
@@ -57,14 +56,14 @@ jobs:
               files = sorted(Path(f"assets/environment/env{batch:03d}").rglob("*.glb"))
               if not files:
                   raise SystemExit(f"No GLBs in batch {batch}")
-              for path in files:
-                  raw = path.read_bytes()
+              for p in files:
+                  raw = p.read_bytes()
                   if len(raw) < 12 or struct.unpack_from("<4sII", raw) != (b"glTF", 2, len(raw)):
-                      raise SystemExit(f"Invalid GLB header: {path}")
+                      raise SystemExit(f"Bad GLB header: {p}")
               print(f"ENV-{batch:03d}: {len(files)} GLB headers verified")
           PY
 
-      - name: Install Godot and validate assets in an isolated project
+      - name: Import and run both suites in isolated Godot 4.3
         shell: bash
         run: |
           set -euo pipefail
@@ -79,7 +78,7 @@ jobs:
           validation="$RUNNER_TEMP/ashen-asset-validation"
           mkdir -p "$validation/assets/environment"
           cp -R assets/environment/. "$validation/assets/environment/"
-          cp tests/test_env007_collisions.gd "$validation/test_env007_collisions.gd"
+          cp tests/test_env00{6,7}_collisions.gd "$validation/"
           cat > "$validation/project.godot" <<'GODOT'
           config_version=5
           [application]
@@ -88,20 +87,25 @@ jobs:
           renderer/rendering_method="gl_compatibility"
           GODOT
           timeout 180s "$engine" --headless --path "$validation" --editor --import --quit 2>&1 | tee "$RUNNER_TEMP/asset-import.log"
-          timeout 180s "$engine" --headless --path "$validation" --script res://test_env007_collisions.gd 2>&1 | tee "$RUNNER_TEMP/asset-physics.log"
+          for batch in 006 007; do
+            timeout 180s "$engine" --headless --path "$validation" --script "res://test_env${batch}_collisions.gd" 2>&1 | tee "$RUNNER_TEMP/asset-env${batch}-physics.log"
+          done
           python - <<'PY'
           from pathlib import Path
-          import os, json
-          p = Path(os.environ["RUNNER_TEMP"]) / "ashen-asset-validation/validation-report.json"
-          report = json.loads(p.read_text())
-          if not report.get("passed") or report.get("scene_pose_cases") != 48:
-              raise SystemExit("Godot asset checks did not pass all 48 scene/pose cases")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
-              stream.write(f"## Godot asset validation passed\n24 scenes, 48 scene/pose cases, {report['checks']} assertions.\n")
-              stream.write("Scope: import, box structure, rays and sphere overlaps; not player traversal or performance.\n")
+          import json, os
+          root = Path(os.environ["RUNNER_TEMP"]) / "ashen-asset-validation"
+          lines = []
+          for batch, expected, filename in [("006", 60, "env006-validation-report.json"), ("007", 48, "validation-report.json")]:
+              report = json.loads((root / filename).read_text())
+              if not report.get("passed") or report.get("scene_pose_cases") != expected:
+                  raise SystemExit(f"ENV-{batch} Godot validation failed")
+              lines.append(f"- ENV-{batch}: {expected} scene/pose cases; {report['checks']} checks passed")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## Godot asset validation passed\n" + "\n".join(lines) + "\n")
+              f.write("Scope: isolated imports, collider structure and physics queries; not player traversal or performance.\n")
           PY
 
-      - name: Commit generated assets only after engine validation passes
+      - name: Commit outputs only after both engine suites pass
         shell: bash
         run: |
           set -euo pipefail
@@ -118,32 +122,32 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --cached --quiet; then
-            echo "Generated assets already match the validated files." >> "$GITHUB_STEP_SUMMARY"
+            echo "Generated assets already match validated files." >> "$GITHUB_STEP_SUMMARY"
           else
-            git commit -m "Generate environment assets and Godot-validated prop colliders"
+            git commit -m "Generate Godot-validated ENV-006 and ENV-007 collision scenes"
             git push origin HEAD:refs/heads/assets/env-001-crate-barrel
           fi
 
-      - name: Keep validation logs and report
+      - name: Keep validation logs and reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: asset-validation-${{ github.run_number }}
           path: |
             ${{ runner.temp }}/asset-import.log
-            ${{ runner.temp }}/asset-physics.log
-            ${{ runner.temp }}/ashen-asset-validation/validation-report.json
+            ${{ runner.temp }}/asset-env*-physics.log
+            ${{ runner.temp }}/ashen-asset-validation/*validation-report.json
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Keep generated GLB and collision backup
+      - name: Keep generated asset backup
         if: success()
         uses: actions/upload-artifact@v7
         with:
           name: environment-assets-${{ github.run_number }}
           path: |
             assets/environment/env*/**/*.glb
-            assets/environment/env007/scenes/*_collision.tscn
-            assets/environment/env007/collision-manifest.json
+            assets/environment/env00*/scenes/*_collision.tscn
+            assets/environment/env00*/collision-manifest.json
           if-no-files-found: error
           retention-days: 14
