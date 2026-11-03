@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env009/exports/env_ruin_walls_08_short_return.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(2, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(2, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(2, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_3"]
+size = Vector3(2, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_4"]
+size = Vector3(1, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_5"]
+size = Vector3(1, 0.3, 0.3296)
+
+[sub_resource type="BoxShape3D" id="Box_6"]
+size = Vector3(1, 0.3, 0.3296)
+
+[node name="env_ruin_walls_08_short_return" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/engine_validated = false
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Proxy0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00346970035714, 0.15, -0.416481958444)
+shape = SubResource("Box_0")
+
+[node name="Proxy1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00346970035714, 0.45, -0.416481958444)
+shape = SubResource("Box_1")
+
+[node name="Proxy2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00346970035714, 0.75, -0.416481958444)
+shape = SubResource("Box_2")
+
+[node name="Proxy3" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00346970035714, 1.05, -0.416481958444)
+shape = SubResource("Box_3")
+
+[node name="Proxy4" type="CollisionShape3D" parent="."]
+transform = Transform3D(6.12323399574e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323399574e-17, -0.836530299643, 0.15, 0.0835180415556)
+shape = SubResource("Box_4")
+
+[node name="Proxy5" type="CollisionShape3D" parent="."]
+transform = Transform3D(6.12323399574e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323399574e-17, -0.836530299643, 0.45, 0.0835180415556)
+shape = SubResource("Box_5")
+
+[node name="Proxy6" type="CollisionShape3D" parent="."]
+transform = Transform3D(6.12323399574e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323399574e-17, -0.836530299643, 0.75, 0.0835180415556)
+shape = SubResource("Box_6")

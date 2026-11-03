@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env009/exports/env_ruin_pillars_05_stepped_base.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(0.85, 1.597, 0.8)
+
+[node name="env_ruin_pillars_05_stepped_base" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/engine_validated = false
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Proxy0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7985, 0)
+shape = SubResource("Box_0")
