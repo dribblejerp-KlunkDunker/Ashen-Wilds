@@ -1,16 +1,18 @@
 class_name NetMain
 extends Node
-## Milestone 1a session (appendix §70): one process is the server, the others are clients, all
-## running this scene. The server owns every avatar's position; clients send intent and draw.
+## Milestone 1 session (appendix §70): one process is the server, the others are clients, all
+## running this scene. The server owns every avatar's position, every pack and every container;
+## clients send intent and requests, and draw what the server tells them.
 ##
-## Every RPC of the spike lives on this node, so both sides share one protocol surface and no
+## Every RPC of the slice lives on this node, so both sides share one protocol surface and no
 ## message can address a node the receiver has not created yet. Operation contracts are in
-## docs/PRODUCTION.md (§73). Nothing beyond walking exists yet: no items, no saves, no combat.
+## docs/PRODUCTION.md (§73). The server derives the acting player from the connection id, never
+## from the payload (§74).
 ##
 ## Run (from the project root, Godot 4.3-stable):
 ##   server:  godot --headless --path . net_main.tscn -- --server --port 7788
 ##   client:  godot --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-key alice
-## Test flags (--drive, --report, --quit-after, --shots) exist for tools/net_spike.py.
+## Test flags (--drive, --report, --quit-after, --shots, --max-players) exist for tools/net_spike.py.
 
 const PLAYER_COLORS: Array[Color] = [
 	Color(0.55, 0.45, 0.3), Color(0.35, 0.45, 0.5), Color(0.5, 0.35, 0.35), Color(0.4, 0.5, 0.35),
@@ -33,13 +35,19 @@ var players: Node3D
 var courtyard: NetCourtyard
 var camera_rig: IsoCameraRig
 var hud: NetHud
+var loot: NetLootWindow
 var own: NetPlayer
 
 # ---- server state ----
-var records: Dictionary = {}        # player_key -> {position, facing, color}: survives disconnect (rule R1)
+var records: Dictionary = {}        # player_key -> {position, facing, color, pack}: survives disconnect (rule R1)
 var live_by_peer: Dictionary = {}   # connection id -> player_key, live avatars only
+var inventories: Dictionary = {}    # connection id -> Inventory (weight only, decision P11)
 var pending_hello: Dictionary = {}  # connection id -> deadline (session seconds)
 var rejections: Dictionary = {}     # reject name -> count
+var request_log: Dictionary = {}    # connection id -> {request_id: [ok, code, data]}; answers repeats identically
+var request_order: Dictionary = {}  # connection id -> [request_id, ...] oldest first, for trimming
+var requests_this_second: Dictionary = {}  # connection id -> count
+var requests_handled: int = 0
 var disconnect_log: Array = []
 var rejoins: int = 0
 var tick: int = 0
@@ -57,6 +65,14 @@ var held_yaw: float = 0.0
 var was_moving: bool = false
 var synthetic_input: Vector2 = Vector2.ZERO
 var synthetic_active: bool = false
+var next_request_id: int = 1
+var pending: Dictionary = {}        # request_id -> {kind, object_id, stack_id, quantity, item_id, t}
+var answered: Dictionary = {}       # request_id -> the request as sent, kept so a repeat's answer can be matched
+var requests: Array = []            # every request and its answer, for the report
+var container_views: Dictionary = {}  # object_id -> {version, stacks}
+var first_views: Dictionary = {}    # object_id -> the first snapshot ever received (test drives use it)
+var pack_view: Dictionary = {"stacks": [], "weight": 0.0, "capacity": 0.0, "hard_limit": 0.0}
+var near_container: NetContainer = null
 var samples: Array = []
 var events: Array = []
 var session_time: float = 0.0
@@ -120,6 +136,7 @@ func _ensure_input_bindings() -> void:
 	_bind_key("camera_rotate_left", KEY_Q)
 	_bind_key("camera_rotate_right", KEY_E)
 	_bind_key("camera_recenter", KEY_C)
+	_bind_key("interact", KEY_F)
 
 
 func _bind_key(action: String, key: Key) -> void:
@@ -153,6 +170,9 @@ func _start_client() -> void:
 	add_child(camera_rig)
 	hud = NetHud.new()
 	add_child(hud)
+	loot = NetLootWindow.new()
+	loot.take_requested.connect(func(object_id: String, stack_id: int, quantity: int) -> void: _request_take(object_id, stack_id, quantity))
+	add_child(loot)
 	var peer := ENetMultiplayerPeer.new()
 	var err: Error = peer.create_client(host, port)
 	if err != OK:
@@ -170,16 +190,21 @@ func _on_peer_connected(id: int) -> void:
 
 
 func _on_peer_disconnected(id: int) -> void:
-	if not role == "server":
+	if role != "server":
 		return
 	pending_hello.erase(id)
+	request_log.erase(id)
+	request_order.erase(id)
+	requests_this_second.erase(id)
 	if live_by_peer.has(id):
 		var key: String = live_by_peer[id]
 		var p: NetPlayer = _player_node(id)
 		if p:
-			# Rule R1 (temporary): the avatar leaves at once, the record stays for a rejoin.
-			records[key] = {"position": p.position, "facing": p.facing_yaw, "color": records[key]["color"]}
+			# Rule R1 (temporary): the avatar leaves at once; the record (now with the pack) stays.
+			records[key] = {"position": p.position, "facing": p.facing_yaw, "color": records[key]["color"],
+				"pack": _pack_to_wire(inventories[id])}
 		live_by_peer.erase(id)
+		inventories.erase(id)
 		disconnect_log.append({"peer_id": id, "player_key": key, "t": session_time, "retained": true})
 		_despawn_local(id)
 		despawn_player.rpc(id)
@@ -213,6 +238,8 @@ func _on_server_disconnected() -> void:
 	for child: Node in players.get_children():
 		child.queue_free()
 	own = null
+	if loot:
+		loot.close_window()
 	if not drive.is_empty():
 		_finish_client()
 
@@ -222,7 +249,7 @@ func _on_server_disconnected() -> void:
 ## Client -> server. The server derives identity from the sender, never from the payload (§74).
 @rpc("any_peer", "call_remote", "reliable")
 func hello(protocol: int, key: String) -> void:
-	if not role == "server":
+	if role != "server":
 		return
 	var id: int = multiplayer.get_remote_sender_id()
 	pending_hello.erase(id)
@@ -242,23 +269,32 @@ func hello(protocol: int, key: String) -> void:
 	var yaw: float = 0.0
 	var color_index: int
 	var is_rejoin: bool = records.has(key)
+	var inventory := Inventory.new()
+	inventory.capacity_kg = NetProtocol.PACK_CAPACITY_KG
 	if is_rejoin:
 		pos = records[key]["position"]
 		yaw = records[key]["facing"]
 		color_index = records[key]["color"]
+		_pack_from_wire(inventory, records[key].get("pack", []))
 		rejoins += 1
 	else:
 		pos = courtyard.spawn_points[records.size() % courtyard.spawn_points.size()]
 		color_index = next_color % PLAYER_COLORS.size()
 		next_color += 1
-		records[key] = {"position": pos, "facing": yaw, "color": color_index}
-	# The newcomer learns about the world first, then everyone (newcomer included) about them.
+		records[key] = {"position": pos, "facing": yaw, "color": color_index, "pack": []}
+	# Initial world sync (§76): the newcomer learns the world, then everyone learns the newcomer.
 	var existing: Array = []
 	for pid: int in live_by_peer:
 		var p: NetPlayer = _player_node(pid)
 		existing.append([pid, p.player_key, p.position, p.facing_yaw, records[p.player_key]["color"]])
 	welcome.rpc_id(id, id, existing, NetProtocol.BUILD_ID)
+	for c: NetContainer in courtyard.containers.values():
+		container_contents.rpc_id(id, c.object_id, c.version, c.snapshot())
 	live_by_peer[id] = key
+	inventories[id] = inventory
+	request_log[id] = {}
+	request_order[id] = []
+	_send_pack(id)
 	_spawn_local(id, key, pos, yaw, color_index)
 	spawn_player.rpc(id, key, pos, yaw, color_index)
 	_log("peer %d joined as %s at %s%s" % [id, key, str(pos), " (rejoin)" if is_rejoin else ""])
@@ -311,7 +347,7 @@ func despawn_player(id: int) -> void:
 ## Client -> server: intent only. dir is world space, |dir| <= 1, no vertical part.
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func submit_input(input_seq: int, dir: Vector3) -> void:
-	if not role == "server":
+	if role != "server":
 		return
 	var id: int = multiplayer.get_remote_sender_id()
 	if not live_by_peer.has(id):
@@ -335,7 +371,7 @@ func submit_input(input_seq: int, dir: Vector3) -> void:
 	p.seconds_since_input = 0.0
 
 
-## Server -> everyone: the authoritative pose, 30 times a second, unreliable.
+## Server -> each live client: the authoritative pose, 30 times a second, unreliable.
 @rpc("authority", "call_remote", "unreliable_ordered")
 func player_state(id: int, pos: Vector3, yaw: float, acked_seq: int) -> void:
 	var p: NetPlayer = _player_node(id)
@@ -348,6 +384,177 @@ func player_state(id: int, pos: Vector3, yaw: float, acked_seq: int) -> void:
 		p.target_position = pos
 		p.target_yaw = yaw
 		p.has_target = true
+
+
+# ---------------------------------------------------------------- RPCs: containers (§73, §74)
+
+## Client -> server: what is in this container? Answered with request_result and, when the
+## object exists and is in reach, container_contents.
+@rpc("any_peer", "call_remote", "reliable")
+func request_container_contents(request_id: int, object_id: String) -> void:
+	if role != "server":
+		return
+	_serve_request(multiplayer.get_remote_sender_id(), "contents", request_id, object_id, 0, 0)
+
+
+## Client -> server: move `quantity` of stack `stack_id` from the container into my pack.
+@rpc("any_peer", "call_remote", "reliable")
+func request_take_item(request_id: int, object_id: String, stack_id: int, quantity: int) -> void:
+	if role != "server":
+		return
+	_serve_request(multiplayer.get_remote_sender_id(), "take", request_id, object_id, stack_id, quantity)
+
+
+## Server -> the requester: the answer to one request id. data on success:
+## {object_id, stack_id, item_id, quantity, pack_weight}.
+@rpc("authority", "call_remote", "reliable")
+func request_result(request_id: int, ok: bool, code: int, data: Dictionary) -> void:
+	var repeat: bool = false
+	var req: Dictionary = pending.get(request_id, {})
+	if req.is_empty():
+		req = answered.get(request_id, {})  # the answer to a repeated request id
+		repeat = not req.is_empty()
+	else:
+		pending.erase(request_id)
+		answered[request_id] = req
+	var entry: Dictionary = {"request_id": request_id, "kind": req.get("kind", "?"), "object_id": req.get("object_id", data.get("object_id", "")),
+		"stack_id": req.get("stack_id", 0), "item_id": req.get("item_id", data.get("item_id", "")), "quantity": req.get("quantity", 0),
+		"repeat": repeat, "ok": ok, "code": NetProtocol.result_name(code), "data": data,
+		"sent_t": req.get("t", 0.0), "done_t": snappedf(session_time, 0.01)}
+	requests.append(entry)
+	if req.get("kind", "") == "take" and loot:
+		var text: String
+		if ok:
+			var item: ItemData = ItemDatabase.get_item(str(data.get("item_id", "")))
+			text = "Took %d × %s." % [int(data.get("quantity", 0)), item.display_name if item else str(data.get("item_id", ""))]
+		else:
+			text = NetProtocol.result_text(code)
+		loot.show_result(int(req.get("stack_id", 0)), ok, text)
+		if hud and not ok:
+			hud.set_message(text)
+
+
+## Server -> client(s): the current contents of a container (durable state, §75).
+@rpc("authority", "call_remote", "reliable")
+func container_contents(object_id: String, version: int, stacks: Array) -> void:
+	container_views[object_id] = {"version": version, "stacks": stacks}
+	if not first_views.has(object_id):
+		first_views[object_id] = stacks
+	if loot and loot.visible and loot.object_id == object_id:
+		loot.show_contents(object_id, stacks)
+
+
+## Server -> the owner only: their pack (private player data, §71).
+@rpc("authority", "call_remote", "reliable")
+func pack_state(stacks: Array, weight: float, capacity: float, hard_limit: float) -> void:
+	pack_view = {"stacks": stacks, "weight": weight, "capacity": capacity, "hard_limit": hard_limit}
+	if loot:
+		loot.show_pack(weight, capacity, hard_limit)
+
+
+# ---------------------------------------------------------------- server: requests
+
+## One path for every interaction request: identity from the connection, rate limit, repeat
+## detection, validation, apply, answer, then push the changed durable state to everyone.
+func _serve_request(id: int, kind: String, request_id: int, object_id: String, stack_id: int, quantity: int) -> void:
+	if request_id < 1:
+		return  # cannot even be answered; a malformed client
+	if not live_by_peer.has(id):
+		request_result.rpc_id(id, request_id, false, NetProtocol.Result.NOT_READY, {})
+		return
+	requests_this_second[id] = int(requests_this_second.get(id, 0)) + 1
+	if int(requests_this_second[id]) > NetProtocol.MAX_REQUESTS_PER_SECOND:
+		request_result.rpc_id(id, request_id, false, NetProtocol.Result.RATE_LIMITED, {})
+		return
+	# A repeated request id gets its first answer again and changes nothing (§74).
+	var log_: Dictionary = request_log[id]
+	if log_.has(request_id):
+		var prior: Array = log_[request_id]
+		request_result.rpc_id(id, request_id, prior[0], prior[1], prior[2])
+		return
+	var outcome: Array
+	match kind:
+		"contents": outcome = _contents_for(id, object_id)
+		"take": outcome = _take_for(id, object_id, stack_id, quantity)
+		_: outcome = [false, NetProtocol.Result.INVALID_REQUEST, {}]
+	log_[request_id] = outcome
+	var order: Array = request_order[id]
+	order.append(request_id)
+	while order.size() > NetProtocol.REQUEST_MEMORY:
+		log_.erase(order.pop_front())
+	requests_handled += 1
+	request_result.rpc_id(id, request_id, outcome[0], outcome[1], outcome[2])
+	var container: NetContainer = courtyard.containers.get(object_id)
+	if container == null:
+		return
+	if kind == "take" and outcome[0]:
+		for pid: int in live_by_peer:
+			container_contents.rpc_id(pid, container.object_id, container.version, container.snapshot())
+		_send_pack(id)
+	elif kind == "contents" and outcome[0]:
+		container_contents.rpc_id(id, container.object_id, container.version, container.snapshot())
+	elif not outcome[0] and int(outcome[1]) in [NetProtocol.Result.STATE_CHANGED, NetProtocol.Result.CAPACITY_EXCEEDED, NetProtocol.Result.OUT_OF_RANGE]:
+		container_contents.rpc_id(id, container.object_id, container.version, container.snapshot())  # refresh a stale view
+
+
+func _contents_for(id: int, object_id: String) -> Array:
+	if not NetProtocol.valid_object_id(object_id):
+		return [false, NetProtocol.Result.INVALID_REQUEST, {}]
+	var container: NetContainer = courtyard.containers.get(object_id)
+	if container == null:
+		return [false, NetProtocol.Result.OBJECT_UNAVAILABLE, {"object_id": object_id}]
+	var p: NetPlayer = _player_node(id)
+	if p == null or container.reach_from(p.position) > NetProtocol.INTERACT_RADIUS:
+		return [false, NetProtocol.Result.OUT_OF_RANGE, {"object_id": object_id}]
+	return [true, NetProtocol.Result.OK, {"object_id": object_id, "version": container.version}]
+
+
+func _take_for(id: int, object_id: String, stack_id: int, quantity: int) -> Array:
+	if not NetProtocol.valid_object_id(object_id) or stack_id < 1 or quantity < 1 or quantity > 999:
+		return [false, NetProtocol.Result.INVALID_REQUEST, {"object_id": object_id}]
+	var container: NetContainer = courtyard.containers.get(object_id)
+	if container == null:
+		return [false, NetProtocol.Result.OBJECT_UNAVAILABLE, {"object_id": object_id}]
+	var p: NetPlayer = _player_node(id)
+	if p == null or container.reach_from(p.position) > NetProtocol.INTERACT_RADIUS:
+		return [false, NetProtocol.Result.OUT_OF_RANGE, {"object_id": object_id}]
+	var stack: ItemInstance = container.find(stack_id)
+	if stack == null or quantity > stack.quantity:
+		return [false, NetProtocol.Result.STATE_CHANGED, {"object_id": object_id, "stack_id": stack_id}]
+	var inventory: Inventory = inventories[id]
+	var portion := ItemInstance.new(stack.data, quantity, stack.condition)
+	if not inventory.can_carry(portion):
+		return [false, NetProtocol.Result.CAPACITY_EXCEEDED, {"object_id": object_id, "stack_id": stack_id,
+			"pack_weight": inventory.total_weight(), "hard_limit": inventory.hard_limit_kg()}]
+	var taken: ItemInstance = container.take(stack_id, quantity)
+	if taken == null:
+		return [false, NetProtocol.Result.STATE_CHANGED, {"object_id": object_id, "stack_id": stack_id}]
+	if not inventory.add(taken):
+		# Cannot happen after can_carry, but never lose an item: put it back.
+		container._put(taken)
+		return [false, NetProtocol.Result.CAPACITY_EXCEEDED, {"object_id": object_id, "stack_id": stack_id}]
+	return [true, NetProtocol.Result.OK, {"object_id": object_id, "stack_id": stack_id, "item_id": taken.data.item_id,
+		"quantity": quantity, "pack_weight": inventory.total_weight()}]
+
+
+func _send_pack(id: int) -> void:
+	var inv: Inventory = inventories[id]
+	pack_state.rpc_id(id, _pack_to_wire(inv), inv.total_weight(), inv.capacity_kg, inv.hard_limit_kg())
+
+
+## A pack on the wire or in a record: [[0, item_id, quantity, condition], ...] (no stack ids yet).
+static func _pack_to_wire(inv: Inventory) -> Array:
+	var out: Array = []
+	for inst: ItemInstance in inv.items:
+		out.append(NetProtocol.stack_to_wire(0, inst))
+	return out
+
+
+static func _pack_from_wire(inv: Inventory, stacks: Array) -> void:
+	for s: Array in stacks:
+		var inst: ItemInstance = ItemDatabase.make(str(s[1]), int(s[2]), float(s[3]))
+		if inst:
+			inv.items.append(inst)
 
 
 # ---------------------------------------------------------------- simulation
@@ -370,6 +577,8 @@ func _physics_process(delta: float) -> void:
 
 func _server_tick(delta: float) -> void:
 	tick += 1
+	if tick % 60 == 0:
+		requests_this_second.clear()
 	for id: int in pending_hello.keys():
 		if session_time > float(pending_hello[id]):
 			pending_hello.erase(id)
@@ -411,6 +620,7 @@ func _client_tick(delta: float) -> void:
 				prediction.pop_front()
 			zero_sends_left = 10 if not moving and last_sent_dir != Vector3.ZERO else maxi(0, zero_sends_left - 1)
 			last_sent_dir = dir
+		_update_nearby()
 	for child: Node in players.get_children():
 		var p := child as NetPlayer
 		if p != own and p.has_target:
@@ -422,6 +632,18 @@ func _client_tick(delta: float) -> void:
 
 func _read_input() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if role == "server" or own == null:
+		return
+	if event.is_action_pressed("interact"):
+		if loot.visible:
+			loot.close_window()
+		elif near_container:
+			_open_container(near_container)
+	elif event.is_action_pressed("ui_cancel") and loot.visible:
+		loot.close_window()
 
 
 ## Camera-relative intent (§77): screen up is the camera's forward on the ground plane. While a
@@ -461,6 +683,74 @@ func _reconcile(server_pos: Vector3, acked_seq: int) -> void:
 		own.position += error * NetProtocol.CORRECTION_RATE
 
 
+# ---------------------------------------------------------------- client: interaction
+
+func _update_nearby() -> void:
+	var best: NetContainer = null
+	var best_d: float = NetProtocol.INTERACT_RADIUS
+	for c: NetContainer in courtyard.containers.values():
+		var d: float = c.reach_from(own.position)
+		if d <= best_d:
+			best_d = d
+			best = c
+	near_container = best
+	# The window follows reach: walking away closes it, the way the search would be interrupted.
+	if loot.visible and (near_container == null or near_container.object_id != loot.object_id):
+		loot.close_window()
+
+
+func _open_container(c: NetContainer) -> void:
+	loot.open_window(c.object_id, c.display_name)
+	loot.show_pack(float(pack_view["weight"]), float(pack_view["capacity"]), float(pack_view["hard_limit"]))
+	if container_views.has(c.object_id):
+		loot.show_contents(c.object_id, container_views[c.object_id]["stacks"])
+	_request_contents(c.object_id)
+
+
+func _request_contents(object_id: String) -> int:
+	var rid: int = next_request_id
+	next_request_id += 1
+	pending[rid] = {"kind": "contents", "object_id": object_id, "stack_id": 0, "quantity": 0, "item_id": "", "t": snappedf(session_time, 0.01)}
+	request_container_contents.rpc_id(1, rid, object_id)
+	return rid
+
+
+func _request_take(object_id: String, stack_id: int, quantity: int, item_hint: String = "") -> int:
+	var rid: int = next_request_id
+	next_request_id += 1
+	var item_id: String = item_hint
+	if item_id.is_empty():
+		for s: Array in container_views.get(object_id, {}).get("stacks", []):
+			if int(s[0]) == stack_id:
+				item_id = str(s[1])
+	pending[rid] = {"kind": "take", "object_id": object_id, "stack_id": stack_id, "quantity": quantity, "item_id": item_id, "t": snappedf(session_time, 0.01)}
+	if loot and loot.visible:
+		loot.mark_pending(stack_id, rid)
+	request_take_item.rpc_id(1, rid, object_id, stack_id, quantity)
+	return rid
+
+
+## Test helper: send the same take again under the same request id (a repeated request). The
+## answer lands in `requests` twice; the server must have applied it once.
+func _resend_take(rid: int) -> void:
+	var req: Dictionary = pending.get(rid, answered.get(rid, {}))
+	if req.is_empty():
+		return
+	request_take_item.rpc_id(1, rid, str(req["object_id"]), int(req["stack_id"]), int(req["quantity"]))
+
+
+## Test helper: take by item id. By default the stack id comes from the latest snapshot; with
+## from_first it comes from the first snapshot ever received, which is how two clients can ask
+## for the same single item "at the same time" even if one view was refreshed in between.
+func _take_item(object_id: String, item_id: String, quantity: int, from_first: bool = false) -> int:
+	var stacks: Array = first_views.get(object_id, []) if from_first else container_views.get(object_id, {}).get("stacks", [])
+	for s: Array in stacks:
+		if str(s[1]) == item_id:
+			return _request_take(object_id, int(s[0]), quantity, item_id)
+	_event("drive_skip", {"reason": "no stack for " + item_id})
+	return 0
+
+
 # ---------------------------------------------------------------- spawning
 
 func _spawn_local(id: int, key: String, pos: Vector3, yaw: float, color_index: int) -> void:
@@ -468,7 +758,7 @@ func _spawn_local(id: int, key: String, pos: Vector3, yaw: float, color_index: i
 		return
 	var p: NetPlayer = NetPlayer.create(id, key, pos, yaw, PLAYER_COLORS[color_index % PLAYER_COLORS.size()])
 	players.add_child(p)
-	if not role == "server" and id == own_peer_id:
+	if role != "server" and id == own_peer_id:
 		own = p
 		camera_rig.target = p
 		camera_rig.recenter()
@@ -497,21 +787,35 @@ func _drive(_delta: float) -> void:
 	if spawned_at < 0.0:
 		return
 	var t: float = session_time - spawned_at
+	var crate: String = NetCourtyard.SUPPLY_CRATE_ID
 	match drive:
 		"A":
-			_at(t, 0.5, "shot_initial", func() -> void: _shot("view0"))
+			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))
+			_at(t, 0.6, "take_oil", func() -> void: _resend_take(_take_item(crate, "lamp_oil", 1, true)))
+			_at(t, 0.7, "take_zero", func() -> void: _take_item(crate, "timber", 0))
+			_at(t, 0.75, "take_pot", func() -> void: _take_item(crate, "cooking_pot", 1))
+			_at(t, 0.8, "take_targe", func() -> void: _take_item(crate, "wooden_targe", 1))
+			_at(t, 0.85, "take_timber", func() -> void: _take_item(crate, "timber", 4))
+			_at(t, 0.9, "take_scrap", func() -> void: _take_item(crate, "iron_scrap", 8))
 			_at(t, 1.0, "move1_start", func() -> void: _push(Vector2(0.0, -1.0)))
 			_at(t, 2.5, "move1_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 2.6, "turn", func() -> void: camera_rig.rotate_quarter(1))
 			_at(t, 3.0, "shot_turned", func() -> void: _shot("view1"))
 			_at(t, 3.5, "move2_start", func() -> void: _push(Vector2(0.0, -1.0)))
 			_at(t, 5.0, "move2_end", func() -> void: _push(Vector2.ZERO))
+			_at(t, 5.2, "take_far", func() -> void: _take_item(crate, "salt", 1))
 			_at(t, 14.0, "final", func() -> void: _finish_client())
 		"B":
+			_at(t, 0.3, "contents", func() -> void: _request_contents(crate))
+			_at(t, 0.6, "take_oil", func() -> void: _take_item(crate, "lamp_oil", 1, true))
+			_at(t, 0.7, "take_nowhere", func() -> void: _request_take("nowhere/none", 1, 1))
+			_at(t, 0.9, "take_timber", func() -> void: _take_item(crate, "timber", 2))
 			_at(t, 1.0, "move1_start", func() -> void: _push(Vector2(1.0, 0.0)))
 			_at(t, 2.0, "move1_end", func() -> void: _push(Vector2.ZERO))
 			_at(t, 2.2, "shot_initial", func() -> void: _shot("view0"))
-			_at(t, 4.0, "final", func() -> void: _finish_client())
+			_at(t, 4.0, "final", func() -> void:
+				_take_item(crate, "salt", 1)  # a take sent in the same instant the client leaves
+				_finish_client())
 		"B2":
 			_at(t, 1.0, "final", func() -> void: _finish_client())
 		"SHOTS":
@@ -528,7 +832,15 @@ func _drive(_delta: float) -> void:
 			_at(t, 5.4, "zoom_near", func() -> void: _shot("zoom-near"))
 			_at(t, 5.5, "zoom_far_set", func() -> void: camera_rig.set_zoom(camera_rig.ortho_size_max))
 			_at(t, 6.3, "zoom_far", func() -> void: _shot("zoom-far"))
-			_at(t, 6.8, "final", func() -> void: _finish_client())
+			# From the third spawn point (-2, -1) toward the crate at (0, 2): world (0.55, 0.83) is
+			# screen (-0.2, 0.98) at the 45° view; 0.6 s covers 1.9 m of the 3.6 m, well inside reach.
+			_at(t, 6.4, "walk_to_crate", func() -> void: _push(Vector2(-0.2, 0.98)))
+			_at(t, 7.0, "stop_at_crate", func() -> void: _push(Vector2.ZERO))
+			_at(t, 7.2, "open_crate", func() -> void:
+				if near_container:
+					_open_container(near_container))
+			_at(t, 8.0, "crate_window", func() -> void: _shot("crate-window"))
+			_at(t, 8.5, "final", func() -> void: _finish_client())
 		_:
 			pass
 
@@ -577,12 +889,17 @@ func _update_hud() -> void:
 			ping = int(server_link.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME))
 	stats["ping_ms"] = ping
 	var others: int = players.get_child_count() - (1 if own else 0)
+	var prompt: String = ""
+	if near_container and not loot.visible:
+		prompt = "F · search %s" % near_container.display_name.to_lower()
 	hud.set_lines(PackedStringArray([
 		"%s · protocol %d" % [NetProtocol.BUILD_ID, NetProtocol.PROTOCOL_VERSION],
 		"client peer %d · key %s" % [own_peer_id, player_key],
 		"state %s · ping %d ms · others %d" % [connection_state, ping, others],
 		"camera view %d (%.0f°) · Q/E turn · C recenter · wheel zoom" % [camera_rig.view_index(), camera_rig.yaw_degrees],
+		"pack %.1f / %.0f kg · pending requests %d" % [float(pack_view["weight"]), float(pack_view["capacity"]), pending.size()],
 		"prediction max correction %.2f m" % float(stats["max_correction"]),
+		prompt,
 		("last rejection: " + rejected_reason) if not rejected_reason.is_empty() else "",
 	]))
 
@@ -596,14 +913,26 @@ func _report() -> Dictionary:
 			var p := child as NetPlayer
 			live.append({"peer_id": p.peer_id, "player_key": p.player_key, "position": _v(p.position)})
 		var recs: Dictionary = {}
+		var packs: Dictionary = {}
 		for key: String in records:
 			recs[key] = {"position": _v(records[key]["position"]), "facing": records[key]["facing"]}
+			var retained := Inventory.new()
+			_pack_from_wire(retained, records[key].get("pack", []))
+			packs[key] = {"stacks": records[key].get("pack", []), "weight": retained.total_weight(), "live": false}
+		for pid: int in live_by_peer:
+			var inv: Inventory = inventories[pid]
+			packs[live_by_peer[pid]] = {"stacks": _pack_to_wire(inv), "weight": inv.total_weight(), "live": true}
+		var conts: Dictionary = {}
+		for c: NetContainer in courtyard.containers.values():
+			conts[c.object_id] = {"version": c.version, "stacks": c.snapshot()}
 		out.merge({"started": true, "port": port, "max_players": max_players, "ticks": tick,
-			"players_live_end": live, "records": recs, "disconnects": disconnect_log, "rejoins": rejoins, "rejections": rejections})
+			"players_live_end": live, "records": recs, "packs": packs, "containers": conts, "requests_handled": requests_handled,
+			"disconnects": disconnect_log, "rejoins": rejoins, "rejections": rejections})
 	else:
 		out.merge({"peer_id": own_peer_id, "player_key": player_key,
 			"drive": drive, "connection_state": connection_state, "rejected_reason": rejected_reason,
-			"spawn_position": _v(spawn_position), "samples": samples, "events": events, "stats": stats})
+			"spawn_position": _v(spawn_position), "samples": samples, "events": events, "stats": stats,
+			"requests": requests, "pending_at_exit": pending.keys(), "pack_view": pack_view, "container_views": container_views})
 	return out
 
 
