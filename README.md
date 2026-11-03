@@ -5,8 +5,10 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **177/177** headless regression checks passing
 > Art is intentionally placeholder (primitive meshes, procedural audio) — systems first.
+>
+> **New direction (2026-11-03):** the project is becoming a two-developer, two-player-first 3D survival game with server-owned shared state and an independently rotatable camera. The first slice, a networked courtyard with per-client quarter-turn cameras, server-validated movement, a protocol handshake, disconnect and rejoin, runs from `net_main.tscn` and is tested by `tools/net_spike.py` (19 loopback checks). The single-player prototype below is preserved unchanged. The working record is [docs/PRODUCTION.md](docs/PRODUCTION.md).
 
 ---
 

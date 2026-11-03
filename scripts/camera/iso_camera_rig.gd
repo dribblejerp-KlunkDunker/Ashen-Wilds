@@ -14,8 +14,13 @@ extends Node3D
 @export var follow_smoothing: float = 8.5
 @export var cursor_peek_strength: float = 0.85
 @export var max_cursor_peek_distance: float = 1.6
+## Quarter-turn rotation (brief §5): four views, eased over this many seconds. The pitch never
+## changes, so there is no under-map or horizon view. Actions are optional: a scene that does not
+## bind camera_rotate_left/right or camera_recenter keeps the fixed 45° rig it always had.
+@export var quarter_turn_seconds: float = 0.35
 
 var camera: Camera3D
+var _target_yaw: float = 45.0
 var shake_intensity_scale: float = 0.75
 var _trauma: float = 0.0
 var _target_ortho_size: float = 11.5
@@ -26,6 +31,7 @@ var _world_env: WorldEnvironment
 
 func _ready() -> void:
 	_target_ortho_size = ortho_size_default
+	_target_yaw = yaw_degrees
 	rotation_degrees = Vector3(0.0, yaw_degrees, 0.0)
 
 	var pitch_pivot := Node3D.new()
@@ -67,14 +73,50 @@ func adjust_brightness(delta_val: float) -> void:
 func adjust_shake_scale(delta_val: float) -> void:
 	shake_intensity_scale = clampf(shake_intensity_scale + delta_val, 0.0, 1.0)
 
+## Turn the view by whole quarter turns; positive is clockwise seen from above.
+func rotate_quarter(steps: int) -> void:
+	_target_yaw += 90.0 * steps
+
+## Snap the rig onto its target (brief §5, recenter).
+func recenter() -> void:
+	if target:
+		global_position = target.global_position
+
+## Zoom to an orthographic size inside the rig's limits (wheel zoom uses the same target).
+func set_zoom(size: float) -> void:
+	_target_ortho_size = clampf(size, ortho_size_min, ortho_size_max)
+
+## 0..3: which of the four views the rig is settling toward.
+func view_index() -> int:
+	return posmod(int(round((_target_yaw - 45.0) / 90.0)), 4)
+
+func is_turning() -> bool:
+	return absf(_yaw_remaining()) > 0.5
+
+func _yaw_remaining() -> float:
+	return fposmod(_target_yaw - yaw_degrees + 180.0, 360.0) - 180.0
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_target_ortho_size = clampf(_target_ortho_size - zoom_step, ortho_size_min, ortho_size_max)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_target_ortho_size = clampf(_target_ortho_size + zoom_step, ortho_size_min, ortho_size_max)
+	if InputMap.has_action("camera_rotate_left") and event.is_action_pressed("camera_rotate_left"):
+		rotate_quarter(-1)
+	elif InputMap.has_action("camera_rotate_right") and event.is_action_pressed("camera_rotate_right"):
+		rotate_quarter(1)
+	elif InputMap.has_action("camera_recenter") and event.is_action_pressed("camera_recenter"):
+		recenter()
 
 func _physics_process(delta: float) -> void:
+	var remaining: float = _yaw_remaining()
+	if absf(remaining) > 0.01:
+		var k: float = 1.0 - exp(-delta * 4.6 / maxf(quarter_turn_seconds, 0.01))
+		yaw_degrees = fposmod(yaw_degrees + remaining * k, 360.0)
+	else:
+		yaw_degrees = fposmod(_target_yaw, 360.0)
+		_target_yaw = yaw_degrees
 	rotation_degrees = Vector3(0.0, yaw_degrees, 0.0)
 	if camera:
 		camera.size = lerpf(camera.size, _target_ortho_size, 1.0 - exp(-10.0 * delta))
