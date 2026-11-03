@@ -101,7 +101,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | P11 | Inventory capacity model | **CONFIRMED** (owner, 2026-11-03): weight only. Built in M1b: the server holds an `Inventory` per player, `PACK_CAPACITY_KG` = 12 with the existing 1.5× hard limit (encumbrance above capacity, refusal above the hard limit). | 2026-11-03 | Supplement §36: one model, explicit buttons. Reuses the single-player classes unchanged. | Playtest: does 12 kg produce the carrying decision the brief wants? |
 | P12 | Death and recovery | OPEN | | Supplement §42. Not needed before Milestone 4. | Before Milestone 4. |
 | P13 | Asset pipeline | PROPOSED: Blender → GLB → `res://art/exports/`, metadata per asset (brief §14), a 20-piece test kit first. | 2026-11-03 | Brief §12–§14, appendix §82. | The first exported module placed beside the capsule placeholder. |
-| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
+| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype): the Rogue_Hooded character with KayKit's Rig_Medium animations, both licences read (CC0), texture recoloured; `SurvivorModel` is presentation only. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
 | P16 | CC0 environment kits | **CONFIRMED** (owner, 2026-11-03): CC0 kits (Quaternius, Kenney, KayKit) may be used for blockout, scale reference and placeholder props only; the final look comes from the team's own modules and material pass, replacing kit pieces over time. | 2026-11-03 | Brief §59: the visual direction must become recognisably ours; §3: crude and weather-beaten, which the clean kits are not. | Each module of the 20-piece test kit replaces its kit stand-in as it is approved (appendix §82). |
 | P14 | Superseded earlier decisions | Random world per expedition, browser-only delivery (old D42), and the generated 48×48 Blackfen before a small location: all superseded by the briefs and the owner's decisions. The procedural generator remains in the browser repo as reference. | 2026-11-03 | Brief §11, §25. | A demonstrated need for a larger world after the vertical slice. |
 
@@ -156,6 +156,48 @@ payload (§74).
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Look and feel 1 — the survivor: evidence (brief §24)
+
+**Why now.** The owner deferred multiplayer ("lets work on multiplayer much later") and chose look
+and feel next, in three slices: the survivor, the environment, lighting and materials. The browser
+build plays the single-player prototype, so that is where the slices land first.
+
+**What changed.**
+- The capsule-and-sphere survivor is replaced by KayKit's Rogue_Hooded (Adventurers 2.0, CC0),
+  animated with KayKit's Rig_Medium clips (Character Animations 1.1, CC0): idle, walk, jog, run,
+  one- and two-handed slices, stabs and chops, unarmed punch and kick, block, block-hit, four
+  dodges, two hits, death, interact (search) and use-item (bandage). Files, sources and licences:
+  `art/kaykit/README.md`.
+- `SurvivorModel` (presentation only) loads the character, merges the clips into one
+  `AnimationPlayer` and exposes two hand sockets on the rig's hand-slot bones. The controller's
+  sword, targe (now a round disc) and torch hang off them. Hitbox, hurtbox, collision and aim are
+  unchanged and never read the mesh.
+- `PlayerController._update_animation()` chooses the clip from the action state. Timed states
+  stretch their clip to the state's own duration (a light sword swing's slice plays at 1.9× to fit
+  0.72 s), so the simulation keeps the timing. Light sweeps alternate forehand and backhand.
+- The KayKit palette texture is recoloured (`tools/recolor_survivor_texture.py`): bright cloth
+  greens become dark, worn oilcloth; the rest is muted.
+- The torch stays upright whatever the hand does. Its light hangs 1.8 m above the hand, over the
+  hood: at the flame, which the animated hands carry in front of the body, the body cast a dark
+  wedge across the Watchhouse in the search screenshot (found by looking at it, fixed, re-rendered).
+  The torch's range gets +1 m for the extra height.
+- The drawn blade is about half the weapon's reach; the stylised character is short and a
+  full-length blade dwarfed it. Reach in play still comes from the hitbox.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 189 passed, 0 failures, twice (177
+before; 12 new under "Survivor model": every clip the states use is loaded, items on the right
+sockets, idle, heavy thrust plays the stab, light sweep plays a slice fitted to the attack's
+duration, the torch points up, its light is above the hood, death plays Death_A, respawn returns to
+idle). Compile check clean; live boot clean; `tools/net_spike.py` 65 passed (the courtyard is
+unchanged). Screenshots re-rendered through Forward+ (all seven README images) and looked at; the
+web export booted in headless Chromium (WebGL 2, Compatibility renderer) with the character drawn
+and no console errors.
+
+**Not covered by headless tests.** Foot sliding (the walk, jog and run speeds are matched to
+movement speed by estimate), how the swings read at game zoom, the stylised proportions next to the
+grim setting, and whether the sockets look right in every animation. These need the owner's eye in
+the browser build.
 
 ## Milestone 3 — persistent refuge: evidence (brief §24)
 
