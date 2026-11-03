@@ -159,8 +159,8 @@ request, fixture state, interaction prompts, drives), `tools/net_spike.py` (25 c
 | Compile-check of every script | syntax | clean |
 | `tests/smoke_test.gd` | single-player regression | 177 passed, 0 failed |
 | `tools/net_spike.py` | loopback: five processes, then a restart, four broken-save cases, a hard kill | **65 passed, 0 failed**; logs clean apart from the deliberate refusals |
-| `tools/net_spike.py --shots` | plus a rendered client | 66 passed |
-| `tools/net_spike.py --exported builds` | the exported Linux binaries | see the PR |
+| `tools/net_spike.py --shots` | plus a rendered client | 66 passed, 0 failed |
+| `tools/net_spike.py --exported builds` | the same 65 checks on the exported Linux binaries from `1e69f3f` | **65 passed, 0 failed** |
 | Compatibility renderer (`--rendering-method gl_compatibility`) | rendered client under Mesa OpenGL | runs and draws the courtyard like Forward+; the start scripts use it by default for Chromebooks |
 | `play-here.sh` | the exported start script, x86_64 | started a server and a player; a second player joined that server and saw the first and the crate |
 | Screenshot `camera-refuge.png` | visual | **reviewed by the agent**: the lit hearth casts a warm pool of light on the ground, crate and fence; the barricade fills the breach. The planks read small at this zoom (placeholder art). |
