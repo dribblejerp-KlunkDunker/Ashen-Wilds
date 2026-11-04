@@ -112,6 +112,7 @@ func _run() -> void:
 	await _test_perception()
 	await _test_weather()
 	await _test_backgrounds()
+	await _test_armour()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -2127,6 +2128,129 @@ func _test_backgrounds() -> void:
 		and _player.inventory.count_of("clean_rag_bandage") == 2 and is_equal_approx(_player.health, 90.0),
 		"back to the deserter: the old kit, full health")
 	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Armour: three slots, six pieces; a flat soak off every blow, poise, wear, bleed guard, noise.
+# ------------------------------------------------------------------------------
+func _test_armour() -> void:
+	_section("Armour slots")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	_player.apply_background(SurvivorBackground.default_background())
+	var inv: Inventory = _player.inventory
+	var pieces: Array[String] = ["padded_coif", "kettle_hat", "quilted_gambeson", "rusted_hauberk", "leather_greaves", "splinted_greaves"]
+	var all_armour: bool = true
+	for id: String in pieces:
+		var d: ItemData = ItemDatabase.get_item(id)
+		all_armour = all_armour and d != null and d.is_armour() and d.protection > 0.0 and d.max_condition > 0.0
+	_check(all_armour, "six pieces of armour, each with a slot, protection and condition")
+	_check(inv.worn_armour().is_empty() and is_zero_approx(inv.total_protection()) and _player._armour_label() == "none", "the deserter starts bare")
+
+	# Wearing: one piece per slot; a second body piece replaces the first; weight counts.
+	var coif := ItemDatabase.make("padded_coif")
+	var gambeson := ItemDatabase.make("quilted_gambeson")
+	var hauberk := ItemDatabase.make("rusted_hauberk")
+	var w0: float = inv.total_weight()
+	inv.add(coif)
+	inv.add(gambeson)
+	inv.equip(coif)
+	inv.equip(gambeson)
+	_check(inv.armour_in(ItemData.ArmourSlot.HEAD) == coif and inv.armour_in(ItemData.ArmourSlot.BODY) == gambeson and inv.is_equipped(coif),
+		"a coif on the head and a gambeson on the body")
+	_check(is_equal_approx(inv.total_protection(), 7.0) and is_equal_approx(inv.armour_poise_bonus(), 9.0) and is_equal_approx(_player.effective_max_poise(), 44.0),
+		"coif and gambeson: soak 7, poise 35 + 9")
+	_check(absf(inv.total_weight() - (w0 + 3.8)) < 0.01, "worn armour weighs what it weighs (+3.8 kg)")
+	inv.add(hauberk)
+	inv.equip(hauberk)
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) == hauberk and not inv.is_equipped(gambeson) and inv.worn_armour().size() == 2,
+		"a hauberk replaces the gambeson on the body")
+	_check(_player._armour_label().begins_with("Padded Coif, Rusted Mail Hauberk") and _player._armour_label().ends_with("(soak 12)"),
+		"the HUD line names what is worn (%s)" % _player._armour_label())
+	_check(absf(inv.armour_noise_mult() - 1.25) < 0.001 and _player.get_noise_multiplier() > 1.2, "mail clinks: own noise x1.25")
+
+	# Taking blows: a light slash loses the soak; a heavy slam loses 60% of it; never below 30%.
+	_face(Vector3.RIGHT)
+	var front: Vector3 = _player.global_position + Vector3(1.5, 0.0, 0.0)
+	var hp: float = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 24.0, 10.0, false, false))
+	_check(absf((hp - _player.health) - 12.0) < 0.01, "a 24 slash through soak 12 does 12 (took %.1f)" % (hp - _player.health))
+	_player.current_state = PlayerController.ActionState.IDLE
+	hp = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 62.0, 85.0, false, true))
+	_check(absf((hp - _player.health) - (62.0 - 12.0 * 0.6)) < 0.01, "a heavy 62 slam counts the soak at 60%%: 54.8 (took %.1f)" % (hp - _player.health))
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "an 85-poise slam still staggers (poise bonus 15 is not half of it)")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.health = _player.max_health
+	hp = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 10.0, 1.0, false, false))
+	_check(absf((hp - _player.health) - 3.0) < 0.01, "a 10 jab is never soaked below 30%%: 3 (took %.1f)" % (hp - _player.health))
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Poise: the full set (kettle hat 5 + hauberk 10 + splinted greaves 4 = 19) shrugs an ork chop
+	# (38 poise, heavy) once, since 19 is half of it; coif and hauberk alone (13) do not. Blows wear
+	# every worn piece.
+	_player.poise_damage_taken = 0.0
+	_player.health = _player.max_health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 36.0, 38.0, false, true))
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "coif and hauberk (poise 13) still stagger under an ork chop")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.poise_damage_taken = 0.0
+	var hat := ItemDatabase.make("kettle_hat")
+	var splint := ItemDatabase.make("splinted_greaves")
+	inv.add(hat)
+	inv.add(splint)
+	inv.equip(hat)
+	inv.equip(splint)
+	_check(is_equal_approx(inv.armour_poise_bonus(), 19.0) and not inv.is_equipped(coif), "kettle hat, hauberk and splinted greaves: poise 19; the hat replaced the coif")
+	var c0: float = hauberk.condition
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 36.0, 38.0, false, true))
+	_check(_player.current_state != PlayerController.ActionState.STAGGER, "the full set shrugs off an ork chop (38 poise) without a stagger")
+	_check(absf((c0 - hauberk.condition) - 2.0) < 0.01, "a heavy blow wears each worn piece by 2 (%.0f -> %.0f)" % [c0, hauberk.condition])
+	_player.current_state = PlayerController.ActionState.IDLE
+	inv.remove(hat)
+	inv.remove(splint)
+	inv.equip(coif)
+
+	# Bleed guard: the hauberk turns four bleeding cuts in five; broken, it turns none and soaks half.
+	var resist: float = inv.bleed_resist()
+	_check(absf(resist - 0.8) < 0.001, "a hauberk turns 80%% of bleeding cuts")
+	hauberk.condition = 0.5
+	_player.health = _player.max_health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 24.0, 10.0, false, false))
+	_check(hauberk.is_broken() and is_zero_approx(inv.bleed_resist()) and absf(inv.total_protection() - 7.0) < 0.01,
+		"a ruined hauberk turns no cuts and soaks half (coif 2 + 5)")
+	_check(_player._armour_label().contains("ruined"), "the HUD line says so")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.is_bleeding = false
+
+	# Donning takes the piece's own time through the pack; doffing half of it.
+	inv.unequip(hauberk)
+	_player.health = _player.max_health
+	_check(_player.request_equip(gambeson) and absf(_player._channel_total - 2.5) < 0.01 and _player._channel_label().begins_with("Putting on"),
+		"putting on a gambeson takes 2.5 s (%s)" % _player._channel_label())
+	await _seconds(2.6)
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) == gambeson, "and it is worn when the time is up")
+	_check(_player.request_equip(gambeson) and absf(_player._channel_total - 1.25) < 0.01, "taking it off takes half")
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# The world has armour to find, and a carter starts in a gambeson.
+	var stash: Lootable = null
+	for n: Node in get_nodes_in_group("lootable"):
+		if (n as Lootable).display_name == "Shelter Stash":
+			stash = n
+	var stash_has_coif: bool = stash != null and stash.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "padded_coif")
+	_check(stash_has_coif, "the deserter's old coif waits in the shelter stash")
+	_player.apply_background(SurvivorBackground.by_id("causeway_carter"))
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) != null and inv.armour_in(ItemData.ArmourSlot.BODY).data.item_id == "quilted_gambeson",
+		"the causeway carter starts wearing a gambeson")
+	_player.apply_background(SurvivorBackground.default_background())
+	_check(inv.worn_armour().is_empty(), "back to the deserter, bare again")
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)

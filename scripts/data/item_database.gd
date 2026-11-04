@@ -44,6 +44,8 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	if randf() < 0.3:
 		out.append(make("lamp_oil", 1))
+	if randf() < 0.3:
+		out.append(make("splinted_greaves", 1, 70.0))
 	return out
 
 static func roll_ogre_loot() -> Array[ItemInstance]:
@@ -57,6 +59,23 @@ static func roll_ogre_loot() -> Array[ItemInstance]:
 # ------------------------------------------------------------------------------
 # Definitions
 # ------------------------------------------------------------------------------
+static func _register_armour(id: String, display: String, desc: String, slot: ItemData.ArmourSlot, weight: float,
+		condition: float, protection: float, poise: float, bleed_resist: float, noise: float, don: float) -> void:
+	var d := ItemData.new()
+	d.item_id = id
+	d.display_name = display
+	d.description = desc
+	d.category = ItemData.Category.ARMOUR
+	d.armour_slot = slot
+	d.weight_kg = weight
+	d.max_condition = condition
+	d.protection = protection
+	d.poise_bonus = poise
+	d.bleed_resist = bleed_resist
+	d.noise_mult = noise
+	d.don_time = don
+	_register(d)
+
 static func _register(item: ItemData) -> void:
 	_items[item.item_id] = item
 
@@ -169,6 +188,23 @@ static func _build() -> void:
 	targe.block_angle_degrees = 130.0
 	targe.block_wear_per_poise = 0.2
 	_register(targe)
+
+	# --- Armour ----------------------------------------------------------------
+	# Worn in three slots. Protection comes off every blow (heavy blows count it at 60%, and a blow
+	# always does at least 30%); the poise bonus lets a well-armoured survivor shrug an ork's chop
+	# once; weight goes through the pack like everything else, and mail clinks.
+	_register_armour("padded_coif", "Padded Coif", "Quilted linen cap. Turns a glancing blow and little else.",
+		ItemData.ArmourSlot.HEAD, 0.6, 60.0, 2.0, 3.0, 0.0, 1.0, 1.0)
+	_register_armour("kettle_hat", "Kettle Hat", "A Watch helmet with a brim, dented and sweated through.",
+		ItemData.ArmourSlot.HEAD, 1.4, 100.0, 4.0, 5.0, 0.0, 1.05, 1.5)
+	_register_armour("quilted_gambeson", "Quilted Gambeson", "Thirty layers of linen. Stops a cut from going deep.",
+		ItemData.ArmourSlot.BODY, 3.2, 120.0, 5.0, 6.0, 0.5, 1.0, 2.5)
+	_register_armour("rusted_hauberk", "Rusted Mail Hauberk", "Knee-length mail, orange at every ring. Heavy, loud, and very hard to cut.",
+		ItemData.ArmourSlot.BODY, 8.5, 160.0, 10.0, 10.0, 0.8, 1.25, 4.0)
+	_register_armour("leather_greaves", "Leather Greaves", "Boiled leather over the shins, laced at the back.",
+		ItemData.ArmourSlot.LEGS, 1.2, 80.0, 2.0, 2.0, 0.0, 1.0, 1.5)
+	_register_armour("splinted_greaves", "Splinted Greaves", "Iron splints riveted to leather. They clatter on stone.",
+		ItemData.ArmourSlot.LEGS, 3.0, 120.0, 5.0, 4.0, 0.0, 1.1, 2.0)
 
 	var torch := ItemData.new()
 	torch.item_id = "pitch_torch"

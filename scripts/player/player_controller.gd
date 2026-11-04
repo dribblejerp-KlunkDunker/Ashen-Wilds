@@ -225,6 +225,7 @@ func apply_background(bg: SurvivorBackground) -> void:
 	inventory.capacity_kg = carry_capacity_kg
 	inventory.main_hand = null
 	inventory.off_hand = null
+	inventory.armour.clear()
 	for inst: ItemInstance in inventory.items.duplicate():
 		inventory.remove(inst)
 	for entry: Array in bg.gear:
@@ -239,6 +240,8 @@ func apply_background(bg: SurvivorBackground) -> void:
 			inventory.main_hand = inst
 		elif item_id == bg.off_hand_id:
 			inventory.off_hand = inst
+		elif inst.data.is_armour() and item_id in bg.worn_ids:
+			inventory.armour[inst.data.armour_slot] = inst
 	health = max_health
 	stamina = max_stamina
 	is_exhausted = false
@@ -363,7 +366,23 @@ func get_aim_direction() -> Vector3:
 	return _aim_direction
 
 func get_noise_multiplier() -> float:
-	return (1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0) * weather_hearing * (background.own_noise_mult if background != null else 1.0)
+	var armour_noise: float = inventory.armour_noise_mult() if inventory else 1.0
+	return (1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0) * weather_hearing \
+		* (background.own_noise_mult if background != null else 1.0) * armour_noise
+
+## The survivor's poise with what they wear.
+func effective_max_poise() -> float:
+	return max_poise + (inventory.armour_poise_bonus() if inventory else 0.0)
+
+## "Padded Coif, Quilted Gambeson (soak 7)" for the HUD, or "none".
+func _armour_label() -> String:
+	var worn: Array[ItemInstance] = inventory.worn_armour()
+	if worn.is_empty():
+		return "none"
+	var names: Array[String] = []
+	for inst: ItemInstance in worn:
+		names.append(inst.data.display_name + (" (ruined)" if inst.is_broken() else ""))
+	return "%s  (soak %.0f)" % [", ".join(names), inventory.total_protection()]
 
 func is_scavenging() -> bool:
 	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
@@ -394,7 +413,10 @@ func request_equip(inst: ItemInstance) -> bool:
 		return false
 	if not inventory.has_item(inst) or not inst.data.is_equippable():
 		return false
-	_start_channel(ChannelKind.EQUIP_SWAP, equip_swap_time, null, inst, inventory.is_equipped(inst))
+	var seconds: float = equip_swap_time
+	if inst.data.is_armour():
+		seconds = inst.data.don_time * (0.5 if inventory.is_equipped(inst) else 1.0)
+	_start_channel(ChannelKind.EQUIP_SWAP, seconds, null, inst, inventory.is_equipped(inst))
 	return true
 
 func use_item(inst: ItemInstance) -> bool:
@@ -492,6 +514,8 @@ func _channel_label() -> String:
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
+			if _channel_item.data.is_armour():
+				return ("Taking off %s" if _channel_unequip else "Putting on %s") % _channel_item.data.display_name
 			return ("Stowing %s" if _channel_unequip else "Readying %s") % _channel_item.data.display_name
 	return ""
 
@@ -1017,12 +1041,19 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			return
 
 	_hitbox.end_swing()
-	health = maxf(0.0, health - payload.physical_damage)
+	# Armour: a flat soak off the blow (heavy blows count it at 60%), never below 30% of the blow.
+	# Every worn piece wears a little; a bleeding blow may be turned by the cloth and mail.
+	var soak: float = inventory.total_protection() * (0.6 if payload.is_heavy else 1.0)
+	var dealt: float = maxf(payload.physical_damage - soak, payload.physical_damage * 0.3)
+	health = maxf(0.0, health - dealt)
 	poise_damage_taken += payload.poise_damage
 	_poise_timer = poise_reset_time
 	_knockback_velocity = -to_attacker * payload.knockback_force
+	for broken_piece: ItemInstance in inventory.wear_armour(2.0 if payload.is_heavy else 1.0):
+		combat_banner_message.emit("Your %s is ruined" % broken_piece.data.display_name, Color(0.92, 0.36, 0.22))
+		inventory.notify_changed()
 
-	if payload.causes_bleed:
+	if payload.causes_bleed and randf() >= inventory.bleed_resist():
 		is_bleeding = true
 		bleed_timer = background.bleed_seconds if background != null else 12.0
 		combat_banner_message.emit("Deep Laceration — Bleeding (Press B to Bandage)", Color(0.88, 0.2, 0.2))
@@ -1040,7 +1071,9 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		combat_banner_message.emit("YOU PERISHED IN THE ASHEN WILDS — Press R to Respawn at Shelter", Color(0.9, 0.18, 0.18))
 		return
 
-	if poise_damage_taken >= max_poise or payload.is_heavy:
+	# A heavy blow staggers outright unless the armour's poise is worth half the blow's.
+	var heavy_staggers: bool = payload.is_heavy and inventory.armour_poise_bonus() < payload.poise_damage * 0.5
+	if poise_damage_taken >= effective_max_poise() or heavy_staggers:
 		poise_damage_taken = 0.0
 		current_state = ActionState.STAGGER
 		_state_timer = 0.62
@@ -1329,8 +1362,9 @@ func _emit_stats() -> void:
 		"max_health": max_health,
 		"stamina": stamina,
 		"max_stamina": max_stamina,
-		"poise": max_poise - poise_damage_taken,
-		"max_poise": max_poise,
+		"poise": effective_max_poise() - poise_damage_taken,
+		"max_poise": effective_max_poise(),
+		"armour_label": _armour_label(),
 		"state": ActionState.keys()[current_state],
 		"exhausted": is_exhausted,
 		"bleeding": is_bleeding,

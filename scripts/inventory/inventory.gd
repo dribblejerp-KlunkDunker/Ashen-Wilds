@@ -15,6 +15,8 @@ var hard_limit_ratio: float = 1.5
 var items: Array[ItemInstance] = []
 var main_hand: ItemInstance = null
 var off_hand: ItemInstance = null
+## Worn armour by ItemData.ArmourSlot; worn pieces stay in `items` like everything else.
+var armour: Dictionary = {}
 
 func total_weight() -> float:
 	var w: float = 0.0
@@ -83,6 +85,8 @@ func remove(inst: ItemInstance, quantity: int = -1) -> ItemInstance:
 		main_hand = null
 	if off_hand == inst:
 		off_hand = null
+	if armour.values().has(inst):
+		armour.erase(inst.data.armour_slot)
 	changed.emit()
 	return inst
 
@@ -146,7 +150,63 @@ func find_weapon_of_class(weapon_class: ItemData.WeaponClass) -> ItemInstance:
 	return fallback
 
 func is_equipped(inst: ItemInstance) -> bool:
-	return inst != null and (inst == main_hand or inst == off_hand)
+	return inst != null and (inst == main_hand or inst == off_hand or armour.values().has(inst))
+
+
+func armour_in(slot: ItemData.ArmourSlot) -> ItemInstance:
+	return armour.get(slot, null)
+
+
+func worn_armour() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	for slot: int in [ItemData.ArmourSlot.HEAD, ItemData.ArmourSlot.BODY, ItemData.ArmourSlot.LEGS]:
+		var inst: ItemInstance = armour.get(slot, null)
+		if inst != null:
+			out.append(inst)
+	return out
+
+
+## Flat damage every blow loses to the armour. A broken piece still turns half its share.
+func total_protection() -> float:
+	var p: float = 0.0
+	for inst: ItemInstance in worn_armour():
+		p += inst.data.protection * (0.5 if inst.is_broken() else 1.0)
+	return p
+
+
+## Poise added by unbroken armour.
+func armour_poise_bonus() -> float:
+	var p: float = 0.0
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken():
+			p += inst.data.poise_bonus
+	return p
+
+
+## Chance a bleeding blow is turned: the pieces' chances combined.
+func bleed_resist() -> float:
+	var pass_through: float = 1.0
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken():
+			pass_through *= 1.0 - inst.data.bleed_resist
+	return 1.0 - pass_through
+
+
+## Mail clinks: how much louder the survivor is for what they wear.
+func armour_noise_mult() -> float:
+	var m: float = 1.0
+	for inst: ItemInstance in worn_armour():
+		m *= inst.data.noise_mult
+	return m
+
+
+## Every worn piece takes `amount` condition from a blow; returns the pieces that broke on it.
+func wear_armour(amount: float) -> Array[ItemInstance]:
+	var broke: Array[ItemInstance] = []
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken() and inst.wear(amount):
+			broke.append(inst)
+	return broke
 
 func equip(inst: ItemInstance) -> bool:
 	if not items.has(inst):
@@ -156,6 +216,10 @@ func equip(inst: ItemInstance) -> bool:
 			main_hand = inst
 		ItemData.Category.SHIELD, ItemData.Category.TORCH:
 			off_hand = inst
+		ItemData.Category.ARMOUR:
+			if inst.data.armour_slot == ItemData.ArmourSlot.NONE:
+				return false
+			armour[inst.data.armour_slot] = inst
 		_:
 			return false
 	changed.emit()
@@ -166,6 +230,8 @@ func unequip(inst: ItemInstance) -> void:
 		main_hand = null
 	elif inst == off_hand:
 		off_hand = null
+	elif armour.values().has(inst):
+		armour.erase(inst.data.armour_slot)
 	else:
 		return
 	changed.emit()

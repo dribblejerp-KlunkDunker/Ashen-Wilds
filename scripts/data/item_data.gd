@@ -3,7 +3,9 @@ extends Resource
 ## Static definition of an item type. Runtime state (condition, quantity)
 ## lives on ItemInstance.
 
-enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL }
+enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL, ARMOUR }
+## Where a piece of armour is worn. One piece per slot.
+enum ArmourSlot { NONE, HEAD, BODY, LEGS }
 enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 
 @export var item_id: String = ""
@@ -34,6 +36,18 @@ enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 
 # Consumable
 @export var use_duration: float = 1.6
+# Armour (see Inventory.total_protection and PlayerController._on_hurtbox_hit_received)
+@export var armour_slot: ArmourSlot = ArmourSlot.NONE
+## Flat damage taken off every blow (heavy blows count it at 60%); half when broken.
+@export var protection: float = 0.0
+## Added to the survivor's poise while worn and unbroken.
+@export var poise_bonus: float = 0.0
+## Chance a bleeding blow is turned, 0 to 1.
+@export var bleed_resist: float = 0.0
+## Mail clinks: multiplies how far the survivor's own noise carries.
+@export var noise_mult: float = 1.0
+## Seconds to put it on (taking it off is half).
+@export var don_time: float = 1.5
 
 func is_stackable() -> bool:
 	return max_stack > 1
@@ -42,4 +56,8 @@ func has_durability() -> bool:
 	return max_condition > 0.0
 
 func is_equippable() -> bool:
-	return category in [Category.WEAPON, Category.SHIELD, Category.TORCH]
+	return category in [Category.WEAPON, Category.SHIELD, Category.TORCH, Category.ARMOUR]
+
+
+func is_armour() -> bool:
+	return category == Category.ARMOUR and armour_slot != ArmourSlot.NONE
