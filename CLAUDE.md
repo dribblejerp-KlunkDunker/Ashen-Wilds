@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/` (see its README), imported from glTF; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
+An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, and the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README); the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
 
 Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
 
@@ -48,7 +48,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **190 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **192 checks, 0 failures**.
 
 ```bash
 # 5. Networked courtyard: a headless server and driven headless clients as separate processes on loopback.
@@ -97,6 +97,7 @@ scripts/ui/         tactical_hud.gd, inventory_ui.gd
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
 tests/smoke_test.gd headless regression suite
 art/quaternius/     the survivor (Ranger outfit), the two animation libraries, recoloured textures, licences (README)
+art/ambientcg/      photo textures (mud, stone, planks) for the level and props (README)
 tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots),
                     get_export_templates.sh, export_builds.sh, package_builds.sh (the five builds and their zips)
 ```
@@ -120,7 +121,8 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Set `position`, not `global_position`, before `add_child()`.** Global transforms need the node in the tree.
 - **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`WallDeflection.spawn_sparks`).
 - **Lights must not sit inside or right beside meshes that cast shadows.** The torch light hangs on the survivor's visual root over the left shoulder, 2.3 m up (`TORCH_LIGHT_POSITION`), not at the flame. At the torso's centre it shadowed the survivor black; at the flame, which the animated hands carry in front of, behind or above the body, the body threw dark wedges across rooms and the light swung about.
-- **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors.
+- **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors. Give every new box a surface (`"mud"`, `"stone"`, `"dark_stone"`, `"planks"` in `SURFACES`) as its last argument; the suite fails on a flat one. Props use `SceneBootstrap.surface_material()`.
+- **Stylised kits are out** (KayKit, Kenney, Quaternius props): the owner wants grim and grounded. Photo-based CC0 sources fit (ambientCG; Poly Haven's download server refuses scripted clients, so its models need the owner to fetch them or a decision on the tooling).
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports. The networked scene binds its own (WASD/arrows, Q/E turn, C recenter) in `NetMain`; the camera rig only reacts to `camera_rotate_*` and `camera_recenter` when a scene has bound them.
 - **Networked code:** never move an avatar on a client except through `integrate()` for prediction; never read `multiplayer.get_unique_id()` or `multiplayer.is_server()` after a peer may have closed (use `own_peer_id` and `role`); send state per live peer, not broadcast, so a peer mid-handshake or being rejected gets nothing. Every interaction goes through `_serve_request()`: identity from the sender, rate limit, repeat detection, validate, apply, answer, then push the changed durable state to everyone. A client never changes a pack or a container itself; it waits for `pack_state` and `container_contents`.
