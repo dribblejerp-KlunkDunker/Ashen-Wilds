@@ -1153,7 +1153,7 @@ func _test_survivor_model() -> void:
 	_player.inventory.remove(torch)
 
 # ------------------------------------------------------------------------------
-# Look and feel 2: the level's boxes wear photo textures (ambientCG, CC0).
+# Look and feel 2: the level's boxes wear photo textures (ambientCG, CC0); the owner's kit dresses it.
 func _test_environment_surfaces() -> void:
 	_section("Environment surfaces (ambientCG)")
 	var textured: int = 0
@@ -1168,10 +1168,24 @@ func _test_environment_surfaces() -> void:
 		else:
 			flat += 1
 	_check(textured >= 15 and flat == 0, "every level box wears a photo texture (%d textured, %d flat)" % [textured, flat])
-	var crate: Node = _main.find_child("RottedGrainCrate", true, false)
-	var crate_mat: StandardMaterial3D = null
-	if crate:
-		for c: Node in crate.get_children():
-			if c is MeshInstance3D:
-				crate_mat = (c as MeshInstance3D).material_override as StandardMaterial3D
-	_check(crate_mat != null and crate_mat.albedo_texture != null and crate_mat.uv1_triplanar, "crates are weathered planks")
+	# Containers wear the owner's kit (assets/environment/env007), fitted inside their collision.
+	var fitted: int = 0
+	var poking: int = 0
+	for label: String in ["ShelterStash", "RottedGrainCrate", "WatchhouseSupplyChest", "OrkPlunderPile", "GnawedBoneHeap"]:
+		var body := _main.find_child(label, true, false) as StaticBody3D
+		var holder: Node3D = body.get_node_or_null("Model") as Node3D if body else null
+		if holder == null or holder.get_child_count() == 0:
+			continue
+		fitted += 1
+		var box: Vector3 = ((body.get_child(0) as CollisionShape3D).shape as BoxShape3D).size
+		var bb: AABB = SetDressing._bounds(holder.get_child(0) as Node3D)
+		var sc: Vector3 = (holder.get_child(0) as Node3D).scale
+		if bb.size.x * sc.x > box.x + 0.01 or bb.size.z * sc.z > box.z + 0.01:
+			poking += 1
+	_check(fitted == 5 and poking == 0, "all five containers wear kit models inside their collision (%d fitted, %d poking out)" % [fitted, poking])
+	var dressing := _main.find_child("SetDressing", true, false) as SetDressing
+	_check(dressing != null and dressing.placed >= 90, "the yard is dressed with the kit (%d pieces)" % (dressing.placed if dressing else 0))
+	var bodies: int = 0
+	if dressing:
+		bodies = dressing.find_children("*", "CollisionObject3D", true, false).size()
+	_check(dressing != null and bodies == 0, "set dressing adds no collision (%d bodies)" % bodies)

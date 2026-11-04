@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **192/192** headless regression checks passing
-> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0).
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **194/194** headless regression checks passing
+> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
 >
@@ -177,6 +177,7 @@ scripts/
   ui/         tactical_hud.gd, inventory_ui.gd
 art/quaternius/            The survivor character and its animations (CC0; see the README there)
 art/ambientcg/             Photo textures for walls, ground, roof and props (CC0; see the README there)
+assets/environment/        The project's own environment kit (ENV-001 to ENV-010; each set has a README)
 tests/
   smoke_test.gd            Headless regression suite (189 checks)
 tools/
@@ -210,7 +211,7 @@ Next milestone not yet chosen. Candidates from the design document:
 
 ## Known limitations
 
-- Placeholder visuals: enemies and props are primitive shapes (props now textured), and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
+- Placeholder visuals: enemies are primitive shapes, the environment kit is a first pass, and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.

@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, and the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README); the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
+An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README), and the owner's own environment kit under `assets/environment/` (generated GLBs; see each set's README) dresses the yard; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
 
 Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
 
@@ -48,7 +48,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **192 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **194 checks, 0 failures**. The environment kit has its own collision suites, `tests/test_env006_collisions.gd` to `test_env009_collisions.gd` (exit code 1 on any failure).
 
 ```bash
 # 5. Networked courtyard: a headless server and driven headless clients as separate processes on loopback.
@@ -64,7 +64,7 @@ python3 tools/net_spike.py --shots docs/screenshots/net
 tools/export_builds.sh && python3 tools/net_spike.py --exported builds
 ```
 
-CI (`.github/workflows/checks.yml`) runs steps 1–3 and 5 on every push and pull request. `.github/workflows/publish.yml` runs step 7 on every pull request and push to `main`; on `main` it then deploys the browser build (`builds/web/`, the single-player prototype) to GitHub Pages and replaces the zips on the rolling `playtest` pre-release. Anything that breaks the web export breaks that publish. The browser has no system fonts: UI text must stay within Godot's default font (no arrows or symbols like ⇄), and audio generators must set `playback_type = AudioServer.PLAYBACK_TYPE_STREAM`.
+CI (`.github/workflows/checks.yml`) runs steps 1–3, the environment kit's collision suites, and step 5 on every push and pull request. `.github/workflows/publish.yml` runs step 7 on every pull request and push to `main`; on `main` it then deploys the browser build (`builds/web/`, the single-player prototype) to GitHub Pages and replaces the zips on the rolling `playtest` pre-release. Anything that breaks the web export breaks that publish. The browser has no system fonts: UI text must stay within Godot's default font (no arrows or symbols like ⇄), and audio generators must set `playback_type = AudioServer.PLAYBACK_TYPE_STREAM`.
 
 ## Screenshots (README images)
 
@@ -90,7 +90,7 @@ scripts/net/        net_main.gd (session: roles, every RPC, the request pipeline
 scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), wall_deflection (shared clang rules)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
-scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
+scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons), set_dressing.gd (the owner's kit placed as decoration; container models)
 scripts/player/     player_controller.gd (state machine, the largest file), survivor_model.gd (the animated Quaternius body and hand sockets)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
 scripts/ui/         tactical_hud.gd, inventory_ui.gd
@@ -98,6 +98,9 @@ shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
 tests/smoke_test.gd headless regression suite
 art/quaternius/     the survivor (Ranger outfit), the two animation libraries, recoloured textures, licences (README)
 art/ambientcg/      photo textures (mud, stone, planks) for the level and props (README)
+assets/environment/ the owner's environment kit ENV-001..010: crates, barrels, walls, roofs, fences, trees, rocks, ruins,
+                    ground cover, the ENV-010 Watchhouse layout preview; generated by tools/generate_env*.py (each set has a README)
+scenes/environment/, scripts/environment/  the ENV-010 layout preview scene and its builder (not used by the game yet)
 tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots),
                     get_export_templates.sh, export_builds.sh, package_builds.sh (the five builds and their zips)
 ```
@@ -121,7 +124,8 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Set `position`, not `global_position`, before `add_child()`.** Global transforms need the node in the tree.
 - **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`WallDeflection.spawn_sparks`).
 - **Lights must not sit inside or right beside meshes that cast shadows.** The torch light hangs on the survivor's visual root over the left shoulder, 2.3 m up (`TORCH_LIGHT_POSITION`), not at the flame. At the torso's centre it shadowed the survivor black; at the flame, which the animated hands carry in front of, behind or above the body, the body threw dark wedges across rooms and the light swung about.
-- **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors. Give every new box a surface (`"mud"`, `"stone"`, `"dark_stone"`, `"planks"` in `SURFACES`) as its last argument; the suite fails on a flat one. Props use `SceneBootstrap.surface_material()`.
+- **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors. Give every new box a surface (`"mud"`, `"stone"`, `"dark_stone"`, `"planks"` in `SURFACES`) as its last argument; the suite fails on a flat one. Props use `AshenWildsBootstrap.surface_material()`.
+- **Set dressing is decoration only.** `SetDressing` places kit models with no collision and on no physics layer, so walls, the doorway, the entry hall, clangs, enemy routes and test positions are unchanged; tall pieces stand at the yard's edges. Containers get their kit model through `CONTAINER_MODELS` in the bootstrap, fitted inside their collision box (the suite checks nothing pokes out). Godot's `.import` files and extracted `*_0.png` textures under `assets/environment/` are git-ignored: they are regenerated on every import.
 - **Stylised kits are out** (KayKit, Kenney, Quaternius props): the owner wants grim and grounded. Photo-based CC0 sources fit (ambientCG; Poly Haven's download server refuses scripted clients, so its models need the owner to fetch them or a decision on the tooling).
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports. The networked scene binds its own (WASD/arrows, Q/E turn, C recenter) in `NetMain`; the camera rig only reacts to `camera_rotate_*` and `camera_recenter` when a scene has bound them.

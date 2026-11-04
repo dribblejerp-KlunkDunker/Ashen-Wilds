@@ -100,7 +100,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | P10 | Network rates | **TEMPORARY A3**: input up to 60/s unreliable-ordered; state 30/s unreliable-ordered; join, spawn, leave reliable. | 2026-11-03 | Constants in `net_protocol.gd`. | Latency and loss tests (Milestone 1b). |
 | P11 | Inventory capacity model | **CONFIRMED** (owner, 2026-11-03): weight only. Built in M1b: the server holds an `Inventory` per player, `PACK_CAPACITY_KG` = 12 with the existing 1.5× hard limit (encumbrance above capacity, refusal above the hard limit). | 2026-11-03 | Supplement §36: one model, explicit buttons. Reuses the single-player classes unchanged. | Playtest: does 12 kg produce the carrying decision the brief wants? |
 | P12 | Death and recovery | OPEN | | Supplement §42. Not needed before Milestone 4. | Before Milestone 4. |
-| P13 | Asset pipeline | PROPOSED: Blender → GLB → `res://art/exports/`, metadata per asset (brief §14), a 20-piece test kit first. | 2026-11-03 | Brief §12–§14, appendix §82. | The first exported module placed beside the capsule placeholder. |
+| P13 | Asset pipeline | **IN USE** (owner, 2026-11-04): the owner's environment kit ENV-001 to ENV-010 is generated as GLBs by Python scripts (`tools/generate_env*.py`, NumPy/SciPy) into `assets/environment/envNNN/`, each set with a README and, from ENV-006, collision scenes and a Godot collision suite. Merged in PR #14; the owner says the pieces will need more work later. The earlier proposal (Blender → GLB → `res://art/exports/`) is superseded for now. | 2026-11-04 | Brief §12–§14, appendix §82. | Rework of the kit, or a Blender pipeline for hero assets. |
 | P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype) with KayKit's Rogue_Hooded; the owner then judged it "does not fit the grim world at all", so **LF-1b** replaced it with Quaternius's Ranger (Modular Character Outfits, CC0) on the Universal Animation Libraries 1 and 2 (CC0): adult proportions, recoloured dark and dirty. The swap touched only `SurvivorModel` and the clip names, which is the replaceability this decision asked for. Stylised, cartoon-proportioned kits (KayKit, Kenney) are now ruled out for the look. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). The owner accepted the Ranger "for now" (2026-11-04) and may later commission or buy more realistic characters, or ask for help making them; any character on a standard humanoid rig can take the current animations. | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
 | P16 | CC0 environment kits | **CONFIRMED** (owner, 2026-11-03): CC0 kits (Quaternius, Kenney, KayKit) may be used for blockout, scale reference and placeholder props only; the final look comes from the team's own modules and material pass, replacing kit pieces over time. | 2026-11-03 | Brief §59: the visual direction must become recognisably ours; §3: crude and weather-beaten, which the clean kits are not. | Each module of the 20-piece test kit replaces its kit stand-in as it is approved (appendix §82). |
 | P14 | Superseded earlier decisions | Random world per expedition, browser-only delivery (old D42), and the generated 48×48 Blackfen before a small location: all superseded by the briefs and the owner's decisions. The procedural generator remains in the browser repo as reference. | 2026-11-03 | Brief §11, §25. | A demonstrated need for a larger world after the vertical slice. |
@@ -157,6 +157,35 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Look and feel 2b — the owner's kit dresses the yard: evidence (brief §24)
+
+**What.** The owner's environment kit (PR #14, made in a separate session) now dresses the
+single-player prototype. `SetDressing` places 30 hand-placed pieces: six dead trees at the yard's
+edges, stumps and fallen trees, rock clusters, ruin walls and columns around the ogre's lair,
+rubble at the Watchhouse and the ork walls, firewood by the fire, and a broken fence along the
+shelter. A fixed-seed scatter adds 70 tufts of grass, weeds, leaves and twigs, kept out of the
+buildings and away from the containers. Every piece is darkened slightly to sit in the light.
+The five search containers wear kit crates (an open one for the ork pile, a pale tangle of twigs
+for the bone heap), each scaled to fit inside its collision box.
+
+**Why nothing moves in play.** Decoration has no collision and is on no physics layer, so walls,
+the doorway, the entry hall, clangs, enemy routes and every test position are as before. The
+ENV-010 timber Watchhouse layout stays a separate preview scene: swapping it in would change the
+stone Watchhouse's gameplay geometry (the 1.35 m doorway, the 1.7 m entry hall).
+
+**Also.** CI now runs the kit's four collision suites (ENV-006 to ENV-009). Godot's generated
+`.import` files and extracted textures under `assets/environment/` are git-ignored.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 194 passed, 0 failures (the crate check
+became three: all five containers wear kit models inside their collision; 100 pieces placed; set
+dressing adds no collision bodies). The kit suites: ENV-006 1,082 checks, ENV-007 837, ENV-008 and
+ENV-009 78 cases each, 0 failures. Compile check, live boot, `tools/net_spike.py` (65) clean. README
+screenshots re-rendered and looked at; the web export checked in headless Chromium.
+
+**Not covered by headless tests.** Walking through a tree or fence (no collision yet) may look
+wrong; whether the ground cover reads or clutters at the default zoom; browser frame rate with 100
+more meshes.
+
 ## Look and feel 2 — the environment: evidence (brief §24)
 
 **Approach.** The level is code-built boxes of arbitrary sizes, so modular kit pieces would not fit
@@ -168,7 +197,7 @@ dressed stone for the Watchhouse, ruins and fire ring, dark weathered planks for
 - `shaders/foreground_cutaway.gdshader` projects an albedo and an OpenGL normal map in world space
   (floor and roof on XZ, walls on the plane they face) at a fixed density, tinted per surface; the
   cutaway, damp gradient and a lighter procedural grime are unchanged.
-- `SceneBootstrap.SURFACES` names the four surfaces; `_create_static_box()` takes one as its last
+- `AshenWildsBootstrap.SURFACES` names the four surfaces; `_create_static_box()` takes one as its last
   argument; `surface_material()` builds the triplanar StandardMaterial3D the crates and chest use.
 - The shelter fire gains a glowing ember bed and three charred logs (decoration, no collision).
 - `art/ambientcg/` holds the six 1K JPGs (AO baked into each albedo) and a README with sources.
