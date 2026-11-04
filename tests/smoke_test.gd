@@ -1302,6 +1302,7 @@ func _test_enemy_temperaments() -> void:
 	_player.camera_rig = null
 	await _test_goblin_temperament()
 	await _test_ork_temperament()
+	await _test_ogre_temperament()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
@@ -1488,5 +1489,107 @@ func _test_ork_temperament() -> void:
 	inv.main_hand = saved_main
 	inv.off_hand = saved_off
 	inv.notify_changed()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+## A live ogre at `offset` from the survivor, facing them, mid-chase with its charge ready.
+func _spawn_charging_ogre(offset: Vector3) -> EnemyOgreBrute:
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = _player.audio
+	await _pose_ogre(ogre, _player.global_position + offset, -offset)
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.PURSUE
+	ogre._pursuit_time = 2.0
+	ogre._charge_cooldown = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	return ogre
+
+func _wait_ogre_state(ogre: EnemyOgreBrute, wanted: EnemyOgreBrute.AIState, secs: float) -> bool:
+	for i in range(int(secs * Engine.physics_ticks_per_second)):
+		if ogre.state == wanted:
+			return true
+		await _ticks(1)
+	return ogre.state == wanted
+
+func _test_ogre_temperament() -> void:
+	_section("Enemy temperament: the ogre juggernaut")
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var probe := EnemyOgreBrute.new()
+	_main.add_child(probe)
+	probe.process_mode = Node.PROCESS_MODE_DISABLED
+	_check(is_equal_approx(probe.aggression, 0.8) and is_equal_approx(probe.leash_distance(), 20.0),
+		"ogre temperament: aggression 0.8 keeps the 20 m chase (%.1f m)" % probe.leash_distance())
+	var calm_cd: float = probe.charge_cooldown_time()
+
+	# It doesn't flinch mid-windup: poise damage counts for x0.35 while it winds up.
+	probe.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 50.0))
+	var armoured: float = probe.poise_damage
+	probe.state = EnemyOgreBrute.AIState.IDLE
+	probe.poise_damage = 0.0
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 50.0))
+	_check(is_equal_approx(armoured, 50.0 * EnemyOgreBrute.WINDUP_POISE_MULT) and is_equal_approx(probe.poise_damage, 50.0),
+		"ogre: a blow during its windup barely rocks it (%.1f poise vs %.1f at rest)" % [armoured, probe.poise_damage])
+	probe.poise_damage = 0.0
+
+	# Enraged below 40% health: quicker to swing and to charge again, and it says so.
+	var banners: Array[String] = []
+	probe.ogre_event_banner.connect(func(txt: String, _c: Color) -> void: banners.append(txt))
+	probe.health = probe.max_health * 0.45
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 30.0, 1.0))
+	_check(probe.enraged and banners.any(func(t: String) -> bool: return t.contains("enraged")), "ogre: below 40% health it is enraged")
+	probe._begin_committed_attack(Vector3.LEFT)
+	_check(probe._state_timer <= 1.12 * EnemyOgreBrute.ENRAGE_STARTUP_MULT + 0.001, "ogre: enraged, it winds up faster (%.2f s)" % probe._state_timer)
+	_check(probe.charge_cooldown_time() < calm_cd, "ogre: enraged, it charges again sooner (%.1f s vs %.1f s)" % [probe.charge_cooldown_time(), calm_cd])
+	probe.queue_free()
+
+	# 1) The charge: at 8 m in the open it lowers its head, then hits a survivor who stands there.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var ogre: EnemyOgreBrute = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.CHARGE_STARTUP, 1.0), "ogre: at 8 m it braces to charge")
+	ogre._update_visual_telegraph()
+	_check(ogre._model.current_animation() == &"Push", "ogre: bracing plays the shove (got %s)" % ogre._model.current_animation())
+	var hp: float = _player.health
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		if _player.health < hp or ogre.state == EnemyOgreBrute.AIState.LONG_RECOVERY:
+			break
+	_check(is_equal_approx(hp - _player.health, EnemyOgreBrute.CHARGE_DAMAGE),
+		"ogre: the charge hits a survivor who stands still for %.0f (took %.1f)" % [EnemyOgreBrute.CHARGE_DAMAGE, hp - _player.health])
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "ogre: and knocks them reeling")
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.LONG_RECOVERY, 2.0) and not ogre._charge_hitbox._is_swing_active,
+		"ogre: after the charge it recovers, its charge hitbox closed")
+	ogre.queue_free()
+	await _ticks(2)
+
+	# 2) Sidestep with a wall behind you: it thunders past and crashes into the stone, dazed.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(-2.5, 1.25, 0.0), Vector3(0.4, 2.5, 8.0))
+	ogre = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.CHARGE_ACTIVE, 2.0), "ogre: (setup) the charge is under way")
+	_player.global_position += Vector3(0.0, 0.0, 3.5)
+	hp = _player.health
+	var crashed: bool = await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.RECOIL, 2.0)
+	_check(is_equal_approx(_player.health, hp), "ogre: a sidestep makes the charge miss (it cannot steer)")
+	_check(crashed and ogre.is_staggered() and ogre._state_timer > 1.5,
+		"ogre: it crashes into the wall behind and reels (state=%s, %.1f s)" % [EnemyOgreBrute.AIState.keys()[ogre.state], ogre._state_timer])
+	ogre.queue_free()
+
+	# 3) With a wall between, it doesn't charge at all.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	ogre = EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	await _pose_ogre(ogre, OGRE_YARD + Vector3(-7.0, 0.0, 0.0), Vector3.RIGHT)
+	ogre.player_ref = _player
+	ogre._pursuit_time = 2.0
+	ogre._visual_root.visible = true
+	_check(not ogre._try_begin_charge(7.0, Vector3.RIGHT), "ogre: it won't charge with a wall in the way")
+	ogre.queue_free()
+	wall.queue_free()
 	_reset_player(OPEN)
 	await _ticks(2)
