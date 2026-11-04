@@ -109,6 +109,7 @@ func _run() -> void:
 	await _test_atmosphere()
 	await _test_enemy_models()
 	await _test_enemy_temperaments()
+	await _test_perception()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1780,5 +1781,136 @@ func _test_temperament_audit() -> void:
 	o.queue_free()
 	coord._active_holders.clear()
 	coord._cooldown_timer = 0.0
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Perception: the survivor's 130-degree vision cone, cut by walls, and the acoustic ripples that
+# show unseen noises. Presentation only: nothing here changes a hit or an enemy's senses.
+# ------------------------------------------------------------------------------
+func _count_nodes(group: String) -> int:
+	return get_nodes_in_group(group).size()
+
+## Ripples and marks left by earlier sections (they fade on their own) must not skew a count.
+func _clear_perception_leftovers() -> void:
+	for n: Node in get_nodes_in_group("acoustic_ripple") + get_nodes_in_group("last_seen_mark"):
+		n.queue_free()
+	await _ticks(1)
+
+func _test_perception() -> void:
+	_section("Perception: vision cone and acoustic ripples")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var per: Perception = _player.perception
+	await _clear_perception_leftovers()
+	_check(per != null and per.enabled and is_equal_approx(Perception.CONE_DEGREES, 130.0), "the survivor has a 130-degree vision cone, on by default")
+	_check(_main.find_children("VisionConeOverlay", "", false, false).size() == 1, "the charcoal overlay is in the scene")
+
+	# The cone around the aim.
+	_face(Vector3.RIGHT)
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 0.0)), "straight ahead is in the cone")
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 5.0)), "45 degrees off the aim is in the cone")
+	_check(not per.in_cone(OPEN + Vector3(0.0, 0.0, 5.0)), "90 degrees off the aim is outside it")
+	_check(not per.in_cone(OPEN + Vector3(-5.0, 0.0, 0.0)), "behind the survivor is outside it")
+
+	# An enemy is drawn only while seen; slipping out of sight leaves one charcoal mark.
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	await _ticks(1)
+	_check(per.update_visibility(g, g._visual_root, 0.95) and g._visual_root.visible, "a goblin 4 m ahead is drawn")
+	_face(Vector3.LEFT)
+	var marks: int = _count_nodes("last_seen_mark")
+	_check(not per.update_visibility(g, g._visual_root, 0.95) and not g._visual_root.visible, "turn your back and it is no longer drawn")
+	_check(_count_nodes("last_seen_mark") == marks + 1, "a charcoal mark is left where it was last seen")
+	per.update_visibility(g, g._visual_root, 0.95)
+	_check(_count_nodes("last_seen_mark") == marks + 1, "staying unseen leaves no second mark")
+	_face(Vector3.RIGHT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "turn back and it is drawn again")
+	var wall := _make_ogre_test_wall(OPEN + Vector3(2.0, 1.25, 0.0), Vector3(0.4, 2.5, 3.0))
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "a wall between hides it even inside the cone")
+	wall.queue_free()
+	await _ticks(1)
+	per.enabled = false
+	_face(Vector3.LEFT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "cone off (F4): line of sight alone, a goblin behind you is drawn")
+	per.enabled = true
+	_face(Vector3.RIGHT)
+	per.update_visibility(g, g._visual_root, 0.95)
+	_face(Vector3.LEFT)
+	marks = _count_nodes("last_seen_mark")
+	per.update_visibility(g, g._visual_root, 0.95, false)
+	_check(_count_nodes("last_seen_mark") == marks, "a corpse slipping out of sight leaves no mark")
+
+	# Noises: heard within their loudness, ripples only for what you cannot see.
+	_face(Vector3.RIGHT)
+	var heard: Array[float] = []
+	var on_heard := func(_p: Vector3, l: float) -> void: heard.append(l)
+	per.heard.connect(on_heard)
+	var ripples: int = _count_nodes("acoustic_ripple")
+	_check(per.report_noise(OPEN + Vector3(4.0, 0.0, 0.0), 8.0, g) and heard.is_empty() and _count_nodes("acoustic_ripple") == ripples,
+		"a noise where you can see raises no ripple")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and heard.size() == 1 and _count_nodes("acoustic_ripple") == ripples + 1,
+		"a noise behind you raises a ripple and the cue")
+	var ring: AcousticRipple = get_nodes_in_group("acoustic_ripple").back()
+	_check(ring.global_position.distance_to(OPEN + Vector3(-4.0, 0.03, 0.0)) < 0.05, "the ripple sits where the noise was")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and _count_nodes("acoustic_ripple") == ripples + 1,
+		"one source cannot carpet the ground: one ripple per %.2f s" % Perception.RIPPLE_GAP)
+	var loud := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 0.0), 30.0)
+	var quiet := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 2.0), 5.0)
+	_check(loud.scale.x > quiet.scale.x * 2.0, "a louder noise makes a larger ring (%.2f vs %.2f)" % [loud.scale.x, quiet.scale.x])
+	_check(not per.report_noise(OPEN + Vector3(-12.0, 0.0, 0.0), 8.0, null), "a noise beyond its loudness is not heard")
+	var muffle := _make_ogre_test_wall(OPEN + Vector3(-3.0, 1.25, 0.0), Vector3(0.4, 2.5, 4.0))
+	await _ticks(1)
+	_check(not per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "an 8 m noise 6 m away through a wall is muffled out of hearing")
+	muffle.queue_free()
+	await _ticks(1)
+	_check(per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "the same noise with no wall is heard")
+	await _seconds(0.3)
+	ripples = _count_nodes("acoustic_ripple")
+	g.global_position = OPEN + Vector3(-4.0, 0.0, 0.0)
+	for i in range(30):
+		per.report_footsteps(g, 1.0 / 60.0, 3.4, 1.1, 8.0)
+	_check(_count_nodes("acoustic_ripple") == ripples + 1, "half a second of jogging at 3.4 m/s is one footstep ripple at a 1.1 m stride")
+	await _seconds(1.5)
+	_check(_count_nodes("acoustic_ripple") == 0, "ripples fade and clean themselves up")
+	per.heard.disconnect(on_heard)
+	g.queue_free()
+	await _ticks(2)
+
+	# Live enemies report: a jogging ork behind you is unseen but heard, step by step.
+	_reset_player(OPEN)
+	await _ticks(2)
+	await _clear_perception_leftovers()
+	_face(Vector3.RIGHT)
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.audio = _player.audio
+	o.player_ref = _player
+	_main.add_child(o)
+	o.global_position = OPEN + Vector3(-7.0, 0.0, 0.0)
+	o.state = EnemyOrkWarrior.AIState.PURSUE
+	o._has_last_known_pos = true
+	o._last_known_player_pos = OPEN + Vector3(-9.0, 0.0, 0.0)
+	await _seconds(0.6)
+	_check(not o._visual_root.visible, "a live ork behind you is not drawn")
+	_check(_count_nodes("acoustic_ripple") >= 1, "its footsteps raise ripples (%d)" % _count_nodes("acoustic_ripple"))
+	o.queue_free()
+
+	# The cone is the survivor's sight, not the enemies': an ogre behind you still spots you.
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = _player.audio
+	await _pose_ogre(ogre, OPEN + Vector3(-8.0, 0.0, 0.0), Vector3.RIGHT)
+	ogre.player_ref = _player
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre._visual_root.visible,
+		"an unseen ogre behind you still spots you with its own eyes (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.queue_free()
+	await _seconds(1.2)
+	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)

@@ -128,6 +128,7 @@ func _physics_process(delta: float) -> void:
 		poise_damage = maxf(0.0, poise_damage - 5.0 * delta)
 
 	_process_ai_state(delta)
+	_report_noises(delta)
 	_update_visual_telegraph()
 
 	if not is_on_floor():
@@ -136,16 +137,32 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.1
 	move_and_slide()
 
+## Drawn only while the survivor can see it (their vision cone, cut by walls: Perception).
 func _update_player_los_visibility() -> void:
-	if player_ref == null:
+	if player_ref == null or player_ref.perception == null:
 		return
-	var space_state := get_world_3d().direct_space_state
-	var q := PhysicsRayQueryParameters3D.create(
-		player_ref.global_position + Vector3(0.0, 1.35, 0.0),
-		global_position + Vector3(0.0, 1.85, 0.0),
-		1
-	)
-	_visual_root.visible = space_state.intersect_ray(q).is_empty()
+	player_ref.perception.update_visibility(self, _visual_root, 1.85, state != AIState.DEAD)
+
+## Its own eyes: a ray from its head to the survivor, clear of walls. Never the draw flag, which
+## is the survivor's sight (their vision cone), not the ogre's.
+func _can_see_player() -> bool:
+	if player_ref == null:
+		return false
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 1.85, 0.0),
+		player_ref.global_position + Vector3(0.0, 1.1, 0.0), 1)
+	return get_world_3d().direct_space_state.intersect_ray(q).is_empty()
+
+## What the survivor may hear of it: a tread that carries far, a grunt as a blow starts, the
+## blows, and roars and slams that carry across the whole yard.
+func _report_noises(delta: float) -> void:
+	if player_ref == null or player_ref.perception == null:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	player_ref.perception.report_footsteps(self, delta, speed, 1.6, 16.0)
+
+func _noise(loudness: float) -> void:
+	if player_ref != null and player_ref.perception != null:
+		player_ref.perception.report_noise(global_position, loudness, self)
 
 func _process_ai_state(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -164,9 +181,10 @@ func _process_ai_state(delta: float) -> void:
 		AIState.IDLE:
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
-			if dist <= 13.0 and _visual_root.visible:
+			if dist <= 13.0 and _can_see_player():
 				if audio:
 					audio.play_ogre_roar()
+				_noise(28.0)
 				ogre_event_banner.emit("The Blackfen Ogre Has Spotted You!", Color(0.92, 0.35, 0.20))
 				_enter_pursuit()
 
@@ -286,6 +304,7 @@ func _begin_committed_attack(dir_to_player: Vector3) -> void:
 		coordinator.request_attack_token(self, true)
 	_face_direction(dir_to_player, 12.0, 0.1)
 	var quick: float = ENRAGE_STARTUP_MULT if enraged else 1.0
+	_noise(12.0)
 	if randf() > 0.45:
 		state = AIState.SLAM_STARTUP
 		_state_timer = 1.12 * quick
@@ -312,7 +331,7 @@ func _speed_mult() -> float:
 func _try_begin_charge(dist: float, dir_p: Vector3) -> bool:
 	if _charge_cooldown > 0.0 or _pursuit_time < CHARGE_MIN_PURSUIT:
 		return false
-	if dist < CHARGE_MIN_RANGE or dist > CHARGE_MAX_RANGE or not _visual_root.visible:
+	if dist < CHARGE_MIN_RANGE or dist > CHARGE_MAX_RANGE:
 		return false
 	if not _charge_lane_clear(dir_p, dist):
 		return false
@@ -325,6 +344,7 @@ func _try_begin_charge(dist: float, dir_p: Vector3) -> bool:
 	_charge_cooldown = charge_cooldown_time()
 	if audio:
 		audio.play_ogre_roar()
+	_noise(28.0)
 	ogre_event_banner.emit("The Ogre lowers its head to charge. Sidestep!", Color(0.95, 0.52, 0.18))
 	return true
 
@@ -380,6 +400,7 @@ func _enter_charge_crash() -> void:
 	if audio:
 		audio.play_ogre_ground_slam()
 	ogre_ground_shockwave.emit(0.6)
+	_noise(30.0)
 	ogre_event_banner.emit("The Ogre crashes into the wall. Strike now!", Color(0.48, 0.78, 0.92))
 
 func _enter_sweep_active() -> void:
@@ -395,6 +416,7 @@ func _enter_sweep_active() -> void:
 	_state_timer = 0.24
 	if audio:
 		audio.play_swing()
+	_noise(14.0)
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -413,6 +435,7 @@ func _enter_slam_active() -> void:
 	if audio:
 		audio.play_ogre_ground_slam()
 	ogre_ground_shockwave.emit(0.75)
+	_noise(30.0)
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -444,6 +467,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 	_knockback_vel = normal * 1.2
 	if audio:
 		audio.play_wall_clang()
+	_noise(20.0)
 	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * sweep_reach), normal)
 	ogre_event_banner.emit("The Ogre's club smashes into the wall — Strike Now!", Color(0.48, 0.78, 0.92))
 
@@ -493,6 +517,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_charge_cooldown = minf(_charge_cooldown, 1.5)
 		if audio:
 			audio.play_ogre_roar()
+		_noise(28.0)
 		ogre_event_banner.emit("The Ogre is enraged!", Color(0.95, 0.30, 0.16))
 
 	if poise_damage >= max_poise:

@@ -126,6 +126,8 @@ var _hitbox_col: CollisionShape3D
 var _hitbox_shape: BoxShape3D
 var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
+## What the survivor can see and hear: the vision cone and acoustic ripples (presentation only).
+var perception: Perception
 
 func _ready() -> void:
 	_fists = _make_fists()
@@ -135,6 +137,8 @@ func _ready() -> void:
 		_give_starting_loadout()
 	weapon = _current_weapon_data()
 	_build_survivor_visuals_and_colliders()
+	perception = Perception.new(self)
+	add_child(perception)
 	inventory.changed.connect(_on_inventory_changed)
 	_apply_equipment()
 	_last_load = inventory.get_load()
