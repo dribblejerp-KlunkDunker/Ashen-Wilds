@@ -292,7 +292,7 @@ func _enter_pursuit() -> void:
 
 ## How far from the survivor it gives up and walks home.
 func leash_distance() -> float:
-	return 10.0 + 12.5 * aggression
+	return 10.0 + 12.5 * clampf(aggression + (0.25 if enraged else 0.0), 0.0, 1.0)
 
 func charge_cooldown_time() -> float:
 	return lerpf(12.0, 4.0, clampf(aggression + (0.25 if enraged else 0.0), 0.0, 1.0))
@@ -311,8 +311,9 @@ func _try_begin_charge(dist: float, dir_p: Vector3) -> bool:
 		player_ref.global_position + Vector3(0.0, 1.0, 0.0), 1)
 	if not get_world_3d().direct_space_state.intersect_ray(q).is_empty():
 		return false
-	if coordinator:
-		coordinator.request_attack_token(self, true)
+	# Unlike its close blows, the charge is optional: it waits for the attack turn.
+	if coordinator and not coordinator.request_attack_token(self, true):
+		return false
 	_face_direction(dir_p, 12.0, 0.1)
 	state = AIState.CHARGE_STARTUP
 	_state_timer = CHARGE_STARTUP_TIME * (ENRAGE_STARTUP_MULT if enraged else 1.0)

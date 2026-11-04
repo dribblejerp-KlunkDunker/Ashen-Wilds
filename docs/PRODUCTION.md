@@ -157,6 +157,45 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Enemy temperaments — audit (brief §24)
+
+The owner asked for a full audit that the temperament work is done. Two passes: a checklist
+against the request and the tests, and an independent read of the code by a separate reviewer
+given only the diff, not these notes.
+
+**Against the request.** Attack style: each enemy has its own moves and a doc comment naming its
+style. Aggression: an export on each, documented per enemy, with a measurable effect tested on
+all three (goblin patience, ork recovery, ogre chase and charge cooldown). Attack power: an export
+on each that scales every blow; this was untested and is now checked on all nine attacks. Also
+distinct already: health and poise (65/22, 115/42, 280/95), speed, and senses (the goblin hears
+footsteps and rummaging, the ork a sprint or a swing, the ogre only sees).
+
+**Found and fixed.**
+- *Since LF-4 (this PR):* the goblin's creep and the ogre's idle, shamble and doorway scratch were
+  one-shot clips, so the bodies froze after one cycle. They are looped now, and the suite checks
+  that every gait and idle clip loops. Found because the new test asked whether the goblin's
+  reversed walk actually moves.
+- The goblin's stone throw took no attack token, so stones could fly during another enemy's blow.
+- The ogre's charge ignored whether it got the token. It now waits its turn. Its sweep and slam
+  still take the turn regardless, as they always have (they are its committed close blows).
+- With the survivor dead, goblins kept darting at and throwing at the body, and a backstab bark
+  could overwrite "YOU PERISHED". Goblins and orks now stand down to patrol, closing their hitbox
+  and handing back the turn. The bark now fires only when a backstab lands.
+- A goblin out of patience, finding the turn taken, hovered at sword range, darting in and out
+  every tick. It now circles for 0.8 s before trying again.
+- A light blow released a goblin's token but its jab or throw carried on without one. Now any blow
+  knocks a goblin out of its attack.
+- The enraged ogre didn't get the longer chase its doc promised. The aggression speed bonus
+  reached a shielded ork too. Both fixed.
+
+**Checked and sound.** Every exit from the charge closes its hitbox. `player_ref` is null-safe on
+every path (tests spawn enemies without one). The stone's rays use layer 1 only, and it can't
+step through the survivor. The bash and `breaks_guard` behave as documented. Every new state is
+in the animation and telegraph lists.
+
+**Tests.** `tests/smoke_test.gd`: 274 passed, 0 failures, twice (16 new). Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
 ## Enemy temperaments — each enemy fights its own way: evidence (brief §24)
 
 **Why.** The owner asked for each enemy to have its own attack style, aggression level and attack

@@ -113,6 +113,8 @@ func _physics_process(delta: float) -> void:
 	if poise_damage > 0.0:
 		poise_damage = maxf(0.0, poise_damage - 6.0 * delta)
 
+	if player_ref != null and player_ref.current_state == PlayerController.ActionState.DEAD:
+		_stand_down()
 	_evaluate_senses(delta)
 	_watch_for_raised_guard(delta)
 	_process_ai_state(delta)
@@ -233,7 +235,9 @@ func _process_ai_state(delta: float) -> void:
 				velocity.x = tangent.x * 1.65 + _knockback_vel.x
 				velocity.z = tangent.z * 1.65 + _knockback_vel.z
 			else:
-				var spd: float = 2.55 if state == AIState.SHIELD_ADVANCE else 3.75 + (aggression - 0.5) * 1.6
+				var spd: float = 2.55 if state == AIState.SHIELD_ADVANCE else 3.75
+				if not has_shield:
+					spd += (aggression - 0.5) * 1.6
 				_steer_toward(dir_p, spd, delta)
 
 		AIState.COMBO_1_STARTUP:
@@ -351,6 +355,18 @@ func _watch_for_raised_guard(delta: float) -> void:
 		_turtle_timer += delta
 	else:
 		_turtle_timer = maxf(0.0, _turtle_timer - delta * 2.0)
+
+## The survivor is dead: drop any attack (closing the hitbox, handing back the turn), forget them
+## and go back to patrolling, instead of hacking at the body.
+func _stand_down() -> void:
+	if state in [AIState.IDLE, AIState.PATROL, AIState.DEAD]:
+		return
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	_has_last_known_pos = false
+	_turtle_timer = 0.0
+	state = AIState.PATROL
 
 func _try_begin_bash() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):

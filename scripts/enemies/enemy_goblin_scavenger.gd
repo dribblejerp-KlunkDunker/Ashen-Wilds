@@ -89,6 +89,10 @@ var _unseen_cue_cooldown: float = 0.0
 var _committed: bool = false
 var _patience: float = 0.0
 var _stone_cooldown: float = 0.0
+## After a dart finds the attack turn taken, it circles a moment before trying again.
+var _recommit_delay: float = 0.0
+## The jab now in the air is a backstab (barked only if it lands).
+var _backstab_swing: bool = false
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
@@ -114,6 +118,9 @@ func _physics_process(delta: float) -> void:
 
 	_knockback_vel = _knockback_vel.move_toward(Vector3.ZERO, 14.0 * delta)
 	_stone_cooldown = maxf(0.0, _stone_cooldown - delta)
+	_recommit_delay = maxf(0.0, _recommit_delay - delta)
+	if player_ref != null and player_ref.current_state == PlayerController.ActionState.DEAD:
+		_stand_down()
 	_evaluate_senses(delta)
 	_process_ai_state(delta)
 	_update_visual_telegraph()
@@ -253,6 +260,10 @@ func _process_ai_state(delta: float) -> void:
 			if dist <= 1.85:
 				if _try_begin_attack_windup():
 					return
+				if _committed:
+					# Another enemy has the attack turn: back off and circle before trying again.
+					_recommit_delay = 0.8
+					_patience = maxf(_patience, 0.8)
 				_committed = false
 				state = AIState.FLANK
 				_state_timer = 0.55
@@ -292,7 +303,7 @@ func _process_ai_state(delta: float) -> void:
 			if dist <= 1.5 and _try_begin_attack_windup():
 				return
 			_patience -= delta
-			if player_is_open() or _patience <= 0.0 or randf() < aggression * delta:
+			if _recommit_delay <= 0.0 and (player_is_open() or _patience <= 0.0 or randf() < aggression * delta):
 				_committed = true
 				state = AIState.PURSUE
 				return
@@ -358,6 +369,8 @@ func _process_ai_state(delta: float) -> void:
 					_face_direction(aim_t.normalized(), 6.0, delta)
 			if _state_timer <= 0.0:
 				_release_stone()
+				if coordinator:
+					coordinator.release_attack_token(self)
 				state = AIState.RETREAT if health < max_health * 0.32 else AIState.PURSUE
 				if state == AIState.RETREAT:
 					_state_timer = 1.6
@@ -437,6 +450,9 @@ func _try_begin_throw(dist: float) -> bool:
 		player_ref.global_position + Vector3(0.0, 1.0, 0.0), 1)
 	if not get_world_3d().direct_space_state.intersect_ray(q).is_empty():
 		return false
+	# A throw is an attack like any other: it waits its turn (EncounterCoordinator).
+	if coordinator and not coordinator.request_attack_token(self):
+		return false
 	state = AIState.THROW_STARTUP
 	_state_timer = THROW_STARTUP_TIME
 	_stone_cooldown = STONE_COOLDOWN
@@ -467,9 +483,9 @@ func _enter_attack_active() -> void:
 	if audio:
 		audio.play_swing()
 	var damage: float = JAB_DAMAGE * attack_power
-	if player_ref != null and _behind_player_dot() <= BACKSTAB_DOT:
+	_backstab_swing = player_ref != null and _behind_player_dot() <= BACKSTAB_DOT
+	if _backstab_swing:
 		damage *= BACKSTAB_MULT
-		goblin_combat_bark.emit("Backstabbed by a goblin! Keep them in front of you.")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -505,12 +521,32 @@ func _face_direction(dir: Vector3, turn_speed: float, delta: float) -> void:
 	_facing_dir = _facing_dir.slerp(dir, 1.0 - exp(-turn_speed * delta)).normalized()
 	_visual_root.look_at(global_position + _facing_dir, Vector3.UP)
 
+## The survivor is dead: drop the attack (closing the hitbox, handing back the turn), forget
+## them, and go back to patrolling. Otherwise it would keep jabbing the body.
+func _stand_down() -> void:
+	if state in [AIState.IDLE, AIState.PATROL, AIState.DEAD]:
+		return
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	_has_last_known_pos = false
+	_committed = false
+	state = AIState.PATROL
+
+func _on_jab_landed(_target: Node3D, _payload: CombatPayload) -> void:
+	if _backstab_swing:
+		goblin_combat_bark.emit("Backstabbed by a goblin! Keep them in front of you.")
+
 func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if state == AIState.DEAD:
 		return
 	_hitbox.end_swing()
 	if coordinator:
 		coordinator.release_attack_token(self)
+	# Light and cowardly: any blow knocks it out of a jab or a throw (it has handed back its turn).
+	if state in [AIState.ATTACK_STARTUP, AIState.ATTACK_ACTIVE, AIState.THROW_STARTUP]:
+		state = AIState.RECOVER_VULNERABLE
+		_state_timer = 0.35
 
 	health = maxf(0.0, health - payload.physical_damage)
 	poise_damage += payload.poise_damage
@@ -638,6 +674,7 @@ func _build_goblin_visuals_and_colliders() -> void:
 	hb_col.position = Vector3(0.0, 0.8, -0.75)
 	_hitbox.add_child(hb_col)
 	_visual_root.add_child(_hitbox)
+	_hitbox.confirmed_hit.connect(_on_jab_landed)
 
 	_hurtbox = HurtboxComponent.new()
 	_hurtbox.owner_entity = self

@@ -24,6 +24,8 @@ const ANIMATION_SOURCES: Array[String] = [
 const LOOPING: Array[StringName] = [
 	&"Idle", &"Sword_Idle", &"Idle_Torch", &"Idle_Shield", &"Walk",
 	&"Jog_Fwd", &"Sprint", &"Crouch_Idle", &"Fixing_Kneeling", &"Consume", &"Push",
+	# The Ashbound's gaits (EnemyModel shares this library): the goblin's creep, the ogre's shamble.
+	&"Crouch_Fwd", &"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch",
 ]
 ## The Ranger is 1.87 m to the top of the hood; the survivor's capsule is 1.75 m.
 const MODEL_SCALE: float = 0.95

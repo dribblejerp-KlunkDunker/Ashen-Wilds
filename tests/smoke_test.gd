@@ -1275,6 +1275,14 @@ func _test_enemy_models() -> void:
 		_check(toes.z > 0.8, "%s faces where it aims (toes·aim = %.2f)" % [e.get("enemy_name"), toes.z])
 		vr.global_transform = saved
 
+	# Every gait and idle a character holds must loop, or the body freezes after one cycle (the
+	# goblin's creep and the ogre's shamble shipped that way in LF-4).
+	var held: Array[StringName] = [&"Idle", &"Idle_Torch", &"Sword_Idle", &"Idle_Shield", &"Walk", &"Jog_Fwd", &"Sprint",
+		&"Crouch_Idle", &"Crouch_Fwd", &"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Push"]
+	var lib: AnimationLibrary = SurvivorModel.shared_library()
+	var one_shot: Array = held.filter(func(n: StringName) -> bool: return lib.get_animation(n).loop_mode != Animation.LOOP_LINEAR)
+	_check(one_shot.is_empty(), "every walk and idle clip loops (one-shot: %s)" % str(one_shot))
+
 	# A goblin's attack plays the jab; its death plays the death clip, and the body is not tipped flat.
 	var goblin := EnemyGoblinScavenger.new()
 	_main.add_child(goblin)
@@ -1303,6 +1311,8 @@ func _test_enemy_temperaments() -> void:
 	await _test_goblin_temperament()
 	await _test_ork_temperament()
 	await _test_ogre_temperament()
+	await _test_attack_power()
+	await _test_temperament_audit()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
@@ -1372,6 +1382,11 @@ func _test_goblin_temperament() -> void:
 	_check(g.global_position.distance_to(_player.global_position) > d0 + 0.8, "goblin: disengaging backs it away (%.1f m -> %.1f m)" % [d0, g.global_position.distance_to(_player.global_position)])
 	_check(g._facing_dir.dot((_player.global_position - g.global_position).normalized()) > 0.7, "goblin: it backs away still facing the survivor")
 	_check(g._model.anim.speed_scale < 0.0 and g._model.current_animation() == &"Crouch_Fwd", "goblin: backing away plays the crouched walk in reverse")
+	var pos_a: float = g._model.anim.current_animation_position
+	await _ticks(3)
+	var pos_b: float = g._model.anim.current_animation_position
+	_check(g._model.anim.is_playing() and not is_equal_approx(pos_a, pos_b) and (pos_b < pos_a or pos_b > pos_a + 1.0),
+		"goblin: the reversed walk actually runs backwards (%.2f s -> %.2f s)" % [pos_a, pos_b])
 	g.queue_free()
 	await _ticks(2)
 
@@ -1383,6 +1398,21 @@ func _test_goblin_temperament() -> void:
 	_check(thrower._try_begin_throw(7.0) and thrower.state == EnemyGoblinScavenger.AIState.THROW_STARTUP,
 		"goblin: at 7 m it winds up a throw")
 	_check(not thrower._try_begin_throw(7.0), "goblin: and must rest its arm before the next one")
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var taker := Node3D.new()
+	_main.add_child(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	coord.request_attack_token(taker)
+	var waiting := _spawn_hunting_goblin(Vector3(0.0, 0.0, 7.0))
+	waiting.coordinator = coord
+	await _ticks(1)
+	_check(not waiting._try_begin_throw(7.0), "goblin: a throw waits its turn while another enemy attacks")
+	coord.release_attack_token(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	waiting.queue_free()
+	taker.queue_free()
 	thrower._update_visual_telegraph()
 	_check(thrower._model.current_animation() == &"OverhandThrow", "goblin: the throw plays the overhand throw")
 	var hp: float = _player.health
@@ -1591,5 +1621,139 @@ func _test_ogre_temperament() -> void:
 	_check(not ogre._try_begin_charge(7.0, Vector3.RIGHT), "ogre: it won't charge with a wall in the way")
 	ogre.queue_free()
 	wall.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+## attack_power scales every blow each enemy deals (checked on the payload each attack builds).
+func _test_attack_power() -> void:
+	_section("Enemy temperament: attack power")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	await _ticks(2)
+	_face(Vector3.RIGHT)
+	g.attack_power = 1.5
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var jab: float = g._hitbox._active_payload.physical_damage
+	g._hitbox.end_swing()
+	g.queue_free()
+	var o := EnemyOrkWarrior.new()
+	_main.add_child(o)
+	o.process_mode = Node.PROCESS_MODE_DISABLED
+	o.global_position = OGRE_YARD  # open ground: the slash must not clang
+	o.attack_power = 1.5
+	var ork: Array[float] = []
+	for f: Callable in [o._enter_combo_1_active, o._enter_combo_2_active, o._enter_bash_active]:
+		f.call()
+		ork.append(o._hitbox._active_payload.physical_damage if o._hitbox._active_payload else -1.0)
+		o._hitbox.end_swing()
+	o.queue_free()
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre.global_position = OGRE_YARD
+	ogre.attack_power = 1.5
+	ogre._enter_slam_active()
+	var slam: float = ogre._hitbox._active_payload.physical_damage
+	ogre._hitbox.end_swing()
+	ogre._enter_charge_active()
+	var charge: float = ogre._charge_hitbox._active_payload.physical_damage
+	ogre._charge_hitbox.end_swing()
+	ogre.queue_free()
+	_check(is_equal_approx(jab, EnemyGoblinScavenger.JAB_DAMAGE * 1.5), "attack power 1.5: goblin jab %.0f" % jab)
+	_check(is_equal_approx(ork[0], EnemyOrkWarrior.SLASH_DAMAGE * 1.5) and is_equal_approx(ork[1], EnemyOrkWarrior.CHOP_DAMAGE * 1.5)
+		and is_equal_approx(ork[2], EnemyOrkWarrior.BASH_DAMAGE * 1.5), "attack power 1.5: ork slash, chop, bash %s" % str(ork))
+	_check(is_equal_approx(slam, EnemyOgreBrute.SLAM_DAMAGE * 1.5) and is_equal_approx(charge, EnemyOgreBrute.CHARGE_DAMAGE * 1.5),
+		"attack power 1.5: ogre slam %.0f, charge %.0f" % [slam, charge])
+	await _ticks(2)
+
+## Fixes from the temperament audit: enemies stand down when the survivor dies, a goblin's
+## attack is knocked out by any blow, the backstab bark waits for a hit, a dart that finds the
+## turn taken circles before retrying, and the ogre's charge waits its turn.
+func _test_temperament_audit() -> void:
+	_section("Enemy temperament: audit fixes")
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	_reset_player(OPEN)
+	await _ticks(2)
+	_face(Vector3.LEFT)
+
+	# A backstab that hits nothing doesn't bark (4 m away: the jab lands on air).
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	g.coordinator = coord
+	var barks: Array[String] = []
+	g.goblin_combat_bark.connect(func(m: String) -> void: barks.append(m))
+	await _ticks(2)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	await _ticks(3)
+	g._hitbox.end_swing()
+	_check(barks.is_empty(), "audit: a backstab that misses says nothing (%s)" % str(barks))
+
+	# Any blow knocks a goblin out of its windup, and the jab never opens.
+	_face(Vector3.RIGHT)
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	_check(g._try_begin_attack_windup(), "audit: (setup) goblin winds up a jab")
+	g._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 1.0))
+	var opened: bool = false
+	for i in range(int(0.6 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		opened = opened or g._hitbox._is_swing_active
+	_check(not opened, "audit: a light blow knocks the goblin out of its jab")
+	_check(not coord._active_holders.has(g.get_instance_id()), "audit: and it holds no attack turn")
+
+	# A dart that finds the turn taken backs off and circles before trying again.
+	var taker := Node3D.new()
+	_main.add_child(taker)
+	coord.request_attack_token(taker)
+	g.global_position = _player.global_position + Vector3(1.6, 0.0, 0.0)
+	g._has_last_known_pos = true
+	g._last_known_player_pos = _player.global_position
+	g._committed = true
+	g.state = EnemyGoblinScavenger.AIState.PURSUE
+	await _ticks(2)
+	_check(g.state == EnemyGoblinScavenger.AIState.FLANK and g._recommit_delay > 0.5 and not g._committed,
+		"audit: turn taken, the dart breaks off to circle (state=%s, delay %.2f s)" % [EnemyGoblinScavenger.AIState.keys()[g.state], g._recommit_delay])
+
+	# The ogre's charge waits its turn too.
+	var ogre: EnemyOgreBrute = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	ogre.coordinator = coord
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre._visual_root.visible = true
+	_check(not ogre._try_begin_charge(8.0, Vector3.LEFT), "audit: the ogre won't charge while another enemy has the turn")
+	coord.release_attack_token(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	ogre.enraged = true
+	_check(ogre.leash_distance() > 20.0, "audit: enraged, the ogre chases further (%.1f m)" % ogre.leash_distance())
+	ogre.queue_free()
+	taker.queue_free()
+
+	# When the survivor dies, goblins and orks stop attacking the body and go back to patrol.
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	o.audio = _player.audio
+	o.player_ref = _player
+	o.coordinator = coord
+	_main.add_child(o)
+	o.global_position = _player.global_position + Vector3(-1.5, 0.0, 0.0)
+	await _ticks(2)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	coord.request_attack_token(g)
+	o.state = EnemyOrkWarrior.AIState.COMBO_1_STARTUP
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(g.state in [EnemyGoblinScavenger.AIState.PATROL, EnemyGoblinScavenger.AIState.IDLE] and not g._has_last_known_pos and not g._hitbox._is_swing_active,
+		"audit: survivor dead, the goblin stands down (state=%s)" % EnemyGoblinScavenger.AIState.keys()[g.state])
+	_check(o.state in [EnemyOrkWarrior.AIState.PATROL, EnemyOrkWarrior.AIState.IDLE] and not o._hitbox._is_swing_active,
+		"audit: survivor dead, the ork stands down (state=%s)" % EnemyOrkWarrior.AIState.keys()[o.state])
+	_check(coord._active_holders.is_empty(), "audit: and both hand back the attack turn")
+	g.queue_free()
+	o.queue_free()
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
 	_reset_player(OPEN)
 	await _ticks(2)
