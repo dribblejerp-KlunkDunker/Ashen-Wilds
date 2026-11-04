@@ -458,7 +458,7 @@ func _update_visual_telegraph() -> void:
 
 func _build_ork_visuals_and_colliders() -> void:
 	collision_layer = 4
-	collision_mask = 1 | 2 | 4
+	collision_mask = 1 | 2 | 4 | 64  # + layer 7 Props: set dressing blocks bodies, never rays
 
 	var col := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
