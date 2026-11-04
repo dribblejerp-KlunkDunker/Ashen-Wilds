@@ -157,6 +157,149 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Enemy temperaments — audit (brief §24)
+
+The owner asked for a full audit that the temperament work is done. Two passes: a checklist
+against the request and the tests, and an independent read of the code by a separate reviewer
+given only the diff, not these notes.
+
+**Against the request.** Attack style: each enemy has its own moves and a doc comment naming its
+style. Aggression: an export on each, documented per enemy, with a measurable effect tested on
+all three (goblin patience, ork recovery, ogre chase and charge cooldown). Attack power: an export
+on each that scales every blow; this was untested and is now checked on all nine attacks. Also
+distinct already: health and poise (65/22, 115/42, 280/95), speed, and senses (the goblin hears
+footsteps and rummaging, the ork a sprint or a swing, the ogre only sees).
+
+**Found and fixed.**
+- *Since LF-4 (this PR):* the goblin's creep and the ogre's idle, shamble and doorway scratch were
+  one-shot clips, so the bodies froze after one cycle. They are looped now, and the suite checks
+  that every gait and idle clip loops. Found because the new test asked whether the goblin's
+  reversed walk actually moves.
+- The goblin's stone throw took no attack token, so stones could fly during another enemy's blow.
+- The ogre's charge ignored whether it got the token. It now waits its turn. Its sweep and slam
+  still take the turn regardless, as they always have (they are its committed close blows).
+- With the survivor dead, goblins kept darting at and throwing at the body, and a backstab bark
+  could overwrite "YOU PERISHED". Goblins and orks now stand down to patrol, closing their hitbox
+  and handing back the turn. The bark now fires only when a backstab lands.
+- A goblin out of patience, finding the turn taken, hovered at sword range, darting in and out
+  every tick. It now circles for 0.8 s before trying again.
+- A light blow released a goblin's token but its jab or throw carried on without one. Now any blow
+  knocks a goblin out of its attack.
+- The enraged ogre didn't get the longer chase its doc promised. The aggression speed bonus
+  reached a shielded ork too. Both fixed.
+
+**Checked and sound.** Every exit from the charge closes its hitbox. `player_ref` is null-safe on
+every path (tests spawn enemies without one). The stone's rays use layer 1 only, and it can't
+step through the survivor. The bash and `breaks_guard` behave as documented. Every new state is
+in the animation and telegraph lists.
+
+**Tests.** `tests/smoke_test.gd`: 274 passed, 0 failures, twice (16 new). Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
+## Enemy temperaments — each enemy fights its own way: evidence (brief §24)
+
+**Why.** The owner asked for each enemy to have its own attack style, aggression level and attack
+power. The three already differed in stats and moves; they now differ in how they fight.
+
+**What.** Every enemy has an `aggression` (0 to 1) and an `attack_power` export, and a doc comment
+naming its style. Base damages are named constants.
+- **Goblin, the opportunist** (aggression 0.3). Circles at 2.9 m, out of a sword's reach, and darts
+  in (5.6 m/s, faster than a walk) when the survivor is open: back or side turned, recovering from
+  a swing, searching or bandaging, staggered, lodged, reeling from a clang, or exhausted; or when
+  its patience runs out (4 s at aggression 0, 1.2 s at 1) or on a small chance per second. A jab
+  from more than 100 degrees off the survivor's aim is a backstab for double damage (a HUD bark
+  says so). After a jab it backs away for 0.75 s, facing the survivor, playing the crouched walk in
+  reverse. At 5 to 11 m with a clear line it throws a stone (`ThrownStone`: flat, 13 m/s,
+  blockable and dodgeable, stopped by walls, 4.5 s between throws); a hurt goblin flees and keeps
+  throwing. Jab 18 to 12 damage, startup 0.56 to 0.42 s, recovery 0.72 to 0.5 s.
+- **Ork, the soldier** (shield ork 0.5, the baseline; the shieldless "cleaver" 0.85). A survivor who
+  holds a raised guard in front of the shield ork for longer than its patience (1.0 s at 0.5) gets
+  the shield bash (`Shield_Dash`): 6 damage, but `CombatPayload.breaks_guard` makes a block of it
+  cost the stamina and stagger the survivor anyway. Aggression scales recovery after attacks (x1.3
+  at 0 to x0.7 at 1), how far it chases its chop, and its speed without a shield; the cleaver runs
+  at 4.3 m/s (a walk is 4.2) and rests 21% less.
+- **Ogre, the juggernaut** (0.8). Doesn't flinch mid-blow: poise damage x0.35 during windups and the
+  charge. From 5 to 11 m, with a clear line, after 1.2 s of chasing and with its charge cooled
+  down (5.6 s), it braces (0.95 s, `Push`) and charges (8.5 m/s, `Sprint`) in a straight line it
+  cannot steer: 38 damage, heavy, a body-sized hitbox of its own. It stops 3 m past where the
+  survivor stood; running into a wall or a solid prop leaves it reeling for 2 s (counts as
+  staggered, so a heavy blow can lodge). Below 40% health it is enraged: 25% faster, windups 20%
+  shorter, charges sooner, a red ring. Aggression sets its chase distance (20 m, unchanged) and
+  charge cooldown.
+
+**Measured (headless soak, not committed).** An idle survivor (100 health) against each enemy
+for 20 s, from 7 m. Facing it: a goblin circled a dozen times, jabbed four times and threw once
+(70 damage, much of it bleeding); with the back turned it backstabbed and killed in 9.2 s. The
+cleaver ork killed in 5.1 s, the shield ork in 6.4 s, the ogre in 6.7 s facing it (slam then
+sweep) and 5.6 s with the back turned (it opened with the charge).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 258 passed, 0 failures, twice (43 new: the
+goblin's openings, patience, jab and backstab damage, bleeding, disengage, throw, stone damage,
+stone stopped by a wall; the orks' temperaments, no bash without a raised guard, the bash breaking
+a held guard at no health cost; the ogre's leash, unflinching windups, enrage, the charge hitting,
+a sidestep making it miss, the crash into a wall, no charge through a wall; every new clip present).
+Every earlier enemy, deflection and lodging check unchanged and passing. Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
+**Not covered by headless tests.** Whether this feels fair: the goblin's dart and the ork's bash
+are new things to read, the ogre's charge telegraph (a roar, a banner, the brace and an orange ring)
+needs testing on a real screen, and the soak player never fights back. The numbers are first
+guesses meant for tuning: `aggression` and `attack_power` on each enemy, and the named constants.
+
+## Look and feel 4b — a brighter night: evidence (brief §24)
+
+**Why.** The owner found the screenshots "incredibly dark". They were: the LF-3 night took mean
+luminance of the README shots (0-255, centre crop) from 35 to 25, and the shots were rendered at
++0.4 brightness, so a player at the default saw something darker still.
+
+**What changed.** At the default brightness the night is now lit like a clear, moonlit one:
+ambient 1.8 to 2.6 (bluer-grey colour lifted), moon 2.1 to 3.0, exposure 1.55 to 1.7,
+`adjustment_brightness` 1.12, SSAO 1.6 to 1.2, a paler mist, and a lighter vignette (0.55 to 0.4).
+The grade, fog, glow and cold-vs-warm contrast are unchanged, so fire and torchlight still read as
+warm pools. The brightness keys now range over exposure 0.6 to 2.6 (was 0.55 to 1.85), leaving
+room both ways. `capture_screenshots.gd` renders at the default brightness, so the README shows
+what a player sees.
+
+**Measured.** Mean luminance of the five README shots without a HUD window: 25 before, 59 now
+(shelter 72, Watchhouse 56, chest 55, ork 65, ogre 71). Every shot re-rendered and looked at.
+
+**Not covered by headless tests.** The owner's screen. Software Vulkan and the browser's
+Compatibility renderer differ a little in exposure; if it is now too bright or still too dark,
+the `[` and `]` keys move it and the defaults are one line each in
+`_build_atmosphere_and_lighting()`.
+
+## Look and feel 4 — the Ashbound enemies, and a facing fix: evidence (brief §24)
+
+**What changed.** The goblin, ork and ogre lose their capsules for the Ashbound: Quaternius's free
+Peasant outfit (CC0, `art/quaternius/ashbound/`) worn as filthy rags over grey skin tinted per type
+(goblin green, ork olive, ogre ash), under the Ranger's hood (the free outfit has no head and the
+base characters have none to lend). `EnemyModel` scales each to its collision capsule (goblin
+1.35 m, ork 1.92 m and broader, ogre 2.95 m and much broader) and shares the survivor's clip
+library. Goblin: creeps (crouch), jogs, jabs (`Sword_Dash`). Ork: sword idle, walks, jogs, raises
+its shield on the advance, slashes then chops, staggers on a guard break. Ogre: zombie shamble and
+idle, claws at doorways it cannot fit, sweeps and slams. Every attack's blow lands as its startup
+timer runs out (`play_strike`). Weapons hang in the right hand; the status ring stays the readable
+telegraph; death plays `Death01` instead of tipping the body flat. AI, timings, hitboxes and
+hurtboxes are untouched.
+
+**A bug in shipped work, found and fixed.** The close-ups showed the ork from behind when it was
+turned to face the camera. Measured from the skeleton, Quaternius's characters face +Z in their
+files (toes point +Z), but the game aims down -Z, so **the survivor merged in LF-1b (PR #12) has
+been running and swinging backwards**. The LF-1b render check misread the pose and no test looked
+at facing. Both models now turn the character 180°, and the suite checks that every character's
+toes point where it aims.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 215 passed, 0 failures (12 new: the
+survivor and each enemy face where they aim; each enemy has its body and every clip it uses and
+holds its weapon in the right hand; a goblin's attack plays the jab; its death plays Death01 and
+is not tipped flat). Every earlier combat and enemy check unchanged and passing. Kit suites, live
+boot and `tools/net_spike.py` clean. README screenshots re-rendered and looked at, plus close-ups
+of each enemy's idle and attack.
+
+**Not covered by headless tests.** Whether the strikes read in motion, foot sliding on the ogre's
+shamble, and whether faceless hooded humans read as goblins and orks (they are stand-ins; a
+creature mesh on the same rig can replace them).
+
 ## Look and feel 3b — solid set dressing: evidence (brief §24)
 
 **What.** After LF-2b you could walk through trees and fences. Now 21 solid pieces (six dead trees

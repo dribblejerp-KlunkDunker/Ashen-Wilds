@@ -9,6 +9,9 @@ var poise_damage: float = 15.0
 var causes_bleed: bool = false
 var is_heavy: bool = false
 var knockback_force: float = 2.5
+## A shove meant to break a raised guard (the ork's shield bash): blocking it doesn't absorb it,
+## it costs the stamina and staggers the blocker anyway. Set after construction.
+var breaks_guard: bool = false
 
 func _init(
 	p_attacker: Node3D,

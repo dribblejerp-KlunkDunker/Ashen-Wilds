@@ -3,6 +3,12 @@ extends CharacterBody3D
 
 signal ork_combat_bark(message: String)
 
+## THE SOLDIER. Disciplined, steady pressure at medium power. It advances behind its shield and
+## answers button-mashing with a slash-then-chop combo. A survivor who hides behind a raised guard
+## gets the shield bash, which knocks the guard aside. The shieldless ork (the yard's "cleaver",
+## aggression 0.85) is the reckless one: it runs you down faster, chases its chop further and
+## rests less between combos. Flanking and heavy blows still break the shield ork's guard.
+
 enum AIState {
 	IDLE,
 	PATROL,
@@ -18,8 +24,21 @@ enum AIState {
 	GUARD_BROKEN,
 	STAGGER,
 	RECOIL,
+	BASH_STARTUP,
+	BASH_ACTIVE,
 	DEAD
 }
+
+const SLASH_DAMAGE: float = 24.0
+const CHOP_DAMAGE: float = 36.0
+## The bash hurts little; it is there to break a guard (CombatPayload.breaks_guard).
+const BASH_DAMAGE: float = 6.0
+const BASH_POISE: float = 30.0
+const BASH_STARTUP_TIME: float = 0.36
+const BASH_ACTIVE_TIME: float = 0.14
+const BASH_RECOVERY: float = 0.7
+## Within this range the ork watches for a raised guard.
+const BASH_RANGE: float = 2.3
 
 @export var enemy_name: String = "Ork Vanguard"
 @export var has_shield: bool = true
@@ -39,6 +58,15 @@ enum AIState {
 ## would be the better outcome for the Ork.
 @export var wall_recoil_time: float = 1.25
 
+@export_group("Temperament")
+## How hard it presses, 0 to 1. At 0.5 (the shield ork) its timings are the baseline. Higher rests
+## less after a combo (recovery x1.3 at 0 down to x0.7 at 1), chases its chop further, runs faster
+## without a shield, and loses patience with a raised guard sooner (1.4 s at 0, 0.6 s at 1).
+@export_range(0.0, 1.0) var aggression: float = 0.5
+## Scales the damage of everything it lands (slash, chop, bash).
+@export var attack_power: float = 1.0
+@export_group("")
+
 var health: float = 115.0
 var poise_damage: float = 0.0
 var guard_stamina: float = 55.0
@@ -55,9 +83,14 @@ var _memory_timer: float = 0.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _strafe_sign: float = 1.0
+## How long the survivor has held a raised guard in front of this ork, within BASH_RANGE.
+var _turtle_timer: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
+## The Ashbound body (presentation only) and the state its animation was last chosen for.
+var _model: EnemyModel
+var _anim_state: int = -1
 var _shield_mesh: MeshInstance3D
 var _status_mat: StandardMaterial3D
 var _hitbox: HitboxComponent
@@ -80,7 +113,10 @@ func _physics_process(delta: float) -> void:
 	if poise_damage > 0.0:
 		poise_damage = maxf(0.0, poise_damage - 6.0 * delta)
 
+	if player_ref != null and player_ref.current_state == PlayerController.ActionState.DEAD:
+		_stand_down()
 	_evaluate_senses(delta)
+	_watch_for_raised_guard(delta)
 	_process_ai_state(delta)
 	_update_visual_telegraph()
 
@@ -188,6 +224,9 @@ func _process_ai_state(delta: float) -> void:
 			elif not has_shield:
 				state = AIState.PURSUE
 
+			if has_shield and _turtle_timer >= turtle_patience() and dist <= BASH_RANGE:
+				if _try_begin_bash():
+					return
 			if dist <= 2.05:
 				if _try_begin_combo():
 					return
@@ -197,6 +236,8 @@ func _process_ai_state(delta: float) -> void:
 				velocity.z = tangent.z * 1.65 + _knockback_vel.z
 			else:
 				var spd: float = 2.55 if state == AIState.SHIELD_ADVANCE else 3.75
+				if not has_shield:
+					spd += (aggression - 0.5) * 1.6
 				_steer_toward(dir_p, spd, delta)
 
 		AIState.COMBO_1_STARTUP:
@@ -222,11 +263,11 @@ func _process_ai_state(delta: float) -> void:
 			velocity.z = _knockback_vel.z
 			_track_player_lightly(5.0, delta)
 			if _state_timer <= 0.0:
-				if player_ref and global_position.distance_to(player_ref.global_position) <= 2.85:
+				if player_ref and global_position.distance_to(player_ref.global_position) <= 2.85 + (aggression - 0.5):
 					state = AIState.COMBO_2_STARTUP
 					_state_timer = 0.54
 				else:
-					_finish_attack_sequence(0.78)
+					_finish_attack_sequence(0.78 * recovery_scale())
 
 		AIState.COMBO_2_STARTUP:
 			_state_timer -= delta
@@ -242,7 +283,7 @@ func _process_ai_state(delta: float) -> void:
 			velocity.z = _facing_dir.z * 5.6 + _knockback_vel.z
 			if _state_timer <= 0.0:
 				_hitbox.end_swing()
-				_finish_attack_sequence(0.98)
+				_finish_attack_sequence(0.98 * recovery_scale())
 
 		AIState.ATTACK_RECOVERY:
 			_state_timer -= delta
@@ -259,6 +300,23 @@ func _process_ai_state(delta: float) -> void:
 				guard_stamina = max_guard_stamina * 0.6
 				state = AIState.PURSUE
 
+		AIState.BASH_STARTUP:
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			_track_player_lightly(6.0, delta)
+			if _state_timer <= 0.0:
+				_enter_bash_active()
+
+		AIState.BASH_ACTIVE:
+			# A short, shoving step behind the shield.
+			_state_timer -= delta
+			velocity.x = _facing_dir.x * 4.8 + _knockback_vel.x
+			velocity.z = _facing_dir.z * 4.8 + _knockback_vel.z
+			if _state_timer <= 0.0:
+				_hitbox.end_swing()
+				_finish_attack_sequence(BASH_RECOVERY * recovery_scale())
+
 		AIState.RECOIL:
 			# Wall clang: the shield guard is down but guard stamina is untouched.
 			_state_timer -= delta
@@ -272,6 +330,62 @@ func is_dead() -> bool:
 
 func is_staggered() -> bool:
 	return state in [AIState.STAGGER, AIState.GUARD_BROKEN, AIState.RECOIL]
+
+## Recovery after its attacks, scaled by aggression (x1.0 at 0.5).
+func recovery_scale() -> float:
+	return lerpf(1.3, 0.7, aggression)
+
+## Seconds of a raised guard in front of it before it bashes.
+func turtle_patience() -> float:
+	return lerpf(1.4, 0.6, aggression)
+
+func _watch_for_raised_guard(delta: float) -> void:
+	if player_ref == null or not has_shield:
+		_turtle_timer = 0.0
+		return
+	var to_me: Vector3 = global_position - player_ref.global_position
+	to_me.y = 0.0
+	var guarding: bool = (
+		player_ref.current_state in [PlayerController.ActionState.BLOCK, PlayerController.ActionState.BLOCK_IMPACT]
+		and to_me.length() <= BASH_RANGE + 0.5
+		and to_me.length_squared() > 0.0001
+		and player_ref.get_aim_direction().dot(to_me.normalized()) > 0.5
+	)
+	if guarding:
+		_turtle_timer += delta
+	else:
+		_turtle_timer = maxf(0.0, _turtle_timer - delta * 2.0)
+
+## The survivor is dead: drop any attack (closing the hitbox, handing back the turn), forget them
+## and go back to patrolling, instead of hacking at the body.
+func _stand_down() -> void:
+	if state in [AIState.IDLE, AIState.PATROL, AIState.DEAD]:
+		return
+	_hitbox.end_swing()
+	if coordinator:
+		coordinator.release_attack_token(self)
+	_has_last_known_pos = false
+	_turtle_timer = 0.0
+	state = AIState.PATROL
+
+func _try_begin_bash() -> bool:
+	if coordinator and not coordinator.request_attack_token(self):
+		return false
+	state = AIState.BASH_STARTUP
+	_state_timer = BASH_STARTUP_TIME
+	_turtle_timer = 0.0
+	return true
+
+func _enter_bash_active() -> void:
+	# A shove, not a swing: it never clangs off walls.
+	state = AIState.BASH_ACTIVE
+	_state_timer = BASH_ACTIVE_TIME
+	if audio:
+		audio.play_shield_block()
+	var payload := CombatPayload.new(self, global_position, _facing_dir,
+		BASH_DAMAGE * attack_power, BASH_POISE, false, false, 4.5)
+	payload.breaks_guard = true
+	_hitbox.begin_swing(payload)
 
 func _try_begin_combo() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
@@ -294,7 +408,7 @@ func _enter_combo_1_active() -> void:
 		self,
 		global_position,
 		_facing_dir,
-		24.0,
+		SLASH_DAMAGE * attack_power,
 		24.0,
 		false,
 		false,
@@ -312,7 +426,7 @@ func _enter_combo_2_active() -> void:
 		self,
 		global_position,
 		_facing_dir,
-		36.0,
+		CHOP_DAMAGE * attack_power,
 		38.0,
 		true,
 		true,
@@ -407,8 +521,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		state = AIState.DEAD
 		collision_layer = 0
 		_hurtbox.set_deferred("monitorable", false)
-		_visual_root.rotation_degrees.x = -85.0
-		_visual_root.position.y = 0.25
+		_model.play(&"Death01")
 		Lootable.attach_corpse(self, "%s Corpse" % enemy_name, ItemDatabase.roll_ork_loot(), 3.0)
 		return
 
@@ -423,38 +536,57 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 func _update_visual_telegraph() -> void:
 	match state:
 		AIState.SHIELD_ADVANCE:
-			_weapon_arm.rotation_degrees = Vector3(-15.0, 20.0, 0.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.14, 1.15, -0.52)
 			_status_mat.albedo_color = Color(0.45, 0.58, 0.72)
 		AIState.COMBO_1_STARTUP:
-			_weapon_arm.rotation_degrees = Vector3(-25.0, 75.0, 20.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.46, 1.10, -0.15)
 			_status_mat.albedo_color = Color(0.95, 0.62, 0.15)
-		AIState.COMBO_2_STARTUP:
-			_weapon_arm.rotation_degrees = Vector3(-85.0, 10.0, 0.0)
+		AIState.COMBO_2_STARTUP, AIState.BASH_STARTUP:
 			_status_mat.albedo_color = Color(0.98, 0.42, 0.12)
-		AIState.COMBO_1_ACTIVE, AIState.COMBO_2_ACTIVE:
-			_weapon_arm.rotation_degrees = Vector3(25.0, -70.0, 0.0)
+		AIState.COMBO_1_ACTIVE, AIState.COMBO_2_ACTIVE, AIState.BASH_ACTIVE:
 			_status_mat.albedo_color = Color(0.92, 0.16, 0.16)
 		AIState.ATTACK_RECOVERY, AIState.GUARD_BROKEN, AIState.STAGGER:
-			_weapon_arm.rotation_degrees = Vector3(40.0, -45.0, 25.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
 			_status_mat.albedo_color = Color(0.42, 0.72, 0.88)
 		AIState.RECOIL:
 			# Cleaver jarred up and back, shield swung wide: same "punish" blue
 			# family as a stagger, a touch brighter so the clang reads.
-			_weapon_arm.rotation_degrees = Vector3(-55.0, -60.0, 30.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
 			_status_mat.albedo_color = Color(0.58, 0.84, 0.96)
 		_:
-			_weapon_arm.rotation_degrees = Vector3(0.0, 0.0, 0.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.42, 1.10, -0.25)
 			_status_mat.albedo_color = Color(0.52, 0.36, 0.28)
+	_update_model_animation()
+
+## Picks the body's animation from the AI state (the status ring above stays the readable
+## telegraph). Each swing's blow lands as its startup timer runs out: a forehand slash for the
+## opener, an overhead chop for the follow-up.
+func _update_model_animation() -> void:
+	if _model == null or state == AIState.DEAD:
+		return
+	if state != _anim_state:
+		_anim_state = state
+		match state:
+			AIState.COMBO_1_STARTUP:
+				_model.play_strike(&"Sword_Regular_A", _state_timer)
+			AIState.COMBO_2_STARTUP:
+				_model.play_strike(&"Sword_Regular_C", _state_timer)
+			AIState.BASH_STARTUP:
+				_model.play_strike(&"Shield_Dash", _state_timer)
+			AIState.GUARD_BROKEN:
+				_model.play_fitted(&"Idle_Shield_Break", maxf(_state_timer, 0.4))
+			AIState.STAGGER:
+				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.3))
+			AIState.RECOIL:
+				_model.play_fitted(&"Hit_Head", maxf(_state_timer, 0.3))
+	if state in [AIState.COMBO_1_STARTUP, AIState.COMBO_1_ACTIVE, AIState.COMBO_LINK, AIState.COMBO_2_STARTUP,
+			AIState.COMBO_2_ACTIVE, AIState.ATTACK_RECOVERY, AIState.GUARD_BROKEN, AIState.STAGGER, AIState.RECOIL,
+			AIState.BASH_STARTUP, AIState.BASH_ACTIVE]:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	if state == AIState.SHIELD_ADVANCE and has_shield:
+		_model.play(&"Idle_Shield")
+	elif speed < 0.2:
+		_model.play(&"Sword_Idle")
+	elif state in [AIState.PATROL, AIState.INVESTIGATE]:
+		_model.play(&"Walk", clampf(speed / 1.6, 0.6, 1.6))
+	else:
+		_model.play(&"Jog_Fwd", clampf(speed / 3.8, 0.6, 1.6))
 
 func _build_ork_visuals_and_colliders() -> void:
 	collision_layer = 4
@@ -471,44 +603,24 @@ func _build_ork_visuals_and_colliders() -> void:
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
 
-	var skin_mat := StandardMaterial3D.new()
-	skin_mat.albedo_color = Color(0.32, 0.33, 0.24)
-	skin_mat.roughness = 0.85
-
 	var armor_mat := StandardMaterial3D.new()
 	armor_mat.albedo_color = Color(0.27, 0.23, 0.21)
 	armor_mat.metallic = 0.48
 	armor_mat.roughness = 0.72
 
-	var torso := MeshInstance3D.new()
-	var t_mesh := CapsuleMesh.new()
-	t_mesh.radius = 0.39
-	t_mesh.height = 1.52
-	torso.mesh = t_mesh
-	torso.material_override = armor_mat
-	torso.position = Vector3(0.0, 0.92, 0.0)
-	_visual_root.add_child(torso)
-
-	var head := MeshInstance3D.new()
-	var h_mesh := BoxMesh.new()
-	h_mesh.size = Vector3(0.40, 0.38, 0.42)
-	head.mesh = h_mesh
-	head.material_override = skin_mat
-	head.position = Vector3(0.0, 1.72, -0.06)
-	_visual_root.add_child(head)
-
+	_model = EnemyModel.new("ork")
+	_visual_root.add_child(_model)
 	if has_shield:
+		# A tall board shield strapped over the left fist; its thin side faces out of the hand.
 		_shield_mesh = MeshInstance3D.new()
 		var s_box := BoxMesh.new()
-		s_box.size = Vector3(0.14, 0.82, 0.66)
+		s_box.size = Vector3(0.66, 0.08, 0.82)
 		_shield_mesh.mesh = s_box
 		_shield_mesh.material_override = armor_mat
-		_shield_mesh.position = Vector3(-0.42, 1.10, -0.25)
-		_visual_root.add_child(_shield_mesh)
+		_model.shield_mount.add_child(_shield_mesh)
 
 	_weapon_arm = Node3D.new()
-	_weapon_arm.position = Vector3(0.42, 1.15, -0.15)
-	_visual_root.add_child(_weapon_arm)
+	_model.right_socket.add_child(_weapon_arm)
 
 	var cleaver := MeshInstance3D.new()
 	var c_box := BoxMesh.new()

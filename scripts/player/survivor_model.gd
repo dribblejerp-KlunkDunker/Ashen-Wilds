@@ -24,6 +24,8 @@ const ANIMATION_SOURCES: Array[String] = [
 const LOOPING: Array[StringName] = [
 	&"Idle", &"Sword_Idle", &"Idle_Torch", &"Idle_Shield", &"Walk",
 	&"Jog_Fwd", &"Sprint", &"Crouch_Idle", &"Fixing_Kneeling", &"Consume", &"Push",
+	# The Ashbound's gaits (EnemyModel shares this library): the goblin's creep, the ogre's shamble.
+	&"Crouch_Fwd", &"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch",
 ]
 ## The Ranger is 1.87 m to the top of the hood; the survivor's capsule is 1.75 m.
 const MODEL_SCALE: float = 0.95
@@ -62,13 +64,16 @@ func _init() -> void:
 	name = "SurvivorModel"
 	_character = (load(CHARACTER_SCENE) as PackedScene).instantiate() as Node3D
 	_character.scale = Vector3.ONE * MODEL_SCALE
+	# Quaternius's glTF characters face +Z (their toes point +Z); the game aims down -Z. Without
+	# this turn the survivor ran and swung backwards (shipped that way in LF-1b; caught in LF-4).
+	_character.rotation.y = PI
 	add_child(_character)
 	_apply_textures()
 
 	anim = AnimationPlayer.new()
 	anim.name = "AnimationPlayer"
 	_character.add_child(anim)
-	anim.add_animation_library(&"", _shared_library())
+	anim.add_animation_library(&"", shared_library())
 
 	var skeleton: Skeleton3D = _character.find_child("Skeleton3D", true, false) as Skeleton3D
 	right_socket = _make_socket(skeleton, RIGHT_HAND_BONE, RIGHT_GRIP_ROTATION, RIGHT_GRIP_OFFSET)
@@ -91,7 +96,7 @@ func _process(_delta: float) -> void:
 
 
 ## All animations from both libraries in one library, built once and shared by every survivor.
-static func _shared_library() -> AnimationLibrary:
+static func shared_library() -> AnimationLibrary:
 	if _library != null:
 		return _library
 	_library = AnimationLibrary.new()
