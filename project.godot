@@ -24,6 +24,7 @@ window/stretch/mode="canvas_items"
 3d_physics/layer_4="PlayerHurtbox"
 3d_physics/layer_5="EnemyHurtbox"
 3d_physics/layer_6="Occluders"
+3d_physics/layer_7="Props"
 
 [rendering]
 

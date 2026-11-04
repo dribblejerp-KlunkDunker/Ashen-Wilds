@@ -105,7 +105,7 @@ func _run() -> void:
 	await _test_enemy_wall_deflection()
 	await _test_ogre_drops_attack_when_player_dies()
 	await _test_survivor_model()
-	_test_environment_surfaces()
+	await _test_environment_surfaces()
 	await _test_atmosphere()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
@@ -1156,6 +1156,7 @@ func _test_survivor_model() -> void:
 # ------------------------------------------------------------------------------
 # Look and feel 2: the level's boxes wear photo textures (ambientCG, CC0); the owner's kit dresses it.
 func _test_environment_surfaces() -> void:
+	await _ticks(1)
 	_section("Environment surfaces (ambientCG)")
 	var textured: int = 0
 	var flat: int = 0
@@ -1186,10 +1187,23 @@ func _test_environment_surfaces() -> void:
 	_check(fitted == 5 and poking == 0, "all five containers wear kit models inside their collision (%d fitted, %d poking out)" % [fitted, poking])
 	var dressing := _main.find_child("SetDressing", true, false) as SetDressing
 	_check(dressing != null and dressing.placed >= 90, "the yard is dressed with the kit (%d pieces)" % (dressing.placed if dressing else 0))
-	var bodies: int = 0
-	if dressing:
-		bodies = dressing.find_children("*", "CollisionObject3D", true, false).size()
-	_check(dressing != null and bodies == 0, "set dressing adds no collision (%d bodies)" % bodies)
+	# Solid pieces block bodies on layer 7 "Props" only; every combat and sight ray uses layer 1.
+	var bodies: Array[Node] = dressing.find_children("*", "CollisionObject3D", true, false) if dressing else []
+	var off_layer: int = bodies.filter(func(b: Node) -> bool: return (b as CollisionObject3D).collision_layer != SetDressing.PROPS_LAYER).size()
+	_check(dressing != null and bodies.size() == dressing.solids and dressing.solids >= 15 and off_layer == 0,
+		"solid dressing (%d pieces) is on the Props layer only (%d elsewhere)" % [bodies.size(), off_layer])
+	var tree_at := Vector3(-21.0, 0.0, 12.0)
+	var space := _player.get_world_3d().direct_space_state
+	var ray := PhysicsRayQueryParameters3D.create(tree_at + Vector3(-2.0, 1.0, 0.0), tree_at + Vector3(2.0, 1.0, 0.0), 1)
+	_check(space.intersect_ray(ray).is_empty(), "sight and combat rays (layer 1) pass through a tree trunk")
+	var props_ray := PhysicsRayQueryParameters3D.create(tree_at + Vector3(-2.0, 1.0, 0.0), tree_at + Vector3(2.0, 1.0, 0.0), SetDressing.PROPS_LAYER)
+	_check(not space.intersect_ray(props_ray).is_empty(), "the tree trunk is solid on the Props layer")
+	_reset_player(tree_at + Vector3(-1.5, 0.0, 0.0))
+	await _ticks(2)
+	var blocked: bool = _player.test_move(_player.global_transform, Vector3(1.5, 0.0, 0.0))
+	_check(blocked, "the survivor bumps into the tree instead of walking through it")
+	_reset_player(OPEN)
+	await _ticks(2)
 
 # ------------------------------------------------------------------------------
 # Look and feel 3: night lighting, mist, glow, the grade, falling ash, the vignette, fire flicker.

@@ -1093,7 +1093,7 @@ func _attack_clip() -> StringName:
 
 func _build_survivor_visuals_and_colliders() -> void:
 	collision_layer = 2
-	collision_mask = 1 | 2 | 4
+	collision_mask = 1 | 2 | 4 | 64  # + layer 7 Props: set dressing blocks bodies, never rays
 
 	var body_col := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()

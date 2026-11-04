@@ -157,6 +157,27 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Look and feel 3b — solid set dressing: evidence (brief §24)
+
+**What.** After LF-2b you could walk through trees and fences. Now 21 solid pieces (six dead trees
+at the trunk only, two stumps, two fallen trees, four boulders, the ruin wall, column, remnant and
+wall-fall rubble by the lair, three fence runs) get a collider: a 0.22 m cylinder for trunks, a box
+85% of the footprint for the rest. Ground cover, pebbles, low rubble and firewood stay walk-through.
+
+**Why a new layer.** Layer 1 is also what every ray casts against: enemy line of sight, the
+hidden-behind-a-wall check, wall clangs and hit blocking. A trunk on layer 1 would make an enemy
+flicker out of view or stop a sword. The colliders go on a new layer 7 "Props"; the survivor's and
+the three enemies' body masks add it (1 | 2 | 4 | 64). Rays are unchanged, so props block movement
+and nothing else.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 203 passed, 0 failures (the "no collision"
+check became four: solids only on the Props layer; a layer-1 ray passes through a tree; a Props ray
+hits it; the survivor's `test_move` into it is blocked). All earlier combat, enemy and wall checks
+unchanged and passing. Kit suites, live boot and `tools/net_spike.py` clean.
+
+**Not covered by headless tests.** Whether an enemy chasing round the ruins by the lair snags on them
+(the AI steers straight at its target and slides along obstacles), and how the fence colliders feel.
+
 ## Look and feel 3 — lighting and atmosphere: evidence (brief §24)
 
 **What changed.** The third and last look-and-feel slice, built only from features the browser's
