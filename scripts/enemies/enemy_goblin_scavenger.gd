@@ -51,6 +51,9 @@ var _unseen_cue_cooldown: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
+## The Ashbound body (presentation only) and the state its animation was last chosen for.
+var _model: EnemyModel
+var _anim_state: int = -1
 var _status_pip: MeshInstance3D
 var _status_mat: StandardMaterial3D
 var _hitbox: HitboxComponent
@@ -363,8 +366,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		state = AIState.DEAD
 		collision_layer = 0
 		_hurtbox.set_deferred("monitorable", false)
-		_visual_root.rotation_degrees.x = -85.0
-		_visual_root.position.y = 0.2
+		_model.play(&"Death01")
 		_status_pip.visible = false
 		Lootable.attach_corpse(self, "%s Corpse" % enemy_name, ItemDatabase.roll_goblin_loot(), 2.6)
 		return
@@ -377,20 +379,40 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 func _update_visual_telegraph() -> void:
 	match state:
 		AIState.ATTACK_STARTUP:
-			_weapon_arm.rotation_degrees = Vector3(-65.0, 55.0, 35.0)
 			_status_mat.albedo_color = Color(0.95, 0.65, 0.15)
 		AIState.ATTACK_ACTIVE:
-			_weapon_arm.rotation_degrees = Vector3(15.0, -65.0, 0.0)
 			_status_mat.albedo_color = Color(0.92, 0.18, 0.15)
 		AIState.ATTACK_RECOVERY, AIState.RECOVER_VULNERABLE, AIState.STAGGER:
-			_weapon_arm.rotation_degrees = Vector3(38.0, -35.0, 20.0)
 			_status_mat.albedo_color = Color(0.42, 0.68, 0.85)
 		AIState.RETREAT:
-			_weapon_arm.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_status_mat.albedo_color = Color(0.75, 0.75, 0.32)
 		_:
-			_weapon_arm.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_status_mat.albedo_color = Color(0.38, 0.46, 0.34)
+	_update_model_animation()
+
+## Picks the body's animation from the AI state (the status ring above stays the readable
+## telegraph). The jab's blow lands as the startup timer runs out.
+func _update_model_animation() -> void:
+	if _model == null or state == AIState.DEAD:
+		return
+	if state != _anim_state:
+		_anim_state = state
+		match state:
+			AIState.ATTACK_STARTUP:
+				_model.play_strike(&"Sword_Dash", _state_timer)
+			AIState.STAGGER:
+				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.3))
+			AIState.RECOVER_VULNERABLE:
+				_model.play(&"Hit_Chest", 0.5)
+	if state in [AIState.ATTACK_STARTUP, AIState.ATTACK_ACTIVE, AIState.ATTACK_RECOVERY, AIState.STAGGER, AIState.RECOVER_VULNERABLE]:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	if speed < 0.2:
+		_model.play(&"Crouch_Idle")
+	elif state in [AIState.PATROL, AIState.INVESTIGATE]:
+		_model.play(&"Crouch_Fwd", clampf(speed / 1.4, 0.6, 1.6))
+	else:
+		_model.play(&"Jog_Fwd", clampf(speed / 3.6, 0.6, 1.6))
 
 func _build_goblin_visuals_and_colliders() -> void:
 	collision_layer = 4
@@ -407,31 +429,10 @@ func _build_goblin_visuals_and_colliders() -> void:
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
 
-	var skin_mat := StandardMaterial3D.new()
-	skin_mat.albedo_color = Color(0.28, 0.34, 0.22)
-	skin_mat.roughness = 0.86
-
-	var body := MeshInstance3D.new()
-	var b_mesh := CapsuleMesh.new()
-	b_mesh.radius = 0.28
-	b_mesh.height = 1.05
-	body.mesh = b_mesh
-	body.material_override = skin_mat
-	body.position = Vector3(0.0, 0.58, 0.0)
-	body.rotation_degrees.x = 18.0
-	_visual_root.add_child(body)
-
-	var head := MeshInstance3D.new()
-	var h_mesh := BoxMesh.new()
-	h_mesh.size = Vector3(0.34, 0.30, 0.38)
-	head.mesh = h_mesh
-	head.material_override = skin_mat
-	head.position = Vector3(0.0, 1.12, -0.14)
-	_visual_root.add_child(head)
-
+	_model = EnemyModel.new("goblin")
+	_visual_root.add_child(_model)
 	_weapon_arm = Node3D.new()
-	_weapon_arm.position = Vector3(0.30, 0.82, -0.12)
-	_visual_root.add_child(_weapon_arm)
+	_model.right_socket.add_child(_weapon_arm)
 
 	var iron_mat := StandardMaterial3D.new()
 	iron_mat.albedo_color = Color(0.38, 0.33, 0.30)

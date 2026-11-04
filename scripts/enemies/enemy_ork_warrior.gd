@@ -58,6 +58,9 @@ var _strafe_sign: float = 1.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
+## The Ashbound body (presentation only) and the state its animation was last chosen for.
+var _model: EnemyModel
+var _anim_state: int = -1
 var _shield_mesh: MeshInstance3D
 var _status_mat: StandardMaterial3D
 var _hitbox: HitboxComponent
@@ -407,8 +410,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		state = AIState.DEAD
 		collision_layer = 0
 		_hurtbox.set_deferred("monitorable", false)
-		_visual_root.rotation_degrees.x = -85.0
-		_visual_root.position.y = 0.25
+		_model.play(&"Death01")
 		Lootable.attach_corpse(self, "%s Corpse" % enemy_name, ItemDatabase.roll_ork_loot(), 3.0)
 		return
 
@@ -423,38 +425,54 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 func _update_visual_telegraph() -> void:
 	match state:
 		AIState.SHIELD_ADVANCE:
-			_weapon_arm.rotation_degrees = Vector3(-15.0, 20.0, 0.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.14, 1.15, -0.52)
 			_status_mat.albedo_color = Color(0.45, 0.58, 0.72)
 		AIState.COMBO_1_STARTUP:
-			_weapon_arm.rotation_degrees = Vector3(-25.0, 75.0, 20.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.46, 1.10, -0.15)
 			_status_mat.albedo_color = Color(0.95, 0.62, 0.15)
 		AIState.COMBO_2_STARTUP:
-			_weapon_arm.rotation_degrees = Vector3(-85.0, 10.0, 0.0)
 			_status_mat.albedo_color = Color(0.98, 0.42, 0.12)
 		AIState.COMBO_1_ACTIVE, AIState.COMBO_2_ACTIVE:
-			_weapon_arm.rotation_degrees = Vector3(25.0, -70.0, 0.0)
 			_status_mat.albedo_color = Color(0.92, 0.16, 0.16)
 		AIState.ATTACK_RECOVERY, AIState.GUARD_BROKEN, AIState.STAGGER:
-			_weapon_arm.rotation_degrees = Vector3(40.0, -45.0, 25.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
 			_status_mat.albedo_color = Color(0.42, 0.72, 0.88)
 		AIState.RECOIL:
 			# Cleaver jarred up and back, shield swung wide: same "punish" blue
 			# family as a stagger, a touch brighter so the clang reads.
-			_weapon_arm.rotation_degrees = Vector3(-55.0, -60.0, 30.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.52, 0.95, 0.15)
 			_status_mat.albedo_color = Color(0.58, 0.84, 0.96)
 		_:
-			_weapon_arm.rotation_degrees = Vector3(0.0, 0.0, 0.0)
-			if _shield_mesh:
-				_shield_mesh.position = Vector3(-0.42, 1.10, -0.25)
 			_status_mat.albedo_color = Color(0.52, 0.36, 0.28)
+	_update_model_animation()
+
+## Picks the body's animation from the AI state (the status ring above stays the readable
+## telegraph). Each swing's blow lands as its startup timer runs out: a forehand slash for the
+## opener, an overhead chop for the follow-up.
+func _update_model_animation() -> void:
+	if _model == null or state == AIState.DEAD:
+		return
+	if state != _anim_state:
+		_anim_state = state
+		match state:
+			AIState.COMBO_1_STARTUP:
+				_model.play_strike(&"Sword_Regular_A", _state_timer)
+			AIState.COMBO_2_STARTUP:
+				_model.play_strike(&"Sword_Regular_C", _state_timer)
+			AIState.GUARD_BROKEN:
+				_model.play_fitted(&"Idle_Shield_Break", maxf(_state_timer, 0.4))
+			AIState.STAGGER:
+				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.3))
+			AIState.RECOIL:
+				_model.play_fitted(&"Hit_Head", maxf(_state_timer, 0.3))
+	if state in [AIState.COMBO_1_STARTUP, AIState.COMBO_1_ACTIVE, AIState.COMBO_LINK, AIState.COMBO_2_STARTUP,
+			AIState.COMBO_2_ACTIVE, AIState.ATTACK_RECOVERY, AIState.GUARD_BROKEN, AIState.STAGGER, AIState.RECOIL]:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	if state == AIState.SHIELD_ADVANCE and has_shield:
+		_model.play(&"Idle_Shield")
+	elif speed < 0.2:
+		_model.play(&"Sword_Idle")
+	elif state in [AIState.PATROL, AIState.INVESTIGATE]:
+		_model.play(&"Walk", clampf(speed / 1.6, 0.6, 1.6))
+	else:
+		_model.play(&"Jog_Fwd", clampf(speed / 3.8, 0.6, 1.6))
 
 func _build_ork_visuals_and_colliders() -> void:
 	collision_layer = 4
@@ -471,44 +489,24 @@ func _build_ork_visuals_and_colliders() -> void:
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
 
-	var skin_mat := StandardMaterial3D.new()
-	skin_mat.albedo_color = Color(0.32, 0.33, 0.24)
-	skin_mat.roughness = 0.85
-
 	var armor_mat := StandardMaterial3D.new()
 	armor_mat.albedo_color = Color(0.27, 0.23, 0.21)
 	armor_mat.metallic = 0.48
 	armor_mat.roughness = 0.72
 
-	var torso := MeshInstance3D.new()
-	var t_mesh := CapsuleMesh.new()
-	t_mesh.radius = 0.39
-	t_mesh.height = 1.52
-	torso.mesh = t_mesh
-	torso.material_override = armor_mat
-	torso.position = Vector3(0.0, 0.92, 0.0)
-	_visual_root.add_child(torso)
-
-	var head := MeshInstance3D.new()
-	var h_mesh := BoxMesh.new()
-	h_mesh.size = Vector3(0.40, 0.38, 0.42)
-	head.mesh = h_mesh
-	head.material_override = skin_mat
-	head.position = Vector3(0.0, 1.72, -0.06)
-	_visual_root.add_child(head)
-
+	_model = EnemyModel.new("ork")
+	_visual_root.add_child(_model)
 	if has_shield:
+		# A tall board shield strapped over the left fist; its thin side faces out of the hand.
 		_shield_mesh = MeshInstance3D.new()
 		var s_box := BoxMesh.new()
-		s_box.size = Vector3(0.14, 0.82, 0.66)
+		s_box.size = Vector3(0.66, 0.08, 0.82)
 		_shield_mesh.mesh = s_box
 		_shield_mesh.material_override = armor_mat
-		_shield_mesh.position = Vector3(-0.42, 1.10, -0.25)
-		_visual_root.add_child(_shield_mesh)
+		_model.shield_mount.add_child(_shield_mesh)
 
 	_weapon_arm = Node3D.new()
-	_weapon_arm.position = Vector3(0.42, 1.15, -0.15)
-	_visual_root.add_child(_weapon_arm)
+	_model.right_socket.add_child(_weapon_arm)
 
 	var cleaver := MeshInstance3D.new()
 	var c_box := BoxMesh.new()

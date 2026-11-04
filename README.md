@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **203/203** headless regression checks passing
-> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover. Nights are cold moonlight and low mist, with falling ash and warm, flickering firelight.
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **215/215** headless regression checks passing
+> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover. Nights are cold moonlight and low mist, with falling ash and warm, flickering firelight. The enemies are the Ashbound: hooded, ragged, grey-skinned figures (a hunched goblin, a shielded ork, a hulking ogre) on the same animation library.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
 >
@@ -211,7 +211,7 @@ Next milestone not yet chosen. Candidates from the design document:
 
 ## Known limitations
 
-- Placeholder visuals: enemies are primitive shapes, the environment kit is a first pass, and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
+- Placeholder visuals: the enemies are stand-in Ashbound bodies (Quaternius, CC0), the environment kit is a first pass, and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.

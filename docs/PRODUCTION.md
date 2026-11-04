@@ -157,6 +157,38 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Look and feel 4 — the Ashbound enemies, and a facing fix: evidence (brief §24)
+
+**What changed.** The goblin, ork and ogre lose their capsules for the Ashbound: Quaternius's free
+Peasant outfit (CC0, `art/quaternius/ashbound/`) worn as filthy rags over grey skin tinted per type
+(goblin green, ork olive, ogre ash), under the Ranger's hood (the free outfit has no head and the
+base characters have none to lend). `EnemyModel` scales each to its collision capsule (goblin
+1.35 m, ork 1.92 m and broader, ogre 2.95 m and much broader) and shares the survivor's clip
+library. Goblin: creeps (crouch), jogs, jabs (`Sword_Dash`). Ork: sword idle, walks, jogs, raises
+its shield on the advance, slashes then chops, staggers on a guard break. Ogre: zombie shamble and
+idle, claws at doorways it cannot fit, sweeps and slams. Every attack's blow lands as its startup
+timer runs out (`play_strike`). Weapons hang in the right hand; the status ring stays the readable
+telegraph; death plays `Death01` instead of tipping the body flat. AI, timings, hitboxes and
+hurtboxes are untouched.
+
+**A bug in shipped work, found and fixed.** The close-ups showed the ork from behind when it was
+turned to face the camera. Measured from the skeleton, Quaternius's characters face +Z in their
+files (toes point +Z), but the game aims down -Z, so **the survivor merged in LF-1b (PR #12) has
+been running and swinging backwards**. The LF-1b render check misread the pose and no test looked
+at facing. Both models now turn the character 180°, and the suite checks that every character's
+toes point where it aims.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 215 passed, 0 failures (12 new: the
+survivor and each enemy face where they aim; each enemy has its body and every clip it uses and
+holds its weapon in the right hand; a goblin's attack plays the jab; its death plays Death01 and
+is not tipped flat). Every earlier combat and enemy check unchanged and passing. Kit suites, live
+boot and `tools/net_spike.py` clean. README screenshots re-rendered and looked at, plus close-ups
+of each enemy's idle and attack.
+
+**Not covered by headless tests.** Whether the strikes read in motion, foot sliding on the ogre's
+shamble, and whether faceless hooded humans read as goblins and orks (they are stand-ins; a
+creature mesh on the same rig can replace them).
+
 ## Look and feel 3b — solid set dressing: evidence (brief §24)
 
 **What.** After LF-2b you could walk through trees and fences. Now 21 solid pieces (six dead trees

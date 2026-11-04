@@ -48,6 +48,9 @@ var _blocked_by_narrow_gap_timer: float = 0.0
 
 var _visual_root: Node3D
 var _club_pivot: Node3D
+## The Ashbound body (presentation only) and the state its animation was last chosen for.
+var _model: EnemyModel
+var _anim_state: int = -1
 var _slam_ring: MeshInstance3D
 var _slam_ring_mat: StandardMaterial3D
 var _status_mat: StandardMaterial3D
@@ -305,8 +308,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		state = AIState.DEAD
 		collision_layer = 0
 		_hurtbox.set_deferred("monitorable", false)
-		_visual_root.rotation_degrees.x = -85.0
-		_visual_root.position.y = 0.45
+		_model.play(&"Death01", 0.8)
 		ogre_event_banner.emit("THE BLACKFEN OGRE HAS FALLEN", Color(0.88, 0.74, 0.36))
 		var corpse := Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_ogre_loot(), 4.0)
 		corpse.interact_radius = 2.6
@@ -325,25 +327,48 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 func _update_visual_telegraph() -> void:
 	match state:
 		AIState.SWEEP_STARTUP:
-			_club_pivot.rotation_degrees = Vector3(-15.0, 95.0, 25.0)
 			_status_mat.albedo_color = Color(0.95, 0.58, 0.15)
 		AIState.SLAM_STARTUP:
-			_club_pivot.rotation_degrees = Vector3(-105.0, 0.0, 0.0)
 			_status_mat.albedo_color = Color(0.98, 0.35, 0.10)
 		AIState.SWEEP_ACTIVE, AIState.SLAM_ACTIVE:
-			_club_pivot.rotation_degrees = Vector3(32.0, -75.0, 0.0)
 			_status_mat.albedo_color = Color(0.95, 0.12, 0.12)
 		AIState.LONG_RECOVERY, AIState.STAGGER:
-			_club_pivot.rotation_degrees = Vector3(52.0, -15.0, 18.0)
 			_status_mat.albedo_color = Color(0.38, 0.75, 0.92)
 		AIState.RECOIL:
 			# Club jarred back past the wind-up; a paler blue than recovery so
 			# the clang reads as its own opening.
-			_club_pivot.rotation_degrees = Vector3(-30.0, 120.0, 35.0)
 			_status_mat.albedo_color = Color(0.58, 0.86, 0.98)
 		_:
-			_club_pivot.rotation_degrees = Vector3(0.0, 0.0, 0.0)
 			_status_mat.albedo_color = Color(0.48, 0.28, 0.24)
+	_update_model_animation()
+
+## Picks the body's animation from the AI state (the status ring and slam ring stay the readable
+## telegraph). The sweep and the slam land as their startup timers run out; the ogre shambles
+## with the zombie walk and claws at doorways it cannot fit through.
+func _update_model_animation() -> void:
+	if _model == null or state == AIState.DEAD:
+		return
+	if state != _anim_state:
+		_anim_state = state
+		match state:
+			AIState.SWEEP_STARTUP:
+				_model.play_strike(&"Sword_Regular_A", _state_timer)
+			AIState.SLAM_STARTUP:
+				_model.play_strike(&"Sword_Regular_C", _state_timer)
+			AIState.STAGGER:
+				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.4))
+			AIState.RECOIL:
+				_model.play_fitted(&"Hit_Head", maxf(_state_timer, 0.4))
+			AIState.DOORWAY_FRUSTRATED:
+				_model.play(&"Zombie_Scratch", 0.8, EnemyModel.DEFAULT_BLEND, true)
+	if state in [AIState.SWEEP_STARTUP, AIState.SWEEP_ACTIVE, AIState.SLAM_STARTUP, AIState.SLAM_ACTIVE,
+			AIState.LONG_RECOVERY, AIState.STAGGER, AIState.RECOIL, AIState.DOORWAY_FRUSTRATED]:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	if speed < 0.2:
+		_model.play(&"Zombie_Idle")
+	else:
+		_model.play(&"Zombie_Walk_Fwd", clampf(speed / 1.8, 0.6, 1.5))
 
 func _build_ogre_visuals_and_colliders() -> void:
 	collision_layer = 4
@@ -360,31 +385,10 @@ func _build_ogre_visuals_and_colliders() -> void:
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
 
-	var hide_mat := StandardMaterial3D.new()
-	hide_mat.albedo_color = Color(0.34, 0.29, 0.26)
-	hide_mat.roughness = 0.92
-
-	var body := MeshInstance3D.new()
-	var b_mesh := CapsuleMesh.new()
-	b_mesh.radius = 0.78
-	b_mesh.height = 2.45
-	body.mesh = b_mesh
-	body.material_override = hide_mat
-	body.position = Vector3(0.0, 1.38, 0.0)
-	_visual_root.add_child(body)
-
-	var head := MeshInstance3D.new()
-	var h_mesh := SphereMesh.new()
-	h_mesh.radius = 0.42
-	h_mesh.height = 0.78
-	head.mesh = h_mesh
-	head.material_override = hide_mat
-	head.position = Vector3(0.0, 2.55, -0.22)
-	_visual_root.add_child(head)
-
+	_model = EnemyModel.new("ogre")
+	_visual_root.add_child(_model)
 	_club_pivot = Node3D.new()
-	_club_pivot.position = Vector3(0.82, 1.65, -0.25)
-	_visual_root.add_child(_club_pivot)
+	_model.right_socket.add_child(_club_pivot)
 
 	var wood_mat := StandardMaterial3D.new()
 	wood_mat.albedo_color = Color(0.24, 0.17, 0.12)

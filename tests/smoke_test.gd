@@ -107,6 +107,7 @@ func _run() -> void:
 	await _test_survivor_model()
 	await _test_environment_surfaces()
 	await _test_atmosphere()
+	await _test_enemy_models()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1232,3 +1233,61 @@ func _test_atmosphere() -> void:
 		energies.append(fire.light_energy if fire else 0.0)
 	var spread: float = energies.max() - energies.min()
 	_check(fire != null and spread > 0.02 and energies.max() <= fire.base_energy * 1.05, "the shelter fire flickers (energy spread %.2f)" % spread)
+
+# ------------------------------------------------------------------------------
+# Look and feel 4: the Ashbound enemy bodies, and every character facing where it aims.
+func _toes_dir(model: Node3D) -> Vector3:
+	var sk := model.find_child("Skeleton3D", true, false) as Skeleton3D
+	var foot: Vector3 = sk.to_global(sk.get_bone_global_pose(sk.find_bone("foot_l")).origin)
+	var ball: Vector3 = sk.to_global(sk.get_bone_global_pose(sk.find_bone("ball_l")).origin)
+	var d := ball - foot
+	d.y = 0.0
+	return d.normalized()
+
+func _test_enemy_models() -> void:
+	_section("Enemy models (Ashbound) and facing")
+	# The Quaternius characters face +Z in their files; the game aims down -Z. Toes must point
+	# the way a character aims (this shipped backwards once, in LF-1b).
+	_reset_player(OPEN)
+	_face(Vector3(1.0, 0.0, 0.0))
+	await _ticks(2)
+	var survivor_toes: Vector3 = _toes_dir(_player._model)
+	_check(survivor_toes.dot(Vector3(1.0, 0.0, 0.0)) > 0.8, "the survivor faces where it aims (toes·aim = %.2f)" % survivor_toes.dot(Vector3(1.0, 0.0, 0.0)))
+
+	var needed: Dictionary = {
+		EnemyGoblinScavenger: [&"Crouch_Idle", &"Crouch_Fwd", &"Jog_Fwd", &"Sword_Dash", &"Hit_Knockback", &"Hit_Chest", &"Death01"],
+		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+	}
+	for cls: Variant in needed.keys():
+		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
+		var m: EnemyModel = e.get("_model")
+		var missing: Array = (needed[cls] as Array).filter(func(a: StringName) -> bool: return m == null or not m.has_animation(a))
+		_check(m != null and missing.is_empty(), "%s has an Ashbound body with every clip it uses (missing %s)" % [e.get("enemy_name"), str(missing)])
+		var weapon: Node3D = e.get("_club_pivot") if e is EnemyOgreBrute else e.get("_weapon_arm")
+		_check(m != null and weapon != null and weapon.get_parent() == m.right_socket, "%s holds its weapon in its right hand" % e.get("enemy_name"))
+		var vr: Node3D = e.get("_visual_root")
+		var saved: Transform3D = vr.global_transform
+		vr.look_at(vr.global_position + Vector3(0.0, 0.0, 1.0), Vector3.UP)
+		await _ticks(2)
+		var toes: Vector3 = _toes_dir(m)
+		_check(toes.z > 0.8, "%s faces where it aims (toes·aim = %.2f)" % [e.get("enemy_name"), toes.z])
+		vr.global_transform = saved
+
+	# A goblin's attack plays the jab; its death plays the death clip, and the body is not tipped flat.
+	var goblin := EnemyGoblinScavenger.new()
+	_main.add_child(goblin)
+	goblin.global_position = OPEN + Vector3(3.0, 0.0, 0.0)
+	await _ticks(2)
+	goblin.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	goblin._state_timer = 0.56
+	goblin._update_visual_telegraph()
+	_check(goblin._model.current_animation() == &"Sword_Dash", "a goblin's attack plays the jab (got %s)" % goblin._model.current_animation())
+	goblin.state = EnemyGoblinScavenger.AIState.IDLE
+	goblin._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 10.0))
+	await _ticks(2)
+	_check(goblin.state == EnemyGoblinScavenger.AIState.DEAD and goblin._model.current_animation() == &"Death01"
+		and absf(goblin._visual_root.rotation_degrees.x) < 1.0, "a goblin's death plays Death01 instead of tipping the body flat")
+	goblin.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
