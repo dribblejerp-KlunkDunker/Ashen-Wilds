@@ -157,6 +157,56 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Enemy temperaments — each enemy fights its own way: evidence (brief §24)
+
+**Why.** The owner asked for each enemy to have its own attack style, aggression level and attack
+power. The three already differed in stats and moves; they now differ in how they fight.
+
+**What.** Every enemy has an `aggression` (0 to 1) and an `attack_power` export, and a doc comment
+naming its style. Base damages are named constants.
+- **Goblin, the opportunist** (aggression 0.3). Circles at 2.9 m, out of a sword's reach, and darts
+  in (5.6 m/s, faster than a walk) when the survivor is open: back or side turned, recovering from
+  a swing, searching or bandaging, staggered, lodged, reeling from a clang, or exhausted; or when
+  its patience runs out (4 s at aggression 0, 1.2 s at 1) or on a small chance per second. A jab
+  from more than 100 degrees off the survivor's aim is a backstab for double damage (a HUD bark
+  says so). After a jab it backs away for 0.75 s, facing the survivor, playing the crouched walk in
+  reverse. At 5 to 11 m with a clear line it throws a stone (`ThrownStone`: flat, 13 m/s,
+  blockable and dodgeable, stopped by walls, 4.5 s between throws); a hurt goblin flees and keeps
+  throwing. Jab 18 to 12 damage, startup 0.56 to 0.42 s, recovery 0.72 to 0.5 s.
+- **Ork, the soldier** (shield ork 0.5, the baseline; the shieldless "cleaver" 0.85). A survivor who
+  holds a raised guard in front of the shield ork for longer than its patience (1.0 s at 0.5) gets
+  the shield bash (`Shield_Dash`): 6 damage, but `CombatPayload.breaks_guard` makes a block of it
+  cost the stamina and stagger the survivor anyway. Aggression scales recovery after attacks (x1.3
+  at 0 to x0.7 at 1), how far it chases its chop, and its speed without a shield; the cleaver runs
+  at 4.3 m/s (a walk is 4.2) and rests 21% less.
+- **Ogre, the juggernaut** (0.8). Doesn't flinch mid-blow: poise damage x0.35 during windups and the
+  charge. From 5 to 11 m, with a clear line, after 1.2 s of chasing and with its charge cooled
+  down (5.6 s), it braces (0.95 s, `Push`) and charges (8.5 m/s, `Sprint`) in a straight line it
+  cannot steer: 38 damage, heavy, a body-sized hitbox of its own. It stops 3 m past where the
+  survivor stood; running into a wall or a solid prop leaves it reeling for 2 s (counts as
+  staggered, so a heavy blow can lodge). Below 40% health it is enraged: 25% faster, windups 20%
+  shorter, charges sooner, a red ring. Aggression sets its chase distance (20 m, unchanged) and
+  charge cooldown.
+
+**Measured (headless soak, not committed).** An idle survivor (100 health) against each enemy
+for 20 s, from 7 m. Facing it: a goblin circled a dozen times, jabbed four times and threw once
+(70 damage, much of it bleeding); with the back turned it backstabbed and killed in 9.2 s. The
+cleaver ork killed in 5.1 s, the shield ork in 6.4 s, the ogre in 6.7 s facing it (slam then
+sweep) and 5.6 s with the back turned (it opened with the charge).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 258 passed, 0 failures, twice (43 new: the
+goblin's openings, patience, jab and backstab damage, bleeding, disengage, throw, stone damage,
+stone stopped by a wall; the orks' temperaments, no bash without a raised guard, the bash breaking
+a held guard at no health cost; the ogre's leash, unflinching windups, enrage, the charge hitting,
+a sidestep making it miss, the crash into a wall, no charge through a wall; every new clip present).
+Every earlier enemy, deflection and lodging check unchanged and passing. Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
+**Not covered by headless tests.** Whether this feels fair: the goblin's dart and the ork's bash
+are new things to read, the ogre's charge telegraph (a roar, a banner, the brace and an orange ring)
+needs testing on a real screen, and the soak player never fights back. The numbers are first
+guesses meant for tuning: `aggression` and `attack_power` on each enemy, and the named constants.
+
 ## Look and feel 4b — a brighter night: evidence (brief §24)
 
 **Why.** The owner found the screenshots "incredibly dark". They were: the LF-3 night took mean
