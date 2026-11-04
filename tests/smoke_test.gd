@@ -111,6 +111,7 @@ func _run() -> void:
 	await _test_enemy_temperaments()
 	await _test_perception()
 	await _test_weather()
+	await _test_backgrounds()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -2004,6 +2005,127 @@ func _test_weather() -> void:
 		"advancing six times visits every condition and comes round")
 	w.changed.disconnect(on_change)
 	w.set_condition(Weather.Condition.ASHFALL, true)
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Survivor backgrounds: eight starting characters, each a kit, a trait and a permanent flaw.
+# ------------------------------------------------------------------------------
+func _test_backgrounds() -> void:
+	_section("Survivor backgrounds")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var all: Array[SurvivorBackground] = SurvivorBackground.all()
+	var ids: Array[String] = []
+	var complete: bool = true
+	for b: SurvivorBackground in all:
+		ids.append(b.id)
+		complete = complete and b.title != "" and b.epigraph != "" and b.trait_name != "" and b.trait_text != "" and b.flaw_name != "" and b.flaw_text != "" and not b.gear.is_empty()
+	_check(all.size() == 8 and ids.size() == 8, "eight backgrounds")
+	var unique: Dictionary = {}
+	for i: String in ids:
+		unique[i] = true
+	_check(unique.size() == 8 and complete, "each has a unique id, a title, an epigraph, a kit, a trait and a flaw")
+	# (The kit itself is checked at the start of the suite, before other sections swap and spend it.)
+	_check(_player.background != null and _player.background.id == "watch_deserter" and is_equal_approx(_player.max_health, 90.0)
+		and is_equal_approx(_player.background.block_cost_mult, 0.75), "the default is the Watch Deserter: 90 health, cheaper blocks")
+	_check(_main.find_children("BackgroundSelect", "", false, false).is_empty(), "headless, no start screen: the default stands")
+	_check(_hud._background_label.text == "WATCH DESERTER", "the HUD names the background")
+	var banners: Array[String] = []
+	var on_banner := func(msg: String, _c: Color) -> void: banners.append(msg)
+	_player.combat_banner_message.connect(on_banner)
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	var per: Perception = _player.perception
+
+	# Fen Healer: five bandages, a spear, quick bandaging, and night-blind (sight x0.6 on the weather).
+	_player.apply_background(SurvivorBackground.by_id("fen_healer"))
+	_check(_player.inventory.count_of("clean_rag_bandage") == 5 and _player.inventory.main_hand.data.item_id == "boar_spear",
+		"fen healer: five bandages and a spear")
+	_player._start_channel(PlayerController.ChannelKind.BANDAGE, 1.6)
+	_check(absf(_player._channel_total - 0.8) < 0.01, "fen healer: bandaging takes half the time (%.2f s)" % _player._channel_total)
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(5.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT
+	await _ticks(1)
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "fen healer in the miasma: 7 m x 0.6, a goblin 5 m ahead is unseen")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	g.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "fen healer in ashfall: 24 m x 0.6, a goblin 9 m ahead is seen")
+
+	# Hedge-priest: sworn hands, no heavy blow; 50 poise.
+	_player.apply_background(SurvivorBackground.by_id("hedge_priest"))
+	_player.stamina = _player.max_stamina
+	banners.clear()
+	_player._start_attack(true)
+	_check(_player.current_state == PlayerController.ActionState.IDLE and banners.size() == 1 and banners[0].contains("sworn"),
+		"hedge-priest: a heavy blow is refused, and says why")
+	_player._start_attack(false)
+	_check(_player.current_state == PlayerController.ActionState.ATTACK_STARTUP and is_equal_approx(_player.max_poise, 50.0),
+		"hedge-priest: light blows are fine; 50 poise")
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# Gutter-kin: soft-footed (own noise x0.65), frail (75 health, longer bleeds).
+	_player.apply_background(SurvivorBackground.by_id("gutter_kin"))
+	_face(Vector3.RIGHT)
+	g.global_position = OPEN + Vector3(8.0, 0.0, 0.0)
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE and is_equal_approx(_player.max_health, 75.0) and is_equal_approx(_player.background.bleed_seconds, 18.0),
+		"gutter-kin: a goblin 8 m away does not hear you sprint (9 x 0.65 = 5.9 m); 75 health; 18 s bleeds")
+	_player.apply_background(SurvivorBackground.by_id("causeway_carter"))
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "causeway carter: the same goblin hears the same sprint (9 m)")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Causeway Carter: hardy, one good ear (hearing x0.7 on the weather).
+	_check(is_equal_approx(_player.max_health, 120.0) and not per.report_noise(OPEN + Vector3(-7.0, 0.0, 0.0), 8.0, null),
+		"causeway carter: 120 health; an 8 m noise 7 m behind is not heard (reach 5.6 m)")
+
+	# Chapel Cleaner: no weapon, quick searches. Peat-cutter and Cinder Factor: the numbers.
+	_player.apply_background(SurvivorBackground.by_id("chapel_cleaner"))
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 2.0)
+	_check(_player.inventory.main_hand == null and absf(_player._channel_total - 1.3) < 0.01, "chapel cleaner: bare hands, searches at x0.65")
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.apply_background(SurvivorBackground.by_id("peat_cutter"))
+	_check(is_equal_approx(_player.max_stamina, 80.0) and is_equal_approx(_player.inventory.capacity_kg, 23.0)
+		and _player.inventory.main_hand.data.item_id == "woodsmans_broadaxe", "peat-cutter: 80 stamina, 23 kg, the broadaxe")
+	_player.apply_background(SurvivorBackground.by_id("cinder_factor"))
+	_check(absf(_player.sprint_speed - 6.3 * 0.85) < 0.01 and is_equal_approx(_player.dodge_stamina_cost, 30.0) and is_equal_approx(_player.inventory.capacity_kg, 26.0),
+		"cinder factor: 26 kg, sprint at 85%%, dodges cost 30")
+
+	# The start screen: arrows and digits move the choice, confirm hands back the background.
+	var picker := BackgroundSelect.new()
+	_main.add_child(picker)
+	var got: Array[SurvivorBackground] = []
+	picker.chosen.connect(func(b: SurvivorBackground) -> void: got.append(b))
+	picker.move_selection(1)
+	picker.move_selection(0, 1)
+	picker.confirm()
+	picker.select(7)
+	picker.confirm()
+	_check(got.size() == 2 and got[0].id == "hedge_priest" and got[1].id == "causeway_carter",
+		"the start screen: right then down is the hedge-priest, 8 is the carter")
+	picker.queue_free()
+
+	_player.combat_banner_message.disconnect(on_banner)
+	_player.apply_background(SurvivorBackground.default_background())
+	_check(_player.inventory.main_hand.data.item_id == "arming_sword" and _player.inventory.off_hand.data.item_id == "wooden_targe"
+		and _player.inventory.count_of("clean_rag_bandage") == 2 and is_equal_approx(_player.health, 90.0),
+		"back to the deserter: the old kit, full health")
 	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)

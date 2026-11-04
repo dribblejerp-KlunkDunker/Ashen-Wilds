@@ -30,6 +30,9 @@ var enabled: bool = true
 ## `sight_range` metres is seen, cone or not.
 var hearing: float = 1.0
 var sight_range: float = 1.0e9
+## The survivor's own eyes and ears (SurvivorBackground), on top of the weather.
+var sight_mult: float = 1.0
+var hearing_mult: float = 1.0
 
 var _player: Node3D
 ## The world node ripples and marks are added to.
@@ -74,7 +77,7 @@ func line_of_sight(point: Vector3, height: float = 1.0) -> bool:
 
 ## Inside the cone, within the weather's sight range, and not behind a wall.
 func can_see(point: Vector3, height: float = 1.0) -> bool:
-	if _player.global_position.distance_to(point) > sight_range:
+	if _player.global_position.distance_to(point) > sight_range * sight_mult:
 		return false
 	return in_cone(point) and line_of_sight(point, height)
 
@@ -104,7 +107,7 @@ func forget(enemy: Node3D) -> void:
 ## radius (less through a wall). Unseen sources raise a ripple and the `heard` signal.
 func report_noise(world_pos: Vector3, loudness: float, source: Node3D = null) -> bool:
 	var dist: float = _player.global_position.distance_to(world_pos)
-	var reach: float = loudness * hearing
+	var reach: float = loudness * hearing * hearing_mult
 	if not line_of_sight(world_pos, 1.0):
 		reach *= WALL_MUFFLE
 	if dist > reach:
