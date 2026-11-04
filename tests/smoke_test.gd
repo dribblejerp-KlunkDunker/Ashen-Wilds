@@ -1301,6 +1301,7 @@ func _test_enemy_temperaments() -> void:
 	var rig: IsoCameraRig = _player.camera_rig
 	_player.camera_rig = null
 	await _test_goblin_temperament()
+	await _test_ork_temperament()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
@@ -1411,5 +1412,81 @@ func _test_goblin_temperament() -> void:
 	await _seconds(0.5)
 	_check(not is_instance_valid(lone), "goblin: a stone that meets a wall stops there")
 	wall.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+func _test_ork_temperament() -> void:
+	_section("Enemy temperament: the ork soldier")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var orks: Array = _children_of(func(n: Node) -> bool: return n is EnemyOrkWarrior)
+	var shielded: Array = orks.filter(func(o: EnemyOrkWarrior) -> bool: return o.has_shield)
+	var cleavers: Array = orks.filter(func(o: EnemyOrkWarrior) -> bool: return not o.has_shield)
+	_check(not shielded.is_empty() and is_equal_approx(shielded[0].aggression, 0.5) and is_equal_approx(shielded[0].recovery_scale(), 1.0),
+		"ork: the shield ork is the steady baseline (aggression 0.5, recovery x1.0)")
+	_check(not cleavers.is_empty() and cleavers[0].aggression > 0.7 and cleavers[0].recovery_scale() < 0.85,
+		"ork: the shieldless cleaver is reckless (aggression %.2f, recovery x%.2f)" % [cleavers[0].aggression if not cleavers.is_empty() else 0.0, cleavers[0].recovery_scale() if not cleavers.is_empty() else 0.0])
+
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	o.audio = _player.audio
+	o.player_ref = _player
+	_main.add_child(o)
+	o.global_position = _player.global_position + Vector3(1.5, 0.0, 0.0)
+	o._facing_dir = Vector3.LEFT
+	o._visual_root.look_at(o.global_position + o._facing_dir, Vector3.UP)
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	await _ticks(2)
+
+	# A survivor facing it without a guard raised gives it no reason to bash.
+	_face(Vector3.RIGHT)
+	o._turtle_timer = 0.0
+	o._watch_for_raised_guard(1.0)
+	_check(is_zero_approx(o._turtle_timer), "ork: no raised guard, no patience lost")
+
+	# Hide behind the targe in front of it and it bashes the guard aside. (Earlier sections may have
+	# left a two-handed weapon or the torch in hand: hold the targe in a free off hand for this.)
+	var inv: Inventory = _player.inventory
+	var saved_main: ItemInstance = inv.main_hand
+	var saved_off: ItemInstance = inv.off_hand
+	if inv.main_hand != null and inv.main_hand.data.two_handed:
+		inv.main_hand = null
+	var targe: ItemInstance = inv.find_first("wooden_targe")
+	if targe != null:
+		targe.condition = maxf(targe.condition, 60.0)
+		inv.off_hand = targe
+	_check(_player._has_ready_shield(), "ork: (setup) the survivor has the targe ready")
+	Input.action_press("block")
+	await _ticks(3)
+	_face(Vector3.RIGHT)
+	_check(_player.current_state == PlayerController.ActionState.BLOCK, "ork: (setup) the survivor holds a guard (state=%s)" % PlayerController.ActionState.keys()[_player.current_state])
+	o._watch_for_raised_guard(0.5)
+	_check(o._turtle_timer > 0.4, "ork: it notices a guard raised in front of it")
+	o._turtle_timer = 5.0
+	o.state = EnemyOrkWarrior.AIState.SHIELD_ADVANCE
+	o._has_last_known_pos = true
+	o._last_known_player_pos = _player.global_position
+	var hp: float = _player.health
+	var stam: float = _player.stamina
+	var saw_bash: bool = false
+	var was_bashed: bool = false
+	for i in range(int(1.5 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		_face(Vector3.RIGHT)
+		saw_bash = saw_bash or o.state == EnemyOrkWarrior.AIState.BASH_STARTUP
+		if _player.current_state == PlayerController.ActionState.STAGGER:
+			was_bashed = true
+			break
+	Input.action_release("block")
+	_check(saw_bash, "ork: a guard held too long draws the shield bash")
+	_check(was_bashed, "ork: the bash knocks the guard aside and staggers the survivor")
+	_check(is_equal_approx(_player.health, hp), "ork: the blocked bash costs no health (%.0f -> %.0f)" % [hp, _player.health])
+	_check(_player.stamina < stam, "ork: but it costs stamina (%.0f -> %.0f)" % [stam, _player.stamina])
+	o._update_visual_telegraph()
+	o.queue_free()
+	inv.main_hand = saved_main
+	inv.off_hand = saved_off
+	inv.notify_changed()
 	_reset_player(OPEN)
 	await _ticks(2)

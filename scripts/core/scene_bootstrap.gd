@@ -383,6 +383,8 @@ func _spawn_all_archetype_encounters() -> void:
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
+	# The reckless one: no shield, presses harder, rests less (see EnemyOrkWarrior's temperament).
+	ork_cleaver.aggression = 0.85
 	ork_cleaver.position = Vector3(14.0, 0.0, 9.8)
 	ork_cleaver.player_ref = _player
 	ork_cleaver.audio = _audio
