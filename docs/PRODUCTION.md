@@ -157,6 +157,43 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Backgrounds 1 — who were you, before the Smothering: evidence (brief §24)
+
+**What.** The roadmap line "eight starting characters with gear, traits and permanent flaws",
+built on Fable from that line and the worldbuilding's people (road carriers of the Cinder Factors,
+chapel cleaners, hedge-priests, Watch deserters, the Gutter-kin, fen healers, carters). A start
+screen over the paused yard offers eight cards; arrows or 1 to 8 choose, Enter, Space or E begin,
+or click a card twice. Each background is a kit, one trait and one flaw, all numbers:
+
+| | Kit | Trait | Flaw |
+|---|---|---|---|
+| Watch Deserter (default) | sword 88%, targe, torch 180 s, 2 bandages | blocks cost x0.75 | 90 health |
+| Cinder Factor | spear, torch 240 s, 2 bandages | 26 kg; load noise x0.9 | sprint x0.85; dodge 30 |
+| Chapel Cleaner | targe, torch 300 s, 4 bandages, no weapon | searches x0.65; steps x0.8 | attacks cost x1.3; wear x2 |
+| Peat-cutter | broadaxe, torch 150 s, 1 bandage | 23 kg; heavy damage x1.15 | 80 stamina; regen x0.9 |
+| Gutter-kin | sword 55%, torch 90 s, 2 bandages | steps x0.65; dodge 16; sight x1.15 | 75 health; bleeds 18 s |
+| Hedge-priest | targe, torch 360 s, 3 bandages, no weapon | 50 poise; regen x1.25 | no heavy blow |
+| Fen Healer | spear, torch 200 s, 5 bandages | bandage x0.5 time, heals 16 | sight x0.6 |
+| Causeway Carter | broadaxe, targe, torch 180 s, 2 bandages | 120 health; bleeds 9 s | hearing x0.7 |
+
+Sight and hearing stack on the weather (a night-blind healer in the miasma sees 4.2 m), and
+own-noise stacks on load and weather (a gutter-kin sprinting 8 m from a goblin is not heard). The
+default was chosen to carry the prototype's original kit, so nothing the suite expected changed;
+its one visible difference is 90 health. Respawning keeps the background.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 342 passed, 0 failures, twice (19 new:
+eight complete, unique backgrounds; the headless default; the HUD line; the healer's bandages,
+spear, half-time bandaging and night-blindness in two weathers; the priest's refused heavy and
+allowed light; the gutter-kin's unheard sprint, 75 health and 18 s bleeds against the carter
+hearing the same sprint; the carter's 120 health and deaf ear; the cleaner's bare hands and quick
+search; the peat-cutter's and the factor's numbers; the start screen's keys; back to the
+deserter). Kit suites, live boot and `tools/net_spike.py` clean. A new README screenshot of the
+start screen; every other shot re-rendered and looked at.
+
+**Not covered by headless tests.** Whether eight is readable on one screen at the browser's
+size (the cards are 300 x 250 in a 4 x 2 grid; a 1280-wide window holds them), whether the flaws
+bite enough to matter and the traits enough to be chosen, and whether the epigraphs land.
+
 ## Weather 1 — the Smothering's weathers: evidence (brief §24)
 
 **What.** The roadmap line "ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead

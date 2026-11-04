@@ -56,6 +56,9 @@ func _ready() -> void:
 	_weather.bind(world_env.environment, find_child("Moon", false, false) as DirectionalLight3D, ash,
 		find_child("ShelterFireLight", true, false) as FlickerLight, _player)
 	_weather.changed.connect(_on_weather_changed)
+	_hud.set_background(_player.background.title)
+	if DisplayServer.get_name() != "headless":
+		_show_background_select()
 	_hud.show_banner("MILESTONE 4 — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -422,6 +425,20 @@ func _spawn_all_archetype_encounters() -> void:
 
 ## The survivor heard something they cannot see (Perception): a soft cue, and now and then a
 ## reminder that the rings on the ground are where the sound came from.
+## The start screen. The world is built and paused behind it; headless runs (the suite, CI) skip
+## it and keep the default background, the Watch Deserter.
+func _show_background_select() -> void:
+	var picker := BackgroundSelect.new()
+	add_child(picker)
+	get_tree().paused = true
+	picker.chosen.connect(func(bg: SurvivorBackground) -> void:
+		_player.apply_background(bg)
+		_hud.set_background(bg.title)
+		get_tree().paused = false
+		picker.queue_free()
+		_hud.show_banner(bg.epigraph, Color(0.86, 0.80, 0.68))
+	)
+
 func _on_weather_changed(condition: Weather.Condition, banner: String) -> void:
 	if _hud:
 		_hud.set_weather(_weather.condition_name(condition))

@@ -68,6 +68,15 @@ func _run() -> void:
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
 	await _frames(10)
 
+	# 0. The start screen, over the paused yard.
+	var picker: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
+	picker.select(4)
+	await _frames(3)
+	await _shot("00_who_were_you.png")
+	picker.select(0)
+	picker.confirm()
+	await _frames(3)
+
 	# 1. Shelter start: fire, stash prompt, starting gear.
 	_place(Vector3(-7.0, 0.0, 6.6), Vector3(-0.9, 0, 0.5))
 	await _frames(40)
