@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged KayKit character (CC0) with its animations under `art/kaykit/` (see its README), imported from `.glb`; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
+An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/` (see its README), imported from glTF; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
 
 Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
 
@@ -48,7 +48,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **189 checks, 0 failures**.
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **190 checks, 0 failures**.
 
 ```bash
 # 5. Networked courtyard: a headless server and driven headless clients as separate processes on loopback.
@@ -91,12 +91,12 @@ scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
 scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons)
-scripts/player/     player_controller.gd (state machine, the largest file), survivor_model.gd (the animated KayKit body and hand sockets)
+scripts/player/     player_controller.gd (state machine, the largest file), survivor_model.gd (the animated Quaternius body and hand sockets)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
 scripts/ui/         tactical_hud.gd, inventory_ui.gd
 shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
 tests/smoke_test.gd headless regression suite
-art/kaykit/         the survivor character, its Rig_Medium animations, the recoloured texture, licences (README)
+art/quaternius/     the survivor (Ranger outfit), the two animation libraries, recoloured textures, licences (README)
 tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots),
                     get_export_templates.sh, export_builds.sh, package_builds.sh (the five builds and their zips)
 ```
@@ -110,7 +110,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
 - **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `WallDeflection.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies use the same helper: the Ork's opening slash and the Ogre's sweep clang into an `AIState.RECOIL` that counts as staggered; the Goblin's jab (`attack_is_thrust`), the Ork's chop and the Ogre's slam never clang.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
-- **Survivor look:** `SurvivorModel` is presentation only. `_update_animation()` picks a clip from the action state; timed states (attacks, dodge, stagger, recoil) stretch their clip to the state's own duration, so the simulation sets the timing and the animation follows. The weapon, shield and torch hang off the model's hand sockets (`right_socket`, `left_socket`, whose -Z points out of the fist); hitboxes, collision and aim stay on the controller, so a different mesh on the same rig changes nothing in play. The drawn blade is about half the weapon's reach because the stylised character is short.
+- **Survivor look:** `SurvivorModel` is presentation only. `_update_animation()` picks a clip from the action state; timed states (attacks, dodge, stagger, recoil) stretch their clip to the state's own duration, so the simulation sets the timing and the animation follows. The weapon and torch hang off the model's hand sockets (`right_socket`, `left_socket`, whose -Z points out of the fist), the shield off `shield_mount` on the back of the left hand; hitboxes, collision and aim stay on the controller, so a different mesh on the same rig changes nothing in play. Godot strips a `_Loop` suffix from imported clip names (`Idle_Loop` is `Idle`). During a dodge the model turns to face the roll.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
 ## Conventions and pitfalls (learned the hard way)
@@ -119,7 +119,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **GDScript is not shader language.** `mix()` doesn't exist in GDScript; use `lerpf()` / `lerp()`. This broke the whole project once, because every enemy references the audio class.
 - **Set `position`, not `global_position`, before `add_child()`.** Global transforms need the node in the tree.
 - **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`WallDeflection.spawn_sparks`).
-- **Lights must not sit inside or right beside meshes that cast shadows.** The torch light hangs off `_torch_root` 1.8 m above the hand, 2 m or more off the ground, over the hood. At the torso's centre it shadowed the survivor black; at the flame, which the animated hands carry in front of the body, the body threw a dark wedge across rooms.
+- **Lights must not sit inside or right beside meshes that cast shadows.** The torch light hangs on the survivor's visual root over the left shoulder, 2.3 m up (`TORCH_LIGHT_POSITION`), not at the flame. At the torso's centre it shadowed the survivor black; at the flame, which the animated hands carry in front of, behind or above the body, the body threw dark wedges across rooms and the light swung about.
 - **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors.
 - **Unused parameters** are prefixed `_`. Rename them when they become used.
 - **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports. The networked scene binds its own (WASD/arrows, Q/E turn, C recenter) in `NetMain`; the camera rig only reacts to `camera_rotate_*` and `camera_recenter` when a scene has bound them.

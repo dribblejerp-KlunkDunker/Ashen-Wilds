@@ -101,7 +101,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | P11 | Inventory capacity model | **CONFIRMED** (owner, 2026-11-03): weight only. Built in M1b: the server holds an `Inventory` per player, `PACK_CAPACITY_KG` = 12 with the existing 1.5× hard limit (encumbrance above capacity, refusal above the hard limit). | 2026-11-03 | Supplement §36: one model, explicit buttons. Reuses the single-player classes unchanged. | Playtest: does 12 kg produce the carrying decision the brief wants? |
 | P12 | Death and recovery | OPEN | | Supplement §42. Not needed before Milestone 4. | Before Milestone 4. |
 | P13 | Asset pipeline | PROPOSED: Blender → GLB → `res://art/exports/`, metadata per asset (brief §14), a 20-piece test kit first. | 2026-11-03 | Brief §12–§14, appendix §82. | The first exported module placed beside the capsule placeholder. |
-| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype): the Rogue_Hooded character with KayKit's Rig_Medium animations, both licences read (CC0), texture recoloured; `SurvivorModel` is presentation only. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
+| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype) with KayKit's Rogue_Hooded; the owner then judged it "does not fit the grim world at all", so **LF-1b** replaced it with Quaternius's Ranger (Modular Character Outfits, CC0) on the Universal Animation Libraries 1 and 2 (CC0): adult proportions, recoloured dark and dirty. The swap touched only `SurvivorModel` and the clip names, which is the replaceability this decision asked for. Stylised, cartoon-proportioned kits (KayKit, Kenney) are now ruled out for the look. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
 | P16 | CC0 environment kits | **CONFIRMED** (owner, 2026-11-03): CC0 kits (Quaternius, Kenney, KayKit) may be used for blockout, scale reference and placeholder props only; the final look comes from the team's own modules and material pass, replacing kit pieces over time. | 2026-11-03 | Brief §59: the visual direction must become recognisably ours; §3: crude and weather-beaten, which the clean kits are not. | Each module of the 20-piece test kit replaces its kit stand-in as it is approved (appendix §82). |
 | P14 | Superseded earlier decisions | Random world per expedition, browser-only delivery (old D42), and the generated 48×48 Blackfen before a small location: all superseded by the briefs and the owner's decisions. The procedural generator remains in the browser repo as reference. | 2026-11-03 | Brief §11, §25. | A demonstrated need for a larger world after the vertical slice. |
 
@@ -156,6 +156,39 @@ payload (§74).
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Look and feel 1b — a grim survivor: evidence (brief §24)
+
+**Why.** After LF-1 merged, the owner: "the character does not fit the grim world at all." KayKit's
+chibi proportions read as cute however dark the texture. Quaternius's free character and animation
+packs have adult proportions and the same CC0 licence, and the code was built to swap the mesh.
+
+**What changed.**
+- `art/kaykit/` removed; `art/quaternius/` added: the Male Ranger outfit (hood, leathers, bracers,
+  boots), textures downscaled from 4K to 1K, and the Universal Animation Libraries 1 and 2 (one
+  65-bone humanoid skeleton for all three). Sources and licences: `art/quaternius/README.md`.
+- The outfit is recoloured: greens to dark, dirty oilcloth, leather dulled, a fixed-seed grime
+  over it; the skin paler (`tools/recolor_survivor_texture.py`).
+- Clip choices: `Sword_Idle`, or `Idle_Torch` (torch held aloft) with a lit torch; walk, jog and
+  sprint by speed; light sweeps alternate `Sword_Regular_A`/`B`; heavy sweeps `Sword_Regular_C`;
+  thrusts (the sword's heavy, the spear) `Sword_Dash`; punches unarmed; `Idle_Shield` to block,
+  `Shield_OneShot` on a blocked hit, `Idle_Shield_Break` on a guard break; `Roll` to dodge, with the
+  model turned to face the roll; `Hit_Knockback` and `Hit_Head` for stagger and wall recoil;
+  `Fixing_Kneeling` to search, `Consume` to bandage; `Death01`.
+- The hand bones put the blade direction on -Z already, so the sockets only move into the palm; the
+  targe sits on a mount on the back of the left hand.
+- The torch light now hangs on the body over the left shoulder, 2.3 m up, not on the hand: the
+  torch-holding idle raises the torch overhead and the light would have swung up to 3.5 m.
+- Drawn blades are back to 0.7 of the weapon's reach (half was only for the short KayKit figure).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 190 passed, 0 failures (the survivor
+section now checks the Quaternius clips, the shield mount and the torch idle). Compile check, live
+boot and `tools/net_spike.py` (65) clean. All seven README screenshots re-rendered through Forward+
+and looked at, plus close-ups of every main pose; the web export booted in headless Chromium.
+
+**Not covered by headless tests.** Whether this reads as grim enough to the owner; foot sliding;
+whether the sword swings line up with when hits land (the clips are fitted to each attack's
+duration, not to its active frames).
 
 ## Look and feel 1 — the survivor: evidence (brief §24)
 

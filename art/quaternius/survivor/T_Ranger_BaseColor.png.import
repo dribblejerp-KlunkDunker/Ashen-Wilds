@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5ck46qhnd5ax"
-path="res://.godot/imported/survivor_texture.png-748b458142f62afabed2c6c7480e99f7.ctex"
+uid="uid://dlihl58ttuvo7"
+path="res://.godot/imported/T_Ranger_BaseColor.png-44f68f8e9c2c37784cd5d8c786ea3970.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/kaykit/characters/survivor_texture.png"
-dest_files=["res://.godot/imported/survivor_texture.png-748b458142f62afabed2c6c7480e99f7.ctex"]
+source_file="res://art/quaternius/survivor/T_Ranger_BaseColor.png"
+dest_files=["res://.godot/imported/T_Ranger_BaseColor.png-44f68f8e9c2c37784cd5d8c786ea3970.ctex"]
 
 [params]
 

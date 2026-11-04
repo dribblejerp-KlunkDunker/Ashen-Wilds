@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://baayw4in5f26b"
-path="res://.godot/imported/Rogue_Hooded_rogue_texture.png-aa3d6a083847cf1c90e0ca06e0bd909f.ctex"
+uid="uid://cqqp8dlc8sxt1"
+path="res://.godot/imported/T_Regular_Male_Normal.png-b0d4209dfdf753423e5260964012ead5.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "e24a3d2f6e39f79ab8c3dab2f3ab950f"
 }
 
 [deps]
 
-source_file="res://art/kaykit/characters/Rogue_Hooded_rogue_texture.png"
-dest_files=["res://.godot/imported/Rogue_Hooded_rogue_texture.png-aa3d6a083847cf1c90e0ca06e0bd909f.ctex"]
+source_file="res://art/quaternius/survivor/T_Regular_Male_Normal.png"
+dest_files=["res://.godot/imported/T_Regular_Male_Normal.png-b0d4209dfdf753423e5260964012ead5.ctex"]
 
 [params]
 
@@ -24,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
