@@ -67,7 +67,7 @@ func add_trauma(amount: float) -> void:
 func adjust_brightness(delta_val: float) -> void:
 	if _world_env and _world_env.environment:
 		_world_env.environment.tonemap_exposure = clampf(
-			_world_env.environment.tonemap_exposure + delta_val, 0.55, 1.85
+			_world_env.environment.tonemap_exposure + delta_val, 0.6, 2.6
 		)
 
 func adjust_shake_scale(delta_val: float) -> void:

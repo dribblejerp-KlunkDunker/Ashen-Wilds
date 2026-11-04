@@ -2,9 +2,9 @@ extends SceneTree
 # Renders README screenshots into res://docs/screenshots/.
 # Needs a real renderer (not --headless). On Linux without a GPU:
 #   xvfb-run -s "-screen 0 1920x1080x24" godot --path . --script res://tools/capture_screenshots.gd
-# Enemies are frozen while staging so shots are repeatable. Shots use the in-game
-# brightness setting at +0.4 (the same as pressing ] four times). Facing is set
+# Enemies are frozen while staging so shots are repeatable. Facing is set
 # directly because there is no real mouse under a virtual display.
+# Shots use the default brightness, so they show what a player sees on first launch.
 
 const OUT_DIR := "res://docs/screenshots"
 
@@ -65,7 +65,6 @@ func _run() -> void:
 	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
-	_rig.adjust_brightness(0.4)
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
 	await _frames(10)
 

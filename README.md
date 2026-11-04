@@ -27,7 +27,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 | ![Sword clangs off the entry hall wall](docs/screenshots/07_entry_hall_clang.png) | |
 | **Cramped quarters.** A sword slash in the 1.7 m entry hall clangs off the stone: sparks, a recoil stagger and triple wear. Indoors, thrust. | |
 
-<sub>Rendered with the project's own `tools/capture_screenshots.gd` (software Vulkan under Xvfb) at in-game brightness +0.4. Enemies are frozen and posed for framing; time is slowed for the clang so the sparks survive the slow software frame rate.</sub>
+<sub>Rendered with the project's own `tools/capture_screenshots.gd` (software Vulkan under Xvfb) at the default brightness. Enemies are frozen and posed for framing; time is slowed for the clang so the sparks survive the slow software frame rate.</sub>
 
 ---
 

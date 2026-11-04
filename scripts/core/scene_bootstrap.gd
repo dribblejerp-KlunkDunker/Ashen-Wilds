@@ -119,14 +119,14 @@ func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.035, 0.04, 0.05)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.16, 0.18, 0.22)
-	env.ambient_light_energy = 0.8
+	env.ambient_light_color = Color(0.24, 0.27, 0.32)
+	env.ambient_light_energy = 2.6
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.7
 	env.tonemap_white = 6.0
 	# Distance fog plus a low mist that pools in the first metre above the ground.
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.17, 0.19, 0.22)
+	env.fog_light_color = Color(0.22, 0.25, 0.29)
 	env.fog_density = 0.012
 	env.fog_aerial_perspective = 0.25
 	env.fog_height = 0.6
@@ -140,13 +140,13 @@ func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	# The grade: drained colour, a touch more contrast.
 	env.adjustment_enabled = true
-	env.adjustment_brightness = 1.0
+	env.adjustment_brightness = 1.12
 	env.adjustment_contrast = 1.08
 	env.adjustment_saturation = 0.8
 	# Contact shadows where props meet the ground (desktop renderer only).
 	env.ssao_enabled = true
 	env.ssao_radius = 1.2
-	env.ssao_intensity = 1.6
+	env.ssao_intensity = 1.2
 
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
@@ -157,7 +157,7 @@ func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	moon.name = "Moon"
 	moon.rotation_degrees = Vector3(-48.0, -35.0, 0.0)
 	moon.light_color = Color(0.50, 0.58, 0.76)
-	moon.light_energy = 0.8
+	moon.light_energy = 3.0
 	moon.shadow_enabled = true
 	moon.shadow_blur = 1.5
 	add_child(moon)

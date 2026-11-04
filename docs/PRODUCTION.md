@@ -157,6 +157,28 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Look and feel 4b — a brighter night: evidence (brief §24)
+
+**Why.** The owner found the screenshots "incredibly dark". They were: the LF-3 night took mean
+luminance of the README shots (0-255, centre crop) from 35 to 25, and the shots were rendered at
++0.4 brightness, so a player at the default saw something darker still.
+
+**What changed.** At the default brightness the night is now lit like a clear, moonlit one:
+ambient 1.8 to 2.6 (bluer-grey colour lifted), moon 2.1 to 3.0, exposure 1.55 to 1.7,
+`adjustment_brightness` 1.12, SSAO 1.6 to 1.2, a paler mist, and a lighter vignette (0.55 to 0.4).
+The grade, fog, glow and cold-vs-warm contrast are unchanged, so fire and torchlight still read as
+warm pools. The brightness keys now range over exposure 0.6 to 2.6 (was 0.55 to 1.85), leaving
+room both ways. `capture_screenshots.gd` renders at the default brightness, so the README shows
+what a player sees.
+
+**Measured.** Mean luminance of the five README shots without a HUD window: 25 before, 59 now
+(shelter 72, Watchhouse 56, chest 55, ork 65, ogre 71). Every shot re-rendered and looked at.
+
+**Not covered by headless tests.** The owner's screen. Software Vulkan and the browser's
+Compatibility renderer differ a little in exposure; if it is now too bright or still too dark,
+the `[` and `]` keys move it and the defaults are one line each in
+`_build_atmosphere_and_lighting()`.
+
 ## Look and feel 4 — the Ashbound enemies, and a facing fix: evidence (brief §24)
 
 **What changed.** The goblin, ork and ogre lose their capsules for the Ashbound: Quaternius's free

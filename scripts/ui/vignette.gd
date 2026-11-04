@@ -3,7 +3,7 @@ extends CanvasLayer
 ## A soft dark edge around the screen. Layer 0: over the 3D view, under the HUD (layer 1), and it
 ## ignores the mouse. Pure 2D shader, so it looks the same in the desktop and browser builds.
 
-const STRENGTH: float = 0.55
+const STRENGTH: float = 0.4
 
 
 func _init() -> void:
