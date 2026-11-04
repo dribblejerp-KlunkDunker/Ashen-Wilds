@@ -48,7 +48,7 @@ $GODOT --headless --path . --quit-after 1200 2>&1 \
 
 **Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **194 checks, 0 failures**. The environment kit has its own collision suites, `tests/test_env006_collisions.gd` to `test_env009_collisions.gd` (exit code 1 on any failure).
+Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **200 checks, 0 failures**. The environment kit has its own collision suites, `tests/test_env006_collisions.gd` to `test_env009_collisions.gd` (exit code 1 on any failure).
 
 ```bash
 # 5. Networked courtyard: a headless server and driven headless clients as separate processes on loopback.
@@ -90,11 +90,12 @@ scripts/net/        net_main.gd (session: roles, every RPC, the request pipeline
 scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), wall_deflection (shared clang rules)
 scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables)
 scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
-scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons), set_dressing.gd (the owner's kit placed as decoration; container models)
+scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons), set_dressing.gd (the owner's kit placed as decoration; container models),
+                    ash_fall.gd (shader-driven falling ash around the survivor), flicker_light.gd (the shelter fire's breathing light)
 scripts/player/     player_controller.gd (state machine, the largest file), survivor_model.gd (the animated Quaternius body and hand sockets)
 scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute
-scripts/ui/         tactical_hud.gd, inventory_ui.gd
-shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway)
+scripts/ui/         tactical_hud.gd, inventory_ui.gd, vignette.gd (screen-edge shade, CanvasLayer 0 under the HUD)
+shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway, world-space photo textures), ash_fall.gdshader (falling ash)
 tests/smoke_test.gd headless regression suite
 art/quaternius/     the survivor (Ranger outfit), the two animation libraries, recoloured textures, licences (README)
 art/ambientcg/      photo textures (mud, stone, planks) for the level and props (README)
@@ -115,6 +116,7 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 - **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `WallDeflection.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies use the same helper: the Ork's opening slash and the Ogre's sweep clang into an `AIState.RECOIL` that counts as staggered; the Goblin's jab (`attack_is_thrust`), the Ork's chop and the Ogre's slam never clang.
 - **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
 - **Survivor look:** `SurvivorModel` is presentation only. `_update_animation()` picks a clip from the action state; timed states (attacks, dodge, stagger, recoil) stretch their clip to the state's own duration, so the simulation sets the timing and the animation follows. The weapon and torch hang off the model's hand sockets (`right_socket`, `left_socket`, whose -Z points out of the fist), the shield off `shield_mount` on the back of the left hand; hitboxes, collision and aim stay on the controller, so a different mesh on the same rig changes nothing in play. Godot strips a `_Loop` suffix from imported clip names (`Idle_Loop` is `Idle`). During a dodge the model turns to face the roll.
+- **Atmosphere:** `_build_atmosphere_and_lighting()` sets the night: cold `Moon` light, blue-grey ambient, distance fog plus ground mist (`fog_height`), glow on emissive flames, and a desaturated, slightly contrasty adjustment. All of it works in the browser's Compatibility renderer except SSAO (desktop only). The brightness setting still moves `tonemap_exposure`. A near-black fog colour darkens the ground under the mist; keep the mist colour pale.
 - **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
 
 ## Conventions and pitfalls (learned the hard way)

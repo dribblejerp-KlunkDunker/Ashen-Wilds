@@ -106,6 +106,7 @@ func _run() -> void:
 	await _test_ogre_drops_attack_when_player_dies()
 	await _test_survivor_model()
 	_test_environment_surfaces()
+	await _test_atmosphere()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1189,3 +1190,31 @@ func _test_environment_surfaces() -> void:
 	if dressing:
 		bodies = dressing.find_children("*", "CollisionObject3D", true, false).size()
 	_check(dressing != null and bodies == 0, "set dressing adds no collision (%d bodies)" % bodies)
+
+# ------------------------------------------------------------------------------
+# Look and feel 3: night lighting, mist, glow, the grade, falling ash, the vignette, fire flicker.
+func _test_atmosphere() -> void:
+	_section("Atmosphere (look and feel 3)")
+	var env: Environment = null
+	for n: Node in _main.get_children():
+		if n is WorldEnvironment:
+			env = (n as WorldEnvironment).environment
+	_check(env != null and env.fog_enabled and env.fog_height_density > 0.0 and env.glow_enabled and env.adjustment_enabled
+		and env.adjustment_saturation < 1.0, "night grade: fog with ground mist, glow, desaturated adjustment")
+	var moon := _main.find_child("Moon", true, false) as DirectionalLight3D
+	_check(moon != null and moon.light_color.b > moon.light_color.r, "the moon is cold (blue over red)")
+	var ash := _main.find_child("AshFall", true, false) as AshFall
+	_check(ash != null and ash.multimesh.instance_count == AshFall.FLAKES and ash.follow == _player, "ash falls around the survivor (%d flakes)" % (ash.multimesh.instance_count if ash else 0))
+	await _ticks(2)
+	_check(ash != null and Vector2(ash.global_position.x - _player.global_position.x, ash.global_position.z - _player.global_position.z).length() < 0.01,
+		"the ash box follows the survivor")
+	var vig := _main.find_child("Vignette", true, false) as Vignette
+	_check(vig != null and vig.layer < _hud.layer and (vig.get_child(0) as Control).mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"the vignette sits under the HUD and ignores the mouse")
+	var fire := _main.find_child("ShelterFireLight", true, false) as FlickerLight
+	var energies: Array[float] = []
+	for i: int in range(6):
+		await _ticks(5)
+		energies.append(fire.light_energy if fire else 0.0)
+	var spread: float = energies.max() - energies.min()
+	_check(fire != null and spread > 0.02 and energies.max() <= fire.base_energy * 1.05, "the shelter fire flickers (energy spread %.2f)" % spread)
