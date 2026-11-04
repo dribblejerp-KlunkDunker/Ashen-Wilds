@@ -101,7 +101,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | P11 | Inventory capacity model | **CONFIRMED** (owner, 2026-11-03): weight only. Built in M1b: the server holds an `Inventory` per player, `PACK_CAPACITY_KG` = 12 with the existing 1.5× hard limit (encumbrance above capacity, refusal above the hard limit). | 2026-11-03 | Supplement §36: one model, explicit buttons. Reuses the single-player classes unchanged. | Playtest: does 12 kg produce the carrying decision the brief wants? |
 | P12 | Death and recovery | OPEN | | Supplement §42. Not needed before Milestone 4. | Before Milestone 4. |
 | P13 | Asset pipeline | PROPOSED: Blender → GLB → `res://art/exports/`, metadata per asset (brief §14), a 20-piece test kit first. | 2026-11-03 | Brief §12–§14, appendix §82. | The first exported module placed beside the capsule placeholder. |
-| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype) with KayKit's Rogue_Hooded; the owner then judged it "does not fit the grim world at all", so **LF-1b** replaced it with Quaternius's Ranger (Modular Character Outfits, CC0) on the Universal Animation Libraries 1 and 2 (CC0): adult proportions, recoloured dark and dirty. The swap touched only `SurvivorModel` and the clip names, which is the replaceability this decision asked for. Stylised, cartoon-proportioned kits (KayKit, Kenney) are now ruled out for the look. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
+| P15 | Placeholder survivor | **CONFIRMED** (owner, 2026-11-03): the KayKit Adventurers pack (CC0) may be the rigged, animated placeholder character for Milestones 1–4, **on the condition that it can be replaced later**. Kept replaceable by design: the avatar's presentation is its own node (`NetPlayerView`), separate from identity, state and simulation (appendix §71), and the simulation drives a capsule footprint, not the mesh. **Built in LF-1** (single-player prototype) with KayKit's Rogue_Hooded; the owner then judged it "does not fit the grim world at all", so **LF-1b** replaced it with Quaternius's Ranger (Modular Character Outfits, CC0) on the Universal Animation Libraries 1 and 2 (CC0): adult proportions, recoloured dark and dirty. The swap touched only `SurvivorModel` and the clip names, which is the replaceability this decision asked for. Stylised, cartoon-proportioned kits (KayKit, Kenney) are now ruled out for the look. The courtyard's `NetPlayerView` still uses a capsule (multiplayer deferred by the owner). The owner accepted the Ranger "for now" (2026-11-04) and may later commission or buy more realistic characters, or ask for help making them; any character on a standard humanoid rig can take the current animations. | 2026-11-03 | Brief §15 wants a coherent rigged source early and no weeks of art before the loop works. The licence file inside the download must still be read before anything is committed (brief §59). | The first own character mesh, or the art-direction slice (Milestone 5). |
 | P16 | CC0 environment kits | **CONFIRMED** (owner, 2026-11-03): CC0 kits (Quaternius, Kenney, KayKit) may be used for blockout, scale reference and placeholder props only; the final look comes from the team's own modules and material pass, replacing kit pieces over time. | 2026-11-03 | Brief §59: the visual direction must become recognisably ours; §3: crude and weather-beaten, which the clean kits are not. | Each module of the 20-piece test kit replaces its kit stand-in as it is approved (appendix §82). |
 | P14 | Superseded earlier decisions | Random world per expedition, browser-only delivery (old D42), and the generated 48×48 Blackfen before a small location: all superseded by the briefs and the owner's decisions. The procedural generator remains in the browser repo as reference. | 2026-11-03 | Brief §11, §25. | A demonstrated need for a larger world after the vertical slice. |
 
@@ -156,6 +156,35 @@ payload (§74).
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Look and feel 2 — the environment: evidence (brief §24)
+
+**Approach.** The level is code-built boxes of arbitrary sizes, so modular kit pieces would not fit
+them, and the owner had just ruled out stylised art. The boxes keep their shapes, collision and
+cutaway and wear photo-scanned CC0 textures instead (ambientCG): mud with straw for the ground,
+dressed stone for the Watchhouse, ruins and fire ring, dark weathered planks for the roof and crates.
+
+**What changed.**
+- `shaders/foreground_cutaway.gdshader` projects an albedo and an OpenGL normal map in world space
+  (floor and roof on XZ, walls on the plane they face) at a fixed density, tinted per surface; the
+  cutaway, damp gradient and a lighter procedural grime are unchanged.
+- `SceneBootstrap.SURFACES` names the four surfaces; `_create_static_box()` takes one as its last
+  argument; `surface_material()` builds the triplanar StandardMaterial3D the crates and chest use.
+- The shelter fire gains a glowing ember bed and three charred logs (decoration, no collision).
+- `art/ambientcg/` holds the six 1K JPGs (AO baked into each albedo) and a README with sources.
+
+**Blocked: prop models.** Poly Haven's CC0 models (crates, a chest, barrels, a stone fire pit) were
+the plan for props, but its download server answers scripted downloads with 403. Changing the
+client's user agent to get past that was refused as bot-check circumvention, rightly. The props stay
+textured boxes until the owner downloads the models in a browser or decides on tooling.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 192 passed, 0 failures (2 new: every level
+box is textured; crates wear planks). Compile check, live boot and `tools/net_spike.py` (65) clean.
+All seven README screenshots re-rendered through Forward+ and looked at; the web export renders the
+textured walls in headless Chromium.
+
+**Not covered by headless tests.** Whether the tiling repeats visibly while walking, how dark it
+reads on a real screen, and frame rate on the Chromebook with the extra texture sampling.
 
 ## Look and feel 1b — a grim survivor: evidence (brief §24)
 

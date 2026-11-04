@@ -137,7 +137,8 @@ func _build_blackfen_test_yard() -> void:
 		Color(0.18, 0.16, 0.14),
 		cutaway_shader,
 		false,
-		false
+		false,
+		"mud"
 	)
 
 	_create_static_box(
@@ -146,8 +147,10 @@ func _build_blackfen_test_yard() -> void:
 		Color(0.25, 0.22, 0.20),
 		cutaway_shader,
 		false,
-		false
+		false,
+		"dark_stone"
 	)
+	_build_fire_bed(Vector3(-6.5, 0.4, 4.8))
 	var fire_light := OmniLight3D.new()
 	fire_light.position = Vector3(-6.5, 1.1, 4.8)
 	fire_light.light_color = Color(0.96, 0.54, 0.22)
@@ -159,23 +162,23 @@ func _build_blackfen_test_yard() -> void:
 	_camera_rig.register_interior_aabb(AABB(Vector3(1.1, 0.0, -6.9), Vector3(7.8, 3.8, 7.8)))
 
 	var stone_col := Color(0.28, 0.27, 0.25)
-	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false, "stone")
 	# East wall faces the camera (rig sits on the +X/+Z side), so it needs the
 	# cutaway too or it hides the eastern half of the watchhouse interior.
-	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, true, false, "stone")
 
 	# West Foreground Wall with 1.35m doorway at Z = -2.675 (Blocks 1.70m Ogre)
-	_create_static_box(Vector3(1.0, 1.6, -5.175), Vector3(0.4, 3.2, 3.65), stone_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(1.0, 1.6, -0.5), Vector3(0.4, 3.2, 3.0), stone_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(1.0, 2.7, -2.675), Vector3(0.4, 1.0, 1.35), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(1.0, 1.6, -5.175), Vector3(0.4, 3.2, 3.65), stone_col, cutaway_shader, true, false, "stone")
+	_create_static_box(Vector3(1.0, 1.6, -0.5), Vector3(0.4, 3.2, 3.0), stone_col, cutaway_shader, true, false, "stone")
+	_create_static_box(Vector3(1.0, 2.7, -2.675), Vector3(0.4, 1.0, 1.35), stone_col, cutaway_shader, true, false, "stone")
 
-	_create_static_box(Vector3(5.0, 1.6, 1.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(5.0, 1.6, 1.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, true, false, "stone")
 
 	# Milestone 5: a 1.7 m-wide entry hall running in from the west doorway.
 	# Sweeping blades clang off these walls; thrusts work.
 	var hall_col := Color(0.25, 0.24, 0.22)
-	_create_static_box(Vector3(2.9, 1.2, -3.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(2.9, 1.2, -1.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(2.9, 1.2, -3.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false, "dark_stone")
+	_create_static_box(Vector3(2.9, 1.2, -1.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false, "dark_stone")
 
 	_create_static_box(
 		Vector3(5.0, 3.35, -3.0),
@@ -183,7 +186,8 @@ func _build_blackfen_test_yard() -> void:
 		Color(0.22, 0.18, 0.15),
 		cutaway_shader,
 		true,
-		true
+		true,
+		"planks"
 	)
 	var shadow_proxy := MeshInstance3D.new()
 	var sp_box := BoxMesh.new()
@@ -193,11 +197,68 @@ func _build_blackfen_test_yard() -> void:
 	shadow_proxy.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	add_child(shadow_proxy)
 
-	_create_static_box(Vector3(11.0, 1.4, 5.5), Vector3(4.5, 2.8, 0.6), stone_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(11.0, 1.4, 5.5), Vector3(4.5, 2.8, 0.6), stone_col, cutaway_shader, false, false, "stone")
+	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false, "stone")
 
-	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false, "stone")
+	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false, "stone")
+
+## The shelter fire's visible fire: a glowing ember bed and three charred logs on the stone ring.
+## Decoration only (no collision; the ring under it is the obstacle). The light stays separate.
+func _build_fire_bed(top: Vector3) -> void:
+	var embers := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.34
+	disc.bottom_radius = 0.38
+	disc.height = 0.05
+	embers.mesh = disc
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color(0.25, 0.08, 0.02)
+	glow.emission_enabled = true
+	glow.emission = Color(0.95, 0.28, 0.05)
+	glow.emission_energy_multiplier = 1.4
+	embers.material_override = glow
+	embers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	embers.position = top + Vector3(0.0, 0.03, 0.0)
+	add_child(embers)
+	var charred := surface_material("planks", Color(0.35, 0.3, 0.27))
+	for i: int in range(3):
+		var log_mesh := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.06
+		cyl.bottom_radius = 0.07
+		cyl.height = 0.75
+		log_mesh.mesh = cyl
+		log_mesh.material_override = charred
+		log_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		log_mesh.position = top + Vector3(0.0, 0.12, 0.0)
+		log_mesh.rotation_degrees = Vector3(72.0, i * 60.0, 0.0)
+		add_child(log_mesh)
+
+## Photo textures for the level (ambientCG, CC0; art/ambientcg/README.md): albedo with the AO
+## baked in, an OpenGL normal map, repeats per metre and a tint that darkens them for the Blackfen.
+const SURFACES: Dictionary = {
+	"mud": ["res://art/ambientcg/mud_albedo.jpg", "res://art/ambientcg/mud_normal.jpg", 0.32, Color(0.62, 0.58, 0.54)],
+	"stone": ["res://art/ambientcg/stone_albedo.jpg", "res://art/ambientcg/stone_normal.jpg", 0.42, Color(0.58, 0.57, 0.55)],
+	"dark_stone": ["res://art/ambientcg/stone_albedo.jpg", "res://art/ambientcg/stone_normal.jpg", 0.42, Color(0.44, 0.43, 0.42)],
+	"planks": ["res://art/ambientcg/planks_albedo.jpg", "res://art/ambientcg/planks_normal.jpg", 0.55, Color(0.62, 0.55, 0.48)],
+}
+
+## Makes a StandardMaterial3D for a prop (container, pile) from one of SURFACES, projected in
+## object space so it tiles with the prop's size.
+static func surface_material(surface: String, tint: Color = Color.WHITE) -> StandardMaterial3D:
+	var def: Array = SURFACES[surface]
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = load(def[0]) as Texture2D
+	mat.normal_enabled = true
+	mat.normal_texture = load(def[1]) as Texture2D
+	mat.normal_scale = 0.8
+	mat.uv1_triplanar = true
+	mat.uv1_world_triplanar = true
+	mat.uv1_scale = Vector3.ONE * float(def[2]) * 2.0
+	mat.albedo_color = (def[3] as Color) * tint
+	mat.roughness = 0.95
+	return mat
 
 func _create_static_box(
 	pos: Vector3,
@@ -205,7 +266,8 @@ func _create_static_box(
 	col: Color,
 	shader: Shader,
 	enable_cutaway: bool,
-	is_roof: bool
+	is_roof: bool,
+	surface: String = ""
 ) -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
@@ -229,6 +291,15 @@ func _create_static_box(
 	mat.shader = shader
 	mat.set_shader_parameter("albedo_color", col)
 	mat.set_shader_parameter("enable_foreground_cutaway", enable_cutaway)
+	if surface != "":
+		var def: Array = SURFACES[surface]
+		mat.set_shader_parameter("use_texture", true)
+		mat.set_shader_parameter("albedo_tex", load(def[0]))
+		mat.set_shader_parameter("normal_tex", load(def[1]))
+		mat.set_shader_parameter("tex_scale", def[2])
+		mat.set_shader_parameter("tex_tint", def[3])
+		# The photo already carries its own dirt; the procedural grime would double it.
+		mat.set_shader_parameter("grime_strength", 0.12)
 	mesh_inst.material_override = mat
 	body.add_child(mesh_inst)
 
@@ -323,6 +394,16 @@ func _spawn_scavenge_containers() -> void:
 		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
 	)
 
+## Crates and chests are weathered planks; heaps keep a flat colour (no CC0 bone model yet).
+func _container_material(label: String, col: Color) -> Material:
+	if label.contains("Heap"):
+		var flat := StandardMaterial3D.new()
+		flat.albedo_color = col
+		flat.roughness = 0.92
+		return flat
+	var tint := Color(0.85, 0.82, 0.78) if label.contains("Chest") else Color.WHITE
+	return surface_material("planks", tint)
+
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
 	var body := StaticBody3D.new()
 	body.name = label.replace(" ", "")
@@ -341,10 +422,7 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 	var bmesh := BoxMesh.new()
 	bmesh.size = size
 	mesh.mesh = bmesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = col
-	mat.roughness = 0.92
-	mesh.material_override = mat
+	mesh.material_override = _container_material(label, col)
 	body.add_child(mesh)
 
 	var loot := Lootable.new()

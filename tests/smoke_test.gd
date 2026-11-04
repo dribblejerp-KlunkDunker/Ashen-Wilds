@@ -105,6 +105,7 @@ func _run() -> void:
 	await _test_enemy_wall_deflection()
 	await _test_ogre_drops_attack_when_player_dies()
 	await _test_survivor_model()
+	_test_environment_surfaces()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1150,3 +1151,27 @@ func _test_survivor_model() -> void:
 	await _ticks(3)
 	_check(String(model.current_animation()).contains("Idle"), "respawn returns to an idle (got %s)" % model.current_animation())
 	_player.inventory.remove(torch)
+
+# ------------------------------------------------------------------------------
+# Look and feel 2: the level's boxes wear photo textures (ambientCG, CC0).
+func _test_environment_surfaces() -> void:
+	_section("Environment surfaces (ambientCG)")
+	var textured: int = 0
+	var flat: int = 0
+	for n: Node in _main.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var sm := mi.material_override as ShaderMaterial
+		if sm == null or not (mi.get_parent() is StaticBody3D):
+			continue
+		if sm.get_shader_parameter("use_texture") and sm.get_shader_parameter("albedo_tex") is Texture2D:
+			textured += 1
+		else:
+			flat += 1
+	_check(textured >= 15 and flat == 0, "every level box wears a photo texture (%d textured, %d flat)" % [textured, flat])
+	var crate: Node = _main.find_child("RottedGrainCrate", true, false)
+	var crate_mat: StandardMaterial3D = null
+	if crate:
+		for c: Node in crate.get_children():
+			if c is MeshInstance3D:
+				crate_mat = (c as MeshInstance3D).material_override as StandardMaterial3D
+	_check(crate_mat != null and crate_mat.albedo_texture != null and crate_mat.uv1_triplanar, "crates are weathered planks")
