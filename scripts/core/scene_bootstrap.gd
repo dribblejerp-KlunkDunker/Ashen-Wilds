@@ -343,6 +343,10 @@ func _create_static_box(
 	if enable_cutaway or is_roof:
 		_camera_rig.register_cutaway_material(mat, is_roof)
 
+func _on_enemy_bark(message: String) -> void:
+	if _hud:
+		_hud.show_banner(message, Color(0.86, 0.68, 0.38))
+
 func _spawn_all_archetype_encounters() -> void:
 	var goblin_yard := EnemyGoblinScavenger.new()
 	goblin_yard.position = Vector3(-1.2, 0.0, -3.2)
@@ -352,6 +356,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_yard.patrol_points = [Vector3(-1.2, 0.0, -4.5), Vector3(-3.0, 0.0, 0.5)]
 	add_child(goblin_yard)
 	goblin_yard.goblin_alert_sound.connect(_on_goblin_unseen_noise)
+	goblin_yard.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var goblin_inside := EnemyGoblinScavenger.new()
 	goblin_inside.position = Vector3(5.2, 0.0, -3.2)
@@ -361,6 +366,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_inside.patrol_points = [Vector3(6.8, 0.0, -5.2), Vector3(6.8, 0.0, -1.4)]
 	add_child(goblin_inside)
 	goblin_inside.goblin_alert_sound.connect(_on_goblin_unseen_noise)
+	goblin_inside.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var ork_shield := EnemyOrkWarrior.new()
 	ork_shield.has_shield = true

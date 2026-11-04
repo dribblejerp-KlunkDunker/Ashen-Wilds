@@ -308,6 +308,10 @@ func _on_inventory_changed() -> void:
 		_last_load = load_state
 	inventory_changed.emit()
 
+## Where the survivor faces (flat, unit length). Enemies read it to find an exposed back.
+func get_aim_direction() -> Vector3:
+	return _aim_direction
+
 func get_noise_multiplier() -> float:
 	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
 
@@ -928,7 +932,15 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 			if shield.wear(payload.poise_damage * shield.data.block_wear_per_poise):
 				combat_banner_message.emit("Your %s splinters apart!" % shield.data.display_name, Color(0.92, 0.36, 0.22))
 				inventory.notify_changed()
-			if is_exhausted:
+			if payload.breaks_guard:
+				if audio:
+					audio.play_guard_break()
+				if camera_rig:
+					camera_rig.add_trauma(0.6)
+				current_state = ActionState.STAGGER
+				_state_timer = 0.85
+				combat_banner_message.emit("SHIELD BASHED — your guard is knocked aside!", Color(0.92, 0.42, 0.22))
+			elif is_exhausted:
 				if audio:
 					audio.play_guard_break()
 				if camera_rig:

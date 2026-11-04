@@ -2,6 +2,13 @@ class_name EnemyGoblinScavenger
 extends CharacterBody3D
 
 signal goblin_alert_sound(world_pos: Vector3)
+signal goblin_combat_bark(message: String)
+
+## THE OPPORTUNIST. Weak, quick and cowardly: alone it would rather not trade blows. It circles
+## just out of reach and darts in when the survivor is open (back or side turned, recovering from
+## a swing, searching, staggered, out of breath), jabs, and skitters back out. A jab from behind
+## the survivor's guard is a backstab for double damage. If the survivor keeps away, it throws
+## stones, and a hurt goblin flees and keeps throwing. Every jab can open a bleeding wound.
 
 ## Arc and reach of the wall check, used only when the attack is not a thrust.
 const SWEEP_ARC_DEGREES: float = 90.0
@@ -19,8 +26,29 @@ enum AIState {
 	RECOVER_VULNERABLE,
 	RETREAT,
 	STAGGER,
+	DISENGAGE,
+	THROW_STARTUP,
 	DEAD
 }
+
+## The jab, its stone, and how it moves when it means business.
+const JAB_DAMAGE: float = 12.0
+const JAB_POISE: float = 10.0
+const JAB_STARTUP: float = 0.42
+## A jab from more than 100 degrees off the survivor's aim lands from behind the guard.
+const BACKSTAB_DOT: float = -0.17
+const BACKSTAB_MULT: float = 2.0
+const STONE_DAMAGE: float = 7.0
+const STONE_POISE: float = 8.0
+const THROW_STARTUP_TIME: float = 0.55
+const STONE_COOLDOWN: float = 4.5
+const STONE_MIN_RANGE: float = 5.0
+const STONE_MAX_RANGE: float = 11.0
+const DART_SPEED: float = 5.6
+## Where it likes to circle: close enough to dart in, out of a sword's reach.
+const CIRCLE_RADIUS: float = 2.9
+const DISENGAGE_TIME: float = 0.75
+const DISENGAGE_SPEED: float = 3.9
 
 @export var enemy_name: String = "Goblin Scavenger"
 @export var max_health: float = 65.0
@@ -31,6 +59,15 @@ enum AIState {
 ## entry-hall goblin keeps its teeth. Set false to treat it as a sweep that
 ## raycasts its arc through WallDeflection and clangs when stone is in the way.
 @export var attack_is_thrust: bool = true
+
+@export_group("Temperament")
+## How readily it attacks without an opening: 0 waits for one, 1 darts in whenever it can.
+## It sets how long it circles before losing patience (4 s at 0, 1.2 s at 1) and its chance per
+## second of darting in anyway.
+@export_range(0.0, 1.0) var aggression: float = 0.3
+## Scales the damage of everything it lands (the jab, the backstab, the stone).
+@export var attack_power: float = 1.0
+@export_group("")
 
 var health: float = 65.0
 var poise_damage: float = 0.0
@@ -48,6 +85,10 @@ var _flank_sign: float = 1.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
 var _unseen_cue_cooldown: float = 0.0
+## True while it runs straight in for a jab instead of circling.
+var _committed: bool = false
+var _patience: float = 0.0
+var _stone_cooldown: float = 0.0
 
 var _visual_root: Node3D
 var _weapon_arm: Node3D
@@ -62,6 +103,7 @@ var _hurtbox: HurtboxComponent
 func _ready() -> void:
 	health = max_health
 	_flank_sign = 1.0 if randf() > 0.5 else -1.0
+	_reset_patience()
 	_build_goblin_visuals_and_colliders()
 
 func _physics_process(delta: float) -> void:
@@ -71,6 +113,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_knockback_vel = _knockback_vel.move_toward(Vector3.ZERO, 14.0 * delta)
+	_stone_cooldown = maxf(0.0, _stone_cooldown - delta)
 	_evaluate_senses(delta)
 	_process_ai_state(delta)
 	_update_visual_telegraph()
@@ -195,6 +238,7 @@ func _process_ai_state(delta: float) -> void:
 
 		AIState.PURSUE:
 			if not _has_last_known_pos:
+				_committed = false
 				state = AIState.INVESTIGATE
 				return
 			if health < (max_health * 0.32):
@@ -209,11 +253,17 @@ func _process_ai_state(delta: float) -> void:
 			if dist <= 1.85:
 				if _try_begin_attack_windup():
 					return
+				_committed = false
 				state = AIState.FLANK
 				_state_timer = 0.55
+			elif _committed:
+				# Darting in for the jab: straight at the survivor, faster than they walk.
+				_steer_toward(to_target.normalized(), DART_SPEED, delta)
 			elif dist <= 4.2:
 				state = AIState.FLANK
 				_state_timer = randf_range(0.75, 1.35)
+			elif _try_begin_throw(dist):
+				return
 			else:
 				_steer_toward(to_target.normalized(), 4.1, delta)
 
@@ -226,14 +276,25 @@ func _process_ai_state(delta: float) -> void:
 			to_p.y = 0.0
 			var dist: float = to_p.length()
 			var dir_p: Vector3 = to_p.normalized() if dist > 0.01 else Vector3.FORWARD
+			# Circle at CIRCLE_RADIUS, out of reach, watching for an opening.
 			var tangent := Vector3(-dir_p.z * _flank_sign, 0.0, dir_p.x * _flank_sign)
-			var radial_push: float = 0.45 if dist > 2.1 else -0.25
+			var radial_push: float = 0.0
+			if dist > CIRCLE_RADIUS + 0.4:
+				radial_push = 0.5
+			elif dist < CIRCLE_RADIUS - 0.4:
+				radial_push = -0.6
 			var move_vec: Vector3 = (dir_p * radial_push + tangent * 0.88).normalized()
 			_face_direction(dir_p, 10.0, delta)
 			velocity.x = move_vec.x * 3.4 + _knockback_vel.x
 			velocity.z = move_vec.z * 3.4 + _knockback_vel.z
 
-			if (dist <= 1.85 and _try_begin_attack_windup()):
+			# Pressed up close, it strikes rather than be cut down.
+			if dist <= 1.5 and _try_begin_attack_windup():
+				return
+			_patience -= delta
+			if player_is_open() or _patience <= 0.0 or randf() < aggression * delta:
+				_committed = true
+				state = AIState.PURSUE
 				return
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
@@ -259,14 +320,47 @@ func _process_ai_state(delta: float) -> void:
 				if coordinator:
 					coordinator.release_attack_token(self)
 				state = AIState.ATTACK_RECOVERY
-				_state_timer = 0.72
+				_state_timer = 0.5
 
 		AIState.ATTACK_RECOVERY, AIState.RECOVER_VULNERABLE:
 			_state_timer -= delta
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
 			if _state_timer <= 0.0:
-				state = AIState.PURSUE
+				if state == AIState.ATTACK_RECOVERY and player_ref != null:
+					# Hit and run: skitter back out of reach before circling again.
+					state = AIState.DISENGAGE
+					_state_timer = DISENGAGE_TIME
+				else:
+					state = AIState.PURSUE
+
+		AIState.DISENGAGE:
+			_state_timer -= delta
+			if player_ref:
+				var back: Vector3 = global_position - player_ref.global_position
+				back.y = 0.0
+				if back.length_squared() > 0.01:
+					_face_direction(-back.normalized(), 10.0, delta)
+					velocity.x = back.normalized().x * DISENGAGE_SPEED + _knockback_vel.x
+					velocity.z = back.normalized().z * DISENGAGE_SPEED + _knockback_vel.z
+			if _state_timer <= 0.0:
+				state = AIState.FLANK
+				_state_timer = randf_range(1.0, 1.8)
+
+		AIState.THROW_STARTUP:
+			_state_timer -= delta
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			if player_ref:
+				var aim_t: Vector3 = player_ref.global_position - global_position
+				aim_t.y = 0.0
+				if aim_t.length_squared() > 0.01:
+					_face_direction(aim_t.normalized(), 6.0, delta)
+			if _state_timer <= 0.0:
+				_release_stone()
+				state = AIState.RETREAT if health < max_health * 0.32 else AIState.PURSUE
+				if state == AIState.RETREAT:
+					_state_timer = 1.6
 
 		AIState.RETREAT:
 			_state_timer -= delta
@@ -275,6 +369,9 @@ func _process_ai_state(delta: float) -> void:
 				away.y = 0.0
 				if away.length_squared() > 0.01:
 					_steer_toward(away.normalized(), 4.3, delta)
+				# A hurt goblin keeps its distance and pelts the survivor with stones.
+				if _try_begin_throw(away.length()):
+					return
 			if _state_timer <= 0.0:
 				state = AIState.PURSUE
 
@@ -296,8 +393,68 @@ func _try_begin_attack_windup() -> bool:
 	if coordinator and not coordinator.request_attack_token(self):
 		return false
 	state = AIState.ATTACK_STARTUP
-	_state_timer = 0.56
+	_state_timer = JAB_STARTUP
+	_committed = false
+	_reset_patience()
 	return true
+
+func _reset_patience() -> void:
+	_patience = lerpf(4.0, 1.2, aggression)
+
+## True when the survivor is open to a dart: back or side turned to this goblin, recovering
+## from a swing, searching or bandaging, staggered, stuck in a lodged weapon, reeling from a
+## clang, or out of breath.
+func player_is_open() -> bool:
+	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
+		return false
+	if player_ref.current_state in [
+		PlayerController.ActionState.ATTACK_RECOVERY,
+		PlayerController.ActionState.CHANNEL,
+		PlayerController.ActionState.STAGGER,
+		PlayerController.ActionState.LODGED,
+		PlayerController.ActionState.RECOIL,
+	] or player_ref.is_exhausted:
+		return true
+	return _behind_player_dot() < 0.2
+
+## The survivor's aim against the direction from them to this goblin: 1 dead ahead, -1 behind.
+func _behind_player_dot() -> float:
+	if player_ref == null:
+		return 1.0
+	var to_me: Vector3 = global_position - player_ref.global_position
+	to_me.y = 0.0
+	if to_me.length_squared() < 0.0001:
+		return 1.0
+	return player_ref.get_aim_direction().dot(to_me.normalized())
+
+## Starts a throw if the survivor is at stone range, in sight and the arm is rested.
+func _try_begin_throw(dist: float) -> bool:
+	if player_ref == null or _stone_cooldown > 0.0:
+		return false
+	if dist < STONE_MIN_RANGE or dist > STONE_MAX_RANGE:
+		return false
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 1.0, 0.0),
+		player_ref.global_position + Vector3(0.0, 1.0, 0.0), 1)
+	if not get_world_3d().direct_space_state.intersect_ray(q).is_empty():
+		return false
+	state = AIState.THROW_STARTUP
+	_state_timer = THROW_STARTUP_TIME
+	_stone_cooldown = STONE_COOLDOWN
+	return true
+
+func _release_stone() -> void:
+	if player_ref == null:
+		return
+	var aim: Vector3 = player_ref.global_position - global_position
+	aim.y = 0.0
+	if aim.length_squared() < 0.01:
+		return
+	if audio:
+		audio.play_swing()
+	var payload := CombatPayload.new(self, global_position, aim.normalized(),
+		STONE_DAMAGE * attack_power, STONE_POISE, false, false, 1.2)
+	var hand: Vector3 = global_position + Vector3(0.0, 1.05, 0.0) + aim.normalized() * 0.45
+	ThrownStone.launch(get_parent(), hand, aim, payload)
 
 func _enter_attack_active() -> void:
 	if not attack_is_thrust:
@@ -309,15 +466,19 @@ func _enter_attack_active() -> void:
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	var damage: float = JAB_DAMAGE * attack_power
+	if player_ref != null and _behind_player_dot() <= BACKSTAB_DOT:
+		damage *= BACKSTAB_MULT
+		goblin_combat_bark.emit("Backstabbed by a goblin! Keep them in front of you.")
 	var payload := CombatPayload.new(
 		self,
 		global_position,
 		_facing_dir,
-		18.0,
-		16.0,
+		damage,
+		JAB_POISE,
 		true,
 		false,
-		3.0
+		2.4
 	)
 	_hitbox.begin_swing(payload)
 
@@ -378,13 +539,13 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 
 func _update_visual_telegraph() -> void:
 	match state:
-		AIState.ATTACK_STARTUP:
+		AIState.ATTACK_STARTUP, AIState.THROW_STARTUP:
 			_status_mat.albedo_color = Color(0.95, 0.65, 0.15)
 		AIState.ATTACK_ACTIVE:
 			_status_mat.albedo_color = Color(0.92, 0.18, 0.15)
 		AIState.ATTACK_RECOVERY, AIState.RECOVER_VULNERABLE, AIState.STAGGER:
 			_status_mat.albedo_color = Color(0.42, 0.68, 0.85)
-		AIState.RETREAT:
+		AIState.RETREAT, AIState.DISENGAGE:
 			_status_mat.albedo_color = Color(0.75, 0.75, 0.32)
 		_:
 			_status_mat.albedo_color = Color(0.38, 0.46, 0.34)
@@ -400,14 +561,20 @@ func _update_model_animation() -> void:
 		match state:
 			AIState.ATTACK_STARTUP:
 				_model.play_strike(&"Sword_Dash", _state_timer)
+			AIState.THROW_STARTUP:
+				_model.play_strike(&"OverhandThrow", _state_timer)
 			AIState.STAGGER:
 				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.3))
 			AIState.RECOVER_VULNERABLE:
 				_model.play(&"Hit_Chest", 0.5)
-	if state in [AIState.ATTACK_STARTUP, AIState.ATTACK_ACTIVE, AIState.ATTACK_RECOVERY, AIState.STAGGER, AIState.RECOVER_VULNERABLE]:
+	if state in [AIState.ATTACK_STARTUP, AIState.ATTACK_ACTIVE, AIState.ATTACK_RECOVERY, AIState.STAGGER,
+			AIState.RECOVER_VULNERABLE, AIState.THROW_STARTUP]:
 		return
 	var speed: float = Vector2(velocity.x, velocity.z).length()
-	if speed < 0.2:
+	if state == AIState.DISENGAGE:
+		# Backing away, still facing the survivor: the crouched walk played in reverse.
+		_model.play(&"Crouch_Fwd", -clampf(speed / 1.4, 0.8, 1.8))
+	elif speed < 0.2:
 		_model.play(&"Crouch_Idle")
 	elif state in [AIState.PATROL, AIState.INVESTIGATE]:
 		_model.play(&"Crouch_Fwd", clampf(speed / 1.4, 0.6, 1.6))

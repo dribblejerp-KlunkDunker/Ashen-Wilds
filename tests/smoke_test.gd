@@ -108,6 +108,7 @@ func _run() -> void:
 	await _test_environment_surfaces()
 	await _test_atmosphere()
 	await _test_enemy_models()
+	await _test_enemy_temperaments()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1255,9 +1256,9 @@ func _test_enemy_models() -> void:
 	_check(survivor_toes.dot(Vector3(1.0, 0.0, 0.0)) > 0.8, "the survivor faces where it aims (toes·aim = %.2f)" % survivor_toes.dot(Vector3(1.0, 0.0, 0.0)))
 
 	var needed: Dictionary = {
-		EnemyGoblinScavenger: [&"Crouch_Idle", &"Crouch_Fwd", &"Jog_Fwd", &"Sword_Dash", &"Hit_Knockback", &"Hit_Chest", &"Death01"],
-		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
-		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyGoblinScavenger: [&"Crouch_Idle", &"Crouch_Fwd", &"Jog_Fwd", &"Sword_Dash", &"OverhandThrow", &"Hit_Knockback", &"Hit_Chest", &"Death01"],
+		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Shield_Dash", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Push", &"Sprint", &"Hit_Knockback", &"Hit_Head", &"Death01"],
 	}
 	for cls: Variant in needed.keys():
 		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
@@ -1289,5 +1290,126 @@ func _test_enemy_models() -> void:
 	_check(goblin.state == EnemyGoblinScavenger.AIState.DEAD and goblin._model.current_animation() == &"Death01"
 		and absf(goblin._visual_root.rotation_degrees.x) < 1.0, "a goblin's death plays Death01 instead of tipping the body flat")
 	goblin.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Enemy temperaments: each enemy fights in its own way (attack style, aggression, power).
+# Keep temperament helpers between this banner and the end of the file.
+# ------------------------------------------------------------------------------
+func _test_enemy_temperaments() -> void:
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	await _test_goblin_temperament()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+## A live goblin hunting the survivor, standing `offset` from them.
+func _spawn_hunting_goblin(offset: Vector3) -> EnemyGoblinScavenger:
+	var g := EnemyGoblinScavenger.new()
+	g.audio = _player.audio
+	g.player_ref = _player
+	_main.add_child(g)
+	g.global_position = _player.global_position + offset
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	return g
+
+func _test_goblin_temperament() -> void:
+	_section("Enemy temperament: the goblin opportunist")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	await _ticks(2)
+	_check(is_equal_approx(g.aggression, 0.3) and is_equal_approx(g.attack_power, 1.0),
+		"goblin temperament: aggression 0.3, attack power 1.0 (%.2f, %.2f)" % [g.aggression, g.attack_power])
+
+	# Openings: a turned back or a swing's recovery opens the survivor; facing it squarely doesn't.
+	_face(Vector3.RIGHT)
+	_check(not g.player_is_open(), "goblin: a survivor facing it, at rest, is not open")
+	_face(Vector3.LEFT)
+	_check(g.player_is_open(), "goblin: a survivor with their back turned is open")
+	_face(Vector3.RIGHT)
+	_player.current_state = PlayerController.ActionState.ATTACK_RECOVERY
+	_check(g.player_is_open(), "goblin: a survivor recovering from a swing is open")
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Patience follows aggression.
+	g.aggression = 0.0
+	g._reset_patience()
+	var slow: float = g._patience
+	g.aggression = 1.0
+	g._reset_patience()
+	_check(slow > 3.5 and g._patience < 1.5, "goblin: a timid one circles longer before losing patience (%.1f s vs %.1f s)" % [slow, g._patience])
+	g.aggression = 0.3
+
+	# The jab: weak from the front, double from behind the guard. (4 m away: the hitbox opens on nothing.)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var front: float = g._hitbox._active_payload.physical_damage if g._hitbox._active_payload else -1.0
+	g._hitbox.end_swing()
+	_face(Vector3.LEFT)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var back: float = g._hitbox._active_payload.physical_damage if g._hitbox._active_payload else -1.0
+	var bleeds: bool = g._hitbox._active_payload != null and g._hitbox._active_payload.causes_bleed
+	g._hitbox.end_swing()
+	_check(is_equal_approx(front, EnemyGoblinScavenger.JAB_DAMAGE), "goblin: a jab from the front deals %.0f (got %.0f)" % [EnemyGoblinScavenger.JAB_DAMAGE, front])
+	_check(is_equal_approx(back, front * EnemyGoblinScavenger.BACKSTAB_MULT), "goblin: a backstab deals double (%.0f)" % back)
+	_check(bleeds, "goblin: the jab can still open a bleeding wound")
+	_face(Vector3.RIGHT)
+
+	# Hit and run: after the jab's recovery it skitters back out of reach, still facing the survivor.
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_RECOVERY
+	g._state_timer = 0.02
+	await _ticks(3)
+	_check(g.state == EnemyGoblinScavenger.AIState.DISENGAGE, "goblin: after a jab it disengages (state=%s)" % EnemyGoblinScavenger.AIState.keys()[g.state])
+	var d0: float = g.global_position.distance_to(_player.global_position)
+	await _seconds(0.4)
+	_check(g.global_position.distance_to(_player.global_position) > d0 + 0.8, "goblin: disengaging backs it away (%.1f m -> %.1f m)" % [d0, g.global_position.distance_to(_player.global_position)])
+	_check(g._facing_dir.dot((_player.global_position - g.global_position).normalized()) > 0.7, "goblin: it backs away still facing the survivor")
+	_check(g._model.anim.speed_scale < 0.0 and g._model.current_animation() == &"Crouch_Fwd", "goblin: backing away plays the crouched walk in reverse")
+	g.queue_free()
+	await _ticks(2)
+
+	# Stones: at range and in sight it throws one, which flies, strikes once and is gone.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var thrower := _spawn_hunting_goblin(Vector3(7.0, 0.0, 0.0))
+	await _ticks(2)
+	_check(thrower._try_begin_throw(7.0) and thrower.state == EnemyGoblinScavenger.AIState.THROW_STARTUP,
+		"goblin: at 7 m it winds up a throw")
+	_check(not thrower._try_begin_throw(7.0), "goblin: and must rest its arm before the next one")
+	thrower._update_visual_telegraph()
+	_check(thrower._model.current_animation() == &"OverhandThrow", "goblin: the throw plays the overhand throw")
+	var hp: float = _player.health
+	var saw_stone: bool = false
+	for i in range(int(2.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_stone = saw_stone or not _main.find_children("ThrownStone*", "", false, false).is_empty()
+		if _player.health < hp:
+			break
+	_check(saw_stone, "goblin: the throw releases a stone")
+	_check(is_equal_approx(hp - _player.health, EnemyGoblinScavenger.STONE_DAMAGE),
+		"goblin: the stone strikes the survivor for %.0f (took %.1f)" % [EnemyGoblinScavenger.STONE_DAMAGE, hp - _player.health])
+	await _ticks(2)
+	_check(_main.find_children("ThrownStone*", "", false, false).is_empty(), "goblin: a stone that hits is gone")
+	thrower.queue_free()
+
+	# A stone thrown at stone stops there.
+	var wall := StaticBody3D.new()
+	var wc := CollisionShape3D.new()
+	var wb := BoxShape3D.new()
+	wb.size = Vector3(0.4, 3.0, 4.0)
+	wc.shape = wb
+	wall.add_child(wc)
+	_main.add_child(wall)
+	wall.global_position = OPEN + Vector3(-3.0, 1.5, 6.0)
+	var lone := ThrownStone.launch(_main, OPEN + Vector3(0.0, 1.0, 6.0), Vector3.LEFT,
+		CombatPayload.new(_main, OPEN, Vector3.LEFT, 1.0, 1.0))
+	await _seconds(0.5)
+	_check(not is_instance_valid(lone), "goblin: a stone that meets a wall stops there")
+	wall.queue_free()
 	_reset_player(OPEN)
 	await _ticks(2)
