@@ -12,5 +12,5 @@ given anyway: **ambientCG.com**.
 
 Each albedo is the asset's Color map multiplied by its (softened) AmbientOcclusion map; each normal
 is its NormalGL map (Godot's convention). The tints and tiling densities live in
-`SceneBootstrap.SURFACES`; the walls are drawn by `shaders/foreground_cutaway.gdshader`, which
+`AshenWildsBootstrap.SURFACES`; the walls are drawn by `shaders/foreground_cutaway.gdshader`, which
 projects the texture in world space so a box of any size tiles at the same density.

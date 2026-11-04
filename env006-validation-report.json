@@ -1,0 +1,18 @@
+{
+  "checks": 1082,
+  "engine": {
+    "build": "official",
+    "hash": "77dcf97d82cbfe4e4615475fa52ca03da645dbd8",
+    "hex": 262912,
+    "major": 4,
+    "minor": 3,
+    "patch": 0,
+    "status": "stable",
+    "string": "4.3-stable (official)",
+    "timestamp": 0
+  },
+  "failures": [],
+  "passed": true,
+  "scene_pose_cases": 60,
+  "scope": "ENV-006 asset-only import, structure, slope/rafter, ray and sphere checks; not player traversal or performance"
+}

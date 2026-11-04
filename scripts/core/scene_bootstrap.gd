@@ -23,6 +23,7 @@ func _ready() -> void:
 	add_child(_camera_rig)
 
 	_build_blackfen_test_yard()
+	add_child(SetDressing.new())
 
 	_player = PlayerController.new()
 	_player.position = _shelter_spawn
@@ -394,7 +395,18 @@ func _spawn_scavenge_containers() -> void:
 		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
 	)
 
-## Crates and chests are weathered planks; heaps keep a flat colour (no CC0 bone model yet).
+## Search containers wear the owner's crate and barrel kit (assets/environment/env007), fitted
+## inside their collision box; the bone heap is a pale tangle of twigs. If a model is missing,
+## the textured box stays.
+const CONTAINER_MODELS: Dictionary = {
+	"Shelter Stash": ["env007/exports/env_crate_v12_wide_low.glb", Color.WHITE],
+	"Rotted Grain Crate": ["env007/exports/env_crate_v01_cross_braced.glb", Color(0.85, 0.82, 0.78)],
+	"Watchhouse Supply Chest": ["env007/exports/env_crate_v11_hinged_lid.glb", Color(0.8, 0.78, 0.74)],
+	"Ork Plunder Pile": ["env007/exports/env_crate_v08_open_top.glb", Color(0.75, 0.72, 0.68)],
+	"Gnawed Bone Heap": ["env008/exports/env_ground_11_twigs_dense.glb", Color(1.6, 1.5, 1.3)],
+}
+
+## Crates and chests are weathered planks; heaps keep a flat colour.
 func _container_material(label: String, col: Color) -> Material:
 	if label.contains("Heap"):
 		var flat := StandardMaterial3D.new()
@@ -424,6 +436,16 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 	mesh.mesh = bmesh
 	mesh.material_override = _container_material(label, col)
 	body.add_child(mesh)
+	if CONTAINER_MODELS.has(label):
+		var spec: Array = CONTAINER_MODELS[label]
+		var holder := Node3D.new()
+		holder.name = "Model"
+		holder.position = Vector3(0.0, -size.y * 0.5, 0.0)
+		body.add_child(holder)
+		# A flat heap of twigs would vanish if squeezed into the heap's box height; fit it by footprint.
+		var fit := Vector3(size.x, 10.0, size.z) if label.contains("Heap") else size
+		if SetDressing.fitted_model(holder, String(spec[0]), fit, spec[1]) != null:
+			mesh.visible = false
 
 	var loot := Lootable.new()
 	loot.display_name = label
