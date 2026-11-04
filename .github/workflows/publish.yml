@@ -31,28 +31,28 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Cache Godot 4.3-stable
+      - name: Cache Godot 4.7.2-stable
         uses: actions/cache@v4
         with:
           path: ~/godot
-          key: godot-4.3-stable-linux-x86_64
-      - name: Get Godot 4.3-stable
+          key: godot-4.7.2-stable-linux-x86_64
+      - name: Get Godot 4.7.2-stable
         run: |
-          if [ ! -x ~/godot/Godot_v4.3-stable_linux.x86_64 ]; then
+          if [ ! -x ~/godot/Godot_v4.7.2-stable_linux.x86_64 ]; then
             mkdir -p ~/godot && cd ~/godot
-            curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+            curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
             unzip -o godot.zip && rm godot.zip
           fi
-          ~/godot/Godot_v4.3-stable_linux.x86_64 --version
+          ~/godot/Godot_v4.7.2-stable_linux.x86_64 --version
       - name: Cache export templates
         uses: actions/cache@v4
         with:
-          path: ~/.local/share/godot/export_templates/4.3.stable
-          key: godot-4.3-stable-templates-${{ hashFiles('tools/get_export_templates.sh') }}
+          path: ~/.local/share/godot/export_templates/4.7.2.stable
+          key: godot-4.7.2-stable-templates-${{ hashFiles('tools/get_export_templates.sh') }}
       - name: Get export templates
         run: tools/get_export_templates.sh
       - name: Export all builds
-        run: GODOT=~/godot/Godot_v4.3-stable_linux.x86_64 tools/export_builds.sh
+        run: GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64 tools/export_builds.sh
       - name: Run the exported server and client on loopback
         run: python3 tools/net_spike.py --exported builds
       - name: Package

@@ -14,23 +14,23 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Cache Godot 4.3-stable
+      - name: Cache Godot 4.7.2-stable
         uses: actions/cache@v4
         with:
           path: ~/godot
-          key: godot-4.3-stable-linux-x86_64
-      - name: Get Godot 4.3-stable
+          key: godot-4.7.2-stable-linux-x86_64
+      - name: Get Godot 4.7.2-stable
         run: |
-          if [ ! -x ~/godot/Godot_v4.3-stable_linux.x86_64 ]; then
+          if [ ! -x ~/godot/Godot_v4.7.2-stable_linux.x86_64 ]; then
             mkdir -p ~/godot && cd ~/godot
-            curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+            curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
             unzip -o godot.zip && rm godot.zip
           fi
-          ~/godot/Godot_v4.3-stable_linux.x86_64 --version
+          ~/godot/Godot_v4.7.2-stable_linux.x86_64 --version
       - name: Import and compile-check
         run: |
           set -o pipefail
-          export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
+          export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
           $GODOT --headless --path . --import >/dev/null 2>&1 || true
           fail=0
           for f in $(find scripts tests tools -name "*.gd" | sort); do
@@ -41,15 +41,15 @@ jobs:
       - name: Single-player regression suite
         run: |
           set -o pipefail
-          ~/godot/Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/smoke_test.gd 2>&1 | grep -E "FAIL|passed|SCRIPT ERROR"
+          ~/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path . --script res://tests/smoke_test.gd 2>&1 | grep -E "FAIL|passed|SCRIPT ERROR"
       - name: Environment kit collision suites (assets/environment)
         run: |
           set -o pipefail
-          G=~/godot/Godot_v4.3-stable_linux.x86_64
+          G=~/godot/Godot_v4.7.2-stable_linux.x86_64
           for t in tests/test_env006_collisions.gd tests/test_env007_collisions.gd tests/test_env008_collisions.gd tests/test_env009_collisions.gd; do
             $G --headless --path . --script "res://$t" 2>&1 | grep -E "VALIDATION|FAIL"
           done
       - name: Networked courtyard loopback test
         run: |
-          export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
+          export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
           python3 tools/net_spike.py

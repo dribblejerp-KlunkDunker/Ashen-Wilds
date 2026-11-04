@@ -4,7 +4,7 @@ Guidance for Claude (and other agents) working in this repository. Player-facing
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.3-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README), and the owner's own environment kit under `assets/environment/` (generated GLBs; see each set's README) dresses the yard; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
+An isometric dark-survival action game in **Godot 4.7.2-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README), and the owner's own environment kit under `assets/environment/` (generated GLBs; see each set's README) dresses the yard; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
 
 Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
 
@@ -16,13 +16,13 @@ GitHub release downloads work through the session proxy. Keep the binary **outsi
 
 ```bash
 mkdir -p ~/godot && cd ~/godot
-curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
 unzip -o godot.zip
-export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
-$GODOT --version   # 4.3.stable.official.77dcf97d8
+export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
+$GODOT --version   # 4.7.2.stable.official.ed1daf0bf
 ```
 
-Use exactly 4.3-stable. GDScript and API details differ between minor versions.
+Use exactly 4.7.2-stable (upgraded from 4.3-stable on 2026-11-04, decision P2 in `docs/PRODUCTION.md`). GDScript and API details differ between minor versions, and a project opened in a newer editor is converted and cannot go back. Commit the `.uid` file Godot writes beside each new script or shader.
 
 ## Verify every change
 
@@ -59,7 +59,7 @@ python3 tools/net_spike.py
 #    has "no installation candidate"). Look at every PNG it writes.
 python3 tools/net_spike.py --shots docs/screenshots/net
 
-# 7. Exported builds (tools/get_export_templates.sh installs the 4.3-stable templates once), then the
+# 7. Exported builds (tools/get_export_templates.sh installs the 4.7.2-stable templates once), then the
 #    loopback test on the exported binaries. An archive is not proof it runs; this is.
 tools/export_builds.sh && python3 tools/net_spike.py --exported builds
 ```

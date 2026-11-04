@@ -18,8 +18,8 @@ Scenario (times are approximate, each client's drive runs from its own spawn):
   t0+7.0  MISMATCH connects with protocol 999 after sending one input before any hello.
   t0+8.0  B2 reconnects with B's player key and expects B's last position (rule R1).
 
-Exit code is the number of failed checks. Set GODOT to the 4.3-stable binary, or put it at
-~/godot/Godot_v4.3-stable_linux.x86_64. Run from the project root:  python3 tools/net_spike.py
+Exit code is the number of failed checks. Set GODOT to the 4.7.2-stable binary, or put it at
+~/godot/Godot_v4.7.2-stable_linux.x86_64. Run from the project root:  python3 tools/net_spike.py
 Pass --keep to leave the report directory in place; its path is printed either way.
 Pass --exported DIR to run the exported binaries from tools/export_builds.sh instead of the editor
 binary and the project (DIR/linux-server/ashen-wilds-server.x86_64 serves, DIR/linux-client/
@@ -30,7 +30,7 @@ Those images must be looked at by a person; the script only checks that they wer
 """
 import json, math, os, shutil, subprocess, sys, tempfile, time
 
-GODOT = os.environ.get("GODOT", os.path.expanduser("~/godot/Godot_v4.3-stable_linux.x86_64"))
+GODOT = os.environ.get("GODOT", os.path.expanduser("~/godot/Godot_v4.7.2-stable_linux.x86_64"))
 EXPORTED = sys.argv[sys.argv.index("--exported") + 1] if "--exported" in sys.argv else None
 PORT = int(os.environ.get("NET_SPIKE_PORT", "7795"))
 SERVER_SECONDS = 26.0

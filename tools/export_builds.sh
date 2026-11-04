@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Exports the internal test builds (appendix §57, §90, §91) and writes builds/BUILD_INFO.txt.
 #
-# Needs: Godot 4.3-stable at $GODOT (default ~/godot/Godot_v4.3-stable_linux.x86_64) and its export
-# templates installed at ~/.local/share/godot/export_templates/4.3.stable (the .tpz from the same
-# release, unzipped, its `templates` folder renamed to `4.3.stable`). docs/PRODUCTION.md has the
+# Needs: Godot 4.7.2-stable at $GODOT (default ~/godot/Godot_v4.7.2-stable_linux.x86_64) and its export
+# templates installed at ~/.local/share/godot/export_templates/4.7.2.stable (the .tpz from the same
+# release, unzipped, its `templates` folder renamed to `4.7.2.stable`). docs/PRODUCTION.md has the
 # steps. Run from anywhere; outputs go to <repo>/builds/, which is git-ignored.
 #
 # A finished archive is not proof the build runs (§91): tools/net_spike.py --exported builds runs
 # the exported Linux server and client against each other on loopback.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-GODOT="${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}"
+GODOT="${GODOT:-$HOME/godot/Godot_v4.7.2-stable_linux.x86_64}"
 [ -x "$GODOT" ] || { echo "Godot not found at $GODOT (set GODOT)"; exit 2; }
-TEMPLATES="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/4.3.stable"
+TEMPLATES="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/4.7.2.stable"
 [ -f "$TEMPLATES/version.txt" ] || { echo "Export templates not installed at $TEMPLATES (run tools/get_export_templates.sh)"; exit 2; }
 
 COMMIT="$(git rev-parse --short HEAD)"
@@ -81,7 +81,7 @@ Grim Dark: Ashen Wilds — internal playtest build (not a release candidate)
 build id      $BUILD_ID
 protocol      $PROTOCOL  (server and client must match; a mismatch is refused with a message)
 source        $COMMIT  (git short SHA; -dirty means uncommitted changes were included)
-exported      $STAMP with Godot 4.3-stable export templates
+exported      $STAMP with Godot 4.7.2-stable export templates
 platforms     linux-client (x86_64), linux-arm64-client (ARM Chromebooks and ARM Linux; not run in this session),
               linux-server (x86_64, dedicated-server export), windows-client (x86_64, not run in this session),
               web (the single-player prototype only, for a browser; CI publishes it to GitHub Pages)

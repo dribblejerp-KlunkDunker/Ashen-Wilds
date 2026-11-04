@@ -7,7 +7,7 @@ From project root:
     python tools/validate_env010_manifest.py
     godot --path . res://scenes/environment/env010_watchhouse_courtyard.tscn
 
-Use Godot 4.3-stable. Props contains the 79 placements; PreviewServices camera/light/environment helpers are not manifest props. Disable preview_services when embedding in another scene. The fixed preview camera is not the gameplay rig. preview_view selects four angles; no input bindings are added.
+Use Godot 4.7.2-stable. Props contains the 79 placements; PreviewServices camera/light/environment helpers are not manifest props. Disable preview_services when embedding in another scene. The fixed preview camera is not the gameplay rig. preview_view selects four angles; no input bindings are added.
 
 The ground/ramp and doorway/post/door colliders are NEW UNVALIDATED adapters. DoorLeafHinge and its offset must match or the builder reports an error. The leaf is posed statically at 90 degrees: no door motion, obstruction handling or multiplayer binding is implemented. Proposed crate identity is metadata only, not a registered server container. No actor or live looting is supplied. Roof visuals are grouped independently of collision.
 

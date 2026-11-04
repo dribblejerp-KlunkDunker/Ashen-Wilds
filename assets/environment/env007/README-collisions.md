@@ -8,7 +8,7 @@ Generate from repository root after visual generation:
 
 The generator verifies every GLB hash against the visual manifest before writing any files. It emits StaticBody3D scenes on Environment layer 1, mask 0, referencing res://assets/environment/env007/exports/. Instance the wrapper instead of a second raw GLB. Changed outputs require --replace-existing; generated scenes are source-controlled outputs, so edit the generator rather than hand-editing the wrappers.
 
-The asset workflow generates visuals/colliders, downloads Godot 4.3-stable from the official release, copies the assets to an isolated temporary project, imports them and runs tests/test_env007_collisions.gd. It commits generated outputs only after the report says all 48 cases passed. The workflow also watches env_variation_common.py and the test source. main, project.godot and gameplay scenes are untouched.
+The asset workflow generates visuals/colliders, downloads Godot 4.7.2-stable from the official release, copies the assets to an isolated temporary project, imports them and runs tests/test_env007_collisions.gd. It commits generated outputs only after the report says all 48 cases passed. The workflow also watches env_variation_common.py and the test source. main, project.godot and gameplay scenes are untouched.
 
 The engine suite loads 24 scenes at identity and translated/90-degree-yaw placements. It checks enabled box counts, layer/mask, visual mesh presence, solid blocking, hollow/floor/side paths, crossbar and partial-lid blocking, small sphere overlaps and outside clearance. Failed checks exit nonzero; logs and JSON report are saved as Actions artifacts. CI success certifies only those checks. Local Python/text tests are not labeled as an engine pass.
 

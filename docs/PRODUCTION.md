@@ -14,13 +14,13 @@ Document precedence (appendix §66): the developers' latest explicit decision, t
 | Item | State |
 |---|---|
 | Base project | **CONFIRMED** (owner, 2026-11-03): this Godot repository (`dribblejerp-KlunkDunker/Ashen-Wilds`). The browser prototype (`Grim-Dark-Ashen-Wilds-`) is a design reference, a source of reusable rules and data, and a rollback baseline; it is not ported as code. |
-| Engine | **CONFIRMED**: Godot 4.3-stable (`4.3.stable.official.77dcf97d8`), GDScript, Forward+. Pinned in `project.godot`. Do not change versions during production without a recorded decision. |
+| Engine | **CONFIRMED**: Godot 4.7.2-stable (`4.7.2.stable.official.ed1daf0bf`), GDScript, Forward+. Pinned in `project.godot`, CI and the export tools. Upgraded from 4.3-stable on 2026-11-04 (decision P2; evidence below). Do not change versions during production without a recorded decision. |
 | Asset tools | **PROPOSED** (brief §4): Blender, exporting glTF/GLB into `res://`. Blender was not available in the session that wrote this; no 3D asset has been authored yet. |
 | Preserved prototype | `main.tscn` and everything under `scripts/` other than `scripts/net/` are the single-player Milestones 1–5 of the earlier plan: 177 headless checks, unchanged. The new networked work lives beside it, not inside it. |
 | Reproducible build | Source plus the Godot binary. No export templates are in use yet; the game runs from source with the commands below. Exported test builds (appendix §57, §91) are Milestone 1's last step. |
 | Collaboration | GitHub, one focused draft PR per slice, small commits; CI runs the single-player suite. The loopback network test is run locally for now (CI has no second process budget measured yet). |
 
-Commands (from the repository root; `GODOT` is the 4.3-stable binary):
+Commands (from the repository root; `GODOT` is the 4.7.2-stable binary):
 
 ```bash
 $GODOT --headless --path . --import                                # class cache
@@ -33,19 +33,19 @@ $GODOT --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-
 
 ## Clean build procedure (appendix §90, §91)
 
-Inputs: this repository at a known commit; Godot **4.3-stable** (`Godot_v4.3-stable_linux.x86_64`,
+Inputs: this repository at a known commit; Godot **4.7.2-stable** (`Godot_v4.7.2-stable_linux.x86_64`,
 the editor binary, which also exports); its **export templates** from the same release
-(`Godot_v4.3-stable_export_templates.tpz`, 1.07 GB). Nothing outside the repository is read
+(`Godot_v4.7.2-stable_export_templates.tpz`, 1.28 GB). Nothing outside the repository is read
 except those two downloads; no editor clicks are involved.
 
 ```bash
 # 1. Godot (once)
 mkdir -p ~/godot && cd ~/godot
-curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
-unzip -o godot.zip && export GODOT=~/godot/Godot_v4.3-stable_linux.x86_64
+curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+unzip -o godot.zip && export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
 
 # 2. Export templates (once). Downloads the 1 GB archive and keeps only the five release
-#    templates the presets use (~200 MB) in ~/.local/share/godot/export_templates/4.3.stable.
+#    templates the presets use (~250 MB) in ~/.local/share/godot/export_templates/4.7.2.stable.
 tools/get_export_templates.sh
 
 # 3. From the repository root: five builds and BUILD_INFO.txt into builds/ (git-ignored)
@@ -88,7 +88,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | # | Decision | Status | Date | Reason / consequence | Revisit trigger |
 |---|---|---|---|---|---|
 | P1 | Base the 3D game on this Godot repo | CONFIRMED | 2026-11-03 | Already real-time 3D, elevated orthographic rig with roof hiding and wall cutaway, built-in multiplayer, GLB import. The browser build would need a renderer first. | Only if the developers' machines cannot run the Godot editor (test: open the project, press F5). |
-| P2 | Godot 4.3-stable | CONFIRMED | 2026-11-03 | Project pins it; its own suite passes on it. | A blocking engine bug, or a feature that needs 4.4+, recorded here first. |
+| P2 | Godot 4.7.2-stable (was 4.3-stable, 2026-11-03) | **CONFIRMED** (owner, 2026-11-04: "you can do it for me", after the trial below) | 2026-11-04 | 4.7.2 was the current stable release. On it, with no code changes, every check passes: compile-check, the 274-check suite (twice), the four environment-kit collision suites, the live boot, the loopback test (65), all five exports, the loopback test on the exported binaries (65) and the web build in Chromium. Bone poses sampled from the same clips match 4.3 exactly, and a frozen pose renders the same on both engines and both renderers. The project can no longer be opened in 4.3: both developers move together. | A blocking engine bug, or the next stable release, recorded here first. |
 | P3 | Target platforms | PROPOSED desktop first (Windows/Linux/macOS exports); browser export as a later option | 2026-11-03 | Brief §48. The owner's Chromebook is unmeasured. | The F5 test above, and the first exported build. |
 | P17 | Playtest distribution | **CONFIRMED** (owner, 2026-11-03: "yes set it up"): every merge to `main` publishes a browser build of the single-player prototype to GitHub Pages and replaces the desktop zips on the rolling `playtest` pre-release; pull requests get the zips as a workflow artifact. Browser multiplayer is not included: the courtyard uses ENet (UDP), which browsers cannot open; it needs a WebSocket transport and a publicly hosted `wss://` server (P4). | 2026-11-03 | Easier testing per update, no Linux setup needed on the Chromebook for the single-player build. Pages is free because the repository is public. | A decision on server hosting (P4), which is what browser multiplayer waits on. |
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
@@ -156,6 +156,51 @@ payload (§74).
 
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
+
+## Engine upgrade — Godot 4.3-stable to 4.7.2-stable: evidence (decision P2)
+
+**Why.** The owner asked for it (2026-11-04) after a trial on a copy of the repository showed it
+cost nothing. 4.7.2-stable was the current release (18 August 2026); staying on 4.3 meant every
+later engine fix was four minor versions away.
+
+**What changed.** The version string everywhere it is pinned: `project.godot`
+(`config/features` 4.7), the five workflows (`checks.yml`, `publish.yml`, `validate-env008.yml`,
+`validate-env009.yml`, `build-environment-assets.yml`), `tools/get_export_templates.sh`,
+`tools/export_builds.sh`, `tools/net_spike.py`, and the docs. The 4.7 importer writes a `.uid`
+file beside every script and shader (committed; Godot 4.4+ needs them in version control), and
+adds its new default keys to the art's `.import` files (additions only; no existing setting
+changed). No GDScript changed.
+
+**Measured on 4.7.2** (2026-11-04, this branch, from `main` at `ec75e8e`):
+
+| Check | Result |
+|---|---|
+| Import and compile-check every script | clean, no errors or warnings |
+| `tests/smoke_test.gd` | 274 passed, 0 failures, twice |
+| Environment kit collision suites ENV-006 to ENV-009 | 1082 / 837 / 78 / 78 checks, 0 failures |
+| Live boot, 1200 frames | nothing after the usual filter |
+| `tools/net_spike.py` | 65 passed, 0 failed |
+| `tools/export_builds.sh` | all five builds; web pack 25.2 MB (the live 4.3 one is 26.0 MB) |
+| `tools/net_spike.py --exported builds` | 65 passed, 0 failed |
+| Web build in headless Chromium (SwiftShader WebGL 2) | runs the prototype; no console errors |
+
+The art was checked directly, because the headless suite cannot see a pose. The same clips
+(`Idle`, `Sword_Idle`, `Idle_Shield`) sampled at the same time give the same bone rotations and
+positions on 4.3 and 4.7.2, to the printed precision, and the live game plays the same clips frame
+for frame on both. A frozen `Sword_Idle` pose renders identically on 4.3 and 4.7.2 under Forward+
+and under Compatibility. The README shots re-rendered on 4.7.2 differ from the 4.3 ones by 0.7 to 2
+out of 255 on average; characters are caught at slightly different moments of their animations, so the
+committed shots were kept.
+
+**A trap found on the way.** Under SwiftShader the 4.7.2 web build takes much longer than 4.3 to
+draw its first frames (about one frame in the first 30 s, against an animated survivor by then on
+4.3), and those frames show the rest pose (a T-pose) because no animation has been applied yet.
+After two minutes it is animating normally. A screenshot taken too early looks like broken
+animation; it is not.
+
+**Not covered.** Feel, input timing, light levels on a real GPU, real audio, and the web build's
+load time on a real browser and GPU (the SwiftShader slowdown above may be SwiftShader alone).
+The second developer needs 4.7.2 too: a project opened in 4.7 is converted and cannot go back.
 
 ## Enemy temperaments — audit (brief §24)
 
