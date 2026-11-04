@@ -44,6 +44,13 @@ const CHARGE_RECOVERY: float = 1.2
 const CHARGE_CRASH_TIME: float = 2.0
 ## It must have been chasing for this long before it charges (not straight out of an attack).
 const CHARGE_MIN_PURSUIT: float = 1.2
+## Half the width it needs to charge through: its shoulders. The Watchhouse doorway (1.35 m) and
+## the entry hall (1.7 m) are narrower than 2 x 0.8, so it never charges them (it would only
+## crash into the frame and hand the survivor a free opening every few seconds).
+const CHARGE_HALF_WIDTH: float = 0.8
+## Heights the charge lane is checked at: knee (a crate or a bone heap stops a charge; the chest
+## ray alone looked over them) and chest.
+const CHARGE_LANE_HEIGHTS: Array[float] = [0.45, 1.4]
 ## Poise damage it takes while winding up or charging: it doesn't flinch mid-blow.
 const WINDUP_POISE_MULT: float = 0.35
 const ENRAGE_HEALTH: float = 0.4
@@ -307,9 +314,7 @@ func _try_begin_charge(dist: float, dir_p: Vector3) -> bool:
 		return false
 	if dist < CHARGE_MIN_RANGE or dist > CHARGE_MAX_RANGE or not _visual_root.visible:
 		return false
-	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 1.0, 0.0),
-		player_ref.global_position + Vector3(0.0, 1.0, 0.0), 1)
-	if not get_world_3d().direct_space_state.intersect_ray(q).is_empty():
+	if not _charge_lane_clear(dir_p, dist):
 		return false
 	# Unlike its close blows, the charge is optional: it waits for the attack turn.
 	if coordinator and not coordinator.request_attack_token(self, true):
@@ -321,6 +326,21 @@ func _try_begin_charge(dist: float, dir_p: Vector3) -> bool:
 	if audio:
 		audio.play_ogre_roar()
 	ogre_event_banner.emit("The Ogre lowers its head to charge. Sidestep!", Color(0.95, 0.52, 0.18))
+	return true
+
+## True when a lane as wide as its shoulders, from knee to chest height, runs clear of walls and
+## solid props on layer 1 all the way to the survivor. Set dressing (layer 7) is no ray's
+## business, so a tree in the lane still ends in a crash, as documented.
+func _charge_lane_clear(dir_p: Vector3, dist: float) -> bool:
+	var side := Vector3(-dir_p.z, 0.0, dir_p.x)
+	var space := get_world_3d().direct_space_state
+	for lateral: float in [0.0, CHARGE_HALF_WIDTH, -CHARGE_HALF_WIDTH]:
+		for height: float in CHARGE_LANE_HEIGHTS:
+			var offset: Vector3 = side * lateral + Vector3(0.0, height, 0.0)
+			var q := PhysicsRayQueryParameters3D.create(global_position + offset,
+				global_position + offset + dir_p * (dist + CHARGE_OVERRUN * 0.5), 1)
+			if not space.intersect_ray(q).is_empty():
+				return false
 	return true
 
 func _enter_charge_active() -> void:

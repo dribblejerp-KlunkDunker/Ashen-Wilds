@@ -157,6 +157,32 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Enemy temperaments — second audit, on Fable (brief §24)
+
+The owner switched the session to Fable and asked for an audit before the next milestone. A fresh
+read of all three enemies, the stone and the player's hit handling, as a coder and as a designer.
+
+**Found and fixed.** The ogre's charge checked its lane with one chest-height ray, so it charged
+over knee-high crates and bone heaps (solid bodies on layer 1) and into the 1.35 m Watchhouse
+doorway, crashed, and reeled for 2 s: a free opening every six seconds, and silly. It now needs a
+lane as wide as its shoulders (1.6 m), clear from knee to chest, all the way to the survivor; a
+tree (layer 7, which no ray sees) still ends in a crash, as intended. Three new checks.
+
+**Read and judged sound (design).** Each enemy's damage, pace and senses are distinct and the
+README table matches the code. Points the owner should know, left as they are:
+- The goblin's real damage is the bleed: 1.8 health a second for 12 s (about 22) on every jab,
+  refreshed, not stacked. A goblin fight is a drain you stop by bandaging. The README now says so.
+- A goblin under a third of its health never jabs again: it kites and throws. Sprinting (6.3 m/s
+  against its 4.3) catches it. The coward reads; it is a choice.
+- The shield ork walks at 2.55 m/s and cannot catch a survivor walking away (4.2). It has always
+  been so: its threat is pressure, not pursuit.
+- A stone throw takes the attack turn, so a stone can delay an ork's combo by about a second.
+  Conservative; it keeps the one-attack-at-a-time rule simple.
+- The ogre's sweep and slam still ignore the turn (its committed close blows, as always).
+
+**Tests.** `tests/smoke_test.gd`: 277 passed, 0 failures, twice. Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
 ## Enemy temperaments — audit (brief §24)
 
 The owner asked for a full audit that the temperament work is done. Two passes: a checklist

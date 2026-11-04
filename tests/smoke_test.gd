@@ -1609,6 +1609,31 @@ func _test_ogre_temperament() -> void:
 		"ogre: it crashes into the wall behind and reels (state=%s, %.1f s)" % [EnemyOgreBrute.AIState.keys()[ogre.state], ogre._state_timer])
 	ogre.queue_free()
 
+	# 3b) A knee-high crate in the lane, or a doorway narrower than its shoulders, also stops the
+	#     charge before it starts; the chest-height ray alone looked over both.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var crate := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 0.3, 0.0), Vector3(0.9, 0.6, 0.9))
+	var lane_ogre := EnemyOgreBrute.new()
+	_main.add_child(lane_ogre)
+	await _pose_ogre(lane_ogre, OGRE_YARD + Vector3(8.0, 0.0, 0.0), Vector3.LEFT)
+	lane_ogre.player_ref = _player
+	lane_ogre._pursuit_time = 2.0
+	lane_ogre._visual_root.visible = true
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a knee-high crate in the lane stops the charge")
+	crate.queue_free()
+	await _ticks(2)
+	var jamb_a := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, 1.4), Vector3(0.4, 3.0, 1.5))
+	var jamb_b := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, -1.4), Vector3(0.4, 3.0, 1.5))
+	await _ticks(2)
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a 1.3 m doorway (narrower than its shoulders) stops the charge")
+	jamb_a.queue_free()
+	jamb_b.queue_free()
+	await _ticks(2)
+	_check(lane_ogre._try_begin_charge(8.0, Vector3.LEFT) and lane_ogre.state == EnemyOgreBrute.AIState.CHARGE_STARTUP,
+		"ogre: with the lane clear again it charges")
+	lane_ogre.queue_free()
+
 	# 3) With a wall between, it doesn't charge at all.
 	_reset_player(OGRE_YARD)
 	await _ticks(2)
