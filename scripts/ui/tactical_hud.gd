@@ -10,6 +10,8 @@ var _status_label: Label
 var _main_label: Label
 var _off_label: Label
 var _weight_label: Label
+var _weather_label: Label
+var _background_label: Label
 var _banner_label: Label
 var _banner_timer: float = 0.0
 var _prompt_label: Label
@@ -42,6 +44,8 @@ func _ready() -> void:
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
 	panel.add_child(vbox)
+	_background_label = _make_label("WATCH DESERTER", 13, Color(0.86, 0.80, 0.68))
+	vbox.add_child(_background_label)
 
 	_health_bar = _create_bar_row(vbox, "VITALITY", Color(0.64, 0.16, 0.16))
 	_stamina_bar = _create_bar_row(vbox, "STAMINA", Color(0.76, 0.58, 0.22))
@@ -50,6 +54,8 @@ func _ready() -> void:
 
 	_weight_label = _make_label("", 12, Color(0.66, 0.62, 0.56))
 	vbox.add_child(_weight_label)
+	_weather_label = _make_label("WEATHER  Ashfall", 12, Color(0.60, 0.64, 0.70))
+	vbox.add_child(_weather_label)
 	_main_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
 	vbox.add_child(_main_label)
 	_off_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
@@ -204,6 +210,12 @@ func update_stats(data: Dictionary) -> void:
 	if _channel_panel.visible:
 		_channel_label.text = ch_label
 		_channel_fill.size.x = 376.0 * float(data["channel_progress"])
+
+func set_background(title: String) -> void:
+	_background_label.text = title.to_upper()
+
+func set_weather(condition_name: String) -> void:
+	_weather_label.text = "WEATHER  %s" % condition_name
 
 func show_banner(msg: String, col: Color = Color(0.82, 0.76, 0.65)) -> void:
 	_banner_label.text = msg

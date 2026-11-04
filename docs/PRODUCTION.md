@@ -14,7 +14,7 @@ Document precedence (appendix §66): the developers' latest explicit decision, t
 | Item | State |
 |---|---|
 | Base project | **CONFIRMED** (owner, 2026-11-03): this Godot repository (`dribblejerp-KlunkDunker/Ashen-Wilds`). The browser prototype (`Grim-Dark-Ashen-Wilds-`) is a design reference, a source of reusable rules and data, and a rollback baseline; it is not ported as code. |
-| Engine | **CONFIRMED**: Godot 4.7.2-stable (`4.7.2.stable.official.ed1daf0bf`), GDScript, Forward+. Pinned in `project.godot`, CI and the export tools. Upgraded from 4.3-stable on 2026-11-04 (decision P2; evidence below). Do not change versions during production without a recorded decision. |
+| Engine | **CONFIRMED**: Godot 4.7.2-stable (`4.7.2.stable.official.ed1daf0bf`), GDScript, Forward+. Pinned in `project.godot`, CI and the export tools. The upgrade to 4.7.2 is in progress on its own branch (decision P2; evidence below). Do not change versions during production without a recorded decision. |
 | Asset tools | **PROPOSED** (brief §4): Blender, exporting glTF/GLB into `res://`. Blender was not available in the session that wrote this; no 3D asset has been authored yet. |
 | Preserved prototype | `main.tscn` and everything under `scripts/` other than `scripts/net/` are the single-player Milestones 1–5 of the earlier plan: 177 headless checks, unchanged. The new networked work lives beside it, not inside it. |
 | Reproducible build | Source plus the Godot binary. No export templates are in use yet; the game runs from source with the commands below. Exported test builds (appendix §57, §91) are Milestone 1's last step. |
@@ -88,7 +88,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | # | Decision | Status | Date | Reason / consequence | Revisit trigger |
 |---|---|---|---|---|---|
 | P1 | Base the 3D game on this Godot repo | CONFIRMED | 2026-11-03 | Already real-time 3D, elevated orthographic rig with roof hiding and wall cutaway, built-in multiplayer, GLB import. The browser build would need a renderer first. | Only if the developers' machines cannot run the Godot editor (test: open the project, press F5). |
-| P2 | Godot 4.7.2-stable (was 4.3-stable, 2026-11-03) | **CONFIRMED** (owner, 2026-11-04: "you can do it for me", after the trial below) | 2026-11-04 | 4.7.2 was the current stable release. On it, with no code changes, every check passes: compile-check, the 274-check suite (twice), the four environment-kit collision suites, the live boot, the loopback test (65), all five exports, the loopback test on the exported binaries (65) and the web build in Chromium. Bone poses sampled from the same clips match 4.3 exactly, and a frozen pose renders the same on both engines and both renderers. The project can no longer be opened in 4.3: both developers move together. | A blocking engine bug, or the next stable release, recorded here first. |
+| P2 | Godot 4.7.2-stable (was 4.3-stable, 2026-11-03) | **PROPOSED** (owner, 2026-11-04: "you can do it for me"); not merged while the browser build regresses (see the upgrade evidence) | 2026-11-04 | 4.7.2 was the current stable release. On it, with no code changes, every check passes: compile-check, the 274-check suite (twice), the four environment-kit collision suites, the live boot, the loopback test (65), all five exports, the loopback test on the exported binaries (65) and the web build in Chromium. Bone poses sampled from the same clips match 4.3 exactly, and a frozen pose renders the same on both engines and both renderers. The project can no longer be opened in 4.3: both developers move together. | A blocking engine bug, or the next stable release, recorded here first. |
 | P3 | Target platforms | PROPOSED desktop first (Windows/Linux/macOS exports); browser export as a later option | 2026-11-03 | Brief §48. The owner's Chromebook is unmeasured. | The F5 test above, and the first exported build. |
 | P17 | Playtest distribution | **CONFIRMED** (owner, 2026-11-03: "yes set it up"): every merge to `main` publishes a browser build of the single-player prototype to GitHub Pages and replaces the desktop zips on the rolling `playtest` pre-release; pull requests get the zips as a workflow artifact. Browser multiplayer is not included: the courtyard uses ENet (UDP), which browsers cannot open; it needs a WebSocket transport and a publicly hosted `wss://` server (P4). | 2026-11-03 | Easier testing per update, no Linux setup needed on the Chromebook for the single-player build. Pages is free because the repository is public. | A decision on server hosting (P4), which is what browser multiplayer waits on. |
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
@@ -171,36 +171,195 @@ file beside every script and shader (committed; Godot 4.4+ needs them in version
 adds its new default keys to the art's `.import` files (additions only; no existing setting
 changed). No GDScript changed.
 
-**Measured on 4.7.2** (2026-11-04, this branch, from `main` at `ec75e8e`):
+**Measured on 4.7.2** (2026-11-04, this branch, merged with `main` at `4aabe1b`):
 
 | Check | Result |
 |---|---|
 | Import and compile-check every script | clean, no errors or warnings |
-| `tests/smoke_test.gd` | 274 passed, 0 failures, twice |
+| `tests/smoke_test.gd` | 342 passed, 0 failures, twice |
 | Environment kit collision suites ENV-006 to ENV-009 | 1082 / 837 / 78 / 78 checks, 0 failures |
 | Live boot, 1200 frames | nothing after the usual filter |
 | `tools/net_spike.py` | 65 passed, 0 failed |
 | `tools/export_builds.sh` | all five builds; web pack 25.2 MB (the live 4.3 one is 26.0 MB) |
 | `tools/net_spike.py --exported builds` | 65 passed, 0 failed |
-| Web build in headless Chromium (SwiftShader WebGL 2) | runs the prototype; no console errors |
+| Web build in headless Chromium (SwiftShader WebGL 2) | runs, no console errors, but **two open regressions** (below) |
 
 The art was checked directly, because the headless suite cannot see a pose. The same clips
 (`Idle`, `Sword_Idle`, `Idle_Shield`) sampled at the same time give the same bone rotations and
 positions on 4.3 and 4.7.2, to the printed precision, and the live game plays the same clips frame
 for frame on both. A frozen `Sword_Idle` pose renders identically on 4.3 and 4.7.2 under Forward+
-and under Compatibility. The README shots re-rendered on 4.7.2 differ from the 4.3 ones by 0.7 to 2
-out of 255 on average; characters are caught at slightly different moments of their animations, so the
-committed shots were kept.
+and under Compatibility. The eleven README shots re-rendered on 4.7.2 (Forward+) differ from the 4.3 ones by 0.5 to 2.2
+out of 255 on average, the vision cone and the start screen included; characters are caught at
+slightly different moments of their animations, so the committed shots were kept.
 
-**A trap found on the way.** Under SwiftShader the 4.7.2 web build takes much longer than 4.3 to
-draw its first frames (about one frame in the first 30 s, against an animated survivor by then on
-4.3), and those frames show the rest pose (a T-pose) because no animation has been applied yet.
-After two minutes it is animating normally. A screenshot taken too early looks like broken
-animation; it is not.
+**Open: the browser build regresses on 4.7.2 (blocks merging).** Run side by side with the live
+4.3 Pages build of the same `main`, by the same script in headless Chromium (SwiftShader), 90 s
+after pressing Enter on the start screen:
+- The survivor shows its rest pose (a T-pose) on 4.7.2 and is animated on 4.3. Bone poses are
+  correct on 4.7.2 (sampled in the live game and in an instrumented web export), so the skin is not
+  showing the skeleton. On the earlier `main` (no start screen) the 4.7.2 web survivor was T-posed at
+  28 s and animated at 120 s, which suggests each new skinned character takes a long time to show its
+  pose under SwiftShader; whether a real GPU shows it at all is not known.
+- Outside the vision cone the browser draws a washed-out light grey instead of the charcoal. The
+  cone's Compatibility settings (`output_gamma` 0.6 in `VisionConeOverlay`) were measured against
+  4.3's Compatibility renderer, and 4.7.2 handles that colour path differently.
+Desktop Forward+ shows neither. Merging as is would publish both to Pages.
 
 **Not covered.** Feel, input timing, light levels on a real GPU, real audio, and the web build's
 load time on a real browser and GPU (the SwiftShader slowdown above may be SwiftShader alone).
 The second developer needs 4.7.2 too: a project opened in 4.7 is converted and cannot go back.
+
+## Backgrounds 1 — who were you, before the Smothering: evidence (brief §24)
+
+**What.** The roadmap line "eight starting characters with gear, traits and permanent flaws",
+built on Fable from that line and the worldbuilding's people (road carriers of the Cinder Factors,
+chapel cleaners, hedge-priests, Watch deserters, the Gutter-kin, fen healers, carters). A start
+screen over the paused yard offers eight cards; arrows or 1 to 8 choose, Enter, Space or E begin,
+or click a card twice. Each background is a kit, one trait and one flaw, all numbers:
+
+| | Kit | Trait | Flaw |
+|---|---|---|---|
+| Watch Deserter (default) | sword 88%, targe, torch 180 s, 2 bandages | blocks cost x0.75 | 90 health |
+| Cinder Factor | spear, torch 240 s, 2 bandages | 26 kg; load noise x0.9 | sprint x0.85; dodge 30 |
+| Chapel Cleaner | targe, torch 300 s, 4 bandages, no weapon | searches x0.65; steps x0.8 | attacks cost x1.3; wear x2 |
+| Peat-cutter | broadaxe, torch 150 s, 1 bandage | 23 kg; heavy damage x1.15 | 80 stamina; regen x0.9 |
+| Gutter-kin | sword 55%, torch 90 s, 2 bandages | steps x0.65; dodge 16; sight x1.15 | 75 health; bleeds 18 s |
+| Hedge-priest | targe, torch 360 s, 3 bandages, no weapon | 50 poise; regen x1.25 | no heavy blow |
+| Fen Healer | spear, torch 200 s, 5 bandages | bandage x0.5 time, heals 16 | sight x0.6 |
+| Causeway Carter | broadaxe, targe, torch 180 s, 2 bandages | 120 health; bleeds 9 s | hearing x0.7 |
+
+Sight and hearing stack on the weather (a night-blind healer in the miasma sees 4.2 m), and
+own-noise stacks on load and weather (a gutter-kin sprinting 8 m from a goblin is not heard). The
+default was chosen to carry the prototype's original kit, so nothing the suite expected changed;
+its one visible difference is 90 health. Respawning keeps the background.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 342 passed, 0 failures, twice (19 new:
+eight complete, unique backgrounds; the headless default; the HUD line; the healer's bandages,
+spear, half-time bandaging and night-blindness in two weathers; the priest's refused heavy and
+allowed light; the gutter-kin's unheard sprint, 75 health and 18 s bleeds against the carter
+hearing the same sprint; the carter's 120 health and deaf ear; the cleaner's bare hands and quick
+search; the peat-cutter's and the factor's numbers; the start screen's keys; back to the
+deserter). Kit suites, live boot and `tools/net_spike.py` clean. A new README screenshot of the
+start screen; every other shot re-rendered and looked at.
+
+**Not covered by headless tests.** Whether eight is readable on one screen at the browser's
+size (the cards are 300 x 250 in a 4 x 2 grid; a 1280-wide window holds them), whether the flaws
+bite enough to matter and the traits enough to be chosen, and whether the epigraphs land.
+
+## Weather 1 — the Smothering's weathers: evidence (brief §24)
+
+**What.** The roadmap line "ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead
+Calm, each changing sight, hearing, fire and footing", built on Fable from that line (no fuller
+design exists). `Weather` holds one profile per condition and drifts through them on a cycle
+(70 to 130 s a spell, 8 s blends, a fixed seed). Each profile sets the fog (density, colour, mist),
+the ambient and moon scales, the ash (count, colour, speed, drift, size), hearing (a multiplier
+on every loudness, the survivor's and the enemies'), sight (metres, beyond which Perception sees
+nothing), torch burn, the shelter fire's light, and footing (a speed multiplier). The numbers:
+
+| | Fog | Sight | Hearing | Torch | Fire | Footing | Falls |
+|---|---|---|---|---|---|---|---|
+| Ashfall | 0.012 | 24 m | x1.0 | x1.0 | x1.0 | x1.0 | grey ash |
+| Miasma fog | 0.055, green-grey | 7 m | x0.7 | x1.0 | x0.9 | x1.0 | little |
+| Sleet | 0.02 | 14 m | x0.85 | x1.8 | x0.75 | x0.85 | fast pale streaks |
+| Cinder-squall | 0.03, warm | 9 m | x0.6 | x1.4 | x1.2 | x0.95 | orange embers, sideways |
+| Hoarfrost | 0.006, pale | 32 m | x1.25 | x1.2 | x1.0 | x0.8 | nothing; a bright moon |
+| Dead Calm | 0.004 | 40 m | x1.6 | x0.8 | x1.0 | x1.0 | nothing |
+
+Hearing cuts both ways by design: a goblin 9 m away hears a sprint in the Dead Calm (9 x 1.6)
+and not in the miasma (9 x 0.7), and the survivor's ripples reach the same way. A change is
+announced by a banner and named on the HUD; F5 forces the next.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 323 passed, 0 failures, twice (19 new:
+the start state; miasma's fog, sight and hearing on a goblin in the cone, on an enemy noise and
+on a goblin hearing a sprint, and the Dead Calm reversing all three; sleet's torch, fire, falling
+streaks and measured 85% walking speed; hoarfrost's footing, moon and hearing; a blend half way
+and complete; the cycle visiting all six). Kit suites, live boot and `tools/net_spike.py` clean.
+Two new README screenshots, looked at.
+
+**Not covered by headless tests.** Every number above is a first guess: whether 7 m of sight in
+the miasma is tense or merely blind, whether 70 to 130 s spells are too long or too short for a
+yard this size, whether the sleet's 85% and the hoarfrost's 80% read as footing or as lag, and
+how the fog colours sit on a real screen. The browser build was not re-run for this slice: it
+changes only values of the fog and ash the browser already renders.
+
+## Perception 1 — the vision cone and acoustic ripples: evidence (brief §24)
+
+**What.** The roadmap line "unseen threats shown as dust-ring ripples sized by noise; a 130°
+vision cone with a charcoal memory map outside it", built on Fable from that line (there was no
+fuller design). The reading taken: the cone is what the *survivor* sees, a 130° wedge around the
+aim, cut by walls; outside it the world is drawn as a charcoal sketch and live enemies are not
+drawn at all; what cannot be seen is heard. Nothing in the simulation changed: hits land as
+before, and enemies sense the survivor as before.
+- `Perception` (on the player): `in_cone`, `line_of_sight`, `can_see`; `update_visibility()` for
+  enemies, which also drops a charcoal last-seen mark where one slipped out of sight (4 s; not
+  for corpses); `report_noise(pos, loudness, source)` and `report_footsteps()`.
+- Every enemy now reports its noises with a loudness in metres, the radius at which the survivor
+  hears it, 0.55x through a wall: goblin steps 5 m creeping, 8 m moving, jab grunt 7, jab 9,
+  stone 6; ork steps 8 to 10, grunts 8, slash 10, chop 11, bash 9, clang 14; ogre steps 16,
+  grunt 12, sweep 14, roar 28, slam and crash 30, clang 20. A heard, unseen noise raises an
+  `AcousticRipple` at its source (radius 0.3 m + 0.07 m per metre of loudness, one per source per
+  0.22 s, tween-animated, drawn over everything) and the `heard` signal, which the bootstrap
+  turns into the old cue (1.6 s apart) and a rare banner (12 s). The goblin's own wall-cue is gone;
+  this replaces it for every enemy and every direction.
+- `VisionConeOverlay` and `shaders/vision_cone.gdshader`: a full-screen quad, first among the
+  transparent pass, that rebuilds each pixel's world position from the depth buffer and drains and
+  darkens everything outside the wedge, with a four-degree soft edge and a 1.4 m lit circle at the
+  survivor's feet. Forward+ stores depth reversed in 4.3; the Compatibility renderer does not; the
+  overlay sets `reverse_z` from whether a RenderingDevice exists.
+- A design bug caught on the way: the ogre used its *draw* flag as its own eyes (to spot the
+  survivor and to charge). With the cone that would have blinded it behind the survivor. It now
+  has `_can_see_player()`, a ray of its own, and the suite checks an unseen ogre still spots you.
+- F4 toggles the cone (the old draw rule, line of sight alone).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 304 passed, 0 failures (27 new: the cone
+angles; an enemy drawn, hidden by turning away, marked once, drawn again, hidden by a wall, drawn
+behind you with the cone off; no mark for a corpse; a seen noise raises no ripple, an unseen one
+raises one where it was, one per source per 0.22 s, louder is larger, out of range unheard, muffled
+through a wall, footsteps by stride, ripples clean up; a live ork behind you is unseen and heard; an
+unseen ogre still spots you). Kit suites, live boot and `tools/net_spike.py` clean. README
+screenshots re-rendered and looked at, plus the new one of an unseen goblin's rings.
+
+**Not covered by headless tests.** Whether 130° feels right with a mouse aim (the cone swings
+with the cursor; it may want smoothing or a wider angle), whether the charcoal is too dark on a
+real screen, and whether ripples read as "a thing is there" in motion.
+
+**Browser check (headless Chromium, SwiftShader, the exported Web build).** The Compatibility
+renderer compiled the shader and drew the cone and the rings. Two renderer differences were found
+and fixed by measurement: writing the whole frame back through the overlay ran it through
+Compatibility's per-material tonemapping again and darkened the entire browser build (the overlay
+now blends only where it darkens; inside the cone the frame is untouched on both renderers,
+measured identical with the cone on and off), and the charcoal came out black there because that
+renderer writes the output without encoding (an output gamma of 0.6, measured against 1.0, 0.75
+and 1/2.2, puts the charcoal at 43% of the lit level in the browser against 44% on Forward+).
+The mean luminance of the README shots is now 38 (was 59): the lit wedge is as bright as before
+and everything outside it is deliberately charcoal. If the owner finds the whole too dark, the
+levers are `darken` and `desaturate` in `shaders/vision_cone.gdshader` (0.6 and 0.85).
+
+## Enemy temperaments — second audit, on Fable (brief §24)
+
+The owner switched the session to Fable and asked for an audit before the next milestone. A fresh
+read of all three enemies, the stone and the player's hit handling, as a coder and as a designer.
+
+**Found and fixed.** The ogre's charge checked its lane with one chest-height ray, so it charged
+over knee-high crates and bone heaps (solid bodies on layer 1) and into the 1.35 m Watchhouse
+doorway, crashed, and reeled for 2 s: a free opening every six seconds, and silly. It now needs a
+lane as wide as its shoulders (1.6 m), clear from knee to chest, all the way to the survivor; a
+tree (layer 7, which no ray sees) still ends in a crash, as intended. Three new checks.
+
+**Read and judged sound (design).** Each enemy's damage, pace and senses are distinct and the
+README table matches the code. Points the owner should know, left as they are:
+- The goblin's real damage is the bleed: 1.8 health a second for 12 s (about 22) on every jab,
+  refreshed, not stacked. A goblin fight is a drain you stop by bandaging. The README now says so.
+- A goblin under a third of its health never jabs again: it kites and throws. Sprinting (6.3 m/s
+  against its 4.3) catches it. The coward reads; it is a choice.
+- The shield ork walks at 2.55 m/s and cannot catch a survivor walking away (4.2). It has always
+  been so: its threat is pressure, not pursuit.
+- A stone throw takes the attack turn, so a stone can delay an ork's combo by about a second.
+  Conservative; it keeps the one-attack-at-a-time rule simple.
+- The ogre's sweep and slam still ignore the turn (its committed close blows, as always).
+
+**Tests.** `tests/smoke_test.gd`: 277 passed, 0 failures, twice. Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
 
 ## Enemy temperaments — audit (brief §24)
 

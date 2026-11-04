@@ -126,15 +126,32 @@ var _hitbox_col: CollisionShape3D
 var _hitbox_shape: BoxShape3D
 var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
+## What the survivor can see and hear: the vision cone and acoustic ripples (presentation only).
+var perception: Perception
+## Set by Weather: how far the survivor's own noise carries, how fast the torch burns, and how
+## sure their footing is (a speed multiplier). 1.0 is the ordinary ashfall night.
+var weather_hearing: float = 1.0
+var weather_torch_burn: float = 1.0
+var weather_footing: float = 1.0
+## Who the survivor was (SurvivorBackground): their kit, one trait, one flaw. Set by
+## apply_background(); the Watch Deserter by default.
+var background: SurvivorBackground
+var _base_stats: Dictionary = {}
 
 func _ready() -> void:
 	_fists = _make_fists()
+	_base_stats = {"stamina_regen_rate": stamina_regen_rate, "move_speed": move_speed, "sprint_speed": sprint_speed}
 	if inventory == null:
 		inventory = Inventory.new()
 		inventory.capacity_kg = carry_capacity_kg
-		_give_starting_loadout()
+		apply_background(SurvivorBackground.default_background())
 	weapon = _current_weapon_data()
 	_build_survivor_visuals_and_colliders()
+	perception = Perception.new(self)
+	add_child(perception)
+	if background != null:
+		perception.sight_mult = background.sight_mult
+		perception.hearing_mult = background.hearing_mult
 	inventory.changed.connect(_on_inventory_changed)
 	_apply_equipment()
 	_last_load = inventory.get_load()
@@ -189,16 +206,49 @@ func _make_fists() -> WeaponData:
 	f.heavy_is_thrust = true
 	return f
 
-func _give_starting_loadout() -> void:
-	var sword := ItemDatabase.make("arming_sword", 1, 88.0)
-	var targe := ItemDatabase.make("wooden_targe")
-	var torch := ItemDatabase.make("pitch_torch", 1, 180.0)
-	inventory.add(sword)
-	inventory.add(targe)
-	inventory.add(torch)
-	inventory.add(ItemDatabase.make("clean_rag_bandage", 2))
-	inventory.main_hand = sword
-	inventory.off_hand = targe
+## Becomes `bg`: stats from its trait and flaw, the pack emptied and refilled with its kit, and
+## full health. Safe before the body exists (the default, from _ready) and at any time after
+## (the start screen); the survivor keeps the background through respawns.
+func apply_background(bg: SurvivorBackground) -> void:
+	background = bg
+	max_health = bg.health
+	max_stamina = bg.stamina
+	max_poise = bg.poise
+	carry_capacity_kg = bg.carry_kg
+	dodge_stamina_cost = bg.dodge_cost
+	stamina_regen_rate = float(_base_stats["stamina_regen_rate"]) * bg.stamina_regen_mult
+	move_speed = float(_base_stats["move_speed"]) * bg.move_speed_mult
+	sprint_speed = float(_base_stats["sprint_speed"]) * bg.sprint_speed_mult
+	if perception != null:
+		perception.sight_mult = bg.sight_mult
+		perception.hearing_mult = bg.hearing_mult
+	inventory.capacity_kg = carry_capacity_kg
+	inventory.main_hand = null
+	inventory.off_hand = null
+	for inst: ItemInstance in inventory.items.duplicate():
+		inventory.remove(inst)
+	for entry: Array in bg.gear:
+		var item_id: String = String(entry[0])
+		var inst: ItemInstance
+		if float(entry[2]) < 0.0:
+			inst = ItemDatabase.make(item_id, int(entry[1]))
+		else:
+			inst = ItemDatabase.make(item_id, int(entry[1]), float(entry[2]))
+		inventory.add(inst)
+		if item_id == bg.main_hand_id:
+			inventory.main_hand = inst
+		elif item_id == bg.off_hand_id:
+			inventory.off_hand = inst
+	health = max_health
+	stamina = max_stamina
+	is_exhausted = false
+	is_bleeding = false
+	poise_damage_taken = 0.0
+	if _visual_root != null:
+		weapon = _current_weapon_data()
+		_apply_equipment()
+		inventory.notify_changed()
+		_emit_stats()
 
 func _current_weapon_data() -> WeaponData:
 	var main: ItemInstance = inventory.main_hand if inventory else null
@@ -313,7 +363,7 @@ func get_aim_direction() -> Vector3:
 	return _aim_direction
 
 func get_noise_multiplier() -> float:
-	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
+	return (1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0) * weather_hearing * (background.own_noise_mult if background != null else 1.0)
 
 func is_scavenging() -> bool:
 	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
@@ -404,6 +454,11 @@ func get_nearest_lootable() -> Lootable:
 func _start_channel(kind: ChannelKind, duration: float, lootable: Lootable = null, item: ItemInstance = null, unequip: bool = false) -> void:
 	_channel_kind = kind
 	_channel_total = maxf(duration, 0.01)
+	if background != null:
+		if kind == ChannelKind.SCAVENGE:
+			_channel_total *= background.search_time_mult
+		elif kind == ChannelKind.BANDAGE:
+			_channel_total *= background.bandage_time_mult
 	_channel_elapsed = 0.0
 	_channel_lootable = lootable
 	_channel_item = item
@@ -500,7 +555,7 @@ func _complete_channel() -> void:
 			if inventory.consume("clean_rag_bandage", 1):
 				is_bleeding = false
 				bleed_timer = 0.0
-				health = minf(max_health, health + 8.0)
+				health = minf(max_health, health + (background.bandage_heal if background != null else 8.0))
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
 		ChannelKind.EQUIP_SWAP:
 			if item != null and inventory.has_item(item):
@@ -591,7 +646,7 @@ func _update_torch(delta: float) -> void:
 	if not lit:
 		return
 	var torch: ItemInstance = inventory.off_hand
-	if torch.wear(delta):
+	if torch.wear(delta * weather_torch_burn * (background.torch_burn_mult if background != null else 1.0)):
 		_torch_light.visible = false
 		_torch_flame.visible = false
 		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
@@ -811,7 +866,7 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
-	var load_mult: float = _encumbrance_speed_mult()
+	var load_mult: float = _encumbrance_speed_mult() * weather_footing
 	if current_state == ActionState.BLOCK:
 		velocity.x = move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x
 		velocity.z = move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z
@@ -840,8 +895,11 @@ func _start_attack(heavy: bool) -> void:
 	if is_exhausted or stamina < 4.0:
 		combat_banner_message.emit("Exhausted — Stamina Depleted", Color(0.85, 0.55, 0.25))
 		return
+	if heavy and background != null and not background.heavy_allowed:
+		combat_banner_message.emit("Your hands are sworn: you will not strike a heavy blow", Color(0.75, 0.68, 0.52))
+		return
 	_is_current_attack_heavy = heavy
-	var cost: float = weapon.heavy_stamina_cost if heavy else weapon.light_stamina_cost
+	var cost: float = (weapon.heavy_stamina_cost if heavy else weapon.light_stamina_cost) * (background.attack_cost_mult if background != null else 1.0)
 	_consume_stamina(cost)
 	_attack_serial += 1
 	current_state = ActionState.ATTACK_STARTUP
@@ -863,7 +921,8 @@ func _enter_attack_active() -> void:
 		self,
 		global_position,
 		_aim_direction,
-		(weapon.heavy_damage if _is_current_attack_heavy else weapon.light_damage) * mult,
+		(weapon.heavy_damage if _is_current_attack_heavy else weapon.light_damage) * mult
+			* (background.heavy_damage_mult if _is_current_attack_heavy and background != null else 1.0),
 		(weapon.heavy_poise_damage if _is_current_attack_heavy else weapon.light_poise_damage) * mult,
 		_is_current_attack_heavy and (randf() <= weapon.heavy_bleed_chance),
 		_is_current_attack_heavy,
@@ -926,7 +985,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if current_state in [ActionState.BLOCK, ActionState.BLOCK_IMPACT] and _has_ready_shield():
 		var block_cos: float = cos(deg_to_rad(shield.data.block_angle_degrees * 0.5))
 		if facing_dot >= block_cos:
-			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency
+			var stam_cost: float = payload.poise_damage * shield.data.block_stamina_efficiency * (background.block_cost_mult if background != null else 1.0)
 			_consume_stamina(stam_cost)
 			_knockback_velocity = -to_attacker * (payload.knockback_force * 0.7)
 			if shield.wear(payload.poise_damage * shield.data.block_wear_per_poise):
@@ -965,7 +1024,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 
 	if payload.causes_bleed:
 		is_bleeding = true
-		bleed_timer = 12.0
+		bleed_timer = background.bleed_seconds if background != null else 12.0
 		combat_banner_message.emit("Deep Laceration — Bleeding (Press B to Bandage)", Color(0.88, 0.2, 0.2))
 
 	if audio:
@@ -1243,7 +1302,7 @@ func _on_confirmed_hit_landed(target: Node3D, payload: CombatPayload) -> void:
 		camera_rig.add_trauma(0.38 if payload.is_heavy else 0.22)
 	var main: ItemInstance = inventory.main_hand
 	if main != null and main.data.has_durability():
-		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit
+		var amount: float = (2.0 if payload.is_heavy else 1.0) * main.data.wear_per_hit * (background.weapon_wear_mult if background != null else 1.0)
 		if main.wear(amount):
 			combat_banner_message.emit("Your %s has BROKEN" % main.data.display_name, Color(0.92, 0.36, 0.22))
 			inventory.notify_changed()

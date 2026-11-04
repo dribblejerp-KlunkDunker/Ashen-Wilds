@@ -109,6 +109,9 @@ func _run() -> void:
 	await _test_atmosphere()
 	await _test_enemy_models()
 	await _test_enemy_temperaments()
+	await _test_perception()
+	await _test_weather()
+	await _test_backgrounds()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1609,6 +1612,31 @@ func _test_ogre_temperament() -> void:
 		"ogre: it crashes into the wall behind and reels (state=%s, %.1f s)" % [EnemyOgreBrute.AIState.keys()[ogre.state], ogre._state_timer])
 	ogre.queue_free()
 
+	# 3b) A knee-high crate in the lane, or a doorway narrower than its shoulders, also stops the
+	#     charge before it starts; the chest-height ray alone looked over both.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var crate := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 0.3, 0.0), Vector3(0.9, 0.6, 0.9))
+	var lane_ogre := EnemyOgreBrute.new()
+	_main.add_child(lane_ogre)
+	await _pose_ogre(lane_ogre, OGRE_YARD + Vector3(8.0, 0.0, 0.0), Vector3.LEFT)
+	lane_ogre.player_ref = _player
+	lane_ogre._pursuit_time = 2.0
+	lane_ogre._visual_root.visible = true
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a knee-high crate in the lane stops the charge")
+	crate.queue_free()
+	await _ticks(2)
+	var jamb_a := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, 1.4), Vector3(0.4, 3.0, 1.5))
+	var jamb_b := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, -1.4), Vector3(0.4, 3.0, 1.5))
+	await _ticks(2)
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a 1.3 m doorway (narrower than its shoulders) stops the charge")
+	jamb_a.queue_free()
+	jamb_b.queue_free()
+	await _ticks(2)
+	_check(lane_ogre._try_begin_charge(8.0, Vector3.LEFT) and lane_ogre.state == EnemyOgreBrute.AIState.CHARGE_STARTUP,
+		"ogre: with the lane clear again it charges")
+	lane_ogre.queue_free()
+
 	# 3) With a wall between, it doesn't charge at all.
 	_reset_player(OGRE_YARD)
 	await _ticks(2)
@@ -1755,5 +1783,350 @@ func _test_temperament_audit() -> void:
 	o.queue_free()
 	coord._active_holders.clear()
 	coord._cooldown_timer = 0.0
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Perception: the survivor's 130-degree vision cone, cut by walls, and the acoustic ripples that
+# show unseen noises. Presentation only: nothing here changes a hit or an enemy's senses.
+# ------------------------------------------------------------------------------
+func _count_nodes(group: String) -> int:
+	return get_nodes_in_group(group).size()
+
+## Ripples and marks left by earlier sections (they fade on their own) must not skew a count.
+func _clear_perception_leftovers() -> void:
+	for n: Node in get_nodes_in_group("acoustic_ripple") + get_nodes_in_group("last_seen_mark"):
+		n.queue_free()
+	await _ticks(1)
+
+func _test_perception() -> void:
+	_section("Perception: vision cone and acoustic ripples")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var per: Perception = _player.perception
+	await _clear_perception_leftovers()
+	_check(per != null and per.enabled and is_equal_approx(Perception.CONE_DEGREES, 130.0), "the survivor has a 130-degree vision cone, on by default")
+	_check(_main.find_children("VisionConeOverlay", "", false, false).size() == 1, "the charcoal overlay is in the scene")
+
+	# The cone around the aim.
+	_face(Vector3.RIGHT)
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 0.0)), "straight ahead is in the cone")
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 5.0)), "45 degrees off the aim is in the cone")
+	_check(not per.in_cone(OPEN + Vector3(0.0, 0.0, 5.0)), "90 degrees off the aim is outside it")
+	_check(not per.in_cone(OPEN + Vector3(-5.0, 0.0, 0.0)), "behind the survivor is outside it")
+
+	# An enemy is drawn only while seen; slipping out of sight leaves one charcoal mark.
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	await _ticks(1)
+	_check(per.update_visibility(g, g._visual_root, 0.95) and g._visual_root.visible, "a goblin 4 m ahead is drawn")
+	_face(Vector3.LEFT)
+	var marks: int = _count_nodes("last_seen_mark")
+	_check(not per.update_visibility(g, g._visual_root, 0.95) and not g._visual_root.visible, "turn your back and it is no longer drawn")
+	_check(_count_nodes("last_seen_mark") == marks + 1, "a charcoal mark is left where it was last seen")
+	per.update_visibility(g, g._visual_root, 0.95)
+	_check(_count_nodes("last_seen_mark") == marks + 1, "staying unseen leaves no second mark")
+	_face(Vector3.RIGHT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "turn back and it is drawn again")
+	var wall := _make_ogre_test_wall(OPEN + Vector3(2.0, 1.25, 0.0), Vector3(0.4, 2.5, 3.0))
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "a wall between hides it even inside the cone")
+	wall.queue_free()
+	await _ticks(1)
+	per.enabled = false
+	_face(Vector3.LEFT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "cone off (F4): line of sight alone, a goblin behind you is drawn")
+	per.enabled = true
+	_face(Vector3.RIGHT)
+	per.update_visibility(g, g._visual_root, 0.95)
+	_face(Vector3.LEFT)
+	marks = _count_nodes("last_seen_mark")
+	per.update_visibility(g, g._visual_root, 0.95, false)
+	_check(_count_nodes("last_seen_mark") == marks, "a corpse slipping out of sight leaves no mark")
+
+	# Noises: heard within their loudness, ripples only for what you cannot see.
+	_face(Vector3.RIGHT)
+	var heard: Array[float] = []
+	var on_heard := func(_p: Vector3, l: float) -> void: heard.append(l)
+	per.heard.connect(on_heard)
+	var ripples: int = _count_nodes("acoustic_ripple")
+	_check(per.report_noise(OPEN + Vector3(4.0, 0.0, 0.0), 8.0, g) and heard.is_empty() and _count_nodes("acoustic_ripple") == ripples,
+		"a noise where you can see raises no ripple")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and heard.size() == 1 and _count_nodes("acoustic_ripple") == ripples + 1,
+		"a noise behind you raises a ripple and the cue")
+	var ring: AcousticRipple = get_nodes_in_group("acoustic_ripple").back()
+	_check(ring.global_position.distance_to(OPEN + Vector3(-4.0, 0.03, 0.0)) < 0.05, "the ripple sits where the noise was")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and _count_nodes("acoustic_ripple") == ripples + 1,
+		"one source cannot carpet the ground: one ripple per %.2f s" % Perception.RIPPLE_GAP)
+	var loud := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 0.0), 30.0)
+	var quiet := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 2.0), 5.0)
+	_check(loud.scale.x > quiet.scale.x * 2.0, "a louder noise makes a larger ring (%.2f vs %.2f)" % [loud.scale.x, quiet.scale.x])
+	_check(not per.report_noise(OPEN + Vector3(-12.0, 0.0, 0.0), 8.0, null), "a noise beyond its loudness is not heard")
+	var muffle := _make_ogre_test_wall(OPEN + Vector3(-3.0, 1.25, 0.0), Vector3(0.4, 2.5, 4.0))
+	await _ticks(1)
+	_check(not per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "an 8 m noise 6 m away through a wall is muffled out of hearing")
+	muffle.queue_free()
+	await _ticks(1)
+	_check(per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "the same noise with no wall is heard")
+	await _seconds(0.3)
+	ripples = _count_nodes("acoustic_ripple")
+	g.global_position = OPEN + Vector3(-4.0, 0.0, 0.0)
+	for i in range(30):
+		per.report_footsteps(g, 1.0 / 60.0, 3.4, 1.1, 8.0)
+	_check(_count_nodes("acoustic_ripple") == ripples + 1, "half a second of jogging at 3.4 m/s is one footstep ripple at a 1.1 m stride")
+	await _seconds(1.5)
+	_check(_count_nodes("acoustic_ripple") == 0, "ripples fade and clean themselves up")
+	per.heard.disconnect(on_heard)
+	g.queue_free()
+	await _ticks(2)
+
+	# Live enemies report: a jogging ork behind you is unseen but heard, step by step.
+	_reset_player(OPEN)
+	await _ticks(2)
+	await _clear_perception_leftovers()
+	_face(Vector3.RIGHT)
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.audio = _player.audio
+	o.player_ref = _player
+	_main.add_child(o)
+	o.global_position = OPEN + Vector3(-7.0, 0.0, 0.0)
+	o.state = EnemyOrkWarrior.AIState.PURSUE
+	o._has_last_known_pos = true
+	o._last_known_player_pos = OPEN + Vector3(-9.0, 0.0, 0.0)
+	await _seconds(0.6)
+	_check(not o._visual_root.visible, "a live ork behind you is not drawn")
+	_check(_count_nodes("acoustic_ripple") >= 1, "its footsteps raise ripples (%d)" % _count_nodes("acoustic_ripple"))
+	o.queue_free()
+
+	# The cone is the survivor's sight, not the enemies': an ogre behind you still spots you.
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = _player.audio
+	await _pose_ogre(ogre, OPEN + Vector3(-8.0, 0.0, 0.0), Vector3.RIGHT)
+	ogre.player_ref = _player
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre._visual_root.visible,
+		"an unseen ogre behind you still spots you with its own eyes (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.queue_free()
+	await _seconds(1.2)
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Weather: six conditions that change sight, hearing, fire, footing and the look of the night.
+# ------------------------------------------------------------------------------
+func _test_weather() -> void:
+	_section("Weather: the Smothering's six conditions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var ws: Array = _children_of(func(n: Node) -> bool: return n is Weather)
+	_check(ws.size() == 1, "the yard has one Weather")
+	var w: Weather = ws[0]
+	w.cycling = false
+	var env: Environment = (_children_of(func(n: Node) -> bool: return n is WorldEnvironment)[0] as WorldEnvironment).environment
+	var ash: AshFall = _children_of(func(n: Node) -> bool: return n is AshFall)[0]
+	var fire: FlickerLight = _main.find_child("ShelterFireLight", true, false) as FlickerLight
+	var per: Perception = _player.perception
+	_check(w.current == Weather.Condition.ASHFALL and is_equal_approx(env.fog_density, 0.012) and is_equal_approx(per.hearing, 1.0),
+		"it starts in ashfall: the ordinary night, fog 0.012, hearing x1")
+	var base_fire: float = fire.base_energy
+	var changes: Array[String] = []
+	var on_change := func(_c: Weather.Condition, banner: String) -> void: changes.append(banner)
+	w.changed.connect(on_change)
+
+	# Miasma: thick fog, short sight, deadened hearing. Dead Calm: the opposite.
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(is_equal_approx(env.fog_density, 0.055) and is_equal_approx(per.sight_range, 7.0) and is_equal_approx(per.hearing, 0.7),
+		"miasma: fog 0.055, sight 7 m, hearing x0.7")
+	_check(changes.size() == 1 and changes[0].begins_with("The miasma"), "a change announces itself")
+	_check(_hud._weather_label.text.ends_with("Miasma fog"), "the HUD names the weather (%s)" % _hud._weather_label.text)
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(9.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT  # looking away: it cannot see the survivor, only hear them
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "miasma: a goblin 9 m ahead, in the cone, is lost in the fog")
+	_check(not per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "miasma: an 8 m noise 9 m away is not heard (reach 5.6 m)")
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE, "miasma: a goblin 9 m away does not hear you sprint (9 x 0.7 = 6.3 m)")
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "dead calm: the same goblin is seen")
+	_check(per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "dead calm: the same noise is heard (reach 12.8 m)")
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "dead calm: the goblin hears you sprint from 9 m (9 x 1.6 = 14.4 m)")
+	_check(not ash.visible, "dead calm: nothing falls")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Sleet: the torch burns faster, the fire dims, footing goes. Hoarfrost: ice, bright moon.
+	w.set_condition(Weather.Condition.SLEET, true)
+	_check(is_equal_approx(_player.weather_torch_burn, 1.8) and absf(fire.base_energy - base_fire * 0.75) < 0.001,
+		"sleet: the torch burns x1.8 and the shelter fire dims to x0.75")
+	_check(ash.visible and (ash.material_override as ShaderMaterial).get_shader_parameter("fall_speed") > 2.0, "sleet: fast pale streaks fall")
+	Input.action_press("move_right")
+	await _ticks(20)
+	var sleet_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	await _ticks(20)
+	var dry_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	Input.action_release("move_right")
+	await _ticks(2)
+	_check(absf(dry_speed - _player.move_speed) < 0.2 and absf(sleet_speed - _player.move_speed * 0.85) < 0.2,
+		"sleet: walking drops to 85%% (%.2f m/s vs %.2f dry)" % [sleet_speed, dry_speed])
+	w.set_condition(Weather.Condition.HOARFROST, true)
+	var moon: DirectionalLight3D = _main.find_child("Moon", false, false) as DirectionalLight3D
+	_check(is_equal_approx(_player.weather_footing, 0.8) and moon.light_energy > 3.5 and is_equal_approx(per.hearing, 1.25),
+		"hoarfrost: footing x0.8, a hard bright moon, hearing x1.25")
+
+	# Blends: a change drifts in over 8 s instead of snapping.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	w.set_condition(Weather.Condition.MIASMA_FOG)
+	await _seconds(4.0)
+	var mid: float = env.fog_density
+	_check(mid > 0.015 and mid < 0.045, "half way through a change the fog is between the two (%.3f)" % mid)
+	await _seconds(5.0)
+	_check(is_equal_approx(env.fog_density, 0.055), "after 8 s the change is complete")
+
+	# The cycle visits all six and comes round.
+	var seen_conditions: Array[Weather.Condition] = []
+	for i in range(Weather.CYCLE.size()):
+		w.advance()
+		seen_conditions.append(w.current)
+	_check(seen_conditions.size() == 6 and seen_conditions.back() == Weather.Condition.MIASMA_FOG
+		and Weather.Condition.CINDER_SQUALL in seen_conditions and Weather.Condition.DEAD_CALM in seen_conditions,
+		"advancing six times visits every condition and comes round")
+	w.changed.disconnect(on_change)
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Survivor backgrounds: eight starting characters, each a kit, a trait and a permanent flaw.
+# ------------------------------------------------------------------------------
+func _test_backgrounds() -> void:
+	_section("Survivor backgrounds")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var all: Array[SurvivorBackground] = SurvivorBackground.all()
+	var ids: Array[String] = []
+	var complete: bool = true
+	for b: SurvivorBackground in all:
+		ids.append(b.id)
+		complete = complete and b.title != "" and b.epigraph != "" and b.trait_name != "" and b.trait_text != "" and b.flaw_name != "" and b.flaw_text != "" and not b.gear.is_empty()
+	_check(all.size() == 8 and ids.size() == 8, "eight backgrounds")
+	var unique: Dictionary = {}
+	for i: String in ids:
+		unique[i] = true
+	_check(unique.size() == 8 and complete, "each has a unique id, a title, an epigraph, a kit, a trait and a flaw")
+	# (The kit itself is checked at the start of the suite, before other sections swap and spend it.)
+	_check(_player.background != null and _player.background.id == "watch_deserter" and is_equal_approx(_player.max_health, 90.0)
+		and is_equal_approx(_player.background.block_cost_mult, 0.75), "the default is the Watch Deserter: 90 health, cheaper blocks")
+	_check(_main.find_children("BackgroundSelect", "", false, false).is_empty(), "headless, no start screen: the default stands")
+	_check(_hud._background_label.text == "WATCH DESERTER", "the HUD names the background")
+	var banners: Array[String] = []
+	var on_banner := func(msg: String, _c: Color) -> void: banners.append(msg)
+	_player.combat_banner_message.connect(on_banner)
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	var per: Perception = _player.perception
+
+	# Fen Healer: five bandages, a spear, quick bandaging, and night-blind (sight x0.6 on the weather).
+	_player.apply_background(SurvivorBackground.by_id("fen_healer"))
+	_check(_player.inventory.count_of("clean_rag_bandage") == 5 and _player.inventory.main_hand.data.item_id == "boar_spear",
+		"fen healer: five bandages and a spear")
+	_player._start_channel(PlayerController.ChannelKind.BANDAGE, 1.6)
+	_check(absf(_player._channel_total - 0.8) < 0.01, "fen healer: bandaging takes half the time (%.2f s)" % _player._channel_total)
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(5.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT
+	await _ticks(1)
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "fen healer in the miasma: 7 m x 0.6, a goblin 5 m ahead is unseen")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	g.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "fen healer in ashfall: 24 m x 0.6, a goblin 9 m ahead is seen")
+
+	# Hedge-priest: sworn hands, no heavy blow; 50 poise.
+	_player.apply_background(SurvivorBackground.by_id("hedge_priest"))
+	_player.stamina = _player.max_stamina
+	banners.clear()
+	_player._start_attack(true)
+	_check(_player.current_state == PlayerController.ActionState.IDLE and banners.size() == 1 and banners[0].contains("sworn"),
+		"hedge-priest: a heavy blow is refused, and says why")
+	_player._start_attack(false)
+	_check(_player.current_state == PlayerController.ActionState.ATTACK_STARTUP and is_equal_approx(_player.max_poise, 50.0),
+		"hedge-priest: light blows are fine; 50 poise")
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# Gutter-kin: soft-footed (own noise x0.65), frail (75 health, longer bleeds).
+	_player.apply_background(SurvivorBackground.by_id("gutter_kin"))
+	_face(Vector3.RIGHT)
+	g.global_position = OPEN + Vector3(8.0, 0.0, 0.0)
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE and is_equal_approx(_player.max_health, 75.0) and is_equal_approx(_player.background.bleed_seconds, 18.0),
+		"gutter-kin: a goblin 8 m away does not hear you sprint (9 x 0.65 = 5.9 m); 75 health; 18 s bleeds")
+	_player.apply_background(SurvivorBackground.by_id("causeway_carter"))
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "causeway carter: the same goblin hears the same sprint (9 m)")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Causeway Carter: hardy, one good ear (hearing x0.7 on the weather).
+	_check(is_equal_approx(_player.max_health, 120.0) and not per.report_noise(OPEN + Vector3(-7.0, 0.0, 0.0), 8.0, null),
+		"causeway carter: 120 health; an 8 m noise 7 m behind is not heard (reach 5.6 m)")
+
+	# Chapel Cleaner: no weapon, quick searches. Peat-cutter and Cinder Factor: the numbers.
+	_player.apply_background(SurvivorBackground.by_id("chapel_cleaner"))
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 2.0)
+	_check(_player.inventory.main_hand == null and absf(_player._channel_total - 1.3) < 0.01, "chapel cleaner: bare hands, searches at x0.65")
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.apply_background(SurvivorBackground.by_id("peat_cutter"))
+	_check(is_equal_approx(_player.max_stamina, 80.0) and is_equal_approx(_player.inventory.capacity_kg, 23.0)
+		and _player.inventory.main_hand.data.item_id == "woodsmans_broadaxe", "peat-cutter: 80 stamina, 23 kg, the broadaxe")
+	_player.apply_background(SurvivorBackground.by_id("cinder_factor"))
+	_check(absf(_player.sprint_speed - 6.3 * 0.85) < 0.01 and is_equal_approx(_player.dodge_stamina_cost, 30.0) and is_equal_approx(_player.inventory.capacity_kg, 26.0),
+		"cinder factor: 26 kg, sprint at 85%%, dodges cost 30")
+
+	# The start screen: arrows and digits move the choice, confirm hands back the background.
+	var picker := BackgroundSelect.new()
+	_main.add_child(picker)
+	var got: Array[SurvivorBackground] = []
+	picker.chosen.connect(func(b: SurvivorBackground) -> void: got.append(b))
+	picker.move_selection(1)
+	picker.move_selection(0, 1)
+	picker.confirm()
+	picker.select(7)
+	picker.confirm()
+	_check(got.size() == 2 and got[0].id == "hedge_priest" and got[1].id == "causeway_carter",
+		"the start screen: right then down is the hedge-priest, 8 is the carter")
+	picker.queue_free()
+
+	_player.combat_banner_message.disconnect(on_banner)
+	_player.apply_background(SurvivorBackground.default_background())
+	_check(_player.inventory.main_hand.data.item_id == "arming_sword" and _player.inventory.off_hand.data.item_id == "wooden_targe"
+		and _player.inventory.count_of("clean_rag_bandage") == 2 and is_equal_approx(_player.health, 90.0),
+		"back to the deserter: the old kit, full health")
+	w.cycling = true
+	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
