@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bnehuks8yww8e"
-path="res://.godot/imported/Rig_Medium_General.glb-f37f37e44c9b15b1d1c9179aa017ac5b.scn"
+uid="uid://dmnu6q68twcfl"
+path="res://.godot/imported/UAL2_Standard.glb-98caafddd4373dd4b65b69f3da670d62.scn"
 
 [deps]
 
-source_file="res://art/kaykit/animations/Rig_Medium_General.glb"
-dest_files=["res://.godot/imported/Rig_Medium_General.glb-f37f37e44c9b15b1d1c9179aa017ac5b.scn"]
+source_file="res://art/quaternius/animations/UAL2_Standard.glb"
+dest_files=["res://.godot/imported/UAL2_Standard.glb-98caafddd4373dd4b65b69f3da670d62.scn"]
 
 [params]
 

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bxf708io2kb6v"
-path="res://.godot/imported/Rig_Medium_MovementAdvanced.glb-78f83861179d0a9617cb010d71c9e7ce.scn"
+uid="uid://c64jo225cbmfx"
+path="res://.godot/imported/Male_Ranger.gltf-eba3191cbe91a3aac674214a2bb1c22e.scn"
 
 [deps]
 
-source_file="res://art/kaykit/animations/Rig_Medium_MovementAdvanced.glb"
-dest_files=["res://.godot/imported/Rig_Medium_MovementAdvanced.glb-78f83861179d0a9617cb010d71c9e7ce.scn"]
+source_file="res://art/quaternius/survivor/Male_Ranger.gltf"
+dest_files=["res://.godot/imported/Male_Ranger.gltf-eba3191cbe91a3aac674214a2bb1c22e.scn"]
 
 [params]
 

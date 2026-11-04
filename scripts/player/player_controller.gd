@@ -100,7 +100,9 @@ var _torch_flicker_t: float = 0.0
 var _cramped: bool = false
 var _lodged_target: Node3D = null
 
-## Added to a torch's light range because the light hangs over the hood, 2 m or more up.
+## Where the torch's light hangs, on the survivor's visual root: over the left shoulder, above the hood.
+const TORCH_LIGHT_POSITION: Vector3 = Vector3(-0.3, 2.3, -0.15)
+## Added to a torch's light range because the light hangs above the hood.
 const TORCH_LIGHT_HEIGHT_RANGE: float = 1.0
 
 var _visual_root: Node3D
@@ -277,9 +279,9 @@ func _update_weapon_mesh() -> void:
 		return
 	_weapon_mesh.visible = true
 	var main: ItemInstance = inventory.main_hand
-	# Drawn at about half the weapon's reach: the stylised survivor is short and big-headed, and a
-	# full-length blade dwarfs it. Reach in play comes from the hitbox, not from this mesh.
-	var length: float = weapon.reach_meters * 0.5
+	# Drawn a little shorter than the weapon's reach, from the grip. Reach in play comes from the
+	# hitbox, not from this mesh.
+	var length: float = weapon.reach_meters * 0.7
 	var thickness: float = 0.08
 	if main and main.data.weapon_class == ItemData.WeaponClass.AXE:
 		thickness = 0.24
@@ -962,7 +964,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if health <= 0.0:
 		current_state = ActionState.DEAD
 		if _model:
-			_model.play(&"Death_A", 1.0)
+			_model.play(&"Death01", 1.0)
 			_anim_key = "dead"
 		combat_banner_message.emit("YOU PERISHED IN THE ASHEN WILDS — Press R to Respawn at Shelter", Color(0.9, 0.18, 0.18))
 		return
@@ -1017,48 +1019,54 @@ func _update_visual_pose(_delta: float) -> void:
 func _update_animation() -> void:
 	if _model == null:
 		return
-	var two_handed: bool = inventory.main_hand != null and inventory.main_hand.data.two_handed
 	var flat_speed: float = Vector2(velocity.x, velocity.z).length()
+	if current_state != ActionState.DODGE:
+		_model.rotation.y = 0.0
 	match current_state:
 		ActionState.IDLE:
-			var idle: StringName = &"Idle_A"
-			if weapon == _fists:
-				idle = &"Melee_Unarmed_Idle"
-			elif two_handed:
-				idle = &"Melee_2H_Idle"
+			var idle: StringName = &"Idle"
+			if _has_lit_torch():
+				idle = &"Idle_Torch"
+			elif weapon != _fists:
+				idle = &"Sword_Idle"
 			_set_anim("idle:" + idle, idle)
 		ActionState.MOVE, ActionState.SPRINT:
 			# Walk below 2.6 m/s (exhausted or heavily loaded), jog at normal pace, run when sprinting.
 			if flat_speed < 2.6:
-				_set_anim("walk", &"Walking_A", clampf(flat_speed / 2.0, 0.5, 1.6))
+				_set_anim("walk", &"Walk", clampf(flat_speed / 1.6, 0.6, 1.6))
 			elif current_state == ActionState.SPRINT:
-				_set_anim("run", &"Running_A", clampf(flat_speed / 6.3, 0.7, 1.5))
+				_set_anim("run", &"Sprint", clampf(flat_speed / 6.0, 0.7, 1.4))
 			else:
-				_set_anim("jog", &"Running_B", clampf(flat_speed / 4.2, 0.7, 1.5))
+				_set_anim("jog", &"Jog_Fwd", clampf(flat_speed / 3.8, 0.7, 1.4))
 		ActionState.BLOCK:
-			_set_anim("block", &"Melee_Blocking")
+			_set_anim("block", &"Idle_Shield")
 		ActionState.BLOCK_IMPACT:
-			_set_fitted("block_hit", &"Melee_Block_Hit", 0.35)
+			_set_fitted("block_hit", &"Shield_OneShot", 0.35)
 		ActionState.ATTACK_STARTUP, ActionState.ATTACK_ACTIVE, ActionState.ATTACK_RECOVERY:
-			var clip: StringName = _attack_clip(two_handed)
 			var total: float = (weapon.heavy_startup_time + weapon.heavy_active_time + weapon.heavy_recovery_time) if _is_current_attack_heavy \
 				else (weapon.light_startup_time + weapon.light_active_time + weapon.light_recovery_time)
-			_set_fitted("attack:%d" % _attack_serial, clip, total)
+			_set_fitted("attack:%d" % _attack_serial, _attack_clip(), total)
 		ActionState.DODGE:
-			_set_fitted("dodge", _dodge_clip(), 0.5)
+			# The roll faces the way the survivor is diving, not the way they were aiming.
+			var local: Vector3 = _visual_root.global_basis.inverse() * _dodge_direction
+			_model.rotation.y = atan2(-local.x, -local.z)
+			_set_fitted("dodge", &"Roll", 0.5)
 		ActionState.STAGGER:
-			_set_fitted("stagger", &"Hit_A", maxf(_state_timer, 0.3))
+			var clip: StringName = &"Idle_Shield_Break" if is_exhausted else &"Hit_Knockback"
+			_set_fitted("stagger", clip, maxf(_state_timer, 0.3))
 		ActionState.RECOIL:
-			_set_fitted("recoil", &"Hit_B", maxf(_state_timer, 0.3))
+			_set_fitted("recoil", &"Hit_Head", maxf(_state_timer, 0.3))
 		ActionState.LODGED:
-			_set_anim("lodged", &"Interact", 1.4)
+			_set_anim("lodged", &"Push", 1.6)
 		ActionState.CHANNEL:
 			if _channel_kind == ChannelKind.BANDAGE:
-				_set_anim("bandage", &"Use_Item")
+				_set_anim("bandage", &"Consume")
+			elif _channel_kind == ChannelKind.SCAVENGE:
+				_set_anim("search", &"Fixing_Kneeling")
 			else:
-				_set_anim("search", &"Interact", 0.9)
+				_set_anim("swap", &"Interact", 2.0)
 		ActionState.DEAD:
-			_set_anim("dead", &"Death_A")
+			_set_anim("dead", &"Death01")
 
 func _set_anim(key: String, clip: StringName, speed: float = 1.0) -> void:
 	if key != _anim_key:
@@ -1072,26 +1080,16 @@ func _set_fitted(key: String, clip: StringName, duration: float) -> void:
 		_anim_key = key
 		_model.play_fitted(clip, duration)
 
-func _attack_clip(two_handed: bool) -> StringName:
+func _attack_clip() -> StringName:
 	if weapon == _fists:
-		return &"Melee_Unarmed_Attack_Kick" if _is_current_attack_heavy else &"Melee_Unarmed_Attack_Punch_A"
+		return &"Punch_Cross" if _is_current_attack_heavy else &"Punch_Jab"
 	if weapon.is_thrust(_is_current_attack_heavy):
-		return &"Melee_2H_Attack_Stab" if two_handed else &"Melee_1H_Attack_Stab"
+		return &"Sword_Dash"
 	if _is_current_attack_heavy:
-		return &"Melee_2H_Attack_Chop" if two_handed else &"Melee_1H_Attack_Chop"
-	if two_handed:
-		return &"Melee_2H_Attack_Slice"
-	# Light one-handed sweeps alternate, so a combo reads as forehand, backhand.
-	return &"Melee_1H_Attack_Slice_Horizontal" if _attack_serial % 2 == 1 else &"Melee_1H_Attack_Slice_Diagonal"
+		return &"Sword_Regular_C"
+	# Light sweeps alternate, so a combo reads as forehand, backhand.
+	return &"Sword_Regular_A" if _attack_serial % 2 == 1 else &"Sword_Regular_B"
 
-func _dodge_clip() -> StringName:
-	var forward: Vector3 = _aim_direction
-	var right: Vector3 = forward.cross(Vector3.UP)
-	var f: float = _dodge_direction.dot(forward)
-	var r: float = _dodge_direction.dot(right)
-	if absf(f) >= absf(r):
-		return &"Dodge_Forward" if f >= 0.0 else &"Dodge_Backward"
-	return &"Dodge_Right" if r >= 0.0 else &"Dodge_Left"
 
 func _build_survivor_visuals_and_colliders() -> void:
 	collision_layer = 2
@@ -1116,7 +1114,7 @@ func _build_survivor_visuals_and_colliders() -> void:
 	_shield_mat = StandardMaterial3D.new()
 	_shield_mat.albedo_color = Color(0.32, 0.23, 0.16)
 	_shield_mat.roughness = 0.9
-	# A round targe on the fist, its face along the hand socket's Y axis (out of the knuckles).
+	# A round targe strapped over the left fist; the model's shield mount sets which way it faces.
 	_shield_mesh = MeshInstance3D.new()
 	var s_disc := CylinderMesh.new()
 	s_disc.top_radius = 0.26
@@ -1125,8 +1123,7 @@ func _build_survivor_visuals_and_colliders() -> void:
 	s_disc.radial_segments = 20
 	_shield_mesh.mesh = s_disc
 	_shield_mesh.material_override = _shield_mat
-	_shield_mesh.position = Vector3(0.0, 0.05, -0.04)
-	_model.left_socket.add_child(_shield_mesh)
+	_model.shield_mount.add_child(_shield_mesh)
 
 	# Off-hand torch (handle + flame)
 	_torch_root = Node3D.new()
@@ -1189,17 +1186,17 @@ func _build_survivor_visuals_and_colliders() -> void:
 	_aim_arc_mesh.position = Vector3(0.0, 0.04, -0.95)
 	_visual_root.add_child(_aim_arc_mesh)
 
-	# The light hangs above the flame, over the survivor's head. At the body's centre (inside
-	# the torso) it self-shadowed the survivor black; at the flame itself, which the animated
-	# hands carry in front of or behind the body, the body threw a dark wedge across the room.
-	# Well above the head the survivor's own shadow pools at its feet.
+	# The light hangs over the survivor's left shoulder, fixed to the body, not the hand. At the
+	# body's centre (inside the torso) it self-shadowed the survivor black; at the flame, which the
+	# animated hands carry in front of, behind or above the body, the body threw dark wedges across
+	# rooms and the light swung about. Over the shoulder the survivor's shadow pools at its feet.
 	_torch_light = OmniLight3D.new()
 	_torch_light.light_color = Color(0.95, 0.62, 0.28)
 	_torch_light.light_energy = 1.35
 	_torch_light.omni_range = 7.5 + TORCH_LIGHT_HEIGHT_RANGE
 	_torch_light.shadow_enabled = true
-	_torch_light.position = Vector3(0.0, 1.8, 0.0)
-	_torch_root.add_child(_torch_light)
+	_torch_light.position = TORCH_LIGHT_POSITION
+	_visual_root.add_child(_torch_light)
 
 	_hitbox = HitboxComponent.new()
 	_hitbox.owner_entity = self

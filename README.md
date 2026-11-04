@@ -5,8 +5,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **189/189** headless regression checks passing
-> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: [KayKit Adventurers](https://kaylousberg.itch.io/kaykit-adventurers) by Kay Lousberg (CC0), recoloured for the Blackfen and replaceable later.
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **190/190** headless regression checks passing
+> Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
 >
@@ -175,12 +175,12 @@ scripts/
   player/     player_controller.gd, survivor_model.gd (the animated character)
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd
-art/kaykit/                The survivor character and its animations (CC0; see the README there)
+art/quaternius/            The survivor character and its animations (CC0; see the README there)
 tests/
   smoke_test.gd            Headless regression suite (189 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
-  recolor_survivor_texture.py   Rebuilds the survivor's muted texture from KayKit's
+  recolor_survivor_texture.py   Rebuilds the survivor's grim textures from the Ranger's
 docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 ```
 
@@ -209,7 +209,7 @@ Next milestone not yet chosen. Candidates from the design document:
 
 ## Known limitations
 
-- Placeholder visuals: enemies and props are primitive meshes, and the survivor is a stylised stand-in (KayKit, CC0); audio is synthesized at runtime.
+- Placeholder visuals: enemies and props are primitive meshes, and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
 - Only tested on Godot **4.3-stable**.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
