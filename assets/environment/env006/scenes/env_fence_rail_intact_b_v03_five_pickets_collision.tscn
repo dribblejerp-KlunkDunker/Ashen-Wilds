@@ -1,0 +1,73 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env006/exports/env_fence_rail_intact_b_v03_five_pickets.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(0.12, 1.1, 0.12)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.12, 1.1, 0.12)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(2, 0.085, 0.055)
+
+[sub_resource type="BoxShape3D" id="Box_3"]
+size = Vector3(2, 0.085, 0.055)
+
+[sub_resource type="BoxShape3D" id="Box_4"]
+size = Vector3(0.06, 0.58, 0.03)
+
+[sub_resource type="BoxShape3D" id="Box_5"]
+size = Vector3(0.06, 0.58, 0.03)
+
+[sub_resource type="BoxShape3D" id="Box_6"]
+size = Vector3(0.06, 0.58, 0.03)
+
+[sub_resource type="BoxShape3D" id="Box_7"]
+size = Vector3(0.06, 0.58, 0.03)
+
+[sub_resource type="BoxShape3D" id="Box_8"]
+size = Vector3(0.06, 0.58, 0.03)
+
+[node name="env_fence_rail_intact_b_v03_five_pickets" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="FencePart0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0.55, 0)
+shape = SubResource("Box_0")
+
+[node name="FencePart1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.55, 0)
+shape = SubResource("Box_1")
+
+[node name="FencePart2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -0.045)
+shape = SubResource("Box_2")
+
+[node name="FencePart3" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.83, -0.045)
+shape = SubResource("Box_3")
+
+[node name="FencePart4" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.68, -0.12)
+shape = SubResource("Box_4")
+
+[node name="FencePart5" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.325, 0.68, -0.12)
+shape = SubResource("Box_5")
+
+[node name="FencePart6" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.68, -0.12)
+shape = SubResource("Box_6")
+
+[node name="FencePart7" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.325, 0.68, -0.12)
+shape = SubResource("Box_7")
+
+[node name="FencePart8" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.68, -0.12)
+shape = SubResource("Box_8")

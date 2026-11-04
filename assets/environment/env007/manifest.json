@@ -1,0 +1,685 @@
+{
+  "batch": "ENV-007",
+  "new_models": 24,
+  "units": "meters",
+  "up": "Y",
+  "family_totals_including_prior_designs": {
+    "crate": 13,
+    "barrel": 13
+  },
+  "status": "draft; no collision bodies, UVs, textures or engine testing",
+  "assets": [
+    {
+      "id": "env_crate_v01_cross_braced",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "cross_braced",
+      "file": "exports/env_crate_v01_cross_braced.glb",
+      "bytes": 63252,
+      "triangles": 828,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3235
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3175
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.641
+      ],
+      "sha256": "4b5045d1765fb83f5af976cbb180e4aef79d379a11eaaed8de5e62b6d0ebca3b",
+      "geometry_sha256": "c99157de81edbd9e115df15e99909ad33b564291047291d430485eb2c130cef7",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v02_single_brace",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "single_brace",
+      "file": "exports/env_crate_v02_single_brace.glb",
+      "bytes": 56912,
+      "triangles": 740,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3175
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3175
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.635
+      ],
+      "sha256": "2604d0176f228a452254495076983629e9ca4902ce322dc427c1e3ab5b19e889",
+      "geometry_sha256": "7e3384798de40bf2af73c3f8dc0e2d4375fa6b8dcf6eb5f16f178c82869d30c5",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v03_iron_bound",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "iron_bound",
+      "file": "exports/env_crate_v03_iron_bound.glb",
+      "bytes": 67196,
+      "triangles": 876,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.309
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.309
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.618
+      ],
+      "sha256": "d0db4f2ed9697ca745a71bafcdaddce8d222fabb3cff8fdfabab83495cf576ca",
+      "geometry_sha256": "a8151adeb76fb311ff98c3cac536e6df04dfa725cccefc2b50649a78f533b40d",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v04_vertical_battens",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "vertical_battens",
+      "file": "exports/env_crate_v04_vertical_battens.glb",
+      "bytes": 63248,
+      "triangles": 828,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3225
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3225
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.645
+      ],
+      "sha256": "433360eed9374b82945108339783fb4bd8954dea637003af4743609a6b5a3651",
+      "geometry_sha256": "75194e338b9fa02d7e33926a94c5ba37a68c0d17bc35315f931ec08cf6570680",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v05_face_patch",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "face_patch",
+      "file": "exports/env_crate_v05_face_patch.glb",
+      "bytes": 60072,
+      "triangles": 784,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3275
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.6275
+      ],
+      "sha256": "3032b46c9e8579873dffdea6aab88c3b7321fc9754110b4bcf79bd94129da91a",
+      "geometry_sha256": "9e41e889ac7be6b461753daad467b3590dea0429f007e09c959cba9e69c9c0bd",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v06_cross_plank_lid",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "cross_plank_lid",
+      "file": "exports/env_crate_v06_cross_plank_lid.glb",
+      "bytes": 50940,
+      "triangles": 664,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.6
+      ],
+      "sha256": "8e526cf5c4e9cd1640a6584e1478ada1ffe8d5710383a95796a3303936ad4fc6",
+      "geometry_sha256": "62be8176656d5635896b99f6e7c80c08c6a6fd2fa88f37fefad76726ef869930",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v07_cleated_lid",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "cleated_lid",
+      "file": "exports/env_crate_v07_cleated_lid.glb",
+      "bytes": 52304,
+      "triangles": 676,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.6
+      ],
+      "sha256": "15848a81fbfb0e37938577f11b9e60562e81e6246d221d7a0c16eee74e75d597",
+      "geometry_sha256": "d61fa022c94b989c1097d9bb76304d08699721fecea9e6a101a03b6d533693e5",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v08_open_top",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "open_top",
+      "file": "exports/env_crate_v08_open_top.glb",
+      "bytes": 45752,
+      "triangles": 592,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.6
+      ],
+      "sha256": "c7a6dd26c06d6f18beead5f57062668308ddb944d843276ec1001511b426f9e4",
+      "geometry_sha256": "fcd2ed56c3ba47666f6db4808836cfe4d9b8cba5ad1fe84bd60e116bef988a7b",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v09_braced_open",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "braced_open",
+      "file": "exports/env_crate_v09_braced_open.glb",
+      "bytes": 52088,
+      "triangles": 680,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3175
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3175
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.635
+      ],
+      "sha256": "d11d7f118dd6a81df61f091558ca05c7d35394691c59f91362db2b31fc99ab38",
+      "geometry_sha256": "e05ed02f04b72c8cfe75b34496175650627bc1a1f732f6eaada7e110a7133ff8",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v10_carry_handles",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "carry_handles",
+      "file": "exports/env_crate_v10_carry_handles.glb",
+      "bytes": 70096,
+      "triangles": 916,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.3575
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3575
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.715
+      ],
+      "sha256": "e9be47f9b6cc8fb81d244defbccd0c1ce3b6bf5a25ce1323da38ac77875316eb",
+      "geometry_sha256": "c977c44720d25ddd3e23a8a7753d45abc411b97f91199b03b08709e5d38a544e",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v11_hinged_lid",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "hinged_lid",
+      "file": "exports/env_crate_v11_hinged_lid.glb",
+      "bytes": 62264,
+      "triangles": 808,
+      "bounds_min_m": [
+        -0.39999999999999997,
+        0.0,
+        -0.315
+      ],
+      "bounds_max_m": [
+        0.39999999999999997,
+        0.6,
+        0.3125
+      ],
+      "dimensions_m": [
+        0.7999999999999999,
+        0.6,
+        0.6275
+      ],
+      "sha256": "32edc3841a4fa5c26b961ca14dac79682a70ab10006fd09f5a7a23538e455c90",
+      "geometry_sha256": "1bd47f4625c09e3ee58e2559245a781c54112cf8e5f071661cf3add9de9b0fb8",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_crate_v12_wide_low",
+      "parent": "env_crate_closed_a_r01",
+      "family": "crate",
+      "style": "wide_low",
+      "file": "exports/env_crate_v12_wide_low.glb",
+      "bytes": 50580,
+      "triangles": 652,
+      "bounds_min_m": [
+        -0.54,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.54,
+        0.432,
+        0.3
+      ],
+      "dimensions_m": [
+        1.08,
+        0.432,
+        0.6
+      ],
+      "sha256": "642d2501219b3ee220c5536fec5f07dc8ed88824937c67fbbed6d7075fd90a6e",
+      "geometry_sha256": "53a7b0d8b3e5df55a8c771d38bee0210729918595e9927dabdde3b4ec014d58a",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v01_five_hoops",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "five_hoops",
+      "file": "exports/env_barrel_v01_five_hoops.glb",
+      "bytes": 57028,
+      "triangles": 742,
+      "bounds_min_m": [
+        -0.3287375,
+        0.0,
+        -0.3287375
+      ],
+      "bounds_max_m": [
+        0.3287375,
+        0.9,
+        0.3287375
+      ],
+      "dimensions_m": [
+        0.657475,
+        0.9,
+        0.657475
+      ],
+      "sha256": "1589678166f61015fe01e533280bf8e7b5f3384673338d23d0e581ff6cf8d9e1",
+      "geometry_sha256": "7023a2c20b20f38344b67d0bbf586354dbc5661535bb0cac8e377d61694ccb2b",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v02_three_hoops",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "three_hoops",
+      "file": "exports/env_barrel_v02_three_hoops.glb",
+      "bytes": 43204,
+      "triangles": 550,
+      "bounds_min_m": [
+        -0.3282625,
+        0.0,
+        -0.3282625
+      ],
+      "bounds_max_m": [
+        0.3282625,
+        0.9,
+        0.3282625
+      ],
+      "dimensions_m": [
+        0.656525,
+        0.9,
+        0.656525
+      ],
+      "sha256": "1cf10e165728c84d1a480f00c73ea2a650b242a2d06905a85f457592938369ec",
+      "geometry_sha256": "4124906291505b4ae6defe3c8bcf1c19bf697fbe6e92117b9607828af5e70cad",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v03_wide_hoops",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "wide_hoops",
+      "file": "exports/env_barrel_v03_wide_hoops.glb",
+      "bytes": 50108,
+      "triangles": 646,
+      "bounds_min_m": [
+        -0.3256125,
+        0.0,
+        -0.3256125
+      ],
+      "bounds_max_m": [
+        0.3256125,
+        0.9,
+        0.3256125
+      ],
+      "dimensions_m": [
+        0.651225,
+        0.9,
+        0.651225
+      ],
+      "sha256": "b6338acaabea60f65db59fd12e925fb04c65efe9c8416d5d1c2267784eed0734",
+      "geometry_sha256": "e9dcde00a1cd725407ba44daa390713547d7ae6be03cdadf455872f34cbdffd5",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v04_stave_repairs",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "stave_repairs",
+      "file": "exports/env_barrel_v04_stave_repairs.glb",
+      "bytes": 55808,
+      "triangles": 718,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3429663865490251
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.6682038865490252
+      ],
+      "sha256": "483c943162014bd8ace930711582047308663fb634e7898af65df38d7fb71bd7",
+      "geometry_sha256": "022eea5a574e947f73e60b9f4f83fb531da9393a6861a0a96eec54ecbf46bec1",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v05_replacement_staves",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "replacement_staves",
+      "file": "exports/env_barrel_v05_replacement_staves.glb",
+      "bytes": 50604,
+      "triangles": 646,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.331
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.6562375
+      ],
+      "sha256": "ae9e4ddd25ef5ee2a35701f498b9307219cc158728e832d05ab8ee226e49ce01",
+      "geometry_sha256": "19a7b9a37aa3fa6553d828e7558a0cd8a1bb11714698cfb9f7c33cf20b52075f",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v06_open_empty",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "open_empty",
+      "file": "exports/env_barrel_v06_open_empty.glb",
+      "bytes": 58388,
+      "triangles": 768,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.650475
+      ],
+      "sha256": "4a19475c90d3a1e4402da7cafb47e618e646f8987ccc4abadc6b5b1977e343c6",
+      "geometry_sha256": "7067f8f8fe8f0acf238ebf79f3e841db67819d4cecea121e846048656608f17d",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v07_open_crossbar",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "open_crossbar",
+      "file": "exports/env_barrel_v07_open_crossbar.glb",
+      "bytes": 61556,
+      "triangles": 812,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.650475
+      ],
+      "sha256": "0583becd6b9baffce007b989af2cf1dfcb1b285b7c8a3f43593e151050c02ed7",
+      "geometry_sha256": "56e88fdd65960a18f1df0b3034693acd78f2ddf071ba0ece65d49f09ebe1a000",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v08_partial_lid",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "partial_lid",
+      "file": "exports/env_barrel_v08_partial_lid.glb",
+      "bytes": 59396,
+      "triangles": 782,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.650475
+      ],
+      "sha256": "bf90d317052bcf07c432e6c7fdab918790cf22eae3e7f69dfa2f455f7e6e896a",
+      "geometry_sha256": "1efc9a3f9d8fafeff73c65325efd19dffb8a29ad302280f6a6bc357c7b26ad66",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v09_cleated_lid",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "cleated_lid",
+      "file": "exports/env_barrel_v09_cleated_lid.glb",
+      "bytes": 56448,
+      "triangles": 734,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.650475
+      ],
+      "sha256": "530c8a4b7f5a5c8c072a852fd6e8fff9964c3b6895b7e6924259237c372e9991",
+      "geometry_sha256": "cfc312a7ccbb5f36df660b4999826f2e7211dd050755407b72955aef3b37a7a4",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v10_bung_head",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "bung_head",
+      "file": "exports/env_barrel_v10_bung_head.glb",
+      "bytes": 54724,
+      "triangles": 710,
+      "bounds_min_m": [
+        -0.3252375,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.3252375,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.650475,
+        0.9,
+        0.650475
+      ],
+      "sha256": "14608cb627d2184804b908ca332a9068d1c0ce29dcf7bb048c1dc02f433047b2",
+      "geometry_sha256": "f6d94e1bb97d6ec042ddcc7407040c8806c67cd579f9a391994eeb3dc10c4eb1",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v11_iron_handles",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "iron_handles",
+      "file": "exports/env_barrel_v11_iron_handles.glb",
+      "bytes": 70276,
+      "triangles": 926,
+      "bounds_min_m": [
+        -0.36300000000000004,
+        0.0,
+        -0.3252375
+      ],
+      "bounds_max_m": [
+        0.36300000000000004,
+        0.9,
+        0.3252375
+      ],
+      "dimensions_m": [
+        0.7260000000000001,
+        0.9,
+        0.650475
+      ],
+      "sha256": "9c3f69d5e81ad10bf7e90851ad7e59013ea9fb0536841802b36f39b394a32eee",
+      "geometry_sha256": "da4b78fc27d907a5ce3b079d6ae14be4b34f641e3042060e4eeba5ee26eabd32",
+      "origin": "ground center",
+      "engine_tested": false
+    },
+    {
+      "id": "env_barrel_v12_squat",
+      "parent": "env_barrel_closed_a_opt01",
+      "family": "barrel",
+      "style": "squat",
+      "file": "exports/env_barrel_v12_squat.glb",
+      "bytes": 50112,
+      "triangles": 646,
+      "bounds_min_m": [
+        -0.36426600000000003,
+        0.0,
+        -0.36426600000000003
+      ],
+      "bounds_max_m": [
+        0.36426600000000003,
+        0.648,
+        0.36426600000000003
+      ],
+      "dimensions_m": [
+        0.7285320000000001,
+        0.648,
+        0.7285320000000001
+      ],
+      "sha256": "6522e8b1f66e84de10aeb5c740033202fe97792f6c05377212ff0696ec444e7f",
+      "geometry_sha256": "a3776f24de2bd52c3bb5c1f888b2240b26db67c0e894a0a0b282161b9ec0a1fe",
+      "origin": "ground center",
+      "engine_tested": false
+    }
+  ]
+}

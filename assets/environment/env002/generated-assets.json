@@ -1,0 +1,62 @@
+[
+  {
+    "id": "env_stone_wall_corner_a",
+    "file": "exports/env_stone_wall_corner_a.glb",
+    "triangles": 1780,
+    "dimensions_m": [
+      1.1860000000000002,
+      2.3769060048493174,
+      1.1858494759837541
+    ],
+    "sha256": "1d1e1f35aece0d341158c9da31fa64a6ba6933e71b745e5e6b410ee1b9761952",
+    "status": "draft; no engine verification"
+  },
+  {
+    "id": "env_stone_wall_low_broken_a",
+    "file": "exports/env_stone_wall_low_broken_a.glb",
+    "triangles": 896,
+    "dimensions_m": [
+      2.0,
+      1.0,
+      0.3859011264975042
+    ],
+    "sha256": "b61421c878db22ef3a19223669fa487dc63f9f3ec36f2eed487d4d33a86ce758",
+    "status": "draft; no engine verification"
+  },
+  {
+    "id": "env_door_patched_a",
+    "file": "exports/env_door_patched_a.glb",
+    "triangles": 680,
+    "dimensions_m": [
+      1.2400000000000002,
+      2.1500000000000004,
+      0.187
+    ],
+    "sha256": "7e5c4571b75f38b615318ce63b2f68bf580e9a9cfe702f41fdc347e0776b14fe",
+    "status": "draft; no engine verification"
+  },
+  {
+    "id": "env_firewood_bundle_a",
+    "file": "exports/env_firewood_bundle_a.glb",
+    "triangles": 584,
+    "dimensions_m": [
+      0.8,
+      0.2529282032302755,
+      0.423856406460551
+    ],
+    "sha256": "c52fbb62487604e5337e86421ac1140585165173250d81e448f6de382e41f58a",
+    "status": "draft; no engine verification"
+  },
+  {
+    "id": "env_rubble_stone_small_a",
+    "file": "exports/env_rubble_stone_small_a.glb",
+    "triangles": 440,
+    "dimensions_m": [
+      1.0988069503193092,
+      0.25,
+      0.6505268951904088
+    ],
+    "sha256": "3755524e346044cc41c8fa51b070baf232fe17bd34781d970f7efca386e5ff3e",
+    "status": "draft; no engine verification"
+  }
+]

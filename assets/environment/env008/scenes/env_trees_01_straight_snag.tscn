@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env008/exports/env_trees_01_straight_snag.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(0.407328355361, 1.38876162322, 0.413521566312)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.309564686918, 1.71869153987, 0.364260843512)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(0.211801376016, 1.5308758263, 0.27501540142)
+
+[node name="env_trees_01_straight_snag" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Trunk0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00632341793652, 0.694380811609, -1.38777878078e-17)
+shape = SubResource("Box_0")
+
+[node name="Trunk1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0197735986302, 2.2343714683, 0.00477445407924)
+shape = SubResource("Box_1")
+
+[node name="Trunk2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0582513620591, 3.84400100989, -0.0397523102129)
+shape = SubResource("Box_2")

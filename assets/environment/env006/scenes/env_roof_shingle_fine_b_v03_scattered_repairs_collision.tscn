@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env006/exports/env_roof_shingle_fine_b_v03_scattered_repairs.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(2, 0.0955067456337, 1.66702683288)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.09, 0.104189177055, 1.67198822226)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(0.09, 0.104189177055, 1.67198822226)
+
+[sub_resource type="BoxShape3D" id="Box_3"]
+size = Vector3(0.09, 0.104189177055, 1.67198822226)
+
+[sub_resource type="BoxShape3D" id="Box_4"]
+size = Vector3(0.09, 0.104189177055, 1.67198822226)
+
+[node name="env_roof_shingle_fine_b_v03_scattered_repairs" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="RoofDeck" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.868243142124, 0.496138938357, 0, -0.496138938357, 0.868243142124, 0, -0.425, 0.7)
+shape = SubResource("Box_0")
+
+[node name="Rafter0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.868243142124, 0.496138938357, 0, -0.496138938357, 0.868243142124, -0.84, -0.54, 0.7)
+shape = SubResource("Box_1")
+
+[node name="Rafter1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.868243142124, 0.496138938357, 0, -0.496138938357, 0.868243142124, -0.28, -0.54, 0.7)
+shape = SubResource("Box_2")
+
+[node name="Rafter2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.868243142124, 0.496138938357, 0, -0.496138938357, 0.868243142124, 0.28, -0.54, 0.7)
+shape = SubResource("Box_3")
+
+[node name="Rafter3" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.868243142124, 0.496138938357, 0, -0.496138938357, 0.868243142124, 0.84, -0.54, 0.7)
+shape = SubResource("Box_4")
