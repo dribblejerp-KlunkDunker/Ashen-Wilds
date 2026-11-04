@@ -147,6 +147,37 @@ func _run() -> void:
 	Engine.time_scale = 0.05
 	await _frames(3)
 	await _shot("07_entry_hall_clang.png")
+
+	# 08: the vision cone. The survivor faces east across the yard; the yard goblin creeps up from
+	# the west, out of the cone, so it is not drawn: only its footstep ripples and the charcoal
+	# mark where it was last seen. The charcoal memory map covers everything behind the survivor.
+	# Time still runs at 0.05 from the clang shot, so the rings hold their first moments.
+	_equip_now("arming_sword")
+	_place(Vector3(-4.0, 0.0, 6.0), Vector3(1.0, 0.0, 0.0))
+	var yard_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
+	yard_goblin.global_position = Vector3(-7.5, 0.0, 5.0)
+	yard_goblin._visual_root.visible = false
+	await _frames(6)
+	AcousticRipple.spawn_mark(_main, Vector3(-6.4, 0.0, 7.6), 6.0)
+	AcousticRipple.spawn(_main, Vector3(-7.5, 0.0, 5.0), 8.0)
+	AcousticRipple.spawn(_main, Vector3(-7.0, 0.0, 5.6), 8.0)
+	await _frames(3)
+	await _shot("08_vision_cone_unseen_goblin.png")
+	Engine.time_scale = 1.0
+
+	# 09, 10: two weathers. Miasma fog in the yard (the sight range closes to 7 m, the fog is
+	# thick and green-grey); a cinder-squall at the ork choke point (embers ride the wind).
+	var weather: Weather = _find(func(n: Node) -> bool: return n is Weather)[0]
+	weather.cycling = false
+	weather.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_place(Vector3(-4.0, 0.0, 6.0), Vector3(1.0, 0.0, 0.3))
+	await _frames(12)
+	await _shot("09_miasma_fog.png")
+	weather.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	_place(Vector3(8.5, 0.0, 8.5), Vector3(1.0, 0.0, 0.2))
+	await _frames(12)
+	await _shot("10_cinder_squall.png")
+	weather.set_condition(Weather.Condition.ASHFALL, true)
 	Engine.time_scale = 1.0
 
 	quit(0)

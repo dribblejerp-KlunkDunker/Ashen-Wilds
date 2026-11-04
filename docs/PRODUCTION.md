@@ -157,6 +157,121 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Weather 1 — the Smothering's weathers: evidence (brief §24)
+
+**What.** The roadmap line "ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead
+Calm, each changing sight, hearing, fire and footing", built on Fable from that line (no fuller
+design exists). `Weather` holds one profile per condition and drifts through them on a cycle
+(70 to 130 s a spell, 8 s blends, a fixed seed). Each profile sets the fog (density, colour, mist),
+the ambient and moon scales, the ash (count, colour, speed, drift, size), hearing (a multiplier
+on every loudness, the survivor's and the enemies'), sight (metres, beyond which Perception sees
+nothing), torch burn, the shelter fire's light, and footing (a speed multiplier). The numbers:
+
+| | Fog | Sight | Hearing | Torch | Fire | Footing | Falls |
+|---|---|---|---|---|---|---|---|
+| Ashfall | 0.012 | 24 m | x1.0 | x1.0 | x1.0 | x1.0 | grey ash |
+| Miasma fog | 0.055, green-grey | 7 m | x0.7 | x1.0 | x0.9 | x1.0 | little |
+| Sleet | 0.02 | 14 m | x0.85 | x1.8 | x0.75 | x0.85 | fast pale streaks |
+| Cinder-squall | 0.03, warm | 9 m | x0.6 | x1.4 | x1.2 | x0.95 | orange embers, sideways |
+| Hoarfrost | 0.006, pale | 32 m | x1.25 | x1.2 | x1.0 | x0.8 | nothing; a bright moon |
+| Dead Calm | 0.004 | 40 m | x1.6 | x0.8 | x1.0 | x1.0 | nothing |
+
+Hearing cuts both ways by design: a goblin 9 m away hears a sprint in the Dead Calm (9 x 1.6)
+and not in the miasma (9 x 0.7), and the survivor's ripples reach the same way. A change is
+announced by a banner and named on the HUD; F5 forces the next.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 323 passed, 0 failures, twice (19 new:
+the start state; miasma's fog, sight and hearing on a goblin in the cone, on an enemy noise and
+on a goblin hearing a sprint, and the Dead Calm reversing all three; sleet's torch, fire, falling
+streaks and measured 85% walking speed; hoarfrost's footing, moon and hearing; a blend half way
+and complete; the cycle visiting all six). Kit suites, live boot and `tools/net_spike.py` clean.
+Two new README screenshots, looked at.
+
+**Not covered by headless tests.** Every number above is a first guess: whether 7 m of sight in
+the miasma is tense or merely blind, whether 70 to 130 s spells are too long or too short for a
+yard this size, whether the sleet's 85% and the hoarfrost's 80% read as footing or as lag, and
+how the fog colours sit on a real screen. The browser build was not re-run for this slice: it
+changes only values of the fog and ash the browser already renders.
+
+## Perception 1 — the vision cone and acoustic ripples: evidence (brief §24)
+
+**What.** The roadmap line "unseen threats shown as dust-ring ripples sized by noise; a 130°
+vision cone with a charcoal memory map outside it", built on Fable from that line (there was no
+fuller design). The reading taken: the cone is what the *survivor* sees, a 130° wedge around the
+aim, cut by walls; outside it the world is drawn as a charcoal sketch and live enemies are not
+drawn at all; what cannot be seen is heard. Nothing in the simulation changed: hits land as
+before, and enemies sense the survivor as before.
+- `Perception` (on the player): `in_cone`, `line_of_sight`, `can_see`; `update_visibility()` for
+  enemies, which also drops a charcoal last-seen mark where one slipped out of sight (4 s; not
+  for corpses); `report_noise(pos, loudness, source)` and `report_footsteps()`.
+- Every enemy now reports its noises with a loudness in metres, the radius at which the survivor
+  hears it, 0.55x through a wall: goblin steps 5 m creeping, 8 m moving, jab grunt 7, jab 9,
+  stone 6; ork steps 8 to 10, grunts 8, slash 10, chop 11, bash 9, clang 14; ogre steps 16,
+  grunt 12, sweep 14, roar 28, slam and crash 30, clang 20. A heard, unseen noise raises an
+  `AcousticRipple` at its source (radius 0.3 m + 0.07 m per metre of loudness, one per source per
+  0.22 s, tween-animated, drawn over everything) and the `heard` signal, which the bootstrap
+  turns into the old cue (1.6 s apart) and a rare banner (12 s). The goblin's own wall-cue is gone;
+  this replaces it for every enemy and every direction.
+- `VisionConeOverlay` and `shaders/vision_cone.gdshader`: a full-screen quad, first among the
+  transparent pass, that rebuilds each pixel's world position from the depth buffer and drains and
+  darkens everything outside the wedge, with a four-degree soft edge and a 1.4 m lit circle at the
+  survivor's feet. Forward+ stores depth reversed in 4.3; the Compatibility renderer does not; the
+  overlay sets `reverse_z` from whether a RenderingDevice exists.
+- A design bug caught on the way: the ogre used its *draw* flag as its own eyes (to spot the
+  survivor and to charge). With the cone that would have blinded it behind the survivor. It now
+  has `_can_see_player()`, a ray of its own, and the suite checks an unseen ogre still spots you.
+- F4 toggles the cone (the old draw rule, line of sight alone).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 304 passed, 0 failures (27 new: the cone
+angles; an enemy drawn, hidden by turning away, marked once, drawn again, hidden by a wall, drawn
+behind you with the cone off; no mark for a corpse; a seen noise raises no ripple, an unseen one
+raises one where it was, one per source per 0.22 s, louder is larger, out of range unheard, muffled
+through a wall, footsteps by stride, ripples clean up; a live ork behind you is unseen and heard; an
+unseen ogre still spots you). Kit suites, live boot and `tools/net_spike.py` clean. README
+screenshots re-rendered and looked at, plus the new one of an unseen goblin's rings.
+
+**Not covered by headless tests.** Whether 130° feels right with a mouse aim (the cone swings
+with the cursor; it may want smoothing or a wider angle), whether the charcoal is too dark on a
+real screen, and whether ripples read as "a thing is there" in motion.
+
+**Browser check (headless Chromium, SwiftShader, the exported Web build).** The Compatibility
+renderer compiled the shader and drew the cone and the rings. Two renderer differences were found
+and fixed by measurement: writing the whole frame back through the overlay ran it through
+Compatibility's per-material tonemapping again and darkened the entire browser build (the overlay
+now blends only where it darkens; inside the cone the frame is untouched on both renderers,
+measured identical with the cone on and off), and the charcoal came out black there because that
+renderer writes the output without encoding (an output gamma of 0.6, measured against 1.0, 0.75
+and 1/2.2, puts the charcoal at 43% of the lit level in the browser against 44% on Forward+).
+The mean luminance of the README shots is now 38 (was 59): the lit wedge is as bright as before
+and everything outside it is deliberately charcoal. If the owner finds the whole too dark, the
+levers are `darken` and `desaturate` in `shaders/vision_cone.gdshader` (0.6 and 0.85).
+
+## Enemy temperaments — second audit, on Fable (brief §24)
+
+The owner switched the session to Fable and asked for an audit before the next milestone. A fresh
+read of all three enemies, the stone and the player's hit handling, as a coder and as a designer.
+
+**Found and fixed.** The ogre's charge checked its lane with one chest-height ray, so it charged
+over knee-high crates and bone heaps (solid bodies on layer 1) and into the 1.35 m Watchhouse
+doorway, crashed, and reeled for 2 s: a free opening every six seconds, and silly. It now needs a
+lane as wide as its shoulders (1.6 m), clear from knee to chest, all the way to the survivor; a
+tree (layer 7, which no ray sees) still ends in a crash, as intended. Three new checks.
+
+**Read and judged sound (design).** Each enemy's damage, pace and senses are distinct and the
+README table matches the code. Points the owner should know, left as they are:
+- The goblin's real damage is the bleed: 1.8 health a second for 12 s (about 22) on every jab,
+  refreshed, not stacked. A goblin fight is a drain you stop by bandaging. The README now says so.
+- A goblin under a third of its health never jabs again: it kites and throws. Sprinting (6.3 m/s
+  against its 4.3) catches it. The coward reads; it is a choice.
+- The shield ork walks at 2.55 m/s and cannot catch a survivor walking away (4.2). It has always
+  been so: its threat is pressure, not pursuit.
+- A stone throw takes the attack turn, so a stone can delay an ork's combo by about a second.
+  Conservative; it keeps the one-attack-at-a-time rule simple.
+- The ogre's sweep and slam still ignore the turn (its committed close blows, as always).
+
+**Tests.** `tests/smoke_test.gd`: 277 passed, 0 failures, twice. Kit suites, live boot and
+`tools/net_spike.py` (65) clean.
+
 ## Enemy temperaments — audit (brief §24)
 
 The owner asked for a full audit that the temperament work is done. Two passes: a checklist

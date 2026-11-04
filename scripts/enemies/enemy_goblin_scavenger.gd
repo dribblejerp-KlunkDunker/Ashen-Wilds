@@ -1,7 +1,6 @@
 class_name EnemyGoblinScavenger
 extends CharacterBody3D
 
-signal goblin_alert_sound(world_pos: Vector3)
 signal goblin_combat_bark(message: String)
 
 ## THE OPPORTUNIST. Weak, quick and cowardly: alone it would rather not trade blows. It circles
@@ -84,7 +83,6 @@ var _memory_timer: float = 0.0
 var _flank_sign: float = 1.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
-var _unseen_cue_cooldown: float = 0.0
 ## True while it runs straight in for a jab instead of circling.
 var _committed: bool = false
 var _patience: float = 0.0
@@ -123,6 +121,7 @@ func _physics_process(delta: float) -> void:
 		_stand_down()
 	_evaluate_senses(delta)
 	_process_ai_state(delta)
+	_report_noises(delta)
 	_update_visual_telegraph()
 
 	if not is_on_floor():
@@ -131,28 +130,24 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.1
 	move_and_slide()
 
-func _update_player_los_visibility(delta: float) -> void:
-	if player_ref == null:
+## Drawn only while the survivor can see it (their vision cone, cut by walls: Perception).
+func _update_player_los_visibility(_delta: float) -> void:
+	if player_ref == null or player_ref.perception == null:
 		return
-	if _unseen_cue_cooldown > 0.0:
-		_unseen_cue_cooldown = maxf(0.0, _unseen_cue_cooldown - delta)
+	player_ref.perception.update_visibility(self, _visual_root, 0.95, state != AIState.DEAD)
 
-	var space_state := get_world_3d().direct_space_state
-	var from_pos: Vector3 = player_ref.global_position + Vector3(0.0, 1.35, 0.0)
-	var to_pos: Vector3 = global_position + Vector3(0.0, 0.95, 0.0)
-	var query := PhysicsRayQueryParameters3D.create(from_pos, to_pos, 1)
-	var hit := space_state.intersect_ray(query)
+## What the survivor may hear of it: light footsteps (quieter creeping on patrol), a grunt as a
+## jab starts, the jab itself, the stone leaving its hand.
+func _report_noises(delta: float) -> void:
+	if player_ref == null or player_ref.perception == null:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	var creeping: bool = state in [AIState.PATROL, AIState.INVESTIGATE]
+	player_ref.perception.report_footsteps(self, delta, speed, 1.1, 5.0 if creeping else 8.0)
 
-	var is_occluded_by_wall: bool = not hit.is_empty()
-	_visual_root.visible = not is_occluded_by_wall
-
-	if is_occluded_by_wall and state != AIState.DEAD and velocity.length() > 0.5:
-		var dist: float = global_position.distance_to(player_ref.global_position)
-		if dist < 8.5 and _unseen_cue_cooldown <= 0.0:
-			_unseen_cue_cooldown = 2.4
-			if audio:
-				audio.play_unseen_threat_cue()
-			goblin_alert_sound.emit(global_position)
+func _noise(loudness: float) -> void:
+	if player_ref != null and player_ref.perception != null:
+		player_ref.perception.report_noise(global_position, loudness, self)
 
 func _evaluate_senses(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -409,6 +404,7 @@ func _try_begin_attack_windup() -> bool:
 	_state_timer = JAB_STARTUP
 	_committed = false
 	_reset_patience()
+	_noise(7.0)
 	return true
 
 func _reset_patience() -> void:
@@ -467,6 +463,7 @@ func _release_stone() -> void:
 		return
 	if audio:
 		audio.play_swing()
+	_noise(6.0)
 	var payload := CombatPayload.new(self, global_position, aim.normalized(),
 		STONE_DAMAGE * attack_power, STONE_POISE, false, false, 1.2)
 	var hand: Vector3 = global_position + Vector3(0.0, 1.05, 0.0) + aim.normalized() * 0.45
@@ -482,6 +479,7 @@ func _enter_attack_active() -> void:
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	_noise(9.0)
 	var damage: float = JAB_DAMAGE * attack_power
 	_backstab_swing = player_ref != null and _behind_player_dot() <= BACKSTAB_DOT
 	if _backstab_swing:

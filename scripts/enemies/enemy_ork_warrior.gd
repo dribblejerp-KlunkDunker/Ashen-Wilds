@@ -118,6 +118,7 @@ func _physics_process(delta: float) -> void:
 	_evaluate_senses(delta)
 	_watch_for_raised_guard(delta)
 	_process_ai_state(delta)
+	_report_noises(delta)
 	_update_visual_telegraph()
 
 	if not is_on_floor():
@@ -126,16 +127,24 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.1
 	move_and_slide()
 
+## Drawn only while the survivor can see it (their vision cone, cut by walls: Perception).
 func _update_player_los_visibility() -> void:
-	if player_ref == null:
+	if player_ref == null or player_ref.perception == null:
 		return
-	var space_state := get_world_3d().direct_space_state
-	var q := PhysicsRayQueryParameters3D.create(
-		player_ref.global_position + Vector3(0.0, 1.35, 0.0),
-		global_position + Vector3(0.0, 1.15, 0.0),
-		1
-	)
-	_visual_root.visible = space_state.intersect_ray(q).is_empty()
+	player_ref.perception.update_visibility(self, _visual_root, 1.15, state != AIState.DEAD)
+
+## What the survivor may hear of it: a soldier's tread (heavier at a jog), a grunt as each blow
+## starts, the blows themselves, the clang of a slash off stone.
+func _report_noises(delta: float) -> void:
+	if player_ref == null or player_ref.perception == null:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	var walking: bool = state in [AIState.PATROL, AIState.INVESTIGATE, AIState.SHIELD_ADVANCE]
+	player_ref.perception.report_footsteps(self, delta, speed, 1.3, 8.0 if walking else 10.0)
+
+func _noise(loudness: float) -> void:
+	if player_ref != null and player_ref.perception != null:
+		player_ref.perception.report_noise(global_position, loudness, self)
 
 func _evaluate_senses(delta: float) -> void:
 	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
@@ -374,6 +383,7 @@ func _try_begin_bash() -> bool:
 	state = AIState.BASH_STARTUP
 	_state_timer = BASH_STARTUP_TIME
 	_turtle_timer = 0.0
+	_noise(8.0)
 	return true
 
 func _enter_bash_active() -> void:
@@ -382,6 +392,7 @@ func _enter_bash_active() -> void:
 	_state_timer = BASH_ACTIVE_TIME
 	if audio:
 		audio.play_shield_block()
+	_noise(9.0)
 	var payload := CombatPayload.new(self, global_position, _facing_dir,
 		BASH_DAMAGE * attack_power, BASH_POISE, false, false, 4.5)
 	payload.breaks_guard = true
@@ -392,6 +403,7 @@ func _try_begin_combo() -> bool:
 		return false
 	state = AIState.COMBO_1_STARTUP
 	_state_timer = 0.48
+	_noise(8.0)
 	return true
 
 func _enter_combo_1_active() -> void:
@@ -404,6 +416,7 @@ func _enter_combo_1_active() -> void:
 	_state_timer = 0.16
 	if audio:
 		audio.play_swing()
+	_noise(10.0)
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -422,6 +435,7 @@ func _enter_combo_2_active() -> void:
 	_state_timer = 0.18
 	if audio:
 		audio.play_swing()
+	_noise(11.0)
 	var payload := CombatPayload.new(
 		self,
 		global_position,
@@ -448,6 +462,7 @@ func _enter_wall_recoil(hit: Dictionary) -> void:
 
 	if audio:
 		audio.play_wall_clang()
+	_noise(14.0)
 	ork_combat_bark.emit("Ork Cleaver Clangs Off the Wall — Punish Opening!")
 	WallDeflection.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir), normal)
 
