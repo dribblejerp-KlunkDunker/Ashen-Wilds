@@ -460,25 +460,25 @@ func _spawn_scavenge_containers() -> void:
 	# Your own stash by the shelter fire: already known, opens instantly.
 	var stash := _spawn_container(
 		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.40, 0.29, 0.19), 0.0,
-		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1)]
+		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("padded_coif", 1, 48.0)]
 	)
 	stash.searched = true
 
 	_spawn_container(
 		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.38, 0.29, 0.19), 2.0,
-		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1)]
+		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1), ItemDatabase.make("leather_greaves", 1, 60.0)]
 	)
 	_spawn_container(
 		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.36, 0.27, 0.18), 3.0,
-		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
+		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("quilted_gambeson", 1, 95.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
 	)
 	_spawn_container(
 		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.34, 0.28, 0.22), 2.5,
-		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
+		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("rusted_hauberk", 1, 110.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
 	)
 	_spawn_container(
 		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.46, 0.42, 0.35), 3.5,
-		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2)]
+		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("kettle_hat", 1, 70.0), ItemDatabase.make("iron_scrap", 2)]
 	)
 
 ## Search containers wear the owner's crate and barrel kit (assets/environment/env007), fitted

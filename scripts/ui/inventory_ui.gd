@@ -154,6 +154,8 @@ func _rebuild_inventory() -> void:
 			prefix = "[MAIN] "
 		elif inst == inv.off_hand:
 			prefix = "[OFF] " if _player._offhand_active() else "[OFF·stowed] "
+		elif inv.is_equipped(inst) and inst.data.is_armour():
+			prefix = "[%s] " % ItemData.ArmourSlot.keys()[inst.data.armour_slot]
 		var name_lbl := _make_label(prefix + inst.get_label(), 13, TEXT_WARN if inst.is_broken() else TEXT_MAIN)
 		name_lbl.custom_minimum_size = Vector2(250, 0)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL

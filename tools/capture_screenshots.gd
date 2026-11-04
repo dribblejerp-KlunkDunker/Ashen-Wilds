@@ -103,7 +103,8 @@ func _run() -> void:
 	await _frames(4)
 	await _shot("03_searching_chest.png")
 
-	# 4. Pack + loot windows after the search completes.
+	# 4. Pack + loot windows after the search completes (the coif from the stash is worn).
+	_equip_now("padded_coif")
 	_player._channel_elapsed = chest.search_duration
 	await _frames(6)
 	if not _hud.inventory_ui.is_loot_open():
