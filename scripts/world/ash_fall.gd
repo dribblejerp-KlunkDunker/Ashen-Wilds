@@ -28,6 +28,16 @@ func _init() -> void:
 	custom_aabb = AABB(Vector3(-20.0, -2.0, -20.0), Vector3(40.0, 14.0, 40.0))
 
 
+## The weather's hand on the flakes: how many (alpha), what colour, how fast, how sideways, how big.
+func apply(alpha: float, color: Color, fall_speed: float, drift: float, flake_size: float) -> void:
+	var mat := material_override as ShaderMaterial
+	mat.set_shader_parameter("flake_color", Color(color.r, color.g, color.b, alpha))
+	mat.set_shader_parameter("fall_speed", fall_speed)
+	mat.set_shader_parameter("drift", drift)
+	mat.set_shader_parameter("flake_size", flake_size)
+	visible = alpha > 0.001
+
+
 func _process(_delta: float) -> void:
 	if follow and follow.is_inside_tree():
 		global_position = Vector3(follow.global_position.x, 0.0, follow.global_position.z)

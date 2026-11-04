@@ -157,6 +157,42 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Weather 1 — the Smothering's weathers: evidence (brief §24)
+
+**What.** The roadmap line "ashfall, miasma fog, sleet, cinder-squalls, hoarfrost and the Dead
+Calm, each changing sight, hearing, fire and footing", built on Fable from that line (no fuller
+design exists). `Weather` holds one profile per condition and drifts through them on a cycle
+(70 to 130 s a spell, 8 s blends, a fixed seed). Each profile sets the fog (density, colour, mist),
+the ambient and moon scales, the ash (count, colour, speed, drift, size), hearing (a multiplier
+on every loudness, the survivor's and the enemies'), sight (metres, beyond which Perception sees
+nothing), torch burn, the shelter fire's light, and footing (a speed multiplier). The numbers:
+
+| | Fog | Sight | Hearing | Torch | Fire | Footing | Falls |
+|---|---|---|---|---|---|---|---|
+| Ashfall | 0.012 | 24 m | x1.0 | x1.0 | x1.0 | x1.0 | grey ash |
+| Miasma fog | 0.055, green-grey | 7 m | x0.7 | x1.0 | x0.9 | x1.0 | little |
+| Sleet | 0.02 | 14 m | x0.85 | x1.8 | x0.75 | x0.85 | fast pale streaks |
+| Cinder-squall | 0.03, warm | 9 m | x0.6 | x1.4 | x1.2 | x0.95 | orange embers, sideways |
+| Hoarfrost | 0.006, pale | 32 m | x1.25 | x1.2 | x1.0 | x0.8 | nothing; a bright moon |
+| Dead Calm | 0.004 | 40 m | x1.6 | x0.8 | x1.0 | x1.0 | nothing |
+
+Hearing cuts both ways by design: a goblin 9 m away hears a sprint in the Dead Calm (9 x 1.6)
+and not in the miasma (9 x 0.7), and the survivor's ripples reach the same way. A change is
+announced by a banner and named on the HUD; F5 forces the next.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 323 passed, 0 failures, twice (19 new:
+the start state; miasma's fog, sight and hearing on a goblin in the cone, on an enemy noise and
+on a goblin hearing a sprint, and the Dead Calm reversing all three; sleet's torch, fire, falling
+streaks and measured 85% walking speed; hoarfrost's footing, moon and hearing; a blend half way
+and complete; the cycle visiting all six). Kit suites, live boot and `tools/net_spike.py` clean.
+Two new README screenshots, looked at.
+
+**Not covered by headless tests.** Every number above is a first guess: whether 7 m of sight in
+the miasma is tense or merely blind, whether 70 to 130 s spells are too long or too short for a
+yard this size, whether the sleet's 85% and the hoarfrost's 80% read as footing or as lag, and
+how the fog colours sit on a real screen. The browser build was not re-run for this slice: it
+changes only values of the fog and ash the browser already renders.
+
 ## Perception 1 — the vision cone and acoustic ripples: evidence (brief §24)
 
 **What.** The roadmap line "unseen threats shown as dust-ring ripples sized by noise; a 130°

@@ -6,6 +6,7 @@ var _camera_rig: IsoCameraRig
 var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
+var _weather: Weather
 var _unseen_cue_at: float = 0.0
 var _unseen_banner_at: float = 0.0
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
@@ -50,6 +51,11 @@ func _ready() -> void:
 	add_child(_hud)
 	_hud.bind_player(_player)
 	_player.perception.heard.connect(_on_unseen_noise_heard)
+	_weather = Weather.new()
+	add_child(_weather)
+	_weather.bind(world_env.environment, find_child("Moon", false, false) as DirectionalLight3D, ash,
+		find_child("ShelterFireLight", true, false) as FlickerLight, _player)
+	_weather.changed.connect(_on_weather_changed)
 	_hud.show_banner("MILESTONE 4 — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -69,6 +75,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F4:
 				_player.perception.enabled = not _player.perception.enabled
 				_hud.show_banner("Vision cone %s" % ("on" if _player.perception.enabled else "off (dev)"), Color(0.75, 0.75, 0.75))
+			KEY_F5:
+				_weather.advance()
 			KEY_BRACKETLEFT:
 				_camera_rig.adjust_brightness(-0.1)
 				_hud.show_banner("Brightness Decreased", Color(0.7, 0.7, 0.7))
@@ -414,6 +422,11 @@ func _spawn_all_archetype_encounters() -> void:
 
 ## The survivor heard something they cannot see (Perception): a soft cue, and now and then a
 ## reminder that the rings on the ground are where the sound came from.
+func _on_weather_changed(condition: Weather.Condition, banner: String) -> void:
+	if _hud:
+		_hud.set_weather(_weather.condition_name(condition))
+		_hud.show_banner(banner, Color(0.64, 0.70, 0.78))
+
 func _on_unseen_noise_heard(_pos: Vector3, loudness: float) -> void:
 	var now: float = Time.get_ticks_msec() / 1000.0
 	if now >= _unseen_cue_at and _audio:

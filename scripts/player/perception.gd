@@ -26,6 +26,10 @@ const RIPPLE_GAP: float = 0.22
 const MARK_SECONDS: float = 4.0
 
 var enabled: bool = true
+## Set by Weather: every loudness is multiplied by `hearing`, and nothing further than
+## `sight_range` metres is seen, cone or not.
+var hearing: float = 1.0
+var sight_range: float = 1.0e9
 
 var _player: Node3D
 ## The world node ripples and marks are added to.
@@ -68,8 +72,10 @@ func line_of_sight(point: Vector3, height: float = 1.0) -> bool:
 	return space.intersect_ray(q).is_empty()
 
 
-## Inside the cone and not behind a wall.
+## Inside the cone, within the weather's sight range, and not behind a wall.
 func can_see(point: Vector3, height: float = 1.0) -> bool:
+	if _player.global_position.distance_to(point) > sight_range:
+		return false
 	return in_cone(point) and line_of_sight(point, height)
 
 
@@ -98,7 +104,7 @@ func forget(enemy: Node3D) -> void:
 ## radius (less through a wall). Unseen sources raise a ripple and the `heard` signal.
 func report_noise(world_pos: Vector3, loudness: float, source: Node3D = null) -> bool:
 	var dist: float = _player.global_position.distance_to(world_pos)
-	var reach: float = loudness
+	var reach: float = loudness * hearing
 	if not line_of_sight(world_pos, 1.0):
 		reach *= WALL_MUFFLE
 	if dist > reach:

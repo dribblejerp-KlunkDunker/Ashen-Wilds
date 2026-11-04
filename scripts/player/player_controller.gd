@@ -128,6 +128,11 @@ var _hurtbox: HurtboxComponent
 var _torch_light: OmniLight3D
 ## What the survivor can see and hear: the vision cone and acoustic ripples (presentation only).
 var perception: Perception
+## Set by Weather: how far the survivor's own noise carries, how fast the torch burns, and how
+## sure their footing is (a speed multiplier). 1.0 is the ordinary ashfall night.
+var weather_hearing: float = 1.0
+var weather_torch_burn: float = 1.0
+var weather_footing: float = 1.0
 
 func _ready() -> void:
 	_fists = _make_fists()
@@ -317,7 +322,7 @@ func get_aim_direction() -> Vector3:
 	return _aim_direction
 
 func get_noise_multiplier() -> float:
-	return 1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0
+	return (1.35 if inventory and inventory.get_load() != Inventory.Load.NORMAL else 1.0) * weather_hearing
 
 func is_scavenging() -> bool:
 	return current_state == ActionState.CHANNEL and _channel_kind == ChannelKind.SCAVENGE
@@ -595,7 +600,7 @@ func _update_torch(delta: float) -> void:
 	if not lit:
 		return
 	var torch: ItemInstance = inventory.off_hand
-	if torch.wear(delta):
+	if torch.wear(delta * weather_torch_burn):
 		_torch_light.visible = false
 		_torch_flame.visible = false
 		combat_banner_message.emit("Your torch gutters out", Color(0.78, 0.58, 0.36))
@@ -815,7 +820,7 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 
 func _apply_locomotion(move_dir: Vector3, delta: float) -> void:
 	var exh_mult: float = exhausted_speed_multiplier if is_exhausted else 1.0
-	var load_mult: float = _encumbrance_speed_mult()
+	var load_mult: float = _encumbrance_speed_mult() * weather_footing
 	if current_state == ActionState.BLOCK:
 		velocity.x = move_dir.x * block_move_speed * exh_mult * load_mult + _knockback_velocity.x
 		velocity.z = move_dir.z * block_move_speed * exh_mult * load_mult + _knockback_velocity.z

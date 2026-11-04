@@ -110,6 +110,7 @@ func _run() -> void:
 	await _test_enemy_models()
 	await _test_enemy_temperaments()
 	await _test_perception()
+	await _test_weather()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1911,6 +1912,99 @@ func _test_perception() -> void:
 		"an unseen ogre behind you still spots you with its own eyes (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
 	ogre.queue_free()
 	await _seconds(1.2)
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Weather: six conditions that change sight, hearing, fire, footing and the look of the night.
+# ------------------------------------------------------------------------------
+func _test_weather() -> void:
+	_section("Weather: the Smothering's six conditions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var ws: Array = _children_of(func(n: Node) -> bool: return n is Weather)
+	_check(ws.size() == 1, "the yard has one Weather")
+	var w: Weather = ws[0]
+	w.cycling = false
+	var env: Environment = (_children_of(func(n: Node) -> bool: return n is WorldEnvironment)[0] as WorldEnvironment).environment
+	var ash: AshFall = _children_of(func(n: Node) -> bool: return n is AshFall)[0]
+	var fire: FlickerLight = _main.find_child("ShelterFireLight", true, false) as FlickerLight
+	var per: Perception = _player.perception
+	_check(w.current == Weather.Condition.ASHFALL and is_equal_approx(env.fog_density, 0.012) and is_equal_approx(per.hearing, 1.0),
+		"it starts in ashfall: the ordinary night, fog 0.012, hearing x1")
+	var base_fire: float = fire.base_energy
+	var changes: Array[String] = []
+	var on_change := func(_c: Weather.Condition, banner: String) -> void: changes.append(banner)
+	w.changed.connect(on_change)
+
+	# Miasma: thick fog, short sight, deadened hearing. Dead Calm: the opposite.
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(is_equal_approx(env.fog_density, 0.055) and is_equal_approx(per.sight_range, 7.0) and is_equal_approx(per.hearing, 0.7),
+		"miasma: fog 0.055, sight 7 m, hearing x0.7")
+	_check(changes.size() == 1 and changes[0].begins_with("The miasma"), "a change announces itself")
+	_check(_hud._weather_label.text.ends_with("Miasma fog"), "the HUD names the weather (%s)" % _hud._weather_label.text)
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(9.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT  # looking away: it cannot see the survivor, only hear them
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "miasma: a goblin 9 m ahead, in the cone, is lost in the fog")
+	_check(not per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "miasma: an 8 m noise 9 m away is not heard (reach 5.6 m)")
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE, "miasma: a goblin 9 m away does not hear you sprint (9 x 0.7 = 6.3 m)")
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "dead calm: the same goblin is seen")
+	_check(per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "dead calm: the same noise is heard (reach 12.8 m)")
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "dead calm: the goblin hears you sprint from 9 m (9 x 1.6 = 14.4 m)")
+	_check(not ash.visible, "dead calm: nothing falls")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Sleet: the torch burns faster, the fire dims, footing goes. Hoarfrost: ice, bright moon.
+	w.set_condition(Weather.Condition.SLEET, true)
+	_check(is_equal_approx(_player.weather_torch_burn, 1.8) and absf(fire.base_energy - base_fire * 0.75) < 0.001,
+		"sleet: the torch burns x1.8 and the shelter fire dims to x0.75")
+	_check(ash.visible and (ash.material_override as ShaderMaterial).get_shader_parameter("fall_speed") > 2.0, "sleet: fast pale streaks fall")
+	Input.action_press("move_right")
+	await _ticks(20)
+	var sleet_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	await _ticks(20)
+	var dry_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	Input.action_release("move_right")
+	await _ticks(2)
+	_check(absf(dry_speed - _player.move_speed) < 0.2 and absf(sleet_speed - _player.move_speed * 0.85) < 0.2,
+		"sleet: walking drops to 85%% (%.2f m/s vs %.2f dry)" % [sleet_speed, dry_speed])
+	w.set_condition(Weather.Condition.HOARFROST, true)
+	var moon: DirectionalLight3D = _main.find_child("Moon", false, false) as DirectionalLight3D
+	_check(is_equal_approx(_player.weather_footing, 0.8) and moon.light_energy > 3.5 and is_equal_approx(per.hearing, 1.25),
+		"hoarfrost: footing x0.8, a hard bright moon, hearing x1.25")
+
+	# Blends: a change drifts in over 8 s instead of snapping.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	w.set_condition(Weather.Condition.MIASMA_FOG)
+	await _seconds(4.0)
+	var mid: float = env.fog_density
+	_check(mid > 0.015 and mid < 0.045, "half way through a change the fog is between the two (%.3f)" % mid)
+	await _seconds(5.0)
+	_check(is_equal_approx(env.fog_density, 0.055), "after 8 s the change is complete")
+
+	# The cycle visits all six and comes round.
+	var seen_conditions: Array[Weather.Condition] = []
+	for i in range(Weather.CYCLE.size()):
+		w.advance()
+		seen_conditions.append(w.current)
+	_check(seen_conditions.size() == 6 and seen_conditions.back() == Weather.Condition.MIASMA_FOG
+		and Weather.Condition.CINDER_SQUALL in seen_conditions and Weather.Condition.DEAD_CALM in seen_conditions,
+		"advancing six times visits every condition and comes round")
+	w.changed.disconnect(on_change)
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
