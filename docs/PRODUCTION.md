@@ -157,6 +157,35 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Look and feel 3 — lighting and atmosphere: evidence (brief §24)
+
+**What changed.** The third and last look-and-feel slice, built only from features the browser's
+Compatibility renderer also draws (SSAO is the one exception; it is desktop-only and simply off
+there):
+- **Night grade.** The sun is now a cold `Moon` (blue-grey, dimmer, softer shadows), the ambient
+  light is blue-grey, and an adjustment drains saturation to 0.8 and lifts contrast a little, so
+  the fire and the torch read as warm pools in a cold yard.
+- **Mist.** Distance fog plus a low ground mist (`fog_height`), in a pale blue-grey. A first pass
+  used a near-black fog colour, which turned the misted ground almost black in the screenshots; it
+  was caught there and fixed.
+- **Glow** on emissive surfaces (the embers, flames), and **SSAO** contact shadows on desktop.
+- **Falling ash** (`AshFall`, `shaders/ash_fall.gdshader`): 420 flakes in one MultiMesh, placed and
+  animated in the shader, fixed in world space and wrapping in a box that follows the survivor.
+  Not particles, so it renders in software screenshots and in the browser. A first pass at 700
+  larger, brighter flakes read as a starfield; it was dimmed, shrunk and thinned.
+- **Vignette** (`Vignette`, CanvasLayer 0, under the HUD, ignores the mouse).
+- **Fire flicker** (`FlickerLight`): the shelter fire's energy and range breathe on layered sines
+  (deterministic), and the ember bed's glow follows it.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 200 passed, 0 failures (6 new: the night
+grade, a cold moon, the ash count and that it follows the survivor, the vignette under the HUD, the
+fire's flicker within its base energy). README screenshots re-rendered and looked at (twice; see
+the two fixes above); the web export renders the grade, mist, glow, ash and vignette in headless
+Chromium.
+
+**Not covered by headless tests.** How dark this is on the owner's screen (the in-game brightness
+keys still work), whether the ash reads as ash while moving, and the browser's frame rate.
+
 ## Look and feel 2b — the owner's kit dresses the yard: evidence (brief §24)
 
 **What.** The owner's environment kit (PR #14, made in a separate session) now dresses the

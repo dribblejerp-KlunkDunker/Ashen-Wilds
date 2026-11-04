@@ -7,6 +7,8 @@ var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
+## The shelter fire's ember bed; its glow breathes with the fire's light (FlickerLight).
+var _ember_material: StandardMaterial3D = StandardMaterial3D.new()
 
 func _ready() -> void:
 	_ensure_input_bindings()
@@ -32,11 +34,15 @@ func _ready() -> void:
 	add_child(_player)
 	_camera_rig.target = _player
 	_camera_rig.global_position = _shelter_spawn
+	var ash := AshFall.new()
+	ash.follow = _player
+	add_child(ash)
 
 	_spawn_all_archetype_encounters()
 
 	_spawn_scavenge_containers()
 
+	add_child(Vignette.new())
 	_hud = TacticalHUD.new()
 	add_child(_hud)
 	_hud.bind_player(_player)
@@ -104,29 +110,57 @@ func _bind_mouse(action: String, btn: MouseButton) -> void:
 	ev.button_index = btn
 	InputMap.action_add_event(action, ev)
 
+## Night in the Blackfen (look and feel 3): cold moonlight and a desaturated, contrasty grade, so
+## fire and torchlight read as warm pools; low mist along the ground; glow on flames and embers.
+## Everything here works in the browser's Compatibility renderer too, except SSAO (desktop only,
+## and simply off there). The camera rig's brightness setting moves tonemap_exposure on top.
 func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.05, 0.05, 0.06)
+	env.background_color = Color(0.035, 0.04, 0.05)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.16, 0.17, 0.19)
-	env.ambient_light_energy = 0.65
+	env.ambient_light_color = Color(0.16, 0.18, 0.22)
+	env.ambient_light_energy = 0.8
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = 1.05
+	env.tonemap_white = 6.0
+	# Distance fog plus a low mist that pools in the first metre above the ground.
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.12, 0.12, 0.13)
+	env.fog_light_color = Color(0.17, 0.19, 0.22)
 	env.fog_density = 0.012
+	env.fog_aerial_perspective = 0.25
+	env.fog_height = 0.6
+	env.fog_height_density = 0.08
+	# Flames, embers and the torch bloom a little; nothing else is bright enough to.
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.02
+	env.glow_hdr_threshold = 1.0
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	# The grade: drained colour, a touch more contrast.
+	env.adjustment_enabled = true
+	env.adjustment_brightness = 1.0
+	env.adjustment_contrast = 1.08
+	env.adjustment_saturation = 0.8
+	# Contact shadows where props meet the ground (desktop renderer only).
+	env.ssao_enabled = true
+	env.ssao_radius = 1.2
+	env.ssao_intensity = 1.6
 
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
 
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52.0, -35.0, 0.0)
-	sun.light_color = Color(0.58, 0.62, 0.68)
-	sun.light_energy = 0.65
-	sun.shadow_enabled = true
-	add_child(sun)
+	# The moon: cold, dim, low enough for long shadows.
+	var moon := DirectionalLight3D.new()
+	moon.name = "Moon"
+	moon.rotation_degrees = Vector3(-48.0, -35.0, 0.0)
+	moon.light_color = Color(0.50, 0.58, 0.76)
+	moon.light_energy = 0.8
+	moon.shadow_enabled = true
+	moon.shadow_blur = 1.5
+	add_child(moon)
 	return world_env
 
 func _build_blackfen_test_yard() -> void:
@@ -152,7 +186,9 @@ func _build_blackfen_test_yard() -> void:
 		"dark_stone"
 	)
 	_build_fire_bed(Vector3(-6.5, 0.4, 4.8))
-	var fire_light := OmniLight3D.new()
+	var fire_light := FlickerLight.new()
+	fire_light.name = "ShelterFireLight"
+	fire_light.ember_material = _ember_material
 	fire_light.position = Vector3(-6.5, 1.1, 4.8)
 	fire_light.light_color = Color(0.96, 0.54, 0.22)
 	fire_light.light_energy = 2.4
@@ -213,7 +249,7 @@ func _build_fire_bed(top: Vector3) -> void:
 	disc.bottom_radius = 0.38
 	disc.height = 0.05
 	embers.mesh = disc
-	var glow := StandardMaterial3D.new()
+	var glow := _ember_material
 	glow.albedo_color = Color(0.25, 0.08, 0.02)
 	glow.emission_enabled = true
 	glow.emission = Color(0.95, 0.28, 0.05)
