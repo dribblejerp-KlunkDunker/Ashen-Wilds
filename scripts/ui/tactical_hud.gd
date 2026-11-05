@@ -10,6 +10,11 @@ var _status_label: Label
 var _main_label: Label
 var _off_label: Label
 var _armour_label: Label
+var _ally_row: HBoxContainer
+var _ally_fill: ColorRect
+var _ally_label: Label
+## The survivor's companion, if any; the HUD reads it each frame.
+var companion: Companion
 var _weight_label: Label
 var _weather_label: Label
 var _background_label: Label
@@ -64,6 +69,11 @@ func _ready() -> void:
 	_armour_label = _make_label("WORN  none", 12, Color(0.70, 0.68, 0.62))
 	vbox.add_child(_armour_label)
 
+	_ally_fill = _create_bar_row(vbox, "ALLY", Color(0.46, 0.58, 0.70))
+	_ally_row = _ally_fill.get_parent().get_parent() as HBoxContainer
+	_ally_label = _make_label("", 12, Color(0.70, 0.68, 0.62))
+	_ally_row.add_child(_ally_label)
+	_ally_row.visible = false
 	_status_label = _make_label("STATE: IDLE", 13, Color(0.72, 0.68, 0.62))
 	vbox.add_child(_status_label)
 
@@ -132,6 +142,7 @@ func bind_player(p: PlayerController) -> void:
 	p.ui_force_close.connect(inventory_ui.close_all)
 
 func _process(delta: float) -> void:
+	_update_ally()
 	if _banner_timer > 0.0:
 		_banner_timer = maxf(0.0, _banner_timer - delta)
 		if _banner_timer == 0.0:
@@ -214,6 +225,23 @@ func update_stats(data: Dictionary) -> void:
 	if _channel_panel.visible:
 		_channel_label.text = ch_label
 		_channel_fill.size.x = 376.0 * float(data["channel_progress"])
+
+func _update_ally() -> void:
+	var have: bool = companion != null and is_instance_valid(companion) and companion.is_inside_tree()
+	_ally_row.visible = have
+	if not have:
+		return
+	_ally_fill.size.x = BAR_W * clampf(companion.health / Companion.MAX_HEALTH, 0.0, 1.0)
+	var note: String
+	if companion.is_dead():
+		note = "dead"
+	elif companion.is_downed():
+		note = "DOWNED, %.0f s: lift with [E] and a rag" % companion.downed_left
+	elif companion.mode == Companion.Mode.HOLD:
+		note = "holding"
+	else:
+		note = "following"
+	_ally_label.text = "  %s  %s" % [companion.companion_name, note]
 
 func set_background(title: String) -> void:
 	_background_label.text = title.to_upper()

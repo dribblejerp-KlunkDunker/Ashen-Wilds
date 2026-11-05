@@ -570,6 +570,8 @@ func _complete_channel() -> void:
 
 	match kind:
 		ChannelKind.SCAVENGE:
+			if is_instance_valid(lootable) and lootable.on_search_complete(self):
+				return
 			if is_instance_valid(lootable):
 				lootable.searched = true
 				if lootable.items.is_empty():

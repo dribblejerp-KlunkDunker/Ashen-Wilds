@@ -48,6 +48,14 @@ static func roll_ork_loot() -> Array[ItemInstance]:
 		out.append(make("splinted_greaves", 1, 70.0))
 	return out
 
+static func roll_troll_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	out.append(make("iron_scrap", 4))
+	out.append(make("salt", 2))
+	out.append(make("lamp_oil", 1))
+	out.append(make("clean_rag_bandage", 1))
+	return out
+
 static func roll_ogre_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("salt", 3))
