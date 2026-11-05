@@ -171,12 +171,12 @@ file beside every script and shader (committed; Godot 4.4+ needs them in version
 adds its new default keys to the art's `.import` files (additions only; no existing setting
 changed). One constant changed: `VisionConeOverlay.COMPATIBILITY_OUTPUT_GAMMA`, 0.6 to 0.9 (below).
 
-**Measured on 4.7.2** (2026-11-04, this branch, merged with `main` at `4aabe1b`):
+**Measured on 4.7.2** (2026-11-05, this branch, merged with `main` at `3355df0`):
 
 | Check | Result |
 |---|---|
 | Import and compile-check every script | clean, no errors or warnings |
-| `tests/smoke_test.gd` | 342 passed, 0 failures, twice |
+| `tests/smoke_test.gd` | 367 passed, 0 failures, twice |
 | Environment kit collision suites ENV-006 to ENV-009 | 1082 / 837 / 78 / 78 checks, 0 failures |
 | Live boot, 1200 frames | nothing after the usual filter |
 | `tools/net_spike.py` | 65 passed, 0 failed |
@@ -214,6 +214,40 @@ Pages build of the same `main`, by the same script in headless Chromium (SwiftSh
 **Not covered.** Feel, input timing, light levels on a real GPU, real audio, and the web build's
 load time on a real browser and GPU (the SwiftShader slowdown above may be SwiftShader alone).
 The second developer needs 4.7.2 too: a project opened in 4.7 is converted and cannot go back.
+
+## Armour 1 — three slots, six pieces: evidence (brief §24)
+
+**What.** The roadmap's "armor slots". Three slots (head, body, legs) and six grounded pieces, all
+data in `ItemDatabase`:
+
+| | Slot | kg | Soak | Poise | Bleed guard | Noise | Don | Where |
+|---|---|---|---|---|---|---|---|---|
+| Padded Coif | head | 0.6 | 2 | 3 | – | – | 1.0 s | shelter stash |
+| Kettle Hat | head | 1.4 | 4 | 5 | – | x1.05 | 1.5 s | ogre's bone heap |
+| Quilted Gambeson | body | 3.2 | 5 | 6 | 50% | – | 2.5 s | Watchhouse chest; the carter wears one |
+| Rusted Mail Hauberk | body | 8.5 | 10 | 10 | 80% | x1.25 | 4.0 s | ork plunder pile |
+| Leather Greaves | legs | 1.2 | 2 | 2 | – | – | 1.5 s | grain crate |
+| Splinted Greaves | legs | 3.0 | 5 | 4 | – | x1.1 | 2.0 s | 30% of ork corpses |
+
+The rules, chosen to stay readable: every blow loses the worn soak (heavy blows count it at 60%)
+and always does at least 30%; every worn piece wears 1 per blow taken (2 for heavy), a ruined
+piece soaks half and gives no poise; cloth and mail turn bleeding cuts by their combined chance;
+poise adds to the survivor's, and a heavy blow staggers outright only when the bonus is under
+half the blow's poise, so the full set (19) takes an ork's chop (38) once, and nothing takes an
+ogre's slam (85); mail clinks (own noise); weight goes through the pack, so the hauberk alone is
+nearly half the deserter's capacity. Donning takes the piece's own time through the pack window.
+No armour is drawn on the body yet (the Quaternius outfit is one mesh); the HUD's WORN line and
+the pack window's [BODY] tags say what is on.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 367 passed, 0 failures, twice (25 new:
+the six pieces; slots and replacement; weight; soak on a light, a heavy and a small blow; the
+floor; wear; coif and hauberk staggering under a chop and the full set not; bleed guard whole and
+ruined; the HUD line; donning and doffing times; the stash's coif; the carter's gambeson). Kit
+suites, live boot and `tools/net_spike.py` clean. The pack-window screenshot now shows a worn coif.
+
+**Not covered by headless tests.** Whether 8.5 kg of mail is the right trade for soak 10 (it
+pushes a deserter to burdened with little else), whether four seconds to don it is tense or
+tedious, and the want of a visible helmet.
 
 ## Backgrounds 1 — who were you, before the Smothering: evidence (brief §24)
 

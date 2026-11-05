@@ -17,6 +17,8 @@ var epigraph: String
 var gear: Array = []
 var main_hand_id: String = ""
 var off_hand_id: String = ""
+## Armour in the kit that starts worn.
+var worn_ids: Array[String] = []
 var trait_name: String
 var trait_text: String
 var flaw_name: String
@@ -92,7 +94,7 @@ static func _build() -> Array[SurvivorBackground]:
 		"You held the Causeway tower until you didn't. The sword is the one you were issued.",
 		[["arming_sword", 1, 88.0], ["wooden_targe", 1, -1.0], ["pitch_torch", 1, 180.0], ["clean_rag_bandage", 2, -1.0]],
 		"arming_sword", "wooden_targe",
-		"Drilled", "Blocking costs a quarter less stamina.",
+		"Drilled", "Blocking costs a quarter less stamina. Your old coif is in the shelter stash.",
 		"Old wound", "90 health.")
 	b.block_cost_mult = 0.75
 	b.health = 90.0
@@ -171,10 +173,11 @@ static func _build() -> Array[SurvivorBackground]:
 
 	b = _make("causeway_carter", "Causeway Carter",
 		"Carts and oxen, and a cart-axe for the things that come out of the reeds. One ear went to a squall.",
-		[["woodsmans_broadaxe", 1, -1.0], ["wooden_targe", 1, -1.0], ["pitch_torch", 1, 180.0], ["clean_rag_bandage", 2, -1.0]],
+		[["woodsmans_broadaxe", 1, -1.0], ["wooden_targe", 1, -1.0], ["quilted_gambeson", 1, 90.0], ["pitch_torch", 1, 180.0], ["clean_rag_bandage", 2, -1.0]],
 		"woodsmans_broadaxe", "wooden_targe",
-		"Hardy", "120 health; wounds bleed a quarter less long.",
+		"Hardy", "120 health, a worn gambeson; wounds bleed a quarter less long.",
 		"One good ear", "You hear only 70% as far.")
+	b.worn_ids = ["quilted_gambeson"]
 	b.health = 120.0
 	b.bleed_seconds = 9.0
 	b.hearing_mult = 0.7
