@@ -20,6 +20,7 @@ game, the acts, and texts the game can show.
 | # | Decision | Date |
 |---|---|---|
 | **O1** | **Only humans are people. Everything else is an animal, a lizard, a fish or a monster.** Goblins, orks, ogres, trolls and every other creature have no language, names, culture, faith, bargains or society. They can be cunning, can use stolen tools and weapons and can hunt in packs, but they are beasts. Every companion, faction, quest-giver and playable background is human. | 2026-11-05 |
+| **O2** | **The names the Godot additions invented are kept**: the Kingdom of Orlen, Wexhaven, slag-iron, the five Highland Citadels (the Slagcrown, Greystair, Dunmarrow, Hob's Height, Kell Tor), the Slag-Lords, the Black Seam, Slag-Lord Cerrin Vane, the Breaking and S-dating, the Flight South, King Aldric IV, the Causeway Watch. | 2026-11-05 |
 
 The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
 
@@ -156,7 +157,7 @@ The archive was revised to fit O1 on the same day; see *Archive material revised
 |---|---|---|
 | Q1 | ~~The Gutter-kin background~~ **Settled by O1:** the Gutter-kin are human road waifs, children who sheltered under the Roofed Mile and lived by taking what wasn't watched; the Godot card stands. The archive's Gutter Kin were revised into the same kind of human household. | Settled |
 | Q2 | Mara Venn and Harl name conflicts (from `keeping-and-merewick.md`) | Unchanged; still the owner's to settle |
-| Q3 | The kingdom's name, Wexhaven, the Citadels' names, Aldric IV, Cerrin Vane | Proposed here; nothing in either build names them yet |
+| Q3 | ~~The kingdom's name, Wexhaven, the Citadels' names, Aldric IV, Cerrin Vane~~ | **Settled by O2:** kept |
 | Q4 | Whether the archive's "faction bible" and "Reedwake chapter" still exist | They are referenced but in neither repository |
 
 ## Archive material revised for O1 (2026-11-05)
