@@ -62,7 +62,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
@@ -189,8 +189,8 @@ func _run() -> void:
 	await _shot("10_cinder_squall.png")
 	weather.set_condition(Weather.Condition.ASHFALL, true)
 
-	# 11: the companion. Cut free off-screen, then posed two paces behind the survivor in the yard.
-	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint)[0]
+	# 11: the companion. Cut free off-screen (found by name: the graves are ActionPoints too), then posed two paces behind the survivor in the yard.
+	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")[0]
 	captive.on_search_complete(_player)
 	await _frames(2)
 	var companion: Companion = _find(func(n: Node) -> bool: return n is Companion)[0]
@@ -228,6 +228,27 @@ func _run() -> void:
 	SporeCloud.spawn(_main, Vector3(-19.4, 0.0, -0.6), EnemySporeHusk.BURST_RADIUS, 60.0)
 	await _frames(14)
 	await _shot("13_spore_hollow.png")
+	for n: Node in get_nodes_in_group("spore_cloud"):
+		n.queue_free()
+
+	# 14: the Drowned Graves. One Unnamed lies fallen (its ring pale: down, not done); the survivor
+	# kneels at its grave speaking the name while the other two come on.
+	var unnamed: Array = enemies.filter(func(e: Node) -> bool: return e is EnemyUnnamed)
+	var fallen: EnemyUnnamed = unnamed[0]
+	var fallen_grave: ActionPoint = fallen.grave
+	_place(fallen_grave.global_position + Vector3(-1.1, 0.0, -0.4), Vector3(1.0, 0.0, 0.35))
+	fallen._fall()
+	fallen._update_visual_telegraph()
+	fallen._visual_root.visible = true
+	for i: int in range(1, unnamed.size()):
+		var u: EnemyUnnamed = unnamed[i]
+		u._face_toward(_player.global_position, 50.0, 1.0)
+		u._visual_root.visible = true
+		u._model.play(&"Zombie_Walk_Fwd")
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 60.0, fallen_grave)
+	await _frames(14)
+	await _shot("14_drowned_graves.png")
+	_player._clear_channel()
 	Engine.time_scale = 1.0
 
 	quit(0)
