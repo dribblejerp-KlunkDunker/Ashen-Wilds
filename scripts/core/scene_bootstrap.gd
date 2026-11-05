@@ -7,6 +7,7 @@ var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
 var _weather: Weather
+var _companion: Companion
 var _unseen_cue_at: float = 0.0
 var _unseen_banner_at: float = 0.0
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
@@ -44,6 +45,7 @@ func _ready() -> void:
 	_spawn_all_archetype_encounters()
 
 	_spawn_scavenge_containers()
+	_spawn_bound_captive()
 
 	add_child(VisionConeOverlay.new(_player))
 	add_child(Vignette.new())
@@ -80,6 +82,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hud.show_banner("Vision cone %s" % ("on" if _player.perception.enabled else "off (dev)"), Color(0.75, 0.75, 0.75))
 			KEY_F5:
 				_weather.advance()
+			KEY_F:
+				if _companion != null and is_instance_valid(_companion) and not _companion.is_dead():
+					_companion.toggle_mode()
+					_hud.show_banner("%s %s" % [_companion.companion_name, "holds here" if _companion.mode == Companion.Mode.HOLD else "follows you"], Color(0.72, 0.76, 0.80))
 			KEY_BRACKETLEFT:
 				_camera_rig.adjust_brightness(-0.1)
 				_hud.show_banner("Brightness Decreased", Color(0.7, 0.7, 0.7))
@@ -501,6 +507,41 @@ func _container_material(label: String, col: Color) -> Material:
 		return flat
 	var tint := Color(0.85, 0.82, 0.78) if label.contains("Chest") else Color.WHITE
 	return surface_material("planks", tint)
+
+## A survivor the Ashbound left tied in the Watchhouse's south-east corner. Cutting them free
+## (an ActionPoint, 2 s) makes them the survivor's companion.
+func _spawn_bound_captive() -> void:
+	var captive := ActionPoint.make("Bound Captive", "Cut free", "Cutting free", 2.0, 1.8, _on_captive_freed)
+	captive.name = "BoundCaptive"
+	captive.position = Vector3(7.8, 0.0, 0.2)
+	add_child(captive)
+	# A hooded figure sitting against the wall, facing into the room.
+	var seat := Node3D.new()
+	seat.name = "Seated"
+	captive.add_child(seat)
+	var body := EnemyModel.new("companion")
+	seat.add_child(body)
+	seat.look_at_from_position(captive.position, captive.position + Vector3(-1.0, 0.0, -1.0), Vector3.UP)
+	body.play(&"Sitting_Idle")
+
+func _on_captive_freed(by: Node3D) -> void:
+	var captive: Node = find_child("BoundCaptive", false, false)
+	if captive == null or _companion != null:
+		return
+	var at: Vector3 = (captive as Node3D).global_position
+	captive.queue_free()
+	_companion = Companion.new()
+	_companion.player_ref = _player
+	_companion.audio = _audio
+	_companion.position = at
+	add_child(_companion)
+	_hud.companion = _companion
+	_companion.downed.connect(func(c: Companion) -> void:
+		_hud.show_banner("%s is down! Lift them with [E] and a clean rag" % c.companion_name, Color(0.92, 0.42, 0.22)))
+	_companion.died.connect(func(c: Companion) -> void:
+		_hud.show_banner("%s is dead." % c.companion_name, Color(0.9, 0.3, 0.25)))
+	if by is PlayerController:
+		_hud.show_banner("%s: \"I owe you. Lead on; I'll keep your back.\"  [F] follow / hold" % _companion.companion_name, Color(0.75, 0.82, 0.68))
 
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
 	var body := StaticBody3D.new()

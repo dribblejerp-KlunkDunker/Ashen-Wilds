@@ -113,6 +113,7 @@ func _run() -> void:
 	await _test_weather()
 	await _test_backgrounds()
 	await _test_armour()
+	await _test_companions()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -2251,6 +2252,134 @@ func _test_armour() -> void:
 		"the causeway carter starts wearing a gambeson")
 	_player.apply_background(SurvivorBackground.default_background())
 	_check(inv.worn_armour().is_empty(), "back to the deserter, bare again")
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Companions: a captive cut free follows, holds, fights, takes blows, goes down, is lifted or dies.
+# ------------------------------------------------------------------------------
+func _find_companion() -> Companion:
+	var found: Array = _children_of(func(n: Node) -> bool: return n is Companion)
+	return found[0] if not found.is_empty() else null
+
+func _test_companions() -> void:
+	_section("Companions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	_player.apply_background(SurvivorBackground.default_background())
+	await _ticks(2)
+	var captives: Array = _children_of(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")
+	_check(captives.size() == 1 and (captives[0] as Lootable).search_verb == "Cut free" and (captives[0] as Lootable).get_prompt().begins_with("[E] Cut free"),
+		"a bound captive waits in the Watchhouse, with a [E] Cut free prompt")
+	_check(_find_companion() == null and not _hud._ally_row.visible, "no companion yet, no ALLY line")
+
+	# Cut free through the survivor's own channel: the captive becomes a companion at their side.
+	var captive: ActionPoint = captives[0]
+	_player.global_position = captive.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 0.05, captive)
+	await _seconds(0.2)
+	var c: Companion = _find_companion()
+	_check(c != null and not is_instance_valid(captive) or (c != null and captive.is_queued_for_deletion()), "cutting the captive free makes a companion and removes the captive")
+	_check(c != null and c.mode == Companion.Mode.FOLLOW and c.companion_name == "Edda", "the companion follows by default")
+	await _ticks(2)
+	_check(_hud._ally_row.visible and _hud._ally_label.text.contains("following"), "the HUD shows an ALLY line (%s)" % _hud._ally_label.text)
+
+	# Follow: walk away and it closes to a few paces; rejoin when left far behind.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	c.global_position = OPEN + Vector3(-8.0, 0.0, 0.0)
+	await _seconds(3.0)
+	var d: float = c.global_position.distance_to(_player.global_position)
+	_check(d < 4.0 and d > 1.0, "following, it closes to a few paces (%.1f m)" % d)
+	c.global_position = OPEN + Vector3(-30.0, 0.0, 0.0)
+	c._away_timer = Companion.REJOIN_SECONDS - 0.05
+	await _ticks(6)
+	_check(c.global_position.distance_to(_player.global_position) < 3.0, "left far behind, it rejoins behind the survivor")
+
+	# Hold: it stays put while the survivor walks off.
+	c.global_position = OPEN + Vector3(-2.5, 0.0, 0.0)
+	c.toggle_mode()
+	var spot: Vector3 = c.hold_spot
+	_player.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	await _seconds(1.5)
+	_check(c.mode == Companion.Mode.HOLD and c.global_position.distance_to(spot) < 1.0, "told to hold, it stays (%.1f m from the spot)" % c.global_position.distance_to(spot))
+	c.toggle_mode()
+	_reset_player(OPEN)
+	await _seconds(2.0)
+
+	# Fight: a goblin near it loses health to the cudgel; the cudgel never lands on the survivor.
+	# (The goblin stays live but blind, player_ref null: a process-disabled body leaves physics.)
+	var g := _spawn_hunting_goblin(Vector3(0.0, 0.0, 0.0))
+	g.player_ref = null
+	var beyond: Vector3 = (c.global_position - _player.global_position)
+	beyond.y = 0.0
+	beyond = beyond.normalized() if beyond.length() > 0.1 else Vector3.LEFT
+	g.global_position = c.global_position + beyond * 2.5  # on the companion's far side, clear of the survivor
+	var g_hp: float = g.health
+	var p_hp: float = _player.health
+	var saw_swing: bool = false
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_swing = saw_swing or c.state == Companion.State.ATTACK_ACTIVE
+		if g.health < g_hp:
+			break
+	_check(saw_swing and g.health < g_hp, "a goblin near it is cudgelled (%.0f -> %.0f)" % [g_hp, g.health])
+	_check(is_equal_approx(_player.health, p_hp), "the cudgel never lands on the survivor")
+	g.queue_free()
+	await _ticks(2)
+
+	# Takes blows: an ork's slash in front of it lands on it (it is on the survivor's hurtbox layer).
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	_main.add_child(o)
+	o.global_position = c.global_position + Vector3(1.2, 0.0, 0.0)
+	o._facing_dir = Vector3.LEFT
+	o._visual_root.look_at(o.global_position + Vector3.LEFT, Vector3.UP)
+	await _ticks(1)
+	var c_hp: float = c.health
+	o._enter_combo_1_active()
+	await _ticks(3)
+	o._hitbox.end_swing()
+	_check(c.health < c_hp, "an ork's slash in front of it lands on it (%.0f -> %.0f)" % [c_hp, c.health])
+	o.queue_free()
+
+	# Downed: lifted with a rag at 40% health; without a rag, nothing happens.
+	c.health = 5.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	_check(c.is_downed() and c.downed_left > 24.0 and c.collision_layer == 0, "knocked to nothing it goes down, not dead")
+	await _ticks(2)
+	var lift: Array = c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint)
+	_check(lift.size() == 1 and (lift[0] as Lootable).search_verb == "Lift", "a [E] Lift prompt appears at the body")
+	_check(_hud._ally_label.text.contains("DOWNED"), "the ALLY line says DOWNED")
+	var inv: Inventory = _player.inventory
+	for b: ItemInstance in inv.items.duplicate():
+		if b.data.item_id == "clean_rag_bandage":
+			inv.remove(b)
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(c.is_downed(), "no rag, no lift")
+	inv.add(ItemDatabase.make("clean_rag_bandage", 1))
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(not c.is_downed() and is_equal_approx(c.health, Companion.MAX_HEALTH * 0.4) and inv.count_of("clean_rag_bandage") == 0,
+		"a rag lifts them at 40%% health and is used up")
+	await _ticks(2)
+	_check(c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint).is_empty(), "the Lift prompt is gone")
+
+	# Death: down too long, and they die and leave a body to search.
+	c.health = 1.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	c.downed_left = 0.05
+	await _seconds(0.3)
+	var body: Array = c.get_children().filter(func(n: Node) -> bool: return n is Lootable and not n is ActionPoint)
+	_check(c.is_dead() and body.size() == 1 and (body[0] as Lootable).display_name == "Edda's body", "down too long, they die and leave a body")
+	await _ticks(2)
+	_check(_hud._ally_label.text.contains("dead"), "the ALLY line says dead")
+	c.queue_free()
+	_hud.companion = null
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)

@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **367/367** headless regression checks passing
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **386/386** headless regression checks passing
 > Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover. Nights are cold moonlight and low mist, with falling ash and warm, flickering firelight. The enemies are the Ashbound: hooded, ragged, grey-skinned figures (a hunched goblin, a shielded ork, a hulking ogre) on the same animation library.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
@@ -26,7 +26,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 | **Ork choke point with a spear.** Two-handed grip stows your shield; narrow thrusts outreach the Ork's shield wall. | **The Blackfen Ogre.** Slow, enormous, and too wide for doorways. The red ring is its slam zone. |
 | ![Sword clangs off the entry hall wall](docs/screenshots/07_entry_hall_clang.png) | ![The vision cone: a lit wedge ahead, charcoal behind, and the rings of an unseen goblin's footsteps](docs/screenshots/08_vision_cone_unseen_goblin.png) |
 | ![Miasma fog: green-grey, thick, sight closed to a few paces](docs/screenshots/09_miasma_fog.png) | ![A cinder-squall at the ork choke point: embers on the wind](docs/screenshots/10_cinder_squall.png) |
-| ![The start screen: who were you, before the Smothering?](docs/screenshots/00_who_were_you.png) | |
+| ![The start screen: who were you, before the Smothering?](docs/screenshots/00_who_were_you.png) | ![Edda, cut free in the Watchhouse, two paces behind the survivor](docs/screenshots/11_companion.png) |
 | **Cramped quarters.** A sword slash in the 1.7 m entry hall clangs off the stone: sparks, a recoil stagger and triple wear. Indoors, thrust. | |
 
 <sub>Rendered with the project's own `tools/capture_screenshots.gd` (software Vulkan under Xvfb) at the default brightness. Enemies are frozen and posed for framing; time is slowed for the clang so the sparks survive the slow software frame rate.</sub>
@@ -48,6 +48,7 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
 - **Readable occlusion** — 4×4 Bayer-dithered cutaway on foreground walls, roofs that vanish when you're inside (with a shadow-only proxy so interiors stay dark), and **true line-of-sight enemy masking**: enemies behind walls aren't drawn, but you'll *hear* them.
 - **A 130° vision cone and acoustic ripples.** You see what the survivor sees: a wedge around where you aim, cut by walls. Outside it the world is a charcoal memory map and enemies are not drawn, and where one slips out of sight it leaves a dark mark on the ground. What you cannot see, you hear: every footstep, grunt, swing, roar and slam an enemy makes has a loudness in metres (muffled through stone), and an unseen one you hear raises a dust-ring ripple at its source, sized by its loudness. A goblin circling to your back is a trail of rings; keep it in front of you. F4 turns the cone off (dev).
 - **Who were you, before the Smothering?** The start screen offers eight survivors, each a kit, one trait and one permanent flaw: the **Watch Deserter** (the sword and targe you were issued; drilled blocks; an old wound: 90 health), the **Cinder Factor** (a road carrier's spear and a 26 kg back; bad knees), the **Chapel Cleaner** (four bandages, quiet hands and quick searches; untrained), the **Peat-cutter** (the broadaxe and a strong back; winded), the **Gutter-kin** (soft-footed, cheap dodges, sharp eyes; frail, and slow to stop bleeding), the **Hedge-priest** (steady, a long-burning torch; sworn hands that will not strike heavy), the **Fen Healer** (five bandages, deft; night-blind) and the **Causeway Carter** (hardy, 120 health; one good ear). Your eyes and ears stack with the weather: a night-blind healer in the miasma sees four paces.
+- **A companion.** A survivor the Ashbound left bound in the Watchhouse. Cut her free (E, two seconds) and **Edda** throws in with you: she follows a few paces behind, fights whatever comes within reach of either of you with a cudgel, and holds a spot when told (**F** toggles follow / hold). She is not you: no pack, no stamina, 70 health. Enemies don't hunt her, but their blows land on whoever is nearer, so a sweep meant for you can take her instead. Knocked to nothing she goes **down, not dead**, for 25 seconds: lift her with E and a clean rag before then, or she dies and leaves a body to search. Left far behind (there is no pathfinding yet) she catches up behind you.
 - **Armour.** Three slots (head, body, legs) and six pieces to find: a padded coif in the shelter stash, a quilted gambeson in the Watchhouse chest, a rusted mail hauberk in the ork plunder pile, a kettle hat in the ogre's bone heap, leather greaves in the grain crate, splinted greaves on some ork corpses. Armour takes a flat **soak** off every blow (heavy blows count it at 60%, and a blow always does at least 30%), adds **poise** (the full set, 19, shrugs off an ork's chop once), and cloth and mail turn **bleeding** cuts. It weighs what it weighs through the pack, mail **clinks** (your steps carry further), every blow **wears** it, and a ruined piece soaks half. Putting a piece on takes its own time (a hauberk, 4 s) through the pack window; taking it off, half. The Causeway Carter starts in a gambeson.
 - **The Smothering's weathers.** Six conditions drift in and out on a cycle (a spell lasts 70–130 s, a change blends over 8 s), each changing what you can see, hear and do: **Ashfall** (the ordinary night), **Miasma fog** (sight closes to 7 m, sounds die), **Sleet** (the torch burns at ×1.8, the shelter fire dims, the ground is grease: 85% speed), **Cinder-squall** (embers on the wind, nothing heard over it, the torch fans), **Hoarfrost** (a hard bright moon, every sound carries ×1.25, the ground is ice: 80% speed) and the **Dead Calm** (nothing falls; everything is heard by everyone, ×1.6). Hearing cuts both ways: what muffles the goblin's footsteps muffles yours. F5 forces the next weather (dev).
 - **Commitment-based melee** — explicit `STARTUP → ACTIVE → RECOVERY` attack phases, stamina with exhaustion, poise and stagger, directional shield blocking with guard breaks, an evasive step with i-frames, and bleeding.
@@ -124,6 +125,7 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
 | **F1 / F2 / F3** | Teleport to Watchhouse / Ork choke point / Ogre lair (dev) |
 | **F4** | Vision cone on / off (dev) |
 | **F5** | Next weather (dev) |
+| **F** | Companion: follow / hold |
 | **Mouse wheel** | Zoom |
 | **[ / ]** | Brightness down / up |
 | **- / =** | Camera shake down / up |
@@ -193,7 +195,7 @@ art/quaternius/            The survivor character and its animations (CC0; see t
 art/ambientcg/             Photo textures for walls, ground, roof and props (CC0; see the README there)
 assets/environment/        The project's own environment kit (ENV-001 to ENV-010; each set has a README)
 tests/
-  smoke_test.gd            Headless regression suite (367 checks)
+  smoke_test.gd            Headless regression suite (386 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
   recolor_survivor_texture.py   Rebuilds the survivor's grim textures from the Ranger's
@@ -216,7 +218,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 Next milestone not yet chosen. Candidates from the design document:
 
-- Companions, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
+- More companions and their stories, the Blind Quarry-Troll and the rest of the bestiary, and Acts II–III.
 
 ---
 

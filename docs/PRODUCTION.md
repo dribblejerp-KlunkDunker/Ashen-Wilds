@@ -157,6 +157,46 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Companions 1 — Edda: evidence (brief §24)
+
+**What.** The roadmap's "companions", built on Fable (CLAUDE.md flags companion AI as
+design-heavy) from that one word and the worldbuilding's people. One companion for now, Edda, a
+survivor the Ashbound left bound in the Watchhouse's south-east corner (a hooded figure sitting
+against the wall). Cutting her free is an `ActionPoint`, a Lootable whose timed [E] action runs a
+Callable instead of opening a loot window; the same thing is the "Lift" prompt at her body when
+she is down. The design, chosen to stay readable and honest about what the yard has:
+- **Follow / hold / fight.** She keeps 2.2 to 3.4 m behind the survivor (walks, runs past 7 m),
+  fights the nearest living enemy within 6 m of herself and 8 m of the survivor (4 m of a held
+  spot), and F toggles holding where she stands. A cudgel: 14 damage, 12 poise, 0.45 s startup,
+  0.8 s recovery. 70 health, 30 poise, no pack, no stamina.
+- **Enemies don't hunt her, but hit her.** Every enemy's senses are for the survivor; changing all
+  three AIs to pick targets was out of scope and would have made the companion a decoy. Instead
+  her hurtbox is on the survivor's hurtbox layer, so any blow, sweep, slam or stone that passes
+  through her lands on her. Her cudgel can only touch enemy hurtboxes.
+- **Downed, not dead.** At 0 health she goes down for 25 s; the survivor lifts her (3 s) with a
+  clean rag, at 40% health. Past 25 s she dies and leaves "Edda's body" to search (a rag).
+- **No pathfinding yet.** Enemies steer straight too. When she is further than 14 m behind for
+  4 s she rejoins a pace and a half behind the survivor; the notes say so plainly.
+- The HUD shows an ALLY bar with her name and state; she is always drawn (the vision cone hides
+  enemies, not friends).
+
+**A rule learned.** A process-disabled CollisionObject leaves physics (`disable_mode` REMOVE), so
+a frozen enemy can neither be hit nor hit: the companion skips targets that cannot process (the
+suite freezes the level's enemies), and the tests that want her to fight or be hit keep their
+enemies live and blind (`player_ref` null) instead of frozen.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 386 passed, 0 failures, twice (19 new:
+the captive and its prompt; no companion and no ALLY line at first; cutting free through the
+survivor's own channel; follow by default and the HUD line; closing to a few paces; the rejoin;
+holding; cudgelling a goblin and never the survivor; an ork's slash landing on her; down, not
+dead, with the Lift prompt and the HUD's DOWNED; no rag, no lift; a rag lifts her at 40% and is
+used up; dying after too long, the body, the HUD's dead). Kit suites, live boot and
+`tools/net_spike.py` clean. A new README screenshot of her at the survivor's back.
+
+**Not covered by headless tests.** Whether she gets in the way in the entry hall (she will stand
+in the doorway sometimes), whether enemies' blows land on her too often or too rarely to feel
+right, and whether a silent follower reads as a person. She has no lines beyond the one when freed.
+
 ## Armour 1 — three slots, six pieces: evidence (brief §24)
 
 **What.** The roadmap's "armor slots". Three slots (head, body, legs) and six grounded pieces, all

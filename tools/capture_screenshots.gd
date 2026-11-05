@@ -188,6 +188,19 @@ func _run() -> void:
 	await _frames(12)
 	await _shot("10_cinder_squall.png")
 	weather.set_condition(Weather.Condition.ASHFALL, true)
+
+	# 11: the companion. Cut free off-screen, then posed two paces behind the survivor in the yard.
+	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint)[0]
+	captive.on_search_complete(_player)
+	await _frames(2)
+	var companion: Companion = _find(func(n: Node) -> bool: return n is Companion)[0]
+	_place(Vector3(-3.0, 0.0, 4.0), Vector3(1.0, 0.0, -0.4))
+	companion.global_position = Vector3(-4.6, 0.0, 5.2)
+	companion._face_toward(Vector3(-3.0, 0.0, 4.0) + Vector3(1.0, 0.0, -0.4) * 3.0, 50.0, 1.0)
+	companion.process_mode = Node.PROCESS_MODE_DISABLED
+	companion._model.play(&"Idle")
+	await _frames(12)
+	await _shot("11_companion.png")
 	Engine.time_scale = 1.0
 
 	quit(0)
