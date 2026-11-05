@@ -82,6 +82,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hud.show_banner("Vision cone %s" % ("on" if _player.perception.enabled else "off (dev)"), Color(0.75, 0.75, 0.75))
 			KEY_F5:
 				_weather.advance()
+			KEY_F6:
+				_player.global_position = Vector3(8.0, 0.0, -10.0)
+				_hud.show_banner("Teleported: the Old Quarry (Blind Quarry-Troll). Keep still.", Color(0.80, 0.70, 0.52))
 			KEY_F:
 				if _companion != null and is_instance_valid(_companion) and not _companion.is_dead():
 					_companion.toggle_mode()
@@ -425,6 +428,21 @@ func _spawn_all_archetype_encounters() -> void:
 			_hud.show_banner(txt, col)
 	)
 	ogre.ogre_ground_shockwave.connect(func(trauma: float) -> void:
+		if _camera_rig:
+			_camera_rig.add_trauma(trauma)
+	)
+
+	var troll := EnemyQuarryTroll.new()
+	troll.position = Vector3(15.5, 0.0, -14.5)
+	troll.player_ref = _player
+	troll.audio = _audio
+	troll.coordinator = _coordinator
+	add_child(troll)
+	troll.troll_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+	troll.troll_ground_shockwave.connect(func(trauma: float) -> void:
 		if _camera_rig:
 			_camera_rig.add_trauma(trauma)
 	)

@@ -157,6 +157,41 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Bestiary 1 — the Blind Quarry-Troll: evidence (brief §24)
+
+**What.** The roadmap's "the Blind Quarry-Troll", built from its name and what the game already
+had: the noise systems. It lives in an old quarry dressed in the yard's empty north-east corner
+(an outcrop and standing stones at the back, masonry chips and rubble across the floor), 2.6 m
+tall, 360 health, 130 poise. It never looks:
+- **Hearing only.** Every action the survivor takes has a reach in metres (walk 6, sprint 14,
+  swing 12, dodge 9, a shield taking a blow 10, a sword clanging off stone 16, rummaging 5),
+  multiplied by the survivor's noise multiplier, so load, weather, background and armour all
+  reach it, and muffled to 55% through stone. Standing still, blocking still, and the quiet parts
+  of a channel make no sound it can hear. It hears the companion too (her cudgel 10 m, running 7).
+- **It strikes where the sound was.** It lumbers (2.7 m/s) to the heard spot and, within 2.4 m,
+  brings both fists down on it: a ring on the ground marks the spot for 1.1 s, then 55 damage
+  (heavy) to anything within 1.8 m of it, the survivor or the companion. Creep out of the ring
+  and it pounds empty ground. It then stands listening (2.6 s).
+- **Hit it and it knows.** A blow tells it where its attacker stands, and from close by it
+  thrashes round itself (30 damage within 2.8 m, 3 s cooldown). Its poise breaks on 130.
+- Forgets a sound after 6 s, walks home when it has strayed; stands down on the survivor's
+  death; takes and releases the attack turn like the ogre's committed blows. F6 teleports there.
+- Interactions that come free: the Dead Calm makes it deadly, a cinder-squall makes it deaf, a
+  gutter-kin can sprint past at 10 m, mail clinks bring it from 7.5 m, Edda's cudgel draws it.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 411 passed, 0 failures, twice (25 new:
+its home; its temperament; still and blocking are silent; walk, sprint and clang reaches;
+hearing sends it to the spot; the Dead Calm, the cinder-squall, the gutter-kin and the hauberk;
+stone muffling; the pound landing on a survivor who stayed; the ring marking the heard spot and
+missing a survivor who crept away; never finding a survivor still at 2 m; the thrash on being hit
+and its damage; hearing the companion; standing down on death; walking home; and the model,
+clip and facing checks every enemy gets). Kit suites, live boot and `tools/net_spike.py` clean.
+A new README screenshot of a pound on an empty spot.
+
+**Not covered by headless tests.** Whether "keep still" reads without a tutorial (the first
+time it hears you a banner says it is blind), whether 6 m for walking makes the quarry too tense
+to cross or too easy, and whether its slow lumber is threatening or comic.
+
 ## Companions 1 — Edda: evidence (brief §24)
 
 **What.** The roadmap's "companions", built on Fable (CLAUDE.md flags companion AI as

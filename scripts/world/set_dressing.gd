@@ -59,6 +59,15 @@ const PIECES: Array = [
 	["env006/exports/env_fence_rail_repaired_c_v01_diagonal_stay.glb", Vector3(-10.6, 0.0, 4.6), 90.0, 1.0, Solid.BOX],
 	["env003/exports/env_fence_rail_broken_a.glb", Vector3(-10.6, 0.0, 6.7), 90.0, 1.0, Solid.BOX],
 	["env006/exports/env_fence_rail_intact_b_v02_three_pickets.glb", Vector3(-9.4, 0.0, 9.6), 0.0, 1.0, Solid.BOX],
+	# The old quarry in the north-east corner, the Blind Quarry-Troll's: an outcrop and standing
+	# stones at its back edge, masonry chips and rubble across its floor.
+	["env008/exports/env_rocks_08_large_outcrop.glb", Vector3(19.0, 0.0, -18.5), 30.0, 1.0, Solid.BOX],
+	["env008/exports/env_rocks_04_standing_rock.glb", Vector3(21.5, 0.0, -12.5), 110.0, 1.0, Solid.BOX],
+	["env008/exports/env_rocks_04_standing_rock.glb", Vector3(12.0, 0.0, -19.5), 250.0, 0.9, Solid.BOX],
+	["env008/exports/env_rocks_10_masonry_chips.glb", Vector3(15.5, 0.0, -13.0), 0.0, 1.2, Solid.NONE],
+	["env008/exports/env_rocks_10_masonry_chips.glb", Vector3(13.0, 0.0, -15.5), 140.0, 1.0, Solid.NONE],
+	["env008/exports/env_rocks_11_low_masonry_rubble.glb", Vector3(17.5, 0.0, -15.0), 60.0, 1.0, Solid.NONE],
+	["env008/exports/env_rocks_06_pebble_scatter.glb", Vector3(14.5, 0.0, -11.0), 200.0, 1.1, Solid.NONE],
 ]
 
 ## Ground cover scattered with a fixed seed, kept out of these rectangles [x0, z0, x1, z1]:

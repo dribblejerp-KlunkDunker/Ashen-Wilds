@@ -62,7 +62,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
@@ -201,6 +201,19 @@ func _run() -> void:
 	companion._model.play(&"Idle")
 	await _frames(12)
 	await _shot("11_companion.png")
+
+	# 12: the Blind Quarry-Troll in the old quarry, bringing both fists down on the spot where it
+	# heard the survivor, who has crept a few paces clear of the ring.
+	var troll: EnemyQuarryTroll = enemies.filter(func(e: Node) -> bool: return e is EnemyQuarryTroll)[0]
+	_place(Vector3(11.0, 0.0, -10.2), Vector3(1.0, 0.0, -0.9))
+	troll.global_position = Vector3(15.5, 0.0, -14.5)
+	var heard_spot := Vector3(13.4, 0.0, -12.4)
+	troll._face_toward(heard_spot, 50.0, 1.0)
+	troll._begin_pound(heard_spot)
+	troll._update_visual_telegraph()
+	troll._visual_root.visible = true
+	await _frames(14)
+	await _shot("12_quarry_troll.png")
 	Engine.time_scale = 1.0
 
 	quit(0)
