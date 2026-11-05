@@ -178,5 +178,5 @@ Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox 
 ## Working with the owner (sleeves)
 
 - Before a big design-heavy build (weather, acoustic ripples + vision cone, companion AI), **say whether a stronger model such as Fable is worth switching to.** Routine milestones are fine on Opus.
-- **Lore** lives in `docs/worldbuilding/`. Read `CANON.md` before writing any in-game text (item descriptions, banners, background cards, notes): it fixes the names and the rules (no prophecy; "Ashbound" is a verdict, not a species; what the orks fled stays unexplained). All of it is proposed until the owner confirms it.
+- **Lore** lives in `docs/worldbuilding/`. Read `CANON.md` before writing any in-game text (item descriptions, banners, background cards, notes): it fixes the names and the rules. **Owner rule O1: only humans are people; goblins, orks, ogres, trolls and every other creature are animals, lizards, fish or monsters** (no speech, names, culture or bargains; every companion and background is human). Also: no prophecy; what the orks fled stays unexplained; calling a person "Ashbound" is a verdict. All of it is proposed until the owner confirms it.
 - Be honest about what headless tests can't show: feel, timing, light levels and UI layout still need a real playtest. Say so when handing back work.

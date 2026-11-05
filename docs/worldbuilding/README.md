@@ -35,7 +35,7 @@ This index covers the worldbuilding from the current conversation through 2026-1
 
 ## Godot additions (2026-11-05)
 
-Copied into the Godot repository with everything above (unchanged, from the browser prototype's commit `7afd805`), then extended to fill the gaps the archive left. All proposed. Start with the canon sheet.
+Copied into the Godot repository with everything above (unchanged, from the browser prototype's commit `7afd805`), then extended to fill the gaps the archive left. All proposed. Start with the canon sheet. **Owner decision O1 (2026-11-05): only humans are people; every creature is an animal, a lizard, a fish or a monster.** It overrides the archive above wherever goblins or orks are treated as peoples (the Gutter Kin, the Hesh scenes, the glasshouse negotiation, the ork households); the canon sheet lists exactly what is superseded.
 
 - [Canon sheet](CANON.md): the facts both builds and every file share, the precedence rule, open questions (the Gutter-kin background, the name conflicts) and the name register.
 - [The Kingdom and the Breaking](the-kingdom-and-the-breaking.md): Orlen before, the five Highland Citadels and slag-iron, the Black Seam and the Breaking, S.0 to S.30 year by year, the Flight South, a timeline, contested histories, survivor voices.
