@@ -38,6 +38,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 The Highland Citadels broke open the Deep-Seam Vaults hunting slag-iron and instead released ash-spores, goblin hordes, ork war-clans fleeing something deeper, and a volcanic winter called **the Smothering**. The kings fled south and burned the ships. No prophecy is coming. The people left in the Blackfen are stragglers, deserters and peasants trying to last until spring.
 
+The world bible (history, places, peoples, the bestiary, the acts, and texts for the game; all proposed lore) is in [docs/worldbuilding/](docs/worldbuilding/README.md); start with its [canon sheet](docs/worldbuilding/CANON.md).
+
 Act I (the current playable slice) is the **Blackfen Outskirts**: secure the ruined Wayfarer's Watchhouse, scavenge what the shelter needs to survive, and break the Ork choke point on the Old Causeway.
 
 ---

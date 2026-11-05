@@ -33,6 +33,18 @@ This index covers the worldbuilding from the current conversation through 2026-1
 
 - [The Blackfen Bestiary](bestiary.md): proposed. Sixteen entries with measures, biology, senses, habitat, sleep, diet, temperament, signs, and what is known and unknown; treats goblins and orks as peoples, proposes an identity for the Ashbound (R5), keeps the Roofed Mile animal unidentified and what the orks fled unexplained. Sizes match the Godot build's collision numbers.
 
+## Godot additions (2026-11-05)
+
+Copied into the Godot repository with everything above (unchanged, from the browser prototype's commit `7afd805`), then extended to fill the gaps the archive left. All proposed. Start with the canon sheet.
+
+- [Canon sheet](CANON.md): the facts both builds and every file share, the precedence rule, open questions (the Gutter-kin background, the name conflicts) and the name register.
+- [The Kingdom and the Breaking](the-kingdom-and-the-breaking.md): Orlen before, the five Highland Citadels and slag-iron, the Black Seam and the Breaking, S.0 to S.30 year by year, the Flight South, a timeline, contested histories, survivor voices.
+- [The Smothering](the-smothering.md): the ash as lived, the spores and the walking blooms, the six weathers as the Godot build plays them, fire and fuel, food and water, sayings and weather banners.
+- [Act I: the Outskirts](act-one-the-outskirts.md): the Godot level location by location (the shelter fire, the Watchhouse, the Spore Hollow, the Old Quarry, the feeding ground, the ork-held choke point and the fallen Causeway tower), with props and hooks.
+- [The Godot game's people](godot-people.md): Edda, the eight backgrounds as people, the band that took Edda, future companions, the Watchhouse's named residents.
+- [Acts II and III](acts-two-and-three.md): the story built from the archive's places and factions, up the Bell Road to the Citadels and the Vaults; quests, set pieces, endings that save nothing.
+- [Items and texts](items-and-texts.md): lore and prices for every item in the game, material culture, new item proposals, and a library of notes, inscriptions, banners and epigraphs ready to place (plain ASCII).
+
 ## Continuity boundaries
 
 Exact map scale, travel distances, population simulations, and quest implementation are unset. The estate occupation is a proposed later phase, not a retroactive claim that all groups were always present. Complications are alternatives or consequences, not a mandatory chain of disasters. Geography and NPC additions remain proposals. Annet and Pell in the Roofed Mile story have no confirmed identity links to similarly named regional characters. The beast in that story is unidentified, not a confirmed bestiary species. The existing Merewick compilation does not preserve every original prose scene word for word. This index does not claim recovery of unrelated project attachments or historical game assets.
