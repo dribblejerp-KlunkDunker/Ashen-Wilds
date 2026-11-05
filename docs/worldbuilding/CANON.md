@@ -101,8 +101,8 @@ archive material* below.
     every winter about whom to admit. Its doorway is 1.35 m and stays that way, because of the
     ogre.
 14. **The Causeway Watch**: the Crown's road garrison, left without pay or orders in S.3, which kept
-    the Old Causeway for twenty-six years. **The Causeway tower fell to an ork road-clan last
-    autumn, S.29**; the Watch Deserter *(in game)* held it until they didn't. The clan now holds
+    the Old Causeway for twenty-six years. **The Causeway tower fell to an ork pack last
+    autumn, S.29**; the Watch Deserter *(in game)* held it until they didn't. The pack now holds
     the choke point *(in game)*. *(Godot addition.)*
 
 ### Life, death and money
