@@ -189,8 +189,8 @@ func _run() -> void:
 	await _shot("10_cinder_squall.png")
 	weather.set_condition(Weather.Condition.ASHFALL, true)
 
-	# 11: the companion. Cut free off-screen, then posed two paces behind the survivor in the yard.
-	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint)[0]
+	# 11: the companion. Cut free off-screen (found by name: the graves are ActionPoints too), then posed two paces behind the survivor in the yard.
+	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")[0]
 	captive.on_search_complete(_player)
 	await _frames(2)
 	var companion: Companion = _find(func(n: Node) -> bool: return n is Companion)[0]
