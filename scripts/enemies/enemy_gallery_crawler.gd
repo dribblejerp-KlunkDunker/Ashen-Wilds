@@ -1,9 +1,10 @@
-class_name EnemyGalleryDragger
+class_name EnemyGalleryCrawler
 extends CharacterBody3D
-## THE GALLERY DRAGGER. The Bell Road's Roofed Mile is an old avalanche gallery "with carcasses
-## dragged between its supports" (docs: blackfen-roads-and-towns.md), and something lives there that
-## nobody has named (roofed-mile-third-arch.md; the worldbuilding calls it unidentified, so this is a
-## proposal). Its forelegs are too heavy for the rest of it; it waits up where the roof met the hillside.
+## THE GALLERY-CRAWLER. The Bell Road's Roofed Mile is an old avalanche gallery "with carcasses
+## dragged between its supports", and something lives there that nobody can name: the bestiary keeps it
+## unidentified, and carriers call it the gallery-crawler, "a name, not a species" (docs/worldbuilding:
+## bestiary.md, "The Roofed Mile animal"; the story is roofed-mile-third-arch.md). An animal (O1). Its
+## forelegs are too heavy for the rest of it; it waits up where the roof met the hillside.
 ##
 ## It drops on whoever passes beneath its ledge (a ring marks where it will land: step back out of
 ## it). On the ground it does not rush: with stone between you it moves sideways until there is
@@ -12,11 +13,13 @@ extends CharacterBody3D
 ## head is pinned there, though: strike it while it worries and the blow lands hard and breaks its
 ## grip. A lit torch held toward it keeps it off; it circles for a way round the flame. It turns to
 ## a sound it cannot see. When it has lost you it goes home and climbs back to its ledge.
+## Quicklime (a LimeCloud) blinds it: it lets go of everything, forgets you, and backs off home
+## coughing, rubbing its muzzle on the stone, to climb back up once it can see again.
 
-signal dragger_event_banner(text: String, col: Color)
-signal dragger_landing_shock(trauma: float)
+signal crawler_event_banner(text: String, col: Color)
+signal crawler_landing_shock(trauma: float)
 
-enum AIState { IDLE, PERCHED, TELL, LEAP, RECOVERY, STALK, WARY, LUNGE_STARTUP, LUNGE_ACTIVE, WORRY, STAGGER, RETURN_HOME, CLIMB, DEAD }
+enum AIState { IDLE, PERCHED, TELL, LEAP, RECOVERY, STALK, WARY, LUNGE_STARTUP, LUNGE_ACTIVE, WORRY, STAGGER, RETURN_HOME, CLIMB, BLINDED, DEAD }
 
 const SIGHT_RANGE: float = 9.0
 const SIGHT_HALF_ANGLE: float = 70.0
@@ -72,7 +75,7 @@ const CLIMB_SECONDS: float = 1.4
 ## The foot of its ledge: this far out from the wall into the passage.
 const FOOT_OUT: float = 1.4
 
-@export var enemy_name: String = "Gallery Dragger"
+@export var enemy_name: String = "Gallery-crawler"
 @export var max_health: float = 70.0
 @export var max_poise: float = 40.0
 
@@ -110,6 +113,9 @@ var _worry_victim: PlayerController
 var _told_drop: bool = false
 var _told_torch: bool = false
 var _told_worry: bool = false
+var _told_lime: bool = false
+## Seconds it stays blind (lime in its eyes); while above 0 it sees nothing.
+var _blind_timer: float = 0.0
 
 var _visual_root: Node3D
 var _model: EnemyModel
@@ -164,6 +170,8 @@ func _physics_process(delta: float) -> void:
 	_knockback_vel = _knockback_vel.move_toward(Vector3.ZERO, 14.0 * delta)
 	if poise_damage > 0.0:
 		poise_damage = maxf(0.0, poise_damage - 6.0 * delta)
+	if _blind_timer > 0.0:
+		_blind_timer = maxf(0.0, _blind_timer - delta)
 	if _landing_timer > 0.0:
 		_landing_timer -= delta
 		if _landing_timer <= 0.0:
@@ -196,6 +204,27 @@ func is_perched() -> bool:
 	return state in [AIState.PERCHED, AIState.TELL]
 
 
+func is_blinded() -> bool:
+	return _blind_timer > 0.0
+
+
+## Lime in its eyes (a LimeCloud calls this every tick it stands in one): blind for at least
+## `seconds`. Up on its ledge, in the air or climbing, the cloud does not reach it.
+func blind(seconds: float) -> void:
+	if state in [AIState.PERCHED, AIState.TELL, AIState.LEAP, AIState.CLIMB, AIState.DEAD]:
+		return
+	_blind_timer = maxf(_blind_timer, seconds)
+	if state in [AIState.BLINDED, AIState.STAGGER]:
+		return
+	_abandon_attack()
+	_memory = 0.0
+	state = AIState.BLINDED
+	_noise(8.0)
+	if not _told_lime:
+		_told_lime = true
+		crawler_event_banner.emit("It backs away coughing, rubbing its muzzle on the stone. It cannot see you.", Color(0.88, 0.88, 0.80))
+
+
 func memory_seconds() -> float:
 	return lerpf(5.0, 9.0, aggression)
 
@@ -205,7 +234,7 @@ func lunge_recovery() -> float:
 
 
 func sees_player() -> bool:
-	if player_ref == null:
+	if player_ref == null or _blind_timer > 0.0:
 		return false
 	var to_p: Vector3 = player_ref.global_position - global_position
 	to_p.y = 0.0
@@ -256,6 +285,8 @@ func _sense(delta: float) -> void:
 		return
 	var flat: Vector3 = player_ref.global_position - global_position
 	flat.y = 0.0
+	if state == AIState.BLINDED:
+		return
 	if state == AIState.PERCHED:
 		# An ambusher: whatever it sees or hears, it waits until someone comes beneath it.
 		# It looks down over the lip of its ledge, not through the stone it crouches on.
@@ -331,7 +362,24 @@ func _process_ai_state(delta: float) -> void:
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
 			if _state_timer <= 0.0:
-				state = AIState.STALK if _memory > 0.0 else AIState.RETURN_HOME
+				if _blind_timer > 0.0:
+					state = AIState.BLINDED
+				else:
+					state = AIState.STALK if _memory > 0.0 else AIState.RETURN_HOME
+
+		AIState.BLINDED:
+			# Backing off home, blind; once it can see again it goes on up to its ledge.
+			var to_lair: Vector3 = _home_pos - global_position
+			to_lair.y = 0.0
+			if to_lair.length() > 0.5:
+				_face_toward(_home_pos, 4.0, delta)
+				velocity.x = to_lair.normalized().x * STALK_SPEED * 0.8 + _knockback_vel.x
+				velocity.z = to_lair.normalized().z * STALK_SPEED * 0.8 + _knockback_vel.z
+			else:
+				velocity.x = _knockback_vel.x
+				velocity.z = _knockback_vel.z
+			if _blind_timer <= 0.0:
+				state = AIState.RETURN_HOME
 
 		AIState.RETURN_HOME:
 			var to_home: Vector3 = _home_pos - global_position
@@ -367,7 +415,7 @@ func _stalk(delta: float) -> void:
 		state = AIState.WARY
 		if not _told_torch:
 			_told_torch = true
-			dragger_event_banner.emit("It will not come at the flame. It circles, looking for a way round it.", Color(0.92, 0.66, 0.32))
+			crawler_event_banner.emit("It will not come at the flame. It circles, looking for a way round it.", Color(0.92, 0.66, 0.32))
 		return
 	var seen: bool = sees_player()
 	var target: Vector3 = player_ref.global_position if player_ref != null and seen else _last_known
@@ -449,11 +497,11 @@ func _land() -> void:
 	_state_timer = DROP_RECOVERY
 	if audio:
 		audio.play_ogre_ground_slam()
-	dragger_landing_shock.emit(0.45)
+	crawler_landing_shock.emit(0.45)
 	_noise(14.0)
 	if not _told_drop:
 		_told_drop = true
-		dragger_event_banner.emit("It came down off the wall. Watch the ledges in the gallery.", Color(0.86, 0.80, 0.68))
+		crawler_event_banner.emit("It came down off the wall. Watch the ledges in the gallery.", Color(0.86, 0.80, 0.68))
 
 
 ## True when the last move ran it into stone (a wall, a pier, a cart), not just along the floor.
@@ -502,7 +550,7 @@ func _begin_worry(p: PlayerController) -> void:
 	_noise(10.0)
 	if not _told_worry:
 		_told_worry = true
-		dragger_event_banner.emit("It has your shield in its teeth. Hold on and it shakes you empty; strike it and it lets go.", Color(0.92, 0.58, 0.28))
+		crawler_event_banner.emit("It has your shield in its teeth. Hold on and it shakes you empty; strike it and it lets go.", Color(0.92, 0.58, 0.28))
 
 
 ## Clamped on the shield, shaking. A held guard pays stamina; an empty survivor loses the shield.
@@ -630,7 +678,7 @@ func _die() -> void:
 	_model.play(&"Death01")
 	_anim_state = AIState.DEAD
 	_status_mat.albedo_color = Color(0.20, 0.20, 0.20)
-	Lootable.attach_corpse(self, "%s carcass" % enemy_name, ItemDatabase.roll_dragger_loot(), 2.5)
+	Lootable.attach_corpse(self, "%s carcass" % enemy_name, ItemDatabase.roll_crawler_loot(), 2.5)
 	if player_ref != null:
 		player_ref.combat_banner_message.emit("The thing from the gallery is dead.", Color(0.80, 0.76, 0.64))
 
@@ -665,6 +713,8 @@ func _update_visual_telegraph() -> void:
 			_status_mat.albedo_color = Color(0.42, 0.68, 0.85)
 		AIState.WARY:
 			_status_mat.albedo_color = Color(0.86, 0.52, 0.22)
+		AIState.BLINDED:
+			_status_mat.albedo_color = Color(0.90, 0.90, 0.84)
 		AIState.DEAD:
 			_status_mat.albedo_color = Color(0.20, 0.20, 0.20)
 		_:
@@ -695,7 +745,9 @@ func _update_visual_telegraph() -> void:
 	if state == AIState.RECOVERY and _model.current_animation() == &"NinjaJump_Land" and _model.anim.is_playing():
 		return
 	var speed: float = Vector2(velocity.x, velocity.z).length()
-	if speed < 0.2:
+	if state == AIState.BLINDED and speed < 0.2:
+		_model.play(&"Zombie_Scratch", 1.2)
+	elif speed < 0.2:
 		_model.play(&"Crouch_Idle")
 	else:
 		_model.play(&"Crouch_Fwd", clampf(speed / 1.6, 0.7, 2.0))
@@ -714,7 +766,7 @@ func _build_body() -> void:
 
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
-	_model = EnemyModel.new("dragger")
+	_model = EnemyModel.new("crawler")
 	_visual_root.add_child(_model)
 	_weapon_arm = Node3D.new()
 	_model.right_socket.add_child(_weapon_arm)

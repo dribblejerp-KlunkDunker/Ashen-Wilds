@@ -144,7 +144,7 @@ func player_noise_radius() -> float:
 
 
 ## How far what `p` is doing right now carries (HEARING times their noise multiplier); 0 when
-## silent. Static so other listeners (the Gallery Dragger) hear the survivor by the same table.
+## silent. Static so other listeners (the gallery-crawler) hear the survivor by the same table.
 static func survivor_noise_radius(p: PlayerController) -> float:
 	if p == null:
 		return 0.0

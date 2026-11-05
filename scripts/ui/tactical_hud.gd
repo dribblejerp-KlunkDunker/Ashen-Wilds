@@ -213,7 +213,7 @@ func update_stats(data: Dictionary) -> void:
 	if data["bleeding"]:
 		flags += "  [BLEEDING: -HP & SLOW STAMINA]"
 	if data.get("choking", false):
-		flags += "  [CHOKING: SPORES]"
+		flags += "  [CHOKING: %s]" % String(data.get("choke_cause", "SPORES"))
 	if data.get("cramped", false):
 		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
 	if data.get("lodged", false):

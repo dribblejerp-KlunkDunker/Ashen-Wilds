@@ -62,7 +62,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryDragger)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryCrawler)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
@@ -251,22 +251,22 @@ func _run() -> void:
 	_player._clear_channel()
 	Engine.time_scale = 1.0
 
-	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the Dragger is
+	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the crawler is
 	# in the air off the wall, coming down on the ring where they stand.
-	var dragger: EnemyGalleryDragger = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryDragger)[0]
+	var crawler: EnemyGalleryCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryCrawler)[0]
 	_equip_now("pitch_torch")
 	_place(Vector3(-21.7, 0.0, 19.9), Vector3(-1.0, 0.0, -0.25))
 	await _frames(4)
-	dragger._begin_tell()
-	dragger._drop_from = dragger.global_position
+	crawler._begin_tell()
+	crawler._drop_from = crawler.global_position
 	var t: float = 0.7
-	var mid: Vector3 = dragger._drop_from.lerp(dragger._drop_target, t)
-	mid.y = lerpf(dragger._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
-	dragger.global_position = mid
-	dragger._face_toward(_player.global_position, 50.0, 1.0)
-	dragger.state = EnemyGalleryDragger.AIState.LEAP
-	dragger._update_visual_telegraph()
-	dragger._visual_root.visible = true
+	var mid: Vector3 = crawler._drop_from.lerp(crawler._drop_target, t)
+	mid.y = lerpf(crawler._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
+	crawler.global_position = mid
+	crawler._face_toward(_player.global_position, 50.0, 1.0)
+	crawler.state = EnemyGalleryCrawler.AIState.LEAP
+	crawler._update_visual_telegraph()
+	crawler._visual_root.visible = true
 	await _frames(14)
 	await _shot("15_roofed_gallery.png")
 
