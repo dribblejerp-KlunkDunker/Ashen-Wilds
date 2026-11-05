@@ -273,8 +273,8 @@ func _run() -> void:
 	# 16: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
 	# cloud, rubbing its muzzle, its ring pale.
 	crawler._drop_ring.visible = false
-	crawler.global_position = Vector3(-22.6, 0.0, 21.4)
-	_place(Vector3(-21.7, 0.0, 18.6), Vector3(-0.25, 0.0, 1.0))
+	crawler.global_position = Vector3(-22.3, 0.0, 19.4)
+	_place(Vector3(-21.4, 0.0, 15.6), Vector3(-0.2, 0.0, 1.0))
 	LimeCloud.spawn(_main, crawler.global_position, 60.0)
 	await _frames(2)
 	crawler.blind(30.0)
