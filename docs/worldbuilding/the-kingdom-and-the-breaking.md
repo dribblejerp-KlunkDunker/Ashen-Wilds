@@ -3,9 +3,8 @@
 **Status: Proposed** (Godot addition, 2026-11-05). Nothing here is canon until the owner says so.
 It follows `CANON.md` on every hard fact, and the **owner's rule of 2026-11-05: only humans are
 people.** Goblins, orks, ogres, trolls and every other creature are animals or monsters (some of
-them cunning) with no language, names, culture, faith, bargains or society. Where the archive or
-the canon sheet says otherwise (the Gutter Kin as a goblin household, the Saint Vey's Fold ork
-families, trading stones), this file does not use it. "War-clan" survives only as what frightened
+them cunning) with no language, names, culture, faith, bargains or society. This is owner decision O1 in
+`CANON.md`; the archive was revised to match. "War-clan" survives only as what frightened
 people called the ork packs in the first years.
 
 **Summary.** Orlen was a cold kingdom made rich by an ore that keeps heat. The Crown at Wexhaven

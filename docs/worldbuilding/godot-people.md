@@ -16,9 +16,9 @@ Watchhouse refuge. A list of new names closes the file.
 
 - **Only humans are people.** By owner decision O1 (2026-11-05, in `CANON.md`), goblins, orks, ogres, trolls and every other creature
   are animals or monsters: no language, names, faith, bargains or society. Every companion and
-  named person here is human. The archive's goblin household (the Gutter Kin of Halwen House) is
-  not used, and the Gutter-kin background is a human road waif with no goblin connection. That
-  settles open question Q1 as option (a), without a goblin household.
+  named person here is human. The archive's Gutter Kin of Halwen House were revised the
+  same day into a human household of road waifs; the Gutter-kin background is a road waif of the
+  same kind (open question Q1, settled).
 - **The archive's habit holds.** Entries keep *what is known* apart from *what people say*. Nobody
   here knows what lies below the Vaults or what the orks fled. Nobody is chosen.
 - **Sister files.** This follows `the-kingdom-and-the-breaking.md` (the Watch, the muster book),

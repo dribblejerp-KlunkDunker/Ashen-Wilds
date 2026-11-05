@@ -21,8 +21,7 @@ game, the acts, and texts the game can show.
 |---|---|---|
 | **O1** | **Only humans are people. Everything else is an animal, a lizard, a fish or a monster.** Goblins, orks, ogres, trolls and every other creature have no language, names, culture, faith, bargains or society. They can be cunning, can use stolen tools and weapons and can hunt in packs, but they are beasts. Every companion, faction, quest-giver and playable background is human. | 2026-11-05 |
 
-O1 overrides the archive wherever the archive treats goblins or orks as peoples; see *Superseded
-archive material* below.
+The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
 
 ---
 
@@ -145,25 +144,25 @@ archive material* below.
 
 | # | Question | Options |
 |---|---|---|
-| Q1 | ~~The Gutter-kin background~~ **Settled by O1:** the Gutter-kin are human road waifs, children who sheltered under the Roofed Mile and lived by taking what wasn't watched; the Godot card stands. The bestiary's "also a playable background" and the archive's goblin Gutter Kin are superseded. | Settled |
+| Q1 | ~~The Gutter-kin background~~ **Settled by O1:** the Gutter-kin are human road waifs, children who sheltered under the Roofed Mile and lived by taking what wasn't watched; the Godot card stands. The archive's Gutter Kin were revised into the same kind of human household. | Settled |
 | Q2 | Mara Venn and Harl name conflicts (from `keeping-and-merewick.md`) | Unchanged; still the owner's to settle |
 | Q3 | The kingdom's name, Wexhaven, the Citadels' names, Aldric IV, Cerrin Vane | Proposed here; nothing in either build names them yet |
 | Q4 | Whether the archive's "faction bible" and "Reedwake chapter" still exist | They are referenced but in neither repository |
 
-## Superseded archive material (by O1)
+## Archive material revised for O1 (2026-11-05)
 
-The copied archive files stay unchanged as a record of the browser prototype's lore, but these
-parts no longer hold. Writers must not build on them; a later pass can rewrite them.
+The copied archive files were revised in place to fit O1; each revised file says so in its
+status line. The originals, as copied from the browser prototype, are in git history at commit
+`fd60061`.
 
-| File | What no longer holds |
+| File | What changed |
 |---|---|
-| `bestiary.md` | Goblins and orks as "a people, not a beast"; goblin bargains, households, kin, names (Hesh, Sere, Brik, Kett); ork households, trading stones, elders, hand-cant, ork repair and craft; "whether ogres are a people"; the Gutter-kin as a goblin background; the R5 checklist's goblin camps and ork holds "with a trading stone". The measures, bodies, senses, habitats, diets, temperaments, signs and every non-person question still stand. |
-| `gutter-kin.md`, `gutter-kin-members.md` | The goblin household as people with names, customs and a crisis. Usable only as the shape of a **goblin nest** in the glasshouse range. |
-| `hesh-challenges-oren.md`, `hesh-challenge-aftermath.md` | Dialogue with a goblin. Superseded entirely. |
-| `glasshouse-clearing.md`, `glasshouse-clearing-complications.md`, `rauth-glasshouse-inspection.md` | The negotiated evacuation of goblins. The human sides (the Remnant, the Grey Lash, the Garden Hands) stand; the glasshouse becomes a nest to clear, burn or leave. |
-| `gutter-remnant-relationship-web.md`, `grey-lash-relationship-web.md`, `halwen-house-occupation-factions.md`, `remnant-goods-interception.md`, `garden-hands.md`, `grey-lash.md` | Every relationship with the goblins as a faction. The human relationships stand. |
-| `bell-road-locations.md` | Saint Vey's Fold's ork households and their trading stone; the Fold keeps an ork den in its rear range instead. |
-| Any file | Goblins or orks speaking, trading, keeping deals, being named, mourned or worshipped. |
+| `bestiary.md` | Goblins: "a beast, not a people", swarming nest scavengers that hoard bright scraps; no bargains, kin or names. Orks: a ranked pack carrying stolen shields and cleavers, dens with one way in, a salt craving, an animal silence; no households, trading stones, elders or craft. The ogre hoards iron like a magpie. Ashbound: fact 17's two senses; ash-lung is human. Walking blooms added. Measures, senses, habitats, temperaments and the Godot numbers unchanged. |
+| `gutter-kin.md`, `gutter-kin-members.md`, `hesh-challenges-oren.md`, `hesh-challenge-aftermath.md` | **The Gutter Kin are a human household of road waifs**: children who sheltered under the Roofed Mile, took what wasn't watched, and chose each other as kin. "Gutter" is others' slur; to the Remnant they are squatters and thieves. Every name (Hesh, Sere, Kett, Brik, Iss, Moth), custom, quarrel and dialogue beat kept. |
+| `glasshouse-clearing.md`, `glasshouse-clearing-complications.md`, `rauth-glasshouse-inspection.md`, `remnant-goods-interception.md`, `gutter-remnant-relationship-web.md`, `grey-lash-relationship-web.md`, `halwen-house-occupation-factions.md` | The clearing stays a negotiated evacuation, now between people; cross-species distrust became class prejudice, past thefts and fear of the cough. Names, beats and diagram nodes unchanged. |
+| `garden-hands.md`, `halwen-house.md` | The goblins in the glasshouse range became the human Gutter Kin. |
+| `bell-road-locations.md` | Saint Vey's Fold: an ork den in the rear range, walled off with dressed stone by the Fold's people, who live beside it; no ork families or trading stone. The orks still will not den under timber, unexplained. |
+| Everything else | Unchanged: no passage broke O1. |
 
 ## Name register
 

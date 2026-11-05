@@ -31,11 +31,11 @@ This index covers the worldbuilding from the current conversation through 2026-1
 
 ## Bestiary (2026-11-04)
 
-- [The Blackfen Bestiary](bestiary.md): proposed. Sixteen entries with measures, biology, senses, habitat, sleep, diet, temperament, signs, and what is known and unknown; treats goblins and orks as peoples, proposes an identity for the Ashbound (R5), keeps the Roofed Mile animal unidentified and what the orks fled unexplained. Sizes match the Godot build's collision numbers.
+- [The Blackfen Bestiary](bestiary.md): proposed. Sixteen entries with measures, biology, senses, habitat, sleep, diet, temperament, signs, and what is known and unknown; revised 2026-11-05 for O1: goblins and orks are beasts (a swarming nest scavenger and a ranked pack with stolen arms), the Ashbound cover the Vault-born beasts and, as a verdict, people who have stopped answering, and the walking blooms are added, keeps the Roofed Mile animal unidentified and what the orks fled unexplained. Sizes match the Godot build's collision numbers.
 
 ## Godot additions (2026-11-05)
 
-Copied into the Godot repository with everything above (unchanged, from the browser prototype's commit `7afd805`), then extended to fill the gaps the archive left. All proposed. Start with the canon sheet. **Owner decision O1 (2026-11-05): only humans are people; every creature is an animal, a lizard, a fish or a monster.** It overrides the archive above wherever goblins or orks are treated as peoples (the Gutter Kin, the Hesh scenes, the glasshouse negotiation, the ork households); the canon sheet lists exactly what is superseded.
+Copied into the Godot repository with everything above (unchanged, from the browser prototype's commit `7afd805`), then extended to fill the gaps the archive left. All proposed. Start with the canon sheet. **Owner decision O1 (2026-11-05): only humans are people; every creature is an animal, a lizard, a fish or a monster.** The archive above was revised to match the same day: the bestiary's goblins and orks are beasts, the Gutter Kin are a human household of road waifs (every name and scene kept, so the glasshouse clearing is a negotiation between people), and Saint Vey's Fold keeps an ork den, not ork families. The canon sheet lists each revision; the originals are in git history at commit `fd60061`.
 
 - [Canon sheet](CANON.md): the facts both builds and every file share, the precedence rule, open questions (the Gutter-kin background, the name conflicts) and the name register.
 - [The Kingdom and the Breaking](the-kingdom-and-the-breaking.md): Orlen before, the five Highland Citadels and slag-iron, the Black Seam and the Breaking, S.0 to S.30 year by year, the Flight South, a timeline, contested histories, survivor voices.
