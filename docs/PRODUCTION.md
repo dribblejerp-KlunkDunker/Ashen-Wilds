@@ -157,6 +157,42 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Bestiary 4b — quicklime, and the gallery-crawler's name: evidence (brief §24)
+
+**What.** The owner asked to merge Bestiary 4 and proceed (2026-11-05). The world bible (PR #27,
+merged just before Bestiary 4) turned out to have an entry for the Roofed Mile animal
+(`docs/worldbuilding/bestiary.md`, "Things the book cannot name"): carriers call it **the
+gallery-crawler**, "a name, not a species", and its "For the game" line is "an ambush from above,
+lime and fire as the counters". Owner decision O2 keeps the bible's names, so:
+- **The rename.** `EnemyGalleryDragger` is `EnemyGalleryCrawler` (file, class, model type, signals,
+  loot roll, texts, docs); the Bestiary 4 section below keeps the old name as history.
+- **Quicklime, the missing counter.** "Lime in the air drove it back coughing" (bestiary; the
+  story's split sack). A new item, the Sack of Quicklime (1.2 kg); the gallery's tipped handcart
+  holds two, as the Roofed Mile cart carried lime. **[G]** splits one and throws it: a 0.45 s throw
+  (the goblin's `OverhandThrow` clip), a white cloud 3.5 m ahead or just short of stone, 2.6 m
+  across, 6 s before the weather (the spores field: wind clears it, still air keeps it).
+- In it, **the gallery-crawler is blinded**: it drops whatever it was doing, forgets the survivor and
+  backs off home, rubbing its muzzle, then climbs back to its ledge when its eyes clear. On its ledge,
+  in the air or climbing, the cloud does not reach it.
+- **It stings the thrower too**: in the cloud the survivor chokes (no wound; stamina barely returns;
+  sight closes to 35%). `choke()` takes a cause now and the HUD says `[CHOKING: LIME]`.
+- **Lime stops spores** (canon 16, "Lime the dead or meet them"): a spore cloud it touches burns
+  away ten times as fast, as under a torch. A second use for the sacks in the Spore Hollow.
+- The bible is updated: the bestiary marks the animal "In play (Godot)" with what the game does and
+  does not do; the canon sheet's Roofed Mile line names it and its counters.
+
+**Tests (run in this container, Godot 4.7.2).** `tests/smoke_test.gd`: 502 passed, 0 failures (16
+new: the handcart's lime; no lime, no throw; the throw spends a sack and bursts a cloud 3.5 m
+ahead; the weather sets its life; the survivor chokes in it without a wound and the HUD says lime;
+a spore cloud it touches burns away; thrown at a pier it bursts short of the stone; the crawler
+blinded, its lunge dropped and the survivor forgotten; backing off home; climbing back once its eyes
+clear; untouched on its ledge; a stagger while blind returns to blindness). Kit suites, live boot
+and `tools/net_spike.py` clean. A new README screenshot of the crawler blind in the lime.
+
+**Not covered by headless tests.** Whether 3.5 m is a good throw in a 3 m passage (the survivor is
+often closer than that to the crawler, and a short throw puts them in their own cloud), whether the
+white cloud reads at night, and whether blinding is too strong a counter for two sacks.
+
 ## Bestiary 4 — the Gallery Dragger: evidence (brief §24)
 
 **What.** The owner chose "more bestiary" (2026-11-05) after Bestiary 3. No bestiary list exists in

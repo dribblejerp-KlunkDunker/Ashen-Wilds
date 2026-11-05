@@ -95,7 +95,7 @@ Seventeen entries, from beetles to the thing below. Senses run none, poor, fair,
 | Ork (a pack beast) | III | 1.80–2.05 | 110–150 | Fair | Keen | Keen | Stone dens, road choke points | In play (Godot) |
 | Blackfen Ogre | IV | 2.90–3.20 | 600–800 | Poor | Fair | Acute | Fen edge, farmland, its feeding ground | In play (Godot) |
 | Blind Quarry-Troll | IV | 2.60 hunched (3.3 upright) | 900–1,200 | None | Acute | Poor | Quarry, lime cuts, crags | In play (Godot) |
-| The Roofed Mile animal | III | 0.9–1.1 at shoulder | 150–250 | Fair | Keen | Keen | Galleries, culverts, upland | Proposed (from the story) |
+| The Roofed Mile animal (the gallery-crawler) | III | 0.9–1.1 at shoulder | 150–250 | Fair | Keen | Keen | Galleries, culverts, upland | In play (Godot) |
 | Greymaw (wild dogs) | II, III as a pack | 0.60–0.80 at shoulder | 30–45 | Fair | Keen | Acute | Farmland, birch wood, road verges | Proposed |
 | Peat-boar | II | 0.80–0.95 at shoulder | 90–160 | Poor | Fair | Acute | Reedbed, fen edge, farmland | Proposed |
 | Gallows Heron | I (it calls others) | 1.20 | 1.5–2.5 | Acute | Fair | Poor | Mere, river, dead trees | Proposed |
@@ -663,6 +663,7 @@ Two entries with more questions than answers. The first is one animal, seen once
 | What we know | Lime in the air drove it back coughing. Fire made it cry out and withdraw. Keeping a pier between you and it bought time |
 | What no one knows | Whether it survived the fire: the next dawn something walked slowly on the road above the drainage cut, paused, and dragged something over stone. Whether there are others. Whether it came up from the Vaults. The name of the man beyond the fifth pier, and who was missing a carrier with a copper repair on his saddle strap |
 | For the game | A single authored encounter at the Roofed Mile anchor, not a spawn type: an ambush from above, lime and fire as the counters, a detour that costs a day |
+| In game (Godot) | One, in the Roofed Gallery in the yard's south-west corner (a stand-in for the Roofed Mile): it waits on the hillside wall and drops on whoever passes beneath; sidles round piers and the tipped handcart rather than rush; worries a shield it bites and can wrench it away; kept off by a lit torch held toward it; blinded by thrown quicklime (the handcart still holds two sacks), when it backs off home coughing and climbs back up. Not built: the drag, the cache between the piers, rearing at a climber. The body is the Ashbound stand-in, crouched and pale |
 
 ### What the orks fled
 
