@@ -88,6 +88,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F7:
 				_player.global_position = Vector3(-14.0, 0.0, -2.0)
 				_hud.show_banner("Teleported: the Spore Hollow (Ash-Spore Husks). Fire burns spores.", Color(0.72, 0.74, 0.52))
+			KEY_F8:
+				_player.global_position = Vector3(12.0, 0.0, 15.0)
+				_hud.show_banner("Teleported: the Drowned Graves (the Unnamed). The dead here were never named.", Color(0.66, 0.74, 0.80))
 			KEY_F6:
 				_player.global_position = Vector3(8.0, 0.0, -10.0)
 				_hud.show_banner("Teleported: the Old Quarry (Blind Quarry-Troll). Keep still.", Color(0.80, 0.70, 0.52))
@@ -446,6 +449,28 @@ func _spawn_all_archetype_encounters() -> void:
 		husk.audio = _audio
 		husk.coordinator = _coordinator
 		add_child(husk)
+
+	# The drowned burial ground in the south-east corner: three Unnamed, each risen beside its grave.
+	var graves: Array = [[Vector3(15.5, 0.0, 19.0), Vector3(16.8, 0.0, 17.6)], [Vector3(19.0, 0.0, 21.0), Vector3(19.6, 0.0, 19.4)],
+		[Vector3(13.0, 0.0, 22.0), Vector3(14.2, 0.0, 20.8)]]
+	for i: int in range(graves.size()):
+		var grave_pos: Vector3 = graves[i][0]
+		var grave := ActionPoint.make("Grave of the Unnamed", "Speak a name", "Speaking the name", EnemyUnnamed.NAME_SECONDS, 1.8, Callable())
+		grave.name = "UnnamedGrave"
+		grave.position = grave_pos
+		add_child(grave, true)
+		SetDressing.model(grave, "env009/exports/env_ruin_pillars_03_square_stump.glb", Vector3.ZERO, 20.0 + 70.0 * i, 0.55)
+		var unnamed := EnemyUnnamed.new()
+		unnamed.position = graves[i][1]
+		unnamed.player_ref = _player
+		unnamed.audio = _audio
+		unnamed.coordinator = _coordinator
+		add_child(unnamed)
+		unnamed.bind_grave(grave)
+		unnamed.unnamed_event_banner.connect(func(txt: String, col: Color) -> void:
+			if _hud:
+				_hud.show_banner(txt, col)
+		)
 
 	var troll := EnemyQuarryTroll.new()
 	troll.position = Vector3(15.5, 0.0, -14.5)

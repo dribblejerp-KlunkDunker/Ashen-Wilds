@@ -89,7 +89,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -116,6 +116,7 @@ func _run() -> void:
 	await _test_companions()
 	await _test_quarry_troll()
 	await _test_spore_husks()
+	await _test_unnamed()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1268,6 +1269,7 @@ func _test_enemy_models() -> void:
 		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Push", &"Sprint", &"Hit_Knockback", &"Hit_Head", &"Death01"],
 		EnemyQuarryTroll: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Death01"],
 		EnemySporeHusk: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Melee_Hook", &"Hit_Chest", &"Death01"],
+		EnemyUnnamed: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Punch_Cross", &"Hit_Chest", &"Death01", &"LayToIdle"],
 	}
 	for cls: Variant in needed.keys():
 		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
@@ -2687,6 +2689,124 @@ func _test_spore_husks() -> void:
 	_check(h2.state == EnemySporeHusk.AIState.IDLE and not h2._hitbox._is_swing_active, "the survivor dead, a husk stands down")
 	h2.queue_free()
 	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Bestiary: the Unnamed rise again until their name is spoken at their grave.
+# ------------------------------------------------------------------------------
+## A live Unnamed at OGRE_YARD with its own grave 3 m off; the survivor `offset` from it.
+func _spawn_test_unnamed(offset: Vector3) -> EnemyUnnamed:
+	_reset_player(OGRE_YARD + offset)
+	var grave := ActionPoint.make("Grave of the Unnamed", "Speak a name", "Speaking the name", EnemyUnnamed.NAME_SECONDS, 1.8, Callable())
+	grave.name = "TestGrave"
+	_main.add_child(grave, true)
+	grave.global_position = OGRE_YARD + Vector3(0.0, 0.0, 3.0)
+	var u := EnemyUnnamed.new()
+	u.audio = _player.audio
+	u.player_ref = _player
+	_main.add_child(u)
+	u.global_position = OGRE_YARD
+	u._home_pos = OGRE_YARD
+	u.bind_grave(grave)
+	await _ticks(2)
+	return u
+
+func _test_unnamed() -> void:
+	_section("Bestiary: the Unnamed")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyUnnamed)
+	var level_graves: Array = _children_of(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Grave of the Unnamed")
+	_check(level.size() == 3 and level_graves.size() == 3 and level.all(func(u: EnemyUnnamed) -> bool: return u.grave != null and u.global_position.x > 12.0 and u.global_position.z > 16.0),
+		"three Unnamed in the south-east burial ground, each bound to its own grave")
+	_check((level_graves[0] as Lootable).get_prompt().begins_with("[E] Speak a name"), "a grave's prompt: [E] Speak a name")
+
+	# Cut down, it falls (not dead to the world: walkable, unhittable) and rises whole.
+	var u: EnemyUnnamed = await _spawn_test_unnamed(Vector3(-5.0, 0.0, 0.0))
+	_check(is_equal_approx(u.aggression, 0.5) and is_equal_approx(u.grave_leash(), 14.0), "unnamed temperament: aggression 0.5, strays 14 m from its grave")
+	u._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	_check(u.state == EnemyUnnamed.AIState.FALLEN and u.is_dead() and not u.is_at_rest() and u.collision_layer == 0,
+		"cut down, it falls: down, walkable over, but not at rest")
+	_check(_main.find_children("CorpseLoot", "", true, false).filter(func(n: Node) -> bool: return n.get_parent() == u).is_empty(),
+		"a fallen Unnamed leaves no corpse to search (it is not finished)")
+	u._state_timer = 0.05
+	await _ticks(4)
+	_check(u.state == EnemyUnnamed.AIState.RISING and is_equal_approx(u.health, u.max_health) and u.times_risen == 1, "after its time it rises, whole")
+	_check(u._model.current_animation() == &"LayToIdle", "getting up plays the rise from the ground")
+	await _seconds(EnemyUnnamed.RISE_ANIM_SECONDS + 0.1)
+	_check(not u.is_dead() and u.collision_layer == 4, "and stands, hittable again")
+
+	# Its name spoken at its grave while it lies: it stays down, and the grave's prompt goes.
+	u._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	var grave: ActionPoint = u.grave
+	_player.global_position = grave.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 0.05, grave)
+	await _seconds(0.2)
+	_check(u.is_at_rest() and u.grave == null and not is_instance_valid(grave) or (u.is_at_rest() and grave.is_queued_for_deletion()),
+		"naming it at its grave (through the survivor's own channel) lays it to rest; the grave's prompt goes")
+	await _ticks(2)
+	var rest_corpse: Array = u.get_children().filter(func(n: Node) -> bool: return n is Lootable)
+	_check(rest_corpse.size() == 1 and (rest_corpse[0] as Lootable).display_name.ends_with("at rest"), "laid to rest, it leaves a body to search")
+	u._state_timer = 0.0
+	await _seconds(0.3)
+	_check(u.is_at_rest(), "and it does not rise again")
+	u.queue_free()
+	await _ticks(2)
+
+	# Named where it stands, unseen: it lies down for good.
+	u = await _spawn_test_unnamed(Vector3(-6.0, 0.0, 0.0))
+	u.grave.on_search_complete(_player)
+	_check(u.is_at_rest(), "named where it stands, it lies down for good")
+	u.queue_free()
+	await _ticks(2)
+
+	# It hunts: sees in a cone, grabs, and a blow during the naming cancels it.
+	u = await _spawn_test_unnamed(Vector3(-6.0, 0.0, 0.0))
+	u._facing_dir = Vector3.RIGHT
+	_check(not u.sees_player(), "looking away, it does not see a survivor 6 m behind it")
+	u._facing_dir = Vector3.LEFT
+	_check(u.sees_player(), "facing them, it does")
+	_player.global_position = OGRE_YARD + Vector3(-1.2, 0.0, 0.0)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var hp: float = _player.health
+	u.state = EnemyUnnamed.AIState.GRAB_STARTUP
+	u._state_timer = 0.0
+	await _ticks(4)
+	_check(absf((hp - _player.health) - EnemyUnnamed.GRAB_DAMAGE) < 0.5, "its grab does %.0f" % EnemyUnnamed.GRAB_DAMAGE)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.global_position = u.grave.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, EnemyUnnamed.NAME_SECONDS, u.grave)
+	_player._on_hurtbox_hit_received(CombatPayload.new(u, u.global_position, Vector3.RIGHT, 5.0, 1.0))
+	await _ticks(2)
+	_check(_player.current_state != PlayerController.ActionState.CHANNEL and not u.is_at_rest(), "a blow during the naming breaks it off")
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Leashed to its grave; stands down when the survivor dies.
+	u.global_position = OGRE_YARD + Vector3(u.grave_leash() + 1.0, 0.0, 0.0)
+	u._memory = 5.0
+	u.state = EnemyUnnamed.AIState.SHAMBLE
+	await _ticks(2)
+	_check(u.state == EnemyUnnamed.AIState.RETURN_HOME, "strayed past its leash, it turns back to its grave")
+	u.global_position = OGRE_YARD
+	u.state = EnemyUnnamed.AIState.GRAB_STARTUP
+	u._state_timer = 0.5
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(u.state in [EnemyUnnamed.AIState.RETURN_HOME, EnemyUnnamed.AIState.IDLE] and not u._hitbox._is_swing_active and u._memory == 0.0,
+		"the survivor dead, it drops its grab and forgets them (state=%s)" % EnemyUnnamed.AIState.keys()[u.state])
+	if is_instance_valid(u.grave):
+		u.grave.queue_free()
+	u.queue_free()
+	for n: Node in _main.find_children("TestGrave*", "", false, false):
+		n.queue_free()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)

@@ -27,6 +27,8 @@ const TYPES: Dictionary = {
 	"troll": [2.6, 1.55, Color(0.62, 0.66, 0.70), Color(0.62, 0.60, 0.56)],
 	# An Ash-Spore Husk: a gaunt corpse, skin gone the grey-green of the spores in it.
 	"husk": [1.78, 0.9, Color(0.66, 0.70, 0.58), Color(0.55, 0.52, 0.48)],
+	# The Unnamed: the drowned dead, skin gone the blue-white of fen water, rags black with it.
+	"unnamed": [1.76, 0.92, Color(0.66, 0.74, 0.80), Color(0.40, 0.44, 0.46)],
 	# A human in plain clothes (the companion): warm skin, undyed cloth, the hood like everyone's.
 	"companion": [1.72, 1.0, Color(0.96, 0.84, 0.74), Color(0.84, 0.80, 0.72)],
 }
