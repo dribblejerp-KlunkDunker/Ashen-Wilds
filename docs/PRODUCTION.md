@@ -157,6 +157,58 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Bestiary 4 — the Gallery Dragger: evidence (brief §24)
+
+**What.** The owner chose "more bestiary" (2026-11-05) after Bestiary 3. No bestiary list exists in
+either repository, so the creature comes from the one beast the worldbuilding describes: the thing in
+the Roofed Mile story (grim-dark-ashen-wilds-, docs/worldbuilding/roofed-mile-third-arch.md; the Bell
+Road's Roofed Mile is "an old avalanche gallery with carcasses dragged between its supports",
+blackfen-roads-and-towns.md). The worldbuilding index says that beast is "unidentified, not a
+confirmed bestiary species": the Gallery Dragger is this project's proposal for it, and its name is
+ours. Everything it does is taken from the story:
+- **It drops from above** ("in the narrow space where the roof met the hillside, a pale shape
+  shifted ... The thing dropped where he had been standing"). It waits on top of the Roofed
+  Gallery's hillside wall (south-west corner, new) and comes down on a survivor who passes beneath
+  and whom it can see over the lip; an orange ring marks the spot 0.7 s ahead (drop 26, heavy).
+- **It does not rush; it moves sideways round cover** ("It did not rush him. It lowered its head
+  and moved sideways until the cart no longer stood between them"). With stone between them it
+  sidles; it lunges and bites only down a clear line (bite 20, bleeds). Piers and the tipped
+  handcart in the passage are cover, as the pier and the cart were in the story.
+- **It worries what it bites** ("It snapped at the wheel, caught the wooden rim, and shook it hard
+  enough to wrench the handles from Pell's hands"). A bite caught on a shield clamps on: holding the
+  guard costs 40 stamina a second, and run dry, the shield is torn away and thrown down. Its head
+  is pinned there: a blow on it lands x1.5 and breaks its grip.
+- **It turns to a sound** ("She struck the pier three times. The animal turned toward the sound"):
+  it hears by the troll's table (now a static `EnemyQuarryTroll.survivor_noise_radius()`) at 0.8.
+- **Fire keeps it off** (the oil fire at the end): a lit torch held toward it within 4.2 m, longer
+  than its lunge, and it circles for a way round the flame instead of coming in.
+- It climbs back to its ledge when it has lost the survivor. F9 teleports to the gallery.
+- The passage between wall and piers is 3 m wide, so the existing cramped rule applies there: sword
+  sweeps clang off the stone (the HUD says so), and a fight in the gallery wants thrusts.
+- Not built: the lime that drove it off coughing, its dragging of carcasses, and rearing to reach a
+  climber. Proposed next, with the companion's view of it.
+- The body is the Ashbound stand-in, crouched and pale (no four-legged rig or clips exist in the
+  libraries); the drop, the landing and the climb use `NinjaJump_*` and `ClimbUp_1m`.
+
+**A test moved, honestly.** The troll's hearing tests listened from OGRE_YARD westward; the new
+gallery's wall now stands there and muffled the 16 m clang. They listen eastward now, across open
+ground; the troll is unchanged. The first test run also showed two real faults, fixed before
+committing: the floor counted as a wall and ended every lunge at once, and the torch held it at a
+distance its lunge could still cross.
+
+**Tests (run in this container, Godot 4.7.2).** `tests/smoke_test.gd`: 486 passed, 0 failures, twice
+(31 new: the level's Dragger on its ledge and the gallery's containers; unnoticed beyond the piers;
+the ring under the ledge; the drop's damage and stagger; stepping out of the ring; sidling round a
+pier and not lunging through it; the bite in the open; the worry costing stamina, the shield torn
+away and thrown down, and the blow that breaks its grip; the torch keeping it off and not when turned
+away; its hearing reach; climbing back; standing down; the carcass; the model, clip and facing
+checks every enemy gets). Kit suites, live boot and `tools/net_spike.py` clean. A new README
+screenshot of the drop (the other shots are still the 4.3 renders).
+
+**Not covered by headless tests.** Whether the 0.7 s ring is enough to step out of on a real
+screen, whether the worry reads (the banner explains it once), whether circling at 3.8 m round a
+torch feels like a beast or a bug, and how dark the gallery is at default brightness.
+
 ## Engine upgrade — Godot 4.3-stable to 4.7.2-stable: evidence (decision P2)
 
 **Why.** The owner asked for it (2026-11-04) after a trial on a copy of the repository showed it

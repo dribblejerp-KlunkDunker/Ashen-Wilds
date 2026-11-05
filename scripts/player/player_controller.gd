@@ -378,6 +378,31 @@ func choke(seconds: float, dps: float) -> void:
 func is_choking() -> bool:
 	return _choke_timer > 0.0
 
+## A beast worrying the survivor's guard (the Gallery Dragger) shakes the stamina out of them.
+func drain_stamina(amount: float) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_consume_stamina(amount)
+
+func has_ready_shield() -> bool:
+	return _has_ready_shield()
+
+## Something has torn the off-hand item (a shield, a torch) out of the survivor's grip: it lands on
+## the ground at `land_at`, to be picked up again, and the jolt staggers them. Returns the item's
+## name, or "" when the off hand was empty.
+func wrench_off_hand(land_at: Vector3) -> String:
+	var held: ItemInstance = inventory.off_hand
+	if held == null or current_state == ActionState.DEAD:
+		return ""
+	var removed: ItemInstance = inventory.remove(held)
+	Lootable.spawn_ground_pile(get_parent(), Vector3(land_at.x, global_position.y, land_at.z), removed)
+	current_state = ActionState.STAGGER
+	_state_timer = 0.5
+	if camera_rig:
+		camera_rig.add_trauma(0.45)
+	combat_banner_message.emit("It wrenches the %s out of your grip!" % removed.data.display_name, Color(0.92, 0.42, 0.22))
+	return removed.data.display_name
+
 ## Where the survivor faces (flat, unit length). Enemies read it to find an exposed back.
 func get_aim_direction() -> Vector3:
 	return _aim_direction

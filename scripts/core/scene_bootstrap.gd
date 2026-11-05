@@ -49,6 +49,12 @@ func _ready() -> void:
 	# The cart in the Spore Hollow: a fresh torch, for the one thing the spores fear.
 	_spawn_container("Spore-Choked Cart", Vector3(-22.5, 0.0, -1.5), Vector3(1.4, 0.6, 0.9), Color(0.36, 0.34, 0.26), 3.0,
 		[ItemDatabase.make("pitch_torch", 1), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)])
+	# The Roofed Gallery: a handcart tipped across the passage (cover, as it was on the Roofed Mile),
+	# and at the dead end the pack of someone it dragged there.
+	_spawn_container("Overturned Handcart", Vector3(-22.2, 0.0, 17.2), Vector3(0.9, 0.6, 1.4), Color(0.36, 0.30, 0.24), 2.0,
+		[ItemDatabase.make("timber", 1), ItemDatabase.make("iron_scrap", 2)])
+	_spawn_container("Wayfarer's Pack", Vector3(-22.6, 0.0, 23.6), Vector3(0.6, 0.4, 0.5), Color(0.34, 0.30, 0.24), 2.5,
+		[ItemDatabase.make("lamp_oil", 2), ItemDatabase.make("clean_rag_bandage", 2), ItemDatabase.make("salt", 1)])
 
 	add_child(VisionConeOverlay.new(_player))
 	add_child(Vignette.new())
@@ -91,6 +97,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F8:
 				_player.global_position = Vector3(12.0, 0.0, 15.0)
 				_hud.show_banner("Teleported: the Drowned Graves (the Unnamed). The dead here were never named.", Color(0.66, 0.74, 0.80))
+			KEY_F9:
+				_player.global_position = Vector3(-17.0, 0.0, 16.0)
+				_hud.show_banner("Teleported: the Roofed Gallery (the Gallery Dragger). Watch the ledges.", Color(0.86, 0.80, 0.68))
 			KEY_F6:
 				_player.global_position = Vector3(8.0, 0.0, -10.0)
 				_hud.show_banner("Teleported: the Old Quarry (Blind Quarry-Troll). Keep still.", Color(0.80, 0.70, 0.52))
@@ -275,6 +284,21 @@ func _build_blackfen_test_yard() -> void:
 
 	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false, "stone")
 	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false, "stone")
+	_build_roofed_gallery(cutaway_shader, stone_col)
+
+## The Gallery Dragger's ledge: the top of the gallery's hillside wall, over the middle of the passage.
+const GALLERY_PERCH: Vector3 = Vector3(-24.0, 3.2, 19.0)
+
+## The Roofed Gallery, south-west: what is left of an avalanche gallery like the Bell Road's Roofed
+## Mile. The hillside's retaining wall at the back (its top is the Dragger's ledge), a row of piers on
+## the open side, and the lintel that once carried the roof. The passage between is 3 m wide.
+func _build_roofed_gallery(shader: Shader, col: Color) -> void:
+	_create_static_box(Vector3(-24.0, 1.6, 19.0), Vector3(1.2, 3.2, 11.0), col, shader, false, false, "dark_stone")
+	# The piers stand between the camera and the passage: cut away, or they hide it.
+	for z: float in [14.5, 17.5, 20.5, 23.5]:
+		_create_static_box(Vector3(-19.8, 1.5, z), Vector3(0.9, 3.0, 0.9), col, shader, true, false, "stone")
+	# Above every ray and every head.
+	_create_static_box(Vector3(-19.8, 3.15, 19.0), Vector3(0.7, 0.3, 9.9), col, shader, true, false, "stone")
 
 ## The shelter fire's visible fire: a glowing ember bed and three charred logs on the stone ring.
 ## Decoration only (no collision; the ring under it is the obstacle). The light stays separate.
@@ -487,6 +511,22 @@ func _spawn_all_archetype_encounters() -> void:
 			_camera_rig.add_trauma(trauma)
 	)
 
+	# The Roofed Gallery in the south-west corner: the Dragger waits on the wall over the passage.
+	var dragger := EnemyGalleryDragger.new()
+	dragger.set_perch(GALLERY_PERCH, Vector3(1.0, 0.0, 0.0))
+	dragger.player_ref = _player
+	dragger.audio = _audio
+	dragger.coordinator = _coordinator
+	add_child(dragger)
+	dragger.dragger_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+	dragger.dragger_landing_shock.connect(func(trauma: float) -> void:
+		if _camera_rig:
+			_camera_rig.add_trauma(trauma)
+	)
+
 ## The survivor heard something they cannot see (Perception): a soft cue, and now and then a
 ## reminder that the rings on the ground are where the sound came from.
 ## The start screen. The world is built and paused behind it; headless runs (the suite, CI) skip
@@ -555,6 +595,8 @@ const CONTAINER_MODELS: Dictionary = {
 	"Ork Plunder Pile": ["env007/exports/env_crate_v08_open_top.glb", Color(0.75, 0.72, 0.68)],
 	"Gnawed Bone Heap": ["env008/exports/env_ground_11_twigs_dense.glb", Color(1.6, 1.5, 1.3)],
 	"Spore-Choked Cart": ["env007/exports/env_crate_v08_open_top.glb", Color(0.72, 0.76, 0.6)],
+	"Overturned Handcart": ["env007/exports/env_crate_v08_open_top.glb", Color(0.66, 0.62, 0.56)],
+	"Wayfarer's Pack": ["env007/exports/env_crate_v12_wide_low.glb", Color(0.62, 0.56, 0.48)],
 }
 
 ## Crates and chests are weathered planks; heaps keep a flat colour.

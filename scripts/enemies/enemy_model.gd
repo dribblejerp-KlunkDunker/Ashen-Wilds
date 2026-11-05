@@ -29,6 +29,8 @@ const TYPES: Dictionary = {
 	"husk": [1.78, 0.9, Color(0.66, 0.70, 0.58), Color(0.55, 0.52, 0.48)],
 	# The Unnamed: the drowned dead, skin gone the blue-white of fen water, rags black with it.
 	"unnamed": [1.76, 0.92, Color(0.66, 0.74, 0.80), Color(0.40, 0.44, 0.46)],
+	# The Gallery Dragger: hairless and pale as tallow, heavy through the shoulders, always crouched.
+	"dragger": [1.74, 1.2, Color(0.86, 0.82, 0.74), Color(0.42, 0.38, 0.34)],
 	# A human in plain clothes (the companion): warm skin, undyed cloth, the hood like everyone's.
 	"companion": [1.72, 1.0, Color(0.96, 0.84, 0.74), Color(0.84, 0.80, 0.72)],
 }

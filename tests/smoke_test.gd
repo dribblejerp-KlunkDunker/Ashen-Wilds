@@ -89,7 +89,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryDragger):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -117,6 +117,7 @@ func _run() -> void:
 	await _test_quarry_troll()
 	await _test_spore_husks()
 	await _test_unnamed()
+	await _test_gallery_dragger()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1270,6 +1271,7 @@ func _test_enemy_models() -> void:
 		EnemyQuarryTroll: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Death01"],
 		EnemySporeHusk: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Melee_Hook", &"Hit_Chest", &"Death01"],
 		EnemyUnnamed: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Punch_Cross", &"Hit_Chest", &"Death01", &"LayToIdle"],
+		EnemyGalleryDragger: [&"Crouch_Idle", &"Crouch_Fwd", &"NinjaJump_Start", &"NinjaJump_Idle", &"NinjaJump_Land", &"Sword_Dash", &"Zombie_Scratch", &"Hit_Knockback", &"ClimbUp_1m", &"Death01"],
 	}
 	for cls: Variant in needed.keys():
 		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
@@ -2424,7 +2426,8 @@ func _test_quarry_troll() -> void:
 	var sense := func(state: PlayerController.ActionState, dist: float) -> bool:
 		t.has_heard = false
 		t.state = EnemyQuarryTroll.AIState.LISTEN
-		_player.global_position = OGRE_YARD + Vector3(-dist, 0.0, 0.0)
+		# East of it: the open ground (west is the Roofed Gallery's stone since Bestiary 4).
+		_player.global_position = OGRE_YARD + Vector3(dist, 0.0, 0.0)
 		_player.current_state = state
 		t._listen(1.0 / 60.0)
 		_player.current_state = PlayerController.ActionState.IDLE
@@ -2435,7 +2438,7 @@ func _test_quarry_troll() -> void:
 	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and not sense.call(PlayerController.ActionState.SPRINT, 16.0), "a sprint carries 14 m")
 	_check(sense.call(PlayerController.ActionState.RECOIL, 15.0), "a sword clanging off stone carries 16 m")
 	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and t.state == EnemyQuarryTroll.AIState.INVESTIGATE
-		and t.heard_pos.distance_to(OGRE_YARD + Vector3(-10.0, 0.0, 0.0)) < 0.1, "hearing sends it to where the sound was")
+		and t.heard_pos.distance_to(OGRE_YARD + Vector3(10.0, 0.0, 0.0)) < 0.1, "hearing sends it to where the sound was")
 	# The survivor's noise multiplier reaches it: weather, background, armour.
 	w.set_condition(Weather.Condition.DEAD_CALM, true)
 	_check(sense.call(PlayerController.ActionState.MOVE, 8.0), "dead calm: a walk 8 m away is heard (6 x 1.6)")
@@ -2451,7 +2454,7 @@ func _test_quarry_troll() -> void:
 	_check(sense.call(PlayerController.ActionState.MOVE, 7.0), "mail clinks: a walk 7 m away is heard (6 x 1.25)")
 	_player.inventory.remove(mail)
 	# Stone muffles.
-	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(-4.0, 1.25, 0.0), Vector3(0.4, 2.5, 6.0))
+	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.25, 0.0), Vector3(0.4, 2.5, 6.0))
 	await _ticks(1)
 	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "through stone, a sprint 10 m away is muffled (14 x 0.55)")
 	wall.queue_free()
@@ -2807,6 +2810,227 @@ func _test_unnamed() -> void:
 	u.queue_free()
 	for n: Node in _main.find_children("TestGrave*", "", false, false):
 		n.queue_free()
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Bestiary: the Gallery Dragger drops from its ledge, flanks round stone, worries a guard, fears fire.
+# ------------------------------------------------------------------------------
+## A live Dragger. With `perch_z` it waits on the level gallery's wall at that z; without, it stands at
+## `at` on the ground. Either way it is blind to nothing and fights alone (no coordinator).
+func _spawn_test_dragger(at: Vector3, perch_z: float = INF) -> EnemyGalleryDragger:
+	var d := EnemyGalleryDragger.new()
+	d.audio = _player.audio
+	d.player_ref = _player
+	if perch_z != INF:
+		d.set_perch(Vector3(AshenWildsBootstrap.GALLERY_PERCH.x, AshenWildsBootstrap.GALLERY_PERCH.y, perch_z), Vector3.RIGHT)
+	_main.add_child(d)
+	if perch_z == INF:
+		d.global_position = at
+		d._home_pos = at
+	await _ticks(2)
+	return d
+
+func _test_gallery_dragger() -> void:
+	_section("Bestiary: the Gallery Dragger")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyGalleryDragger)
+	_check(level.size() == 1 and (level[0] as EnemyGalleryDragger).is_perched() and (level[0] as Node3D).global_position.y > 3.0
+		and (level[0] as Node3D).global_position.x < -23.0, "one Dragger waits on the Roofed Gallery's wall, up on its ledge")
+	var names: Array = _main.find_children("*", "", true, false).filter(func(n: Node) -> bool: return n is Lootable).map(func(l: Lootable) -> String: return l.display_name)
+	_check(names.has("Overturned Handcart") and names.has("Wayfarer's Pack"), "the gallery holds a tipped handcart and a dead wayfarer's pack")
+
+	# The ambush: nothing while the survivor keeps clear; under the ledge, a ring where it will land.
+	var d: EnemyGalleryDragger = await _spawn_test_dragger(Vector3.ZERO, 15.0)
+	_check(is_equal_approx(d.aggression, 0.5) and is_equal_approx(d.memory_seconds(), 7.0) and is_equal_approx(d.lunge_recovery(), EnemyGalleryDragger.LUNGE_RECOVERY),
+		"dragger temperament: aggression 0.5, keeps after a lost survivor 7 s")
+	_reset_player(Vector3(-17.0, 0.0, 15.0))
+	await _ticks(10)
+	_check(d.state == EnemyGalleryDragger.AIState.PERCHED, "beyond the piers the survivor passes unnoticed by the thing on the wall")
+	_reset_player(Vector3(-22.0, 0.0, 15.2))
+	_face(Vector3.RIGHT)
+	var hp: float = _player.health
+	await _ticks(3)
+	_check(d.state == EnemyGalleryDragger.AIState.TELL and d._drop_ring.visible
+		and d._drop_ring.global_position.distance_to(Vector3(-22.0, 0.05, 15.2)) < 0.3, "passing beneath its ledge, a ring marks where it will come down")
+	await _seconds(EnemyGalleryDragger.DROP_TELL + EnemyGalleryDragger.DROP_FLIGHT + 0.15)
+	_check(hp - _player.health > EnemyGalleryDragger.DROP_DAMAGE * 0.7 and _player.current_state == PlayerController.ActionState.STAGGER,
+		"standing in the ring, it lands on the survivor: %.0f and a stagger" % (hp - _player.health))
+	_check(not d.is_perched() and d.global_position.y < 0.5 and d.state in [EnemyGalleryDragger.AIState.RECOVERY, EnemyGalleryDragger.AIState.STALK],
+		"and it is down in the passage now")
+	d.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	d = await _spawn_test_dragger(Vector3.ZERO, 15.0)
+	_reset_player(Vector3(-22.0, 0.0, 15.2))
+	await _ticks(3)
+	hp = _player.health
+	_player.global_position = Vector3(-21.0, 0.0, 12.6)
+	await _seconds(EnemyGalleryDragger.DROP_TELL + EnemyGalleryDragger.DROP_FLIGHT + 0.15)
+	_check(is_equal_approx(_player.health, hp), "stepping back out of the ring, it comes down on nothing")
+	d.queue_free()
+	await _ticks(2)
+
+	# With a pier between them it does not lunge: it moves sideways until the stone is out of the way.
+	d = await _spawn_test_dragger(Vector3(-21.8, 0.0, 20.5))
+	_reset_player(Vector3(-17.8, 0.0, 20.5))
+	_check(not d.line_clear_to_player(), "(setup) a pier stands between it and the survivor")
+	d._facing_dir = Vector3.RIGHT
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryDragger.AIState.STALK
+	await _seconds(0.3)
+	_check(d.state == EnemyGalleryDragger.AIState.STALK and absf(d.global_position.z - 20.5) > 0.3, "stone between them, it sidles instead of lunging")
+	await _seconds(1.2)
+	_check(d.line_clear_to_player() or d.state != EnemyGalleryDragger.AIState.STALK, "until the pier no longer stands between them")
+	d.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# In the open: it lunges and bites (a bleeding bite).
+	var inv: Inventory = _player.inventory
+	_equip_now("arming_sword")
+	var targe: ItemInstance = _equip_now("wooden_targe")
+	d = await _spawn_test_dragger(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(2.4, 0.0, 0.0))
+	_face(Vector3.LEFT)
+	d._facing_dir = Vector3.RIGHT
+	_check(d.sees_player() and d.line_clear_to_player(), "(setup) in the open it sees the survivor, nothing between them")
+	hp = _player.health
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryDragger.AIState.STALK
+	await _seconds(EnemyGalleryDragger.LUNGE_STARTUP + EnemyGalleryDragger.LUNGE_ACTIVE + 0.15)
+	_check(hp - _player.health > EnemyGalleryDragger.BITE_DAMAGE * 0.7, "in the open it lunges and bites: %.0f" % (hp - _player.health))
+	d.queue_free()
+	_player.is_bleeding = false
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# A bite caught on a shield becomes a worry: held, it bleeds stamina; empty, the shield is gone.
+	d = await _spawn_test_dragger(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(1.6, 0.0, 0.0))
+	_equip_now("arming_sword")
+	targe = _equip_now("wooden_targe")
+	_check(_player.has_ready_shield(), "(setup) the targe is ready")
+	Input.action_press("block")
+	await _ticks(3)
+	_face(Vector3.LEFT)
+	d._facing_dir = Vector3.RIGHT
+	d._memory = 5.0
+	d.state = EnemyGalleryDragger.AIState.LUNGE_STARTUP
+	d._state_timer = 0.0
+	await _ticks(4)
+	_check(d.state == EnemyGalleryDragger.AIState.WORRY, "its bite caught on the targe, it clamps on and worries it (state=%s)" % EnemyGalleryDragger.AIState.keys()[d.state])
+	var stam: float = _player.stamina
+	await _seconds(0.5)
+	_check(stam - _player.stamina > EnemyGalleryDragger.WORRY_STAMINA_PER_SECOND * 0.3, "holding the guard while it shakes costs stamina (%.0f in 0.5 s)" % (stam - _player.stamina))
+	_player.stamina = 1.0
+	await _ticks(4)
+	var piles: Array = _children_of(func(n: Node) -> bool: return n is Lootable and (n as Lootable).display_name == "Dropped " + targe.data.display_name)
+	_check(inv.off_hand == null and not inv.items.has(targe) and piles.size() == 1, "shaken empty, the targe is wrenched off the survivor's arm and thrown down")
+	_check(d.state == EnemyGalleryDragger.AIState.RECOVERY and d._worry_victim == null, "and it lets go")
+	Input.action_release("block")
+	for pile: Node in piles:
+		pile.queue_free()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.stamina = _player.max_stamina
+	_player.is_exhausted = false
+	await _ticks(2)
+
+	# Struck while it worries, the blow lands hard and breaks its grip.
+	targe = _equip_now("wooden_targe")
+	d._memory = 5.0
+	d._worry_victim = _player
+	d.state = EnemyGalleryDragger.AIState.WORRY
+	d._state_timer = EnemyGalleryDragger.WORRY_SECONDS
+	var dhp: float = d.health
+	d._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.LEFT, 10.0, 1.0))
+	await _ticks(2)
+	_check(absf((dhp - d.health) - 10.0 * EnemyGalleryDragger.WORRY_EXPOSED_MULT) < 0.01 and d.state == EnemyGalleryDragger.AIState.STAGGER and d._worry_victim == null,
+		"struck while it worries: x%.1f, and it lets go, staggered" % EnemyGalleryDragger.WORRY_EXPOSED_MULT)
+	d.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# A lit torch held toward it keeps it off; turned away, it does not.
+	d = await _spawn_test_dragger(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(2.4, 0.0, 0.0))
+	_equip_now("arming_sword")
+	_equip_now("pitch_torch")
+	await _ticks(2)
+	_face(Vector3.LEFT)
+	_check(_player.is_torch_lit() and d.torch_keeps_it_off(), "a lit torch held toward it keeps it off")
+	d._facing_dir = Vector3.RIGHT
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryDragger.AIState.STALK
+	hp = _player.health
+	await _seconds(1.0)
+	_check(is_equal_approx(_player.health, hp) and d.state in [EnemyGalleryDragger.AIState.WARY, EnemyGalleryDragger.AIState.STALK]
+		and d.global_position.distance_to(_player.global_position) > EnemyGalleryDragger.LUNGE_RANGE,
+		"faced with the flame it will not come in: it circles, out of reach")
+	_face(Vector3.RIGHT)
+	await _ticks(1)
+	_check(not d.torch_keeps_it_off(), "with the torch turned away from it, nothing keeps it off")
+	d.queue_free()
+	_equip_now("wooden_targe")
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# It hears by the troll's table: a sprint carries, standing still does not, stone muffles.
+	d = await _spawn_test_dragger(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(6.0, 0.0, 0.0))
+	_player.current_state = PlayerController.ActionState.SPRINT
+	var reach: float = d.hears_player_at()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(absf(reach - EnemyQuarryTroll.HEARING["sprint"] * EnemyGalleryDragger.HEARING_MULT * _player.get_noise_multiplier()) < 0.01 and is_equal_approx(d.hears_player_at(), 0.0),
+		"it hears a sprint at %.1f m and a survivor standing still not at all" % reach)
+	d._facing_dir = Vector3.LEFT
+	d.state = EnemyGalleryDragger.AIState.IDLE
+	_player.current_state = PlayerController.ActionState.SPRINT
+	d._sense(0.016)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(d.state == EnemyGalleryDragger.AIState.STALK and d._memory > 0.0, "a sprint behind it, unseen, and it turns to the sound")
+
+	# Lost, it goes home and climbs back up to its ledge.
+	d.queue_free()
+	await _ticks(2)
+	d = await _spawn_test_dragger(Vector3.ZERO, 21.0)
+	_reset_player(OPEN)
+	d.global_position = d.foot_pos() + Vector3(0.0, 0.0, 0.0)
+	d._memory = 0.0
+	d.state = EnemyGalleryDragger.AIState.RETURN_HOME
+	await _ticks(3)
+	_check(d.state == EnemyGalleryDragger.AIState.CLIMB, "back at the foot of its wall, it climbs")
+	await _seconds(EnemyGalleryDragger.CLIMB_SECONDS + 0.2)
+	_check(d.state == EnemyGalleryDragger.AIState.PERCHED and d.global_position.distance_to(d.perch_pos) < 0.1, "and waits on its ledge again")
+
+	# The survivor dead: it drops its lunge and goes home.
+	d.global_position = d.foot_pos() + Vector3(2.0, 0.0, 0.0)
+	d.state = EnemyGalleryDragger.AIState.LUNGE_STARTUP
+	d._state_timer = 0.5
+	d._memory = 5.0
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(d.state in [EnemyGalleryDragger.AIState.RETURN_HOME, EnemyGalleryDragger.AIState.CLIMB] and not d._bite_hitbox._is_swing_active and d._memory == 0.0,
+		"the survivor dead, it drops its lunge and goes home (state=%s)" % EnemyGalleryDragger.AIState.keys()[d.state])
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# Killed, it leaves a carcass to search.
+	d.global_position = OGRE_YARD
+	d.state = EnemyGalleryDragger.AIState.STALK
+	d._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	var carcass: Array = d.get_children().filter(func(n: Node) -> bool: return n is Lootable)
+	_check(d.is_dead() and d.collision_layer == 0 and carcass.size() == 1 and (carcass[0] as Lootable).display_name.ends_with("carcass"),
+		"killed, it leaves a carcass to search")
+	d.queue_free()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
