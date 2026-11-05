@@ -11,11 +11,12 @@ extends MeshInstance3D
 ## from the rendering method. Presentation only: it follows `Perception`, it decides nothing.
 
 const COLOR_CHARCOAL: Color = Color(0.05, 0.05, 0.065)
-## The Compatibility renderer (the browser) hands the shader its screen sample in linear light and
-## writes the output without tonemapping, so the charcoal is gamma-encoded there. 0.6 was measured:
-## it puts the charcoal at 43% of the lit level in headless Chromium, against 44% on Forward+
-## (a plain 1/2.2 gave 85%, no encoding gave black). Forward+ encodes it itself (1.0).
-const COMPATIBILITY_OUTPUT_GAMMA: float = 0.6
+## The Compatibility renderer (the browser) needs a small lift on the charcoal; Forward+ needs none
+## (1.0). Measured on Godot 4.7.2: 0.9 leaves the ground outside the cone at 41% of its unshaded
+## level on the desktop Compatibility renderer, as 4.3 did with its own value (0.6, which 4.7.2 turns
+## into a washed-out 98%: its Compatibility renderer now encodes this material's output itself;
+## 1.0 gives 28%). Headless Chromium shows the same charcoal as 4.3's browser build.
+const COMPATIBILITY_OUTPUT_GAMMA: float = 0.9
 
 var follow: PlayerController
 var _mat: ShaderMaterial

@@ -18,7 +18,7 @@ The generator writes two real GLBs under assets/environment/env001/models. It ch
 - Meters, Y-up, ground-centered origin.
 - Five used material groups each; solid-color materials, no UVs or image textures.
 
-After generation, import with the project's Godot 4.3-stable setup. The generated GLBs are not committed by this source-only change. No courtyard integration, collision wrappers, inventory behavior or multiplayer changes are included.
+After generation, import with the project's Godot 4.7.2-stable setup. The generated GLBs are not committed by this source-only change. No courtyard integration, collision wrappers, inventory behavior or multiplayer changes are included.
 
 ## Status and provenance
 

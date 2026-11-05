@@ -1,11 +1,11 @@
 # Ashen Wilds
 
-**A grounded, isometric dark-survival action game built in Godot 4.3.**
+**A grounded, isometric dark-survival action game built in Godot 4.7.**
 Thirty years into the Smothering, you are a broken survivor scavenging the Blackfen Outskirts — every swing costs stamina, every gram in your pack is noise, and the dark belongs to things that don't need torches.
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.3-stable (Forward+) · **455/455** headless regression checks passing
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.7.2-stable (Forward+) · **455/455** headless regression checks passing
 > Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover. Nights are cold moonlight and low mist, with falling ash and warm, flickering firelight. The enemies are the Ashbound: hooded, ragged, grey-skinned figures (a hunched goblin, a shielded ork, a hulking ogre) on the same animation library.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
@@ -142,7 +142,7 @@ Act I (the current playable slice) is the **Blackfen Outskirts**: secure the rui
 
 ## Getting started
 
-**Requirements:** [Godot 4.3-stable](https://godotengine.org/download/archive/4.3-stable/) (standard build, not .NET). The project uses the Forward+ renderer, so you need a Vulkan-capable GPU.
+**Requirements:** [Godot 4.7.2-stable](https://godotengine.org/download/archive/4.7.2-stable/) (standard build, not .NET). The project uses the Forward+ renderer, so you need a Vulkan-capable GPU.
 
 ```bash
 git clone https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds.git
@@ -234,7 +234,7 @@ Next milestone not yet chosen. Candidates from the design document:
 
 - Placeholder visuals: the enemies are stand-in Ashbound bodies (Quaternius, CC0), the environment kit is a first pass, and the survivor is a stand-in (Quaternius, CC0); audio is synthesized at runtime.
 - No save system yet; your pack is kept when you respawn.
-- Only tested on Godot **4.3-stable**.
+- Only tested on Godot **4.7.2-stable**. Older versions cannot open the project.
 - The test suite checks game logic, not feel — swap times, light levels and UI layout still need hands-on tuning.
 
 ---

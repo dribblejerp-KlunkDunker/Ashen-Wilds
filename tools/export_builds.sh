@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Exports the internal test builds (appendix §57, §90, §91) and writes builds/BUILD_INFO.txt.
 #
-# Needs: Godot 4.3-stable at $GODOT (default ~/godot/Godot_v4.3-stable_linux.x86_64) and its export
-# templates installed at ~/.local/share/godot/export_templates/4.3.stable (the .tpz from the same
-# release, unzipped, its `templates` folder renamed to `4.3.stable`). docs/PRODUCTION.md has the
+# Needs: Godot 4.7.2-stable at $GODOT (default ~/godot/Godot_v4.7.2-stable_linux.x86_64) and its export
+# templates installed at ~/.local/share/godot/export_templates/4.7.2.stable (the .tpz from the same
+# release, unzipped, its `templates` folder renamed to `4.7.2.stable`). docs/PRODUCTION.md has the
 # steps. Run from anywhere; outputs go to <repo>/builds/, which is git-ignored.
 #
 # A finished archive is not proof the build runs (§91): tools/net_spike.py --exported builds runs
 # the exported Linux server and client against each other on loopback.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-GODOT="${GODOT:-$HOME/godot/Godot_v4.3-stable_linux.x86_64}"
+GODOT="${GODOT:-$HOME/godot/Godot_v4.7.2-stable_linux.x86_64}"
 [ -x "$GODOT" ] || { echo "Godot not found at $GODOT (set GODOT)"; exit 2; }
-TEMPLATES="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/4.3.stable"
+TEMPLATES="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/4.7.2.stable"
 [ -f "$TEMPLATES/version.txt" ] || { echo "Export templates not installed at $TEMPLATES (run tools/get_export_templates.sh)"; exit 2; }
 
 COMMIT="$(git rev-parse --short HEAD)"
@@ -81,7 +81,7 @@ Grim Dark: Ashen Wilds — internal playtest build (not a release candidate)
 build id      $BUILD_ID
 protocol      $PROTOCOL  (server and client must match; a mismatch is refused with a message)
 source        $COMMIT  (git short SHA; -dirty means uncommitted changes were included)
-exported      $STAMP with Godot 4.3-stable export templates
+exported      $STAMP with Godot 4.7.2-stable export templates
 platforms     linux-client (x86_64), linux-arm64-client (ARM Chromebooks and ARM Linux; not run in this session),
               linux-server (x86_64, dedicated-server export), windows-client (x86_64, not run in this session),
               web (the single-player prototype only, for a browser; CI publishes it to GitHub Pages)
@@ -89,7 +89,7 @@ platforms     linux-client (x86_64), linux-arm64-client (ARM Chromebooks and ARM
 CHROMEBOOK
   Turn on Linux (Settings > About ChromeOS > Developers > Linux development environment), copy the
   linux-client folder (Intel/AMD Chromebook) or linux-arm64-client folder (ARM Chromebook; check
-  Settings > About ChromeOS > Additional details, or run `uname -m` in the Linux terminal: x86_64 or
+  Settings > About ChromeOS > Additional details, or run \`uname -m\` in the Linux terminal: x86_64 or
   aarch64) into "Linux files", then in the terminal:  cd <folder> && chmod +x * && ./play-here.sh
   The scripts use the OpenGL Compatibility renderer, which ChromeOS's Linux supports more widely.
   For a friend on another machine to join a server on the Chromebook, ChromeOS must forward UDP 7788
@@ -107,7 +107,7 @@ HOW TO PLAY TOGETHER (temporary rules P4/A1: one of you runs the server, the oth
 SAVES (server only)
   The server keeps the world in ashen_world.json in Godot's user data folder (see Logs below) and
   writes it after every change and on shutdown. Choose another file with --save <path> after the
-  `--`. A save from a newer build is refused, never overwritten; if the save and its backup are
+  \`--\`. A save from a newer build is refused, never overwritten; if the save and its backup are
   both unreadable the server refuses to start until it is given --reset-world (which keeps the bad
   files aside). Save compatibility: schema 1, written by protocol-4 builds.
 

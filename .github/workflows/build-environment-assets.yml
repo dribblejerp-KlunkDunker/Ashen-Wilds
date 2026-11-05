@@ -63,16 +63,16 @@ jobs:
               print(f"ENV-{batch:03d}: {len(files)} GLB headers verified")
           PY
 
-      - name: Import and run both suites in isolated Godot 4.3
+      - name: Import and run both suites in isolated Godot 4.7.2
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/godot"
           curl --fail --location --retry 3 \
-            "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip" \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
             -o "$RUNNER_TEMP/godot.zip"
           unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-          engine="$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          engine="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
           chmod +x "$engine"
           "$engine" --version
           validation="$RUNNER_TEMP/ashen-asset-validation"

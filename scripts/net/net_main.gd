@@ -9,7 +9,7 @@ extends Node
 ## docs/PRODUCTION.md (§73). The server derives the acting player from the connection id, never
 ## from the payload (§74).
 ##
-## Run (from the project root, Godot 4.3-stable):
+## Run (from the project root, Godot 4.7.2-stable):
 ##   server:  godot --headless --path . net_main.tscn -- --server --port 7788
 ##   client:  godot --path . net_main.tscn -- --client --host 127.0.0.1 --port 7788 --player-key alice
 ## Test flags (--drive, --report, --quit-after, --shots, --max-players) exist for tools/net_spike.py.
