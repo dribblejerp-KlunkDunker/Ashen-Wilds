@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Expanded proposed profiles for the six members of [The Gutter Kin](gutter-kin.md), occupying the glasshouses of [Halwen House](halwen-house.md). See also [Occupation factions](halwen-house-occupation-factions.md). These are narrative proposals, not implemented NPC behavior or quest systems. No member has authoritative knowledge of the Vaults or the Smothering. Existing lore, assets, and development checkpoints are not modified.
+Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Expanded proposed profiles for the six members of [The Gutter Kin](gutter-kin.md), occupying the glasshouses of [Halwen House](halwen-house.md). See also [Occupation factions](halwen-house-occupation-factions.md). These are narrative proposals, not implemented NPC behavior or quest systems. No member has authoritative knowledge of the Vaults or the Smothering. Existing lore, assets, and development checkpoints are not modified. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ## The six beneath the workbench
 
@@ -18,7 +18,7 @@ The following profiles are proposed additions to their existing faction lore. Th
 
 ## Hesh Split-Lip — the leader who will not count a person as lost
 
-Hesh has a narrow face, one ear folded by an old injury, and a pale seam pulling the left side of his mouth out of shape.
+Hesh has a narrow, underfed face, one ear torn at the rim in a fight under the Roofed Mile, and a pale seam pulling the left side of his mouth out of shape.
 
 When he eats, he turns slightly away so spilled food is less visible.
 
@@ -28,7 +28,7 @@ When negotiating, he positions himself where he can see both the other person’
 
 Hesh did not defeat a rival or inherit command.
 
-During a winter retreat along the northern roads, he kept finding somewhere the group could stop: a dry culvert, a roofed stock pen, an abandoned charcoal shelter.
+During the winter retreat along the northern roads, after the Roofed Mile was lost, he kept finding somewhere the group could stop: a dry culvert, a roofed stock pen, an abandoned charcoal shelter.
 
 People began waiting for him to choose.
 
@@ -52,7 +52,7 @@ His present refusal to let Kett leave threatens to repeat the same confrontation
 
 ### How he speaks
 
-His understanding exceeds what human listeners often assume. His speech becomes more economical when his mouth hurts or he is speaking an unfamiliar language.
+His understanding exceeds what estate listeners assume of a gutter child grown up. His speech becomes more economical when his mouth hurts or he is speaking the careful, owning language of the house.
 
 He should not always speak in fragments. Among the Kin, he can be patient, sarcastic, and exhaustingly thorough.
 
@@ -94,7 +94,7 @@ She still tells people where to put things as though she could get up and move t
 
 ### Her place in the household
 
-Sere repaired equipment when the larger household was still together.
+Sere was already a grown woman when the children found her under the Roofed Mile. She repaired equipment when the larger household was still together, and taught most of the others to sort what they took.
 
 She remembers what certain possessions cost: the meal traded for a knife, the injury taken recovering a pot, the route lost while carrying too much.
 
@@ -148,11 +148,11 @@ He removes grit from his wrappings every evening. He checks routes in small sect
 
 When others are speaking, he often looks toward the last sound outside.
 
-This is not cowardice. He has spent much of his life being the first person expected to go and see.
+This is not cowardice. Since he was a child under the Mile, he has been the first person expected to go and see. He has the softest feet and the sharpest eyes of the six.
 
 ### What he contributes
 
-Kett can distinguish recent human activity from old damage:
+Kett can distinguish recent activity from old damage:
 
 - A shutter closed since yesterday.
 - A door dragged across fresh dust.
@@ -163,7 +163,7 @@ His reports are observations first. Trouble begins when he makes them sound more
 
 ### Why he wants to leave
 
-He does not believe the humans need to agree before the Kin can go.
+He does not believe the house needs to agree before the Kin can go.
 
 Every day spent waiting lets the Remnant learn more of the grounds.
 
@@ -199,7 +199,7 @@ Promises of safety mean little. A cleared path, an agreed meeting point, or a sh
 
 ## Brik — the carrier who wants to be asked
 
-Brik has a heavier chest and shoulders than the others. One thumb was broken long ago and never straightened properly.
+Brik has a heavier chest and shoulders than the others, though he is small for a grown man. One thumb was broken long ago and never straightened properly.
 
 He adjusts loads with unusual care.
 
@@ -275,7 +275,7 @@ That makes restitution awkward without making it impossible.
 
 ### Why she speaks so harshly about it
 
-She expects humans to treat any admission as permission to punish all six.
+She expects the house to treat any admission from gutter thieves as permission to punish all six.
 
 She therefore defends the taking more fiercely than she defends many things she actually believes.
 

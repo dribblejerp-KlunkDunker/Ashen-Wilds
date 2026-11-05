@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Proposed faction lore for the occupation phase of [Halwen House](halwen-house.md). Related documents: [Member profiles](gutter-kin-members.md), [Occupation factions](halwen-house-occupation-factions.md), [Garden Hands](garden-hands.md), [The Last Gardens](the-last-gardens.md), and [Private chapel](halwen-house-private-chapel.md). These are narrative and encounter proposals, not implemented NPC AI, schedules, quest systems, or finalized combat balance. Existing lore, assets, and development checkpoints are not modified. The separate detailed Halwen Remnant expansion is not archived by this file.
+Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Proposed faction lore for the occupation phase of [Halwen House](halwen-house.md). Related documents: [Member profiles](gutter-kin-members.md), [Occupation factions](halwen-house-occupation-factions.md), [Garden Hands](garden-hands.md), [The Last Gardens](the-last-gardens.md), and [Private chapel](halwen-house-private-chapel.md). These are narrative and encounter proposals, not implemented NPC AI, schedules, quest systems, or finalized combat balance. Existing lore, assets, and development checkpoints are not modified. The separate detailed Halwen Remnant expansion is not archived by this file. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 The Gutter Kin live in the part of Halwen House its former owners would have considered an outbuilding.
 
@@ -12,7 +12,7 @@ From the road, the range looks abandoned.
 
 Closer, you notice that the debris has been moved. Certain gaps remain clear. Loose metal has been placed where a careless foot will disturb it.
 
-The Kin’s first defense is **access**: they can enter spaces other people cannot, move between obstacles without exposing themselves, and make a pursuer choose between continuing and keeping their footing.
+The Kin’s first defense is **access**: small, light and practised since childhood, they can enter spaces other people cannot, move between obstacles without exposing themselves, and make a pursuer choose between continuing and keeping their footing.
 
 They are not harmless refugees. They have injured people, stolen necessities, and learned to take advantage of someone already in trouble.
 
@@ -22,11 +22,15 @@ Everything below is proposed lore expanding their occupation of the glasshouse r
 
 ## 1. What makes them kin
 
-The six are not all related by blood.
+The six are not related by blood.
 
-They are the survivors of a larger scavenging household that broke apart along the northern roads. Some died. Some left. Others were driven off after disputes over food and responsibility.
+They are road waifs. Most of them were children when they found one another under the Roofed Mile, the avalanche gallery on the Bell Road, before the animal that holds it now moved in. They lived by taking what wasn't watched from the carts and walkers who passed beneath. Sere was already grown, and taught them what was worth taking.
 
-The present group calls itself kin because its members share shelter and are expected to retrieve one another when something goes wrong.
+When the gallery was lost, they became a larger scavenging household that broke apart along the northern roads. Some died. Some left. Others were driven off after disputes over food and responsibility.
+
+Nobody was born kin. The present group calls itself kin because its members chose one another, share shelter, and are expected to retrieve one another when something goes wrong.
+
+Others call them *gutter*, and do not mean it kindly. To the Remnant they are squatters and thieves. The Kin took the word and kept it, the way they keep most things nobody else is watching.
 
 That expectation is already under strain.
 
@@ -40,9 +44,9 @@ The range offered things they understood:
 
 - A standing rear wall.
 - Narrow routes beneath benches.
-- Useful material overlooked by larger scavengers.
+- Useful material overlooked by other scavengers.
 - Several exits.
-- Human food close enough to steal.
+- Food close enough to steal.
 - A house too damaged for its occupants to watch every approach.
 
 The claimant’s arrival has made that last advantage less reliable.
@@ -53,7 +57,7 @@ The claimant’s arrival has made that last advantage less reliable.
 
 Hesh chooses routes, approaches outsiders, and decides when a theft is worth attempting.
 
-His facial wound makes some sounds difficult. Human listeners often mistake that difficulty for limited understanding.
+His facial wound makes some sounds difficult. Estate listeners hear a split mouth and gutter speech, and mistake both for limited understanding.
 
 He sometimes lets them.
 
@@ -125,7 +129,7 @@ A section has collapsed since he last used it. He still describes it as passable
 
 Brik moves heavy objects and helps Sere between sleeping places.
 
-He is broader than the others, though still small beside most adult humans.
+He is broader than the others, though still small beside the Remnant’s well-fed retainers. None of the Kin grew to full size on what the road gave them.
 
 The others tend to assume that carrying is the work he is suited for.
 
@@ -163,7 +167,7 @@ An exchange arrangement that provides food and leather without requiring repeate
 
 Iss considers a bargain finished when the agreed objects change hands.
 
-She does not automatically accept the unspoken expectations humans attach to generosity, rescue, or hospitality.
+She does not automatically accept the unspoken expectations settled people attach to generosity, rescue, or hospitality.
 
 She may keep the exact bargain and still feel free to rob the same person later.
 
@@ -244,11 +248,13 @@ The encounter should provide clues before those hazards become consequential. A 
 
 ### How they fight
 
-The Kin prefer several people distracting one opponent rather than one goblin accepting a fair fight.
+The Kin prefer several people distracting one opponent rather than one of them accepting a fair fight.
 
 They use cover, thrown objects, sudden movement, and retreat.
 
 They will take an exposed hand, ankle, pack, or tool rather than remain in reach of a weapon.
+
+None of them can afford a long fight. A childhood of short rations left them frail, and their wounds are slow to stop bleeding.
 
 If driven into a corner, they become much more dangerous.
 
@@ -288,7 +294,7 @@ Inside a shelter, nobody sleeps across another person’s route out.
 
 Putting belongings in an exit is treated as threatening behavior.
 
-This is one reason they distrust humans who stand in doorways while conducting friendly conversations.
+This is one reason they distrust people who stand in doorways while conducting friendly conversations.
 
 ### Put the goods down
 
@@ -308,7 +314,7 @@ It is an argument they repeatedly revisit: how much danger, how many attempts, a
 
 Sere’s injury has pushed that custom beyond anything they agreed in advance.
 
-## 7. What they think of the humans
+## 7. What they think of the house’s people
 
 ### The Garden Hands
 
@@ -350,7 +356,7 @@ Their departure requires a route suitable for carrying Sere.
 
 The narrow breach used by the others is insufficient.
 
-The outer chapel court offers a better passage, but crossing it exposes them to human observation.
+The outer chapel court offers a better passage, but crossing it exposes them to observation from the house.
 
 This creates a concrete negotiation:
 

@@ -1,10 +1,10 @@
 # Evacuation Complications
 
-Structured consolidation of ten proposed complications. They test promises when inconvenient, not guarantee an ambush. Exposure grows once old shelter is dismantled. Use three core complications, others only as relevant alternatives/consequences. Earlier repairs and explicit agreements must matter.
+Structured consolidation of ten proposed complications. They test promises when inconvenient, not guarantee an ambush. Exposure grows once old shelter is dismantled. Use three core complications, others only as relevant alternatives/consequences. Earlier repairs and explicit agreements must matter. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ## 1. Garran Wold arrives
 
-Proposed name for injured earlier salvage worker, not core four Hands. Stiff leg, borrowed footwear, hears Kin may leave. Wants to know who settled his loss without him, usable boots, and Iss looking at him. Oren/Hesh’s agreement does not settle Garran’s claim. Alternatives: replacement, bounded accepted compensation, explicit unresolved claim without control over Sere’s movement. Anger may remain after settlement.
+Proposed name for injured earlier salvage worker, not core four Hands. Stiff leg, borrowed footwear, hears Kin may leave. Wants to know who settled his loss without him, usable boots, and Iss looking at him. He calls the Kin gutter thieves; the theft was real, the word is older than it. Oren/Hesh’s agreement does not settle Garran’s claim. Alternatives: replacement, bounded accepted compensation, explicit unresolved claim without control over Sere’s movement. Anger may remain after settlement.
 
 ## 2. Elsin finds an estate mark
 
@@ -32,7 +32,7 @@ Pantry lintel shifts while frame prepared. People can evacuate; property may be 
 
 ## 8. Weather narrows working window
 
-Ash/wind impair visibility and shouted instructions, not instant arbitrary death. Pressures departure deadline, safe work, guards, Sere’s pace, route confidence. Sheltered stages, communication, lighter load, inspected pause can work. Prudent halt is not automatic failure.
+Ash/wind impair visibility and shouted instructions, not instant arbitrary death. Sere coughs in the ash, and Remnant and crew alike step back from the cough before asking what it is. Pressures departure deadline, safe work, guards, Sere’s pace, route confidence. Sheltered stages, communication, lighter load, inspected pause can work. Prudent halt is not automatic failure.
 
 ## 9. Sere withdraws consent
 

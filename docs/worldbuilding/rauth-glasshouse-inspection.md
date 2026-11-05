@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Full proposed scene preserved from the 2026-11-01 conversation. Rauth inspects the glasshouse after [Hesh’s challenge](hesh-challenges-oren.md), in parallel with the departing convoy described in [the aftermath](hesh-challenge-aftermath.md). This is narrative fiction, not implemented inspection logic or real-world hazard-clearance guidance. Existing documents, assets, and development checkpoints are unchanged by this addition.
+Project: Ashen Wilds. Full proposed scene preserved from the 2026-11-01 conversation. Rauth inspects the glasshouse after [Hesh’s challenge](hesh-challenges-oren.md), in parallel with the departing convoy described in [the aftermath](hesh-challenge-aftermath.md). This is narrative fiction, not implemented inspection logic or real-world hazard-clearance guidance. Existing documents, assets, and development checkpoints are unchanged by this addition. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 Rauth waited until Moth crossed the court.
 
@@ -39,6 +39,10 @@ There were six hollows beneath the bench.
 Not beds. Flattened cloth, dry leaves, pieces of board. One place had been raised with slate. Another had a little shelf built from a crate end.
 
 The air smelled of wet soil and old cooking.
+
+He kept his scarf over his mouth. In the hall they said the glasshouse lot carried the cough.
+
+He had heard no coughing.
 
 He listened.
 
@@ -408,7 +412,7 @@ She said nothing.
 
 At last, Oren asked how many people would be needed to keep the range secure.
 
-Rauth looked at the broken outer wall, the gaps behind the beds, the low opening through which someone small could disappear.
+Rauth looked at the broken outer wall, the gaps behind the beds, the low opening through which someone thin could disappear.
 
 “One here.”
 
@@ -491,6 +495,6 @@ Now the Remnant possessed it.
 
 Rauth took up his shield.
 
-He had expected to feel less watched once the goblins were gone.
+He had expected to feel less watched once the gutter lot were gone.
 
 Before leaving, he checked beneath the bench again.

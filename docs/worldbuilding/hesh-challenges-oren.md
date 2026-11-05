@@ -1,6 +1,6 @@
 # Hesh Challenges Oren
 
-Full proposed dialogue scene preserved from the conversation. Set at the loading platform during the [goods interception](remnant-goods-interception.md). Represents one possible negotiated outcome, not mandatory behavior or implemented quest dialogue.
+Full proposed dialogue scene preserved from the conversation. Set at the loading platform during the [goods interception](remnant-goods-interception.md). Represents one possible negotiated outcome, not mandatory behavior or implemented quest dialogue. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 Rauth lifted the bundle from the cart.
 

@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Full proposed aftermath write-up preserved from the 2026-11-01 conversation. Continues [Hesh challenges Oren](hesh-challenges-oren.md) and [The Glasshouse Clearing](glasshouse-clearing.md). The parallel estate-side inspection is expanded in [Rauth inspects the glasshouse](rauth-glasshouse-inspection.md). These are possible narrative outcomes, not implemented quest states or mandatory faction behavior. Existing documents, assets, and development checkpoints are unchanged by this addition.
+Project: Ashen Wilds. Full proposed aftermath write-up preserved from the 2026-11-01 conversation. Continues [Hesh challenges Oren](hesh-challenges-oren.md) and [The Glasshouse Clearing](glasshouse-clearing.md). The parallel estate-side inspection is expanded in [Rauth inspects the glasshouse](rauth-glasshouse-inspection.md). These are possible narrative outcomes, not implemented quest states or mandatory faction behavior. Existing documents, assets, and development checkpoints are unchanged by this addition. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 The cart moves—but Hesh’s challenge leaves everyone with a different understanding of what just happened.
 
@@ -182,7 +182,7 @@ Rauth finds one remaining hazard and calls the others back.
 
 They stop and inspect.
 
-There is no hidden goblin army. There is no sudden treasure.
+There is no hidden den of gutter thieves. There is no sudden treasure.
 
 There is work.
 
@@ -233,7 +233,7 @@ News travels faster than the complete account.
 
 One version says Hesh forced the Remnant to surrender estate property.
 
-Another says Oren bought the goblins’ departure.
+Another says Oren paid the gutter squatters to leave.
 
 A third says the Grey Lash took the valuable material and left everyone else arguing.
 

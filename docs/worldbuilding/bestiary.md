@@ -1,6 +1,6 @@
 # The Blackfen Bestiary
 
-Compiled 2026-11-04. Proposed lore, not implemented game systems; see *Status of this document* below. A live, editable copy is kept as a Claude Doc.
+Compiled 2026-11-04, revised 2026-11-05. Proposed lore, not implemented game systems; see *Status of this document* below. A live, editable copy is kept as a Claude Doc.
 
 Every creature a survivor can meet in the Ashen Wilds, from the goblins at the Watchhouse to the thing the orks fled: what it is, what it eats, where it sleeps, and what no one knows yet.
 
@@ -9,6 +9,8 @@ Every creature a survivor can meet in the Ashen Wilds, from the goblins at the W
 This is the Watchhouse's warning book: what carriers, cutters and survivors have reported about the things that kill people in the Blackfen, with the reports kept apart from the guesses. It is written in the voice of the people who keep it, not by anyone who knows the truth of the Vaults.
 
 The book follows the habit of the Roofed Mile board: say what happened, say what you do not know, and write down the dead. Nobody who contributed to it has seen the bottom of the Deep-Seam Vaults. Nobody has explained what the orks fled. Where an entry offers an explanation, it is marked as a guess.
+
+The book keeps one rule above the others: **only people are people.** Everything in these pages is an animal, a lizard, a fish or a monster. Some are cunning, some carry what they took from the dead, some hunt in packs. None of them speaks, bargains, keeps faith or answers to a name, and nobody in the book has reasoned with one and lived by it.
 
 ### Status of this document
 
@@ -19,6 +21,8 @@ Everything here is **proposed lore**, in line with the rest of `docs/worldbuildi
 | **In play (Godot)** | The creature exists in the Godot `Ashen-Wilds` build; sizes and behaviour below match its collision and AI numbers |
 | **In play (browser)** | It stands behind the browser build's generic Ashbound enemy |
 | **Proposed** | New in this ledger; nothing implemented |
+
+Revised 2026-11-05 for owner decision O1 (only humans are people); the original is in git history at commit fd60061. The Claude Doc copy predates this revision.
 
 ### Inside each entry
 
@@ -46,7 +50,7 @@ Thirty years in, the Blackfen's dangers come from three causes: what climbed out
 
 ### Three causes
 
-1. **The breach.** When the Highland Citadels cut into the Deep-Seam Vaults for slag-iron, the upper dark emptied. Goblin households, ork clans and the large things came up the mine roads and down the Bell Road. The spores came with them. This is why danger thickens to the north and in the uplands.
+1. **The breach.** When the Highland Citadels cut into the Deep-Seam Vaults for slag-iron, the upper dark emptied. Goblin swarms, ork packs and the large things came up the mine roads and down the Bell Road. The spores came with them. This is why danger thickens to the north and in the uplands.
 2. **The ash.** Grazing failed in the first winters. Flocks were abandoned, then went wild. Lords who fled south left their kennels. Within ten years the farm animals of the fen had become its predators and pests.
 3. **The dead.** Burial overwhelmed the parishes (see *The Keeping and the Merewick Register*). Bodies lay in common pits, drains and sheepfolds. Carrion-eaters multiplied on them, and the spore-growths rooted in them. Much of what hunts the Blackfen today first learned the taste of people from the unburied.
 
@@ -70,7 +74,7 @@ Below: what the orks fled            (eats: unknown)
    ^ fled from
 Blackfen Ogre · Blind Quarry-Troll · Roofed Mile animal
    ^ eaten by
-People (human, goblin, ork) · the Ashbound
+People · goblins · orks · the Ashbound
    ^ eaten by
 Greymaw · Gallows Herons · Harrow eels · Bloodwicks
    ^ eaten by
@@ -79,16 +83,16 @@ Peat-boar · Ash-rats · Ash-moths · Rustlings
 The dead, the stores, roots and iron
 ```
 
-The peoples sit in the middle: they hunt boar, eels and rats, and everything above them hunts them.
+People, goblins and orks sit in the middle together: all three hunt boar, eels and rats, goblins and orks hunt people, and everything above them hunts all three.
 
 ## At a glance
 
-Sixteen entries, from beetles to the thing below. Senses run none, poor, fair, keen, acute; heights are standing height unless marked.
+Seventeen entries, from beetles to the thing below. Senses run none, poor, fair, keen, acute; heights are standing height unless marked.
 
 | Creature | Tier | Height (m) | Weight (kg) | Sight | Hearing | Smell | Usual ground | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Goblin (a people) | I alone, II in a group | 1.20–1.40 | 28–40 | Keen, good in dark | Keen | Fair | Drains, outbuildings, ruins | In play (Godot) |
-| Ork (a people) | III | 1.80–2.05 | 110–150 | Fair | Keen | Keen | Stone ranges, road holds | In play (Godot) |
+| Goblin (a swarming beast) | I alone, II in a group | 1.20–1.40 | 28–40 | Keen, good in dark | Keen | Fair | Nests: drains, glasshouse ranges, culverts | In play (Godot) |
+| Ork (a pack beast) | III | 1.80–2.05 | 110–150 | Fair | Keen | Keen | Stone dens, road choke points | In play (Godot) |
 | Blackfen Ogre | IV | 2.90–3.20 | 600–800 | Poor | Fair | Acute | Fen edge, farmland, its feeding ground | In play (Godot) |
 | Blind Quarry-Troll | IV | 2.60 hunched (3.3 upright) | 900–1,200 | None | Acute | Poor | Quarry, lime cuts, crags | In play (Godot) |
 | The Roofed Mile animal | III | 0.9–1.1 at shoulder | 150–250 | Fair | Keen | Keen | Galleries, culverts, upland | Proposed (from the story) |
@@ -100,88 +104,89 @@ Sixteen entries, from beetles to the thing below. Senses run none, poor, fair, k
 | Ash-rat | I | 0.25–0.40 with tail | 0.3–0.6 | Poor | Keen | Acute | Drains, granaries, stores | Proposed |
 | Rustling (iron beetle) | I | 0.04–0.06 long | 0.015 | Poor | Poor | Keen (iron) | Scrap piles, hinges, nail kegs | Proposed |
 | Ash-moth | I | 0.10–0.14 wingspan | 0.002 | Fair (light) | Poor | Fair | Anywhere a flame burns | Proposed |
-| The Ashbound | II | 1.50–1.85 (people) | 45–70 | Poor | Fair | Poor | Deep fen, reedbed, ruins | In play (browser) |
+| The Ashbound (people) | II | 1.50–1.85 | 45–70 | Poor | Fair | Poor | Deep fen, reedbed, ruins | In play (browser) |
 | Corpse-cap (growth) | I, II if breathed | 0.10–0.30 | — | — | — | — | Unburied dead, pits, folds | Proposed |
+| Walking bloom (Ash-Spore Husk) | II, worse in still air | 1.50–1.85 (1.78 in Godot) | 40–60 | Poor | Poor | — | Hollows, pits, still low ground | In play (Godot) |
 | What the orks fled | Unknown | Unknown | Unknown | Unknown | Said to be acute | Unknown | Below the Vaults, they say | Proposed (unexplained by design) |
 
-Godot heights come from collision capsules: goblin 1.35 m, ork 1.92 m, ogre 2.95 m tall and 1.70 m across the shoulders, troll 2.60 m and 1.60 m across. Weights are the book's estimates; nobody has a scale that big.
+Godot heights come from collision capsules: goblin 1.35 m, ork 1.92 m, ogre 2.95 m tall and 1.70 m across the shoulders, troll 2.60 m and 1.60 m across, husk 1.78 m. Weights are the book's estimates; nobody has a scale that big.
 
 ## Goblins
 
-**A people, not a beast. Tier I alone, II in a group. In play (Godot: the Goblin Scavenger; also a playable background, the Gutter-kin).**
+**A beast, not a people. Tier I alone, II in a group. In play (Godot: the Goblin Scavenger).**
 
-Goblins are in this book because hungry goblin bands kill people, not because goblins are animals. The Gutter Kin at Halwen House are a household of six with names, quarrels and an injured elder. Treat every goblin you meet as someone who can bargain, lie, keep a deal or break one.
+Goblins are swarming scavengers that came up out of the Vaults and never stopped breeding in the drains. They are cunning the way rats and crows are cunning: they learn a door, a habit, a careless hour. They carry knives and throw stones they took from the dead. They have no bargains, no kin, no households and no names, and a survivor who treats one as anything but a hungry animal is the next thing it strips. "Goblin" is a Citadel miner's word for them.
 
 ### Measures
 
 |  |  |
 | --- | --- |
-| Height | 1.20–1.40 m; the broad ones (like Brik) are still small beside an adult human |
+| Height | 1.20–1.40 m; even the broad ones are small beside an adult human |
 | Weight | 28–40 kg |
-| Lifespan | Unknown. Sere is old and still working; the book guesses fifty years or more |
+| Lifespan | Unknown. Grey-muzzled, stiff-jointed goblins are seen in every nest; the book guesses they live long for their size |
 | Speed | Faster than a walking human over a few strides (a dart near 5.6 m/s), poor over distance |
 
 ### Body
 
-Narrow-built, long in the fingers and forearm, with large mobile ears that fold when damaged (Hesh's has). The skin runs grey to grey-green and takes ash so well that a goblin lying still in a drain is hard to see. Eyes are large and shine back torchlight.
+Narrow-built, long in the fingers and forearm, with large mobile ears that fold when damaged and stay folded. The skin runs grey to grey-green and takes ash so well that a goblin lying still in a drain is hard to see. Eyes are large and shine back torchlight.
 
-They are frail for their quickness. Bones break in falls that would only bruise a human (Sere's hip). Their blood is slow to clot, so a goblin cut bleeds long, which is why they avoid fair fights and take a hand, an ankle or a pack instead.
+They are frail for their quickness. Bones break in falls that would only bruise a human; a goblin with a bad hip is common, and it still hunts. Their blood is slow to clot, so a goblin cut bleeds long, which is why they avoid a straight fight and go for a hand, an ankle or a pack instead.
 
 ### Senses
 
-- **Sight**: keen, and much better than a human's in dim light. They see a torch from very far and prefer to work by ash-light.
-- **Hearing**: keen. They hear footsteps, rummaging and a pack's clatter, and their own camps are wired with loose metal for exactly that reason.
+- **Sight**: keen, and much better than a human's in dim light. They see a torch from very far and prefer to hunt by ash-light.
+- **Hearing**: keen. They hear footsteps, rummaging and a pack's clatter from a long way off.
 - **Smell**: fair. Good enough for food stores, not for tracking.
 
 ### Habitat and lair
 
-Low, enclosed, many-exited places: drains, maintenance trenches, glasshouse ranges, slaughter-quarter culverts (Coldbarrow), the undersides of benches and bridges. Outbuildings over houses. A standing rear wall is the first thing a household looks for.
+Nests in low, enclosed, many-exited places: drains, maintenance trenches, glasshouse ranges, slaughter-quarter culverts (Coldbarrow), the undersides of benches and bridges. Outbuildings over houses. A nest is always backed against a standing wall, the way rats den against a foundation.
 
-A goblin camp from the outside looks abandoned. Closer, the debris has been moved, some gaps stay clear, and loose metal sits where a careless foot will find it.
+A goblin nest from the outside looks abandoned. Closer, the debris has been dragged about, some gaps are worn clear by traffic, and loose bright metal lies heaped and scattered round the entrances. Goblins hoard bright scraps (buckles, nails, coins, a spoon) and drag them back to the nest. The scatter works as an alarm, whether or not they mean it to: a careless foot finds it before it finds the nest.
 
 ### Sleep
 
-By day, in shifts. Sleeping places are low and screened with cloth, and **nobody sleeps across another's route out**. Putting belongings in an exit is a threat. The driest place goes to the one who needs it most, and everyone argues about it.
+By day, heaped together, with a few always stirring. Nests are low and lined with stolen cloth and rags, and the sleepers lie off the runs, never across a way out, so a nest empties in a breath when disturbed. The strongest take the driest place, and there is always squabbling over it.
 
 ### Diet
 
 - **First choice**: fat, marrow, salt, eggs, anything cooked.
-- **Will eat**: rats, birds, insects, roots, scraps, stolen bread.
-- **Will not**: the book has no report of goblins eating people. Rumours say otherwise. Treat them as rumours.
+- **Will eat**: rats, birds, insects, roots, scraps, stolen bread, the dead.
+- **Whether they eat people**: the book has no sure report of goblins killing a person to eat. Rumours say otherwise, and bodies found near nests are always stripped. Treat the rumours as rumours.
 
-No goblin shelter feeds itself. Every meal is a reason to leave cover, which is when goblins and people meet.
+A nest cannot feed itself where it sits. Every meal means leaving cover, which is when goblins and people meet.
 
 ### Temperament
 
-Opportunists by need. A goblin circles out of reach, waits for a turned back, a swing's recovery, a search or a stumble, then darts in and skitters away. Several will distract one opponent rather than one fight fairly. **Cornered, a goblin becomes much more dangerous.** A household expects its members to go back for anyone who can still answer.
+Opportunists by nature. A goblin circles out of reach, waits for a turned back, a swing's recovery, a search or a stumble, then darts in and skitters away. Several will worry one person from all sides rather than one face them. **Cornered, a goblin becomes much more dangerous.** A swarm drags back its wounded, as rats do; nobody in the book is sure whether it is to save them or to eat them.
 
-Bargains are exact. Put the goods down, step back. Touching an offered thing before agreement can end the meeting. A finished bargain does not stop a later theft.
+Food left out does not buy them off. It teaches them where food is.
 
 ### Signs
 
-Disturbed soil, fresh refuse, missing small metal, narrow routes through walls, cloth hung inside broken frames, a cleared foothold beside a suspiciously covered gap. Thrown stones from 5–11 m mean a goblin is retreating, not giving up.
+Disturbed soil, fresh refuse, missing small metal, narrow worn runs through walls, rags dragged into broken frames, a heap of bright scraps by a covered gap. Thrown stones from 5–11 m mean a goblin is retreating, not giving up.
 
 ### What we know
 
-- They came up from the Vaults in the first years, in households, not armies. The "goblin hordes" of the first winter were many households fleeing at once.
-- They understand human speech better than humans assume. Hesh lets people underestimate him.
-- They strip, sort and reuse metal and leather with real skill.
+- They came up from the Vaults in the first years in swarms. The "goblin hordes" of the first winter were many nests fleeing at once.
+- They learn. A goblin that has watched a sentry for a few nights knows when he turns.
+- They strip metal and leather from the dead with quick, clever hands, and use what they find (a knife, a cudgel, a stone) as weapons. They make nothing.
 
 ### What no one knows
 
-- **Where goblin children are.** The book has no report of a goblin infant. Households are made of adults who "became kin". Either they hide their young very well, or something about how goblins are born is not known to anyone above ground.
-- What goblins call themselves. "Goblin" is a Citadel miner's word.
+- **Where goblin young are.** No nursery nest has ever been found; every nest the book has cleared held only grown beasts. Either they hide their young very well, or something about how goblins breed is not known to anyone above ground.
+- Why they hoard bright metal. The book's guess is the smell of the dead it came off.
 - Whether they lived in the upper Vaults before the breach or fled up from deeper.
 
 ### For the game
 
-The Godot Scavenger's opportunist AI is right. For the browser build, goblin camps are a site type for ruins and drains: noise traps around containers, and a bargain stone outside. R5 should let a goblin flee and come back with others.
+The Godot Scavenger's opportunist AI is right. For the browser build, goblin nests are a site type for ruins and drains: noise traps of loose metal around containers, and a hoard of bright scraps as a rich container. R5 should let a goblin flee and come back with others.
 
 ## Orks
 
-**A people. Tier III. In play (Godot: the Ork Vanguard, shield and cleaver).**
+**A beast in packs. Tier III. In play (Godot: the Ork Vanguard, shield and cleaver).**
 
-Orks came out of the Vaults as war-clans running from something below. Thirty years later most are not war-clans any more. Some clans still hold roads, like the one at the Old Causeway choke point. Others have become households, like the few families in the rear range of Saint Vey's Fold who trade at a flat stone and let no one into their shelter.
+Orks came out of the Vaults in packs running from something below; the first winter called them war-clans. They are large, heavy, drilled beasts: a pack keeps its order by dominance, as wolves do, and moves and fights as one. They carry shields and cleavers taken from the Watch and the Citadels' dead, which they cannot make and do not mend. One pack holds the Old Causeway choke point. Another dens in the rear range of Saint Vey's Fold.
 
 ### Measures
 
@@ -189,64 +194,65 @@ Orks came out of the Vaults as war-clans running from something below. Thirty ye
 | --- | --- |
 | Height | 1.80–2.05 m |
 | Weight | 110–150 kg |
-| Lifespan | Unknown. The book has met ork elders but never learned an ork's age |
+| Lifespan | Unknown. Old orks, scarred and grey about the jaw, lead every pack the book has seen; nobody knows their age |
 | Speed | A walking pace matched to a human's; the reckless ones run faster than you walk |
 
 ### Body
 
-Heavy-boned and deep-chested, with thick hide over the shoulders and forearms that turns a glancing cut. The jaw is wide, with heavy lower teeth. Skin runs grey to ash-brown. Hands are broad but precise: orks repair metal and carve bone as well as any smith in the fen.
+Heavy-boned and deep-chested, with thick hide over the shoulders and forearms that turns a glancing cut. The jaw is wide, with heavy lower teeth. Skin runs grey to ash-brown. Hands are broad and strong, good for gripping a stolen haft and useless for making one: a cracked shield is carried until it falls apart.
 
-They tire slower than people and heal clean. They feel cold badly, which is why salt, fuel and dry stone matter so much to them.
+They tire slower than people and heal clean. They feel cold badly, which is why salt and dry stone matter so much to them.
 
 ### Senses
 
 - **Sight**: fair, about a human's.
-- **Hearing**: keen. An ork camp goes quiet before you see it.
+- **Hearing**: keen. An ork den goes quiet before you see it.
 - **Smell**: keen. Orks smell a cooking fire, a wound and a stranger's pack.
 
 ### Habitat and lair
 
-Stone buildings with one way in: hospice ranges, sheepfold walls, toll houses, chapels with their doors blocked with dressed stone. A road-holding clan builds a wall across a choke point and keeps a **plunder pile** behind it.
+Dens in stone with one way in: hospice ranges, sheepfold walls, toll houses, chapels. A pack drags rubble, carts and timber into its other openings until only one is left, the way a badger blocks a sett. A road-holding pack heaps the same across a choke point, and keeps a **plunder pile** behind it: a hoard of what it took off the road, salt and iron uppermost.
 
 ### Sleep
 
-At night, in short sleeps of four or five hours, with someone always awake. Orks sleep under stone and close their openings with stone. At Saint Vey's Fold they will not enter the timber-roofed front dormitory that human travellers use. **Nobody knows why.** It may be a boundary, a danger they know of, or no reason at all.
+At night, in short sleeps of four or five hours, with one always awake, like a herd's sentry. Orks sleep under stone and pack rubble into their openings. At Saint Vey's Fold they den in the stone rear range and will not enter the timber-roofed front dormitory that human travellers use. **Nobody knows why.** It may be a smell, a danger they know of, or no reason at all.
 
 ### Diet
 
-- **First choice**: meat, smoked or salted, and fat.
-- **Will eat**: roots, peat-boar, birds, fish, bread when traded for.
-- **Needs**: salt, far more than people do. Orks trade iron and leather for salt and carry it on their bodies. Dead orks almost always carry some.
+- **First choice**: meat, raw or the salted meat they steal, and fat.
+- **Will eat**: roots, peat-boar, birds, fish, stolen bread.
+- **Needs**: salt, far more than people do. Orks crave it like cattle at a lick: they raid salt stores, lick salt-bearing rock smooth and hoard what they take. A dead ork almost always has salt in its gut or its plunder.
 
 ### Temperament
 
-Disciplined. A clan ork on the road is a soldier: it advances behind a shield, opens with a slash and follows with a chop, and it will bash aside a guard held too long. The unshielded cleaver-carriers are the reckless ones, sent to run people down. In a cramped hall an ork's opening slash clangs off the walls; it has learned to chop overhead indoors.
+Drilled. A pack ork on the road fights like a soldier: it advances behind a shield, opens with a slash and follows with a chop, and it will bash aside a guard held too long. The unshielded cleaver-carriers are the lower-ranked ones, driven at people first. In a cramped hall an ork's opening slash clangs off the walls; it has learned to chop overhead indoors.
 
-Away from the road, orks are cautious traders. Theft from a trading stone ends the arrangement for everyone, not only the thief.
+Away from the road, a pack keeps to its den and lets nothing in. Salt left out draws a pack; it does not buy one off, and it teaches the pack where the salt came from.
 
 ### Quiet
 
-*Proposed.* Orks do not drum, shout or ring anything, and households speak in a hand-cant when outsiders are near. The book believes this is connected to what they fled. No ork has confirmed it, and the listeners beneath the hills, who keep the same silences, do not explain it either.
+*Proposed.* Orks make no calls near the hills. A pack that senses danger goes silent all at once, the way deer go silent when something hunts the wood, and a silent pack is the most dangerous kind. The book believes this is connected to what they fled. The listeners beneath the hills, a human movement who keep the same silences, do not explain it either.
 
 ### Signs
 
-A wall across a road with a narrow gap. A plunder pile. Stone set into a doorway. A flat stone with nothing on it, swept clean. Silence where there should be birds.
+Rubble heaped across a road with a narrow gap. A plunder pile. Rubble packed into a doorway. Salt-rock licked smooth. Silence where there should be birds.
 
 ### What we know
 
-- They fled up through the Vaults in clans and never went back down.
-- They repair metal, work bone, and hold a bargain.
-- They do not speak about below to anyone in the book.
+- They fled up through the Vaults in packs and never went back down.
+- They use the weapons and shields they took from the dead well. They cannot repair or make them.
+- A pack is ranked: the biggest eats first, and the lowest are sent in first.
+- Nothing offered to them changes what they do.
 
 ### What no one knows
 
 - **What they fled.** This is the book's oldest open question (see *What the orks fled*).
-- Why they refuse the timber dormitory at Saint Vey's Fold.
-- Whether the road clans and the households still answer to the same elders.
+- Why they will not den under timber at Saint Vey's Fold.
+- Whether the road packs and the Fold den are one pack split, or rivals.
 
 ### For the game
 
-The Godot Vanguard pair is right. In the browser build, ork holds belong at the toll house and on causeway choke points, with a trading stone as an alternative to fighting. Ork corpses: salt, scrap, lamp oil, sometimes splinted greaves (already Godot's ork loot).
+The Godot Vanguard pair is right. In the browser build, ork dens belong at the toll house and on causeway choke points; salt can lure a pack off a road for a while, never pay it. Ork corpses: salt, scrap, lamp oil, sometimes splinted greaves stripped from the dead (already Godot's ork loot).
 
 ## The Blackfen Ogre
 
@@ -292,7 +298,7 @@ After a large meal, an ogre sleeps for two or three days on or beside its bone h
 
 ### The bone heap
 
-The heap is not only bones. Ogres keep the iron things that came with their meals: cooking pots, kettle hats, buckles, chain. The book's guess is that they smell of food. Those who search the heap find the best salvage in the Blackfen and the clearest record of who went missing.
+The heap is not only bones. Ogres hoard the iron things that came with their meals, the way a magpie hoards bright things: cooking pots, kettle hats, buckles, chain. The book's guess is that they smell of food. Those who search the heap find the best salvage in the Blackfen and the clearest record of who went missing.
 
 ### Temperament
 
@@ -306,11 +312,11 @@ Snapped saplings at shoulder height. Ground pressed into wide, knuckled tracks. 
 
 - Sidestep the charge and let it hit stone: it crashes and reels for about two seconds.
 - It never follows into a doorway.
-- It cannot be reasoned with, and no one has seen it speak.
+- It is an animal, and hungry. Nothing turns it but a wall.
 
 ### What no one knows
 
-- **Whether it is a people.** It keeps things. It does not make tools beyond a club, trade, or speak. The book argues about this every winter.
+- **Why it hoards iron.** It makes nothing beyond a stripped club, yet it keeps every pot and buckle. The book argues about this every winter.
 - Whether ogres came up from the Vaults, or were always in the high fen and simply grew bolder.
 - How they breed. No one has seen two together.
 
@@ -358,7 +364,7 @@ Nobody can tell when it sleeps. It sits motionless for hours, and a motionless t
 
 - **First choice**: whatever it has just pounded. Sheep, goats, people.
 - **Will eat**: carrion; it gnaws salt-bearing rock and licks lime from kiln waste.
-- **What it carries**: iron scrap, salt, a flask of oil, a rag. The book's guess is that these went down with its last meals.
+- **What it carries**: iron scrap, salt, a flask of oil, a rag, in its gut or caught in its crust. The book's guess is that these went down with its last meals.
 
 ### Temperament
 
@@ -373,13 +379,13 @@ Rings of shattered stone where it has pounded. An outcrop where there was none y
 - **Keep still.** It cannot find you at arm's length.
 - Creep out of the ring before the fists come down.
 - A thrown stone draws it. Hit it, then step away.
-- A Gutter-kin walking softly can pass it.
+- A soft-footed walker can pass it: the Gutter-kin, road waifs raised under the Roofed Mile, do it on a dare.
 
 ### What no one knows
 
 - Whether it came up from the Vaults or was quarried out of the hill.
 - Whether there is more than one, and whether trolls are kin to what the orks fled. Some say this is a lesser cousin of the thing below; there is no evidence either way.
-- What it did before there were people to hear.
+- What it hunted before there were people to hear.
 
 ### For the game
 
@@ -444,7 +450,7 @@ Ordinary animals made dangerous by thirty years of ash, hunger and the dead. Not
 | Temperament | Testers. They circle, feint and wait for the slowest. Most packs break off if one is badly hurt. Some still come to a whistle and a held-out hand, which is how people die |
 | Signs | Tracks pacing a cart's, a howl answered from two directions, gnawed bones at a passing place |
 | What we know | Fire and a wall at your back hold them. They respect a spear. They will not cross deep water |
-| What no one knows | Whether some packs are still kept by someone. Carriers swear a few answer to whistles nobody human made |
+| What no one knows | Whether some packs are still kept by someone. Carriers swear a few answer to whistles from no one they could see |
 | For the game | The first pack enemy: low per-dog health, flanking, flee-on-loss. Spawns follow roads and react to bleeding |
 
 ### Peat-boar
@@ -512,12 +518,12 @@ Ordinary animals made dangerous by thirty years of ash, hunger and the dead. Not
 | Senses | None to speak of; they find warmth and movement in water |
 | Habitat | Marsh, reedbed and any standing water deeper than an ankle |
 | Sleep | They sink into the mud in hoarfrost and lie torpid through cold spells |
-| Diet | Blood: people, boar, dogs, herons |
+| Diet | Blood: people, boar, dogs, herons, goblins |
 | Temperament | They do not chase. They wait where you will wade |
 | Signs | Ripples moving against the wind, a bitter smell of mud |
-| What we know | Salt or fire makes them drop. Pulling one off leaves the wound bleeding longer. Goblins hate them most, since their blood already clots badly |
+| What we know | Salt or fire makes them drop. Pulling one off leaves the wound bleeding longer. Goblins never nest by standing water; their blood already clots badly, and a goblin that wades bleeds out |
 | What no one knows | Why the largest ones gather where the Ashbound sleep |
-| For the game | A bleed applied by wading marsh tiles, worse for the Gutter-kin background; salt as a remedy |
+| For the game | A bleed applied by wading marsh tiles, worse for anyone already bleeding; salt as a remedy |
 
 ### Ash-rats
 
@@ -539,34 +545,39 @@ Ordinary animals made dangerous by thirty years of ash, hunger and the dead. Not
 
 ## The Ashbound and the spore-sick
 
-**"Ashbound" is not a kind of creature. It is the Watchhouse word for anyone who has stopped answering:** they will not speak, will not trade, and attack whoever comes close. Calling someone Ashbound is a verdict, not a description, and the book records who was called it and by whom.
+**"Ashbound" is the fen's word for whatever came up with the ash and whatever the ash has taken.** It has two senses, and the book keeps them apart.
 
-### What the word covers
+1. **The Vault-born beasts**: goblins, orks, ogres, trolls, everything in the first half of this book. When a carrier says "the Ashbound are on the causeway", this is usually what is meant. They go hooded and ragged: they strip cloth from the dead and drag it over themselves, the way some animals dress in what they find. Survivors guess it is against the light, or the cold, or to smell of people. Nobody knows; it is habit, not dress.
+2. **A verdict on people**: anyone who has stopped answering. They will not speak, will not take help, and attack whoever comes close. Calling a person Ashbound is a verdict, not a description, and the book records who was called it and by whom.
 
-**In play (browser: every current enemy; Godot: the shared enemy body).** *Proposed as the R5 enemy identity.*
+The rest of this section is about the second sense: people.
+
+### What the word covers in people
+
+**In play (browser: every current enemy; Godot: the shared enemy body, the rags and hood every beast wears).** *Proposed as the R5 enemy identity.*
 
 | Kind | How common | What it is | Tell |
 | --- | --- | --- | --- |
-| The far-gone sick | Most | People in the last stage of ash-lung (below). Human, goblin or ork | Grey crust on the face, a wet cough, no words |
+| The far-gone sick | Most | People in the silent stage of ash-lung (below) | Grey crust on the face, a wet cough, no words |
 | The starving and lost | Few | People mad with hunger or cold, sick or not | They still speak, sometimes, and may stop if fed |
 | Bands who take the name | Few | Deserters and raiders who wear grey rags and use the word to frighten. They took Edda and left her bound in the Watchhouse | They carry rope, work together and loot |
 
-Most Ashbound a survivor meets are the first kind. The second and third are why the book insists on the word being a verdict: a hungry family on the causeway has been called Ashbound and turned away before.
+Most Ashbound people a survivor meets are the first kind. The second and third are why the book insists on the word being a verdict: a hungry family on the causeway has been called Ashbound and turned away before.
 
 ### Ash-lung (the Coughing)
 
-A sickness of the breath that the fen healers tie to the ash-spores from the Vaults. Some blame the ash alone, some hunger and damp. Nobody in the book has settled it.
+A sickness of the breath that the fen healers tie to the ash-spores from the Vaults. Some blame the ash alone, some hunger and damp. Nobody in the book has settled it. It is a sickness of people.
 
 | Stage | Signs | How long |
 | --- | --- | --- |
 | 1. The grey cough | A dry cough that brings up grey; tiredness | Weeks to years; many never go further |
 | 2. The crust | Grey scaling round the mouth, nose and eyes; fever at night; constant thirst | Months |
 | 3. Silence | Speech stops. Recognition goes. The sick leave shelter for low, wet ground and attack anyone who comes near | Weeks; this is when people say *Ashbound* |
-| 4. The bloom | Death, then corpse-caps fruiting from the body within days | — |
+| 4. The bloom | Death, then corpse-caps fruiting from the body within days. In a few, the bloom roots before death (see *Walking blooms*) | — |
 
 |  |  |
 | --- | --- |
-| Measures (Ashbound) | As people: 1.50–1.85 m, wasted to 45–70 kg |
+| Measures (the sick) | As people: 1.50–1.85 m, wasted to 45–70 kg |
 | Senses | Poor sight (crusted eyes), fair hearing, poor smell |
 | Habitat | Deep fen, reedbeds, marsh corners and ruins, far from roads and fires; they keep to one stretch of ground |
 | Sleep | Curled in reeds or in the corner of a ruin, by day and night alike; they wake to footsteps |
@@ -577,6 +588,8 @@ A sickness of the breath that the fen healers tie to the ash-spores from the Vau
 | What no one knows | Whether stage 1 passes person to person. Whether anyone comes back from stage 3: two people in the book say they did. Why bloodwicks gather where they sleep |
 | For the game | Today's 65-health Ashbound fits stage 3 exactly: idle, rush, confined to its chunk. R5 can add the cough as a sound cue and the bands as a separate, looting enemy |
 
+**Beasts and the spores.** What the book knows is short. No one has seen a goblin, ork, ogre or troll cough grey, crust over or fall silent. Beasts walk through a spore cloud without choking. Corpse-caps fruit on dead beasts as readily as on dead people, and goblins from nests near the common pits come out dusted grey. Whether a beast can carry the spores to a person, on its hide or in its rags, nobody knows.
+
 ### Corpse-caps
 
 **Tier I, II if breathed. Proposed.** The fruiting growth of the spores, rising from the unburied dead.
@@ -586,11 +599,26 @@ A sickness of the breath that the fen healers tie to the ash-spores from the Vau
 | Measures | Pale caps 10–30 cm tall on grey stalks, in clusters over a body |
 | Body | A fungus, as far as anyone knows. Caps puff grey spores when stepped on or brushed |
 | Habitat | Common pits, sheepfolds, drains, the Corpseway's verges, anywhere bodies lie unburied in damp |
-| Diet | The dead. They do not grow on living flesh, as far as the book knows |
+| Diet | The dead. They do not grow on the healthy; in a few of the dying they root before death (walking blooms, below) |
 | Signs | A sweet smell of mushrooms where there should be rot; white threads in the soil |
 | What we know | This is why the Blackfen limes its dead. The Split Kiln's lime is worth as much for graves as for chimneys. Fire works but costs fuel nobody has |
 | What no one knows | Whether breathing the puff begins ash-lung, or whether the sick only bloom because they were already dying of it |
 | For the game | A hazard prop at unburied sites: a cough and a short sight loss if disturbed; lime as an item that clears it |
+
+#### Walking blooms (the Ash-Spore Husk)
+
+**Tier II, worse in still air. In play (Godot: three in the Spore Hollow on the yard's west edge, round the Spore-Choked Cart).** In a few of the sick the bloom roots **before the body has finished dying**, so the caps fruit in a body that still walks. Carriers call them **walking blooms** or husks. Whatever answered in them is gone; the book counts them with the dead.
+
+|  |  |
+| --- | --- |
+| Measures | As people, wasted: 1.50–1.85 m (1.78 m in Godot); about as hard to put down as a starving man (55 health) |
+| Senses | Poor. It sees about 8 m in a narrow wedge ahead (120 degrees) and hears a sprint or a swing at about 8 m; it remembers where you were for a few seconds (about 5) |
+| Speed | A shamble of 1.9 m/s, slower than you walk |
+| Attack | A clawing swipe at arm's reach (1.5 m) that drives spores in: a wound (16) and about 2 s of choking |
+| The cloud | Every wound puffs spores (about 1.2 m across, 3 s). Death bursts the whole crop at once (about 2.4 m, 8 s): cut one down at arm's length and you stand in it. Inside, you choke: about 3 health a second (it will not kill you by itself, but it leaves you at the edge), stamina barely returns, and sight closes in |
+| What we know | **Fire burns spores**: a lit torch held within about 2 m of a cloud's edge eats it ten times faster, in about a second. Still air keeps a cloud hanging, wind and sleet clear it. By the Godot numbers a cloud lasts x1.6 in the Dead Calm, x1.3 in miasma fog, x1.0 in ashfall, x0.9 in hoarfrost, x0.6 in sleet and x0.4 in a cinder-squall. Beasts breathe the cloud without harm |
+| What no one knows | How long a walking bloom lasts before it falls. Whether the dying feel it root. Why so few of the silent bloom early and the rest wait for death |
+| For the game | In play as it stands. A torch-first fight: burn the cloud, step back from the burst, never finish one in the Dead Calm |
 
 ## Things the book cannot name
 
@@ -608,7 +636,7 @@ Two entries with more questions than answers. The first is one animal, seen once
 | Habitat | The gap where the gallery roof meets the hillside. Its kind of place: roofed galleries, culverts, avalanche shelters, drainage cuts in upland country |
 | Sleep | Unknown. It was in the roof space by day |
 | Diet (witnessed) | Sheep dragged uphill, a pack animal, a carrier. It eats the hindquarters first and caches the rest between the piers |
-| Temperament | Not a rusher. It moved sideways to get the cart out from between itself and Pell. It waited behind stone for Annet to step out |
+| Temperament | Not a rusher. It moved sideways to get the cart out from between itself and Pell. It waited behind stone for Annet to step out, the way a cat waits at a hole |
 | Signs | Drag marks across the road from the downhill verge, a tuft of wool on a stone, grease streaked high on a wall, strips of hide in cracks, a clean floor where ash should lie |
 | What we know | Lime in the air drove it back coughing. Fire made it cry out and withdraw. Keeping a pier between you and it bought time |
 | What no one knows | Whether it survived the fire: the next dawn something walked slowly on the road above the drainage cut, paused, and dragged something over stone. Whether there are others. Whether it came up from the Vaults. The name of the man beyond the fifth pier, and who was missing a carrier with a copper repair on his saddle strap |
@@ -616,14 +644,14 @@ Two entries with more questions than answers. The first is one animal, seen once
 
 ### What the orks fled
 
-**Tier unknown. Unexplained by design.** The premise says the ork war-clans came up out of the Vaults fleeing *something deeper*. The archive keeps it that way, and so does this book. There are no measures here because no one has any.
+**Tier unknown. Unexplained by design.** The premise says the ork war-clans, as the first winter called the packs, came up out of the Vaults fleeing *something deeper*. They fled it as animals flee a fire. The archive keeps it unexplained, and so does this book. There are no measures here because no one has any.
 
 **What people call it.** The listeners beneath the hills call it *the Hush*, and avoid even that. Citadel miners said *the Tenant*. Most Blackfen folk just say *below*.
 
 **What is actually known.**
 
-- The orks fled it in clans and never went back.
-- Orks and the listeners keep the same silences: no bells, no drums, little speech near the hills.
+- The orks fled it in packs and never went back.
+- Orks and the listeners keep the same silences near the hills: the orks as frightened animals do, the listeners with no bells, no drums and little speech.
 - Old Edrin at the Bell-Tender's House keeps his bell's tongue wrapped and sends a runner instead, "because noise reaches unwanted listeners".
 - The Dead Calm, when nothing falls and everything is heard, frightens orks more than any other weather.
 
@@ -631,10 +659,10 @@ Two entries with more questions than answers. The first is one animal, seen once
 
 - It hunts by sound, and the Blind Quarry-Troll is a small cousin of it.
 - There is nothing down there but heat and collapse, and the orks fled the earth itself.
-- The orks fled other orks, and *below* is a war they lost.
+- The orks fled a bigger pack of their own kind, and *below* is a territory they lost.
 - It is still coming up, slowly, and the Smothering is its weather.
 
-**For the game.** Keep it off-screen. Let its evidence accumulate: silences, wrapped bells, ork refusals, and a Dead Calm that makes everything else hunt harder.
+**For the game.** Keep it off-screen. Let its evidence accumulate: silences, wrapped bells, dens the orks will not enter, and a Dead Calm that makes everything else hunt harder.
 
 ## Weather and the bestiary
 
@@ -642,12 +670,12 @@ The Smothering's six weathers decide who is hunting. The first column's numbers 
 
 | Weather | What changes | Comes out | Goes to ground |
 | --- | --- | --- | --- |
-| **Ashfall** (the ordinary night) | Normal sight and hearing in the dark | Ash-moths in swarms; goblins working by ash-light; Greymaw on the roads | Herons |
-| **Miasma fog** | Sight closes to about 7 m; sounds die | Ashbound wander off their ground; Greymaw close in by smell; Rustlings swarm in the damp | Ogre (it cannot find a fire's smell in still fog) |
-| **Sleet** | Torches burn about ×1.8 faster; ground is grease, 85% speed | Bloodwicks in the overflowing water; Harrow eels in the shallows; ash-rats into stores | Ash-moths; goblins, who feel the cold badly |
-| **Cinder-squall** | Embers on the wind; nothing heard over it; torches fan | Ork road-clans move under it; Peat-boar driven out of burning reed | The Quarry-Troll (deaf, it rests); herons |
+| **Ashfall** (the ordinary night) | Normal sight and hearing in the dark | Ash-moths in swarms; goblins hunting by ash-light; Greymaw on the roads | Herons |
+| **Miasma fog** | Sight closes to about 7 m; sounds die; spore clouds hang longer (x1.3) | Ashbound wander off their ground; Greymaw close in by smell; Rustlings swarm in the damp | Ogre (it cannot find a fire's smell in still fog) |
+| **Sleet** | Torches burn about ×1.8 faster; ground is grease, 85% speed; spore clouds clear quickly (x0.6) | Bloodwicks in the overflowing water; Harrow eels in the shallows; ash-rats into stores | Ash-moths; goblins, who feel the cold badly |
+| **Cinder-squall** | Embers on the wind; nothing heard over it; torches fan; spore clouds blow away (x0.4) | Ork road-packs move under it; Peat-boar driven out of burning reed | The Quarry-Troll (deaf, it rests); herons |
 | **Hoarfrost** | Hard bright moon; sound carries ×1.25; ice, 80% speed | Greymaw hunting by moon; Gallows Herons see far; the Roofed Mile animal on the road | Bloodwicks (torpid in the mud); Ashbound curled against the cold |
-| **Dead Calm** | Nothing falls; everything is heard by everyone, ×1.6 | The Quarry-Troll at its deadliest; the Ogre hears what it usually smells | Orks, who go utterly silent; the listeners stop speaking at all. Some say something else comes out |
+| **Dead Calm** | Nothing falls; everything is heard by everyone, ×1.6; spore clouds hang longest (x1.6) | The Quarry-Troll at its deadliest; the Ogre hears what it usually smells | Orks, who go utterly silent; the listeners stop speaking at all. Some say something else comes out |
 
 Hearing cuts both ways: what muffles a goblin's footsteps muffles yours.
 
@@ -659,9 +687,9 @@ Hearing cuts both ways: what muffles a goblin's footsteps muffles yours.
 
 - *A light means fuel, not safety.* (Ash-moths, the Ogre's nose.)
 - *Stand still and be stone.* (The Quarry-Troll.)
-- *Never sleep across a door.* (Taken from the goblins.)
+- *Never sleep across a door.* (Learned from goblin nests.)
 - *Lime the dead or meet them.* (Corpse-caps.)
-- *Put it down and step back.* (Trading with goblins and orks alike.)
+- *Never feed what follows you.* (Goblins, orks and Greymaw alike: food only teaches them the way back.)
 - *A heron that's waiting knows something you don't.*
 - *Ashbound is what you call someone after you've stopped helping them.*
 - *When the wind stops, so do you.* (The Dead Calm.)
@@ -671,14 +699,14 @@ Hearing cuts both ways: what muffles a goblin's footsteps muffles yours.
 Each is a hook for a story or a site, not a mystery the book expects to solve.
 
 1. What the orks fled, and whether it is still coming up.
-2. Where goblin children are.
-3. Whether ogres are a people.
-4. Whether ash-lung is catching, and whether anyone returns from silence.
+2. Where goblin young are.
+3. Why ogres hoard iron.
+4. Whether ash-lung is catching, whether anyone returns from silence, and whether beasts carry it.
 5. Whether the Roofed Mile animal survived the fire, and whether it has kin.
 6. **The Hanging Shed at Rook's Stair.** Its ropes descend into fog, its machinery is serviceable, and no resident claims to have repaired it. The book lists it here only because people keep asking what uses it. Mystery is not automatically supernatural: the likeliest answer is a person nobody wants to name.
 7. Who whistles to the Greymaw.
 8. Who keeps the boat at Low Harrow.
-9. Why the Saint Vey's Fold orks will not sleep under timber.
+9. Why the Saint Vey's Fold orks will not den under timber.
 
 ### For R5 (perception and enemy identity)
 
@@ -687,6 +715,6 @@ What this ledger proposes for the browser build, in the order it would pay off:
 - [ ] Give the Ashbound their identity: stage-three ash-lung, with a cough as a sound cue, idle on their ground, rush, no long chase (matches today's 65-health enemy).
 - [ ] Port the Godot troll's noise table as the shared hearing model: walk 6 m, dodge 9 m, block 10 m, swing 12 m, sprint 14 m, clang 16 m, search 5 m, stone at about half.
 - [ ] Add Gallows Herons as a noise amplifier near water and Greymaw packs on roads as the first group enemy.
-- [ ] Add goblin camps and ork holds as sites with a trading stone, so not every meeting is a fight.
+- [ ] Add goblin nests and ork dens as sites: loose-metal noise traps and a hoard to rob at a nest, a plunder pile behind a single way in at a den, salt as a lure that draws a pack away for a while.
 - [ ] Keep the Roofed Mile animal and the Hanging Shed as authored anchors, never spawn types.
 - [ ] Keep what the orks fled off-screen.

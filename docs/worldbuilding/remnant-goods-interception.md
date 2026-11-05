@@ -1,10 +1,10 @@
 # The Remnant’s Attempt to Retain the Goods
 
-Structured consolidation of proposed opportunistic overreach at loading platform, not an unavoidable scripted betrayal. See [operation](glasshouse-clearing.md) and [full challenge dialogue](hesh-challenges-oren.md).
+Structured consolidation of proposed opportunistic overreach at loading platform, not an unavoidable scripted betrayal. See [operation](glasshouse-clearing.md) and [full challenge dialogue](hesh-challenges-oren.md). Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ## Point of interception
 
-After inspection, before cart leaves estate. Oren calls it custody: disputed property remains, people may depart. Hesh sees dispossession if essentials withheld. Elsin selects estate-marked items, fittings removed from structures, ownership not explicitly settled. Main targets: Sere’s metal tools/fittings and Moth’s rain-catching part. Narrow claims appear more credible than claiming everything.
+After inspection, before cart leaves estate. Oren calls it custody: disputed property remains, people may depart. Hesh sees dispossession if essentials withheld. Elsin selects estate-marked items, fittings removed from structures, ownership not explicitly settled. Main targets: Sere’s metal tools/fittings and Moth’s rain-catching part. Narrow claims appear more credible than claiming everything, though the Remnant starts from the view that anything squatters and known thieves hold was stolen.
 
 ## Ambiguity and leverage
 

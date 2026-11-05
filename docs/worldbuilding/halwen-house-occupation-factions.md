@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Preserved from the 2026-11-01 worldbuilding conversation. Proposed next-stage occupation of [Halwen House](halwen-house.md), above [The Last Gardens](the-last-gardens.md). Companion documents: [Private chapel](halwen-house-private-chapel.md) and [Garden Hands detailed profile](garden-hands.md). The source write-up follows, with its original chat-only commit-status sentence omitted. This is proposed lore, not implemented AI, population simulation, finalized combat balance, or an automatic rewrite of the earlier sparsely occupied house state. Existing lore, assets, and development checkpoints are not modified by this addition.
+Project: Ashen Wilds. Preserved from the 2026-11-01 worldbuilding conversation. Proposed next-stage occupation of [Halwen House](halwen-house.md), above [The Last Gardens](the-last-gardens.md). Companion documents: [Private chapel](halwen-house-private-chapel.md) and [Garden Hands detailed profile](garden-hands.md). The source write-up follows, with its original chat-only commit-status sentence omitted. This is proposed lore, not implemented AI, population simulation, finalized combat balance, or an automatic rewrite of the earlier sparsely occupied house state. Existing lore, assets, and development checkpoints are not modified by this addition. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 Halwen House should be **divided**, not occupied by one large enemy camp.
 
@@ -18,7 +18,7 @@ Keep the numbers small. This is a damaged country house, not a fortress with roo
 |---|---|---|---|
 | The Garden Hands | Kitchen, pantry, lower service yard | Four rotating residents, only two experienced fighters | Working access to the Gardens and parts of the water system |
 | The Halwen Remnant | Entrance hall, dining room, approach court | Five retainers, including three trained fighters | The main entrance, carriage drive, and conspicuous authority |
-| The Gutter Kin | Glasshouse range and adjoining maintenance trench | Six goblins, including an injured elder | Narrow approaches, concealed movement, and stolen fittings |
+| The Gutter Kin | Glasshouse range and adjoining maintenance trench | Six road waifs, including an injured elder | Narrow approaches, concealed movement, and stolen fittings |
 
 The upper floor remains mostly unclaimed because of structural damage.
 
@@ -156,7 +156,9 @@ Oren has orders to obtain compliance without ruining what he has come to claim. 
 
 ### The people beneath the broken glass
 
-The Gutter Kin are a small goblin household occupying the glasshouse range.
+The Gutter Kin are a small household of road waifs occupying the glasshouse range: people who grew up sheltering under the Roofed Mile, lived by taking what wasn’t watched, and became kin to each other.
+
+Others call them *gutter*, and mean it. To the Remnant they are squatters and thieves. Oren’s retainers say they carry the cough; nobody has looked.
 
 They use the maintenance trench, gaps beneath the planting beds, and a breach in the outer wall. They do not possess a secret tunnel network reaching every room.
 
@@ -170,9 +172,9 @@ Neither activity makes them harmless.
 
 ### Their leader: Hesh Split-Lip
 
-Hesh is a practical scavenger with an old facial wound that makes his speech difficult for human listeners.
+Hesh is a practical scavenger with an old facial wound that makes his speech difficult for strangers to follow.
 
-He understands more of the local human tongue than he speaks.
+He understands more of the Remnant’s formal southern speech than he lets them see.
 
 He prefers exchanges involving objects placed on the ground. He does not trust a bargain conducted while one participant is holding the goods over his head.
 
@@ -186,7 +188,7 @@ Their injured elder cannot manage the exposed climb beyond the glasshouse wall w
 
 Hesh has delayed leaving because he will not abandon her.
 
-Several of the younger goblins think this will get them trapped.
+Several of the younger Kin think this will get them trapped.
 
 ### Their violence
 
@@ -236,7 +238,7 @@ Oren orders the chapel cleared for a household assembly.
 
 Dema refuses unless the whole covenant is read aloud.
 
-While they argue in the court, one of Oren’s retainers finds a fresh goblin track beside the chapel wall.
+While they argue in the court, one of Oren’s retainers finds a fresh track of rag-bound feet beside the chapel wall.
 
 He assumes Dema has been allowing the Kin through.
 
@@ -270,7 +272,7 @@ Some describe exactly which cottages are occupied and where their water comes fr
 
 The occupation should allow durable local outcomes, not require exterminating every faction.
 
-- Negotiate shared inspection of the water system, preventing either human group from monopolizing it.
+- Negotiate shared inspection of the water system, preventing either the Hands or the Remnant from monopolizing it.
 - Escort the Gutter Kin out, recovering stolen goods through agreement or accepting that some losses remain unresolved.
 - Secure a written arrangement that limits the Remnant to the front block.
 - Help the Hands defend the service entrance without turning them into rulers of the estate.
@@ -289,7 +291,7 @@ A banner hangs over the front entrance.
 
 Cooking smoke rises from the service wing.
 
-Beyond the broken glasshouses, something small pulls a sheet of canvas out of sight.
+Beyond the broken glasshouses, a thin figure pulls a sheet of canvas out of sight.
 
 Then someone inside the hall calls:
 

@@ -1,6 +1,6 @@
 # Grey Lash: Three-Way Relationship Web
 
-Structured consolidation of the two-faction web’s expansion and later three-way map. Proposed ties, not implemented faction reputation. Main triangle is Grey Lash, Halwen Remnant, and Gutter Kin; Garden Hands and Sabeth apply outside pressure.
+Structured consolidation of the two-faction web’s expansion and later three-way map. Proposed ties, not implemented faction reputation. Main triangle is Grey Lash, Halwen Remnant, and Gutter Kin; Garden Hands and Sabeth apply outside pressure. Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ```mermaid
 flowchart TB
@@ -29,7 +29,7 @@ Need acceptable frame, suitable passage, carriers/relief, agreed load, inspected
 
 Marda–Oren: profitable customer versus exclusivity. Marda–Hesh: equal exchange versus conditional permission. Tern–Dema: repair judgment and refusal. Tern–Brik: respect for load knowledge. Tern–Sere: equipment expertise. Vey–Perrin: overlooked work. Vey–Sere: help must respect consent. Lenna–Sere–Vey may negotiate a corridor even while leaders remain hostile. Tern–Brik–Perrin can establish physical feasibility or jointly refuse impossible labor.
 
-Each leader can promise beyond internal consent: Oren cannot guarantee restraint, Hesh cannot compel six members’ acceptance, Marda cannot promise a lift Tern rejects. Failure may arise within parties, not from essential racial hostility.
+Each leader can promise beyond internal consent: Oren cannot guarantee restraint, Hesh cannot compel six members’ acceptance, Marda cannot promise a lift Tern rejects. Failure may arise within parties, not from some essential hostility between estate folk and gutter waifs, though the slur and the Kin’s past thefts are in every room.
 
 ## Withdrawal pressures
 

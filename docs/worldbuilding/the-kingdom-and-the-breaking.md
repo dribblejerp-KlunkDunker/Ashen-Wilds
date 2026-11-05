@@ -236,7 +236,7 @@ section fell inward. What witnesses saw, mostly second-hand:
 
 The Slagcrown chapel bell was the alarm: stop work, open the stores, bring the crews up. In the
 third week, when the deep crews came up coughing and the steward ordered work to go on, the
-under-priest **Father Osgar Lynde** rang it **against orders** until the steward's men pulled him off
+under-priest **Father Hamelin Lynde** rang it **against orders** until the steward's men pulled him off
 the rope. Half the Citadel came up because of it.
 
 The Bell Road chapels were built to pass the alarm on. Some did. Some priests, told by superiors
@@ -475,7 +475,7 @@ the Watchhouse.
 | S.-1 autumn | The seam meets **fitted stone**; the Lodge refuses; **Ancel Brode** dismissed. |
 | S.-1 midwinter | Blount's schedule, the treasury's condition, **Abbot Strand**'s blessing. Vane overrules the Lodge. |
 | S.0 early spring | **The Breaking.** Ebba Cray lost in the first survey. |
-| S.0 spring | The deep crews cough grey. **Osgar Lynde** rings the bell against orders. |
+| S.0 spring | The deep crews cough grey. **Hamelin Lynde** rings the bell against orders. |
 | S.0 midsummer | First **goblins** in the lower workings. |
 | S.0 late summer | The moor smokes; the first ashfall: **the Grey Harvest**. |
 | S.0 to S.1 | The first winter; goblin swarms come out and down the Bell Road. |
@@ -621,7 +621,7 @@ Proper nouns this file introduces (not in `CANON.md` or the archive):
 - **The Eleventh Gallery**: the Slagcrown's lowest level.
 - **Ancel Brode**: Lodge spokesman who refused the ground; dismissed.
 - **Hamon Strand**: Abbot of the Slagcrown's house of the Keeping; blessed the descent.
-- **Osgar Lynde**: Slagcrown under-priest who rang the bell against orders.
+- **Hamelin Lynde**: Slagcrown under-priest who rang the bell against orders.
 - **Kit Ewell**: Slagcrown lamp-boy and witness; lived to old age in the fen.
 - **Ralf Ottery**: Hob's Height steward who cut the bell-ropes.
 - **Hugh Ardern**: Wexhaven harbour-marshal; led the rear guard; not recorded after S.3.

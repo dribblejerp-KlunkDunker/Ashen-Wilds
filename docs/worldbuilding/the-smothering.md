@@ -19,10 +19,9 @@ weather banners in plain ASCII, ready for the HUD.
 The archive's habit holds throughout: say what happened, say what you do not know. Guesses are
 marked as guesses. Designer ideas are marked **Hook:**.
 
-**Owner rule (2026-11-05), which overrides the archive and the canon sheet here:** only humans are
+**Owner decision O1 (2026-11-05, in `CANON.md`):** only humans are
 people. Goblins, orks, ogres, trolls and every other creature are animals or monsters, with no
-language, names, culture, faith, bargains or society. Where `bestiary.md` treats goblins and orks
-as peoples, this file does not follow it; the orks' fear of the Dead Calm is written as animal
+language, names, culture, faith, bargains or society. The archive was revised to match the same day; the orks' fear of the Dead Calm is written as animal
 behaviour.
 
 ---

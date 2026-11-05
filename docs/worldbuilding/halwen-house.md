@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Region: Last Gardens, southern Bell Road, Blackfen. Preserved from the worldbuilding conversation of 2026-11-01. The full location write-up follows. This is proposed lore, not implemented content or a finalized engine map. Related documents: [The Last Gardens](the-last-gardens.md) and [The Chapel of the Kept Hand](halwen-house-private-chapel.md). This addition does not modify existing lore, character assets, or development checkpoints.
+Project: Ashen Wilds. Region: Last Gardens, southern Bell Road, Blackfen. Preserved from the worldbuilding conversation of 2026-11-01. The full location write-up follows. This is proposed lore, not implemented content or a finalized engine map. Related documents: [The Last Gardens](the-last-gardens.md) and [The Chapel of the Kept Hand](halwen-house-private-chapel.md). This addition does not modify existing lore, character assets, or development checkpoints. Revised 2026-11-05 for owner decision O1 (only humans are people). The original is in git history at commit fd60061.
 
 Halwen House should be the first substantial ruin near the Last Gardens: close enough that its inhabitants know its silhouette by heart, dangerous enough that they still postpone going inside.
 
@@ -274,9 +274,9 @@ The range is a poor place to fight.
 
 Footing is uncertain. Broken glass makes crawling or falling costly. The narrow beds and trench complicate retreat.
 
-A small group of goblins could make it troublesome without controlling the entire estate. Their presence should leave recognizable evidence: disturbed soil, fresh refuse, missing metal, and narrow routes through the wall.
+A small household of road waifs squatting there, the people others call the Gutter Kin, could make it troublesome without controlling the entire estate. Their presence should leave recognizable evidence: disturbed soil, fresh refuse, missing metal, and narrow routes through the wall.
 
-Clearing them would make salvage safer.
+Driving them out would make salvage safer.
 
 It would not repair the house.
 

@@ -2,7 +2,7 @@
 
 ## Document status
 
-Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Proposed detailed faction profile for the occupation phase of [Halwen House](halwen-house.md). Related documents: [Occupation factions](halwen-house-occupation-factions.md), [The Last Gardens](the-last-gardens.md), and [Private chapel](halwen-house-private-chapel.md). These are narrative and encounter proposals, not implemented NPC schedules, AI, combat balance, or quest systems. Existing lore, assets, and development checkpoints are not modified.
+Project: Ashen Wilds. Preserved in full from the 2026-11-01 worldbuilding conversation. Proposed detailed faction profile for the occupation phase of [Halwen House](halwen-house.md). Related documents: [Occupation factions](halwen-house-occupation-factions.md), [The Last Gardens](the-last-gardens.md), and [Private chapel](halwen-house-private-chapel.md). These are narrative and encounter proposals, not implemented NPC schedules, AI, combat balance, or quest systems. Existing lore, assets, and development checkpoints are not modified. Revised 2026-11-05 for owner decision O1 (only humans are people). The original is in git history at commit fd60061.
 
 The Garden Hands began with four people carrying tools uphill.
 
@@ -291,7 +291,7 @@ That leverage weakens if his party obtains another source of labor.
 
 The Hands want stolen tools returned and the glasshouses safe to work.
 
-Jerrit wants the goblins driven out.
+Jerrit wants the gutter brats driven out.
 
 Dema would accept a departure agreement.
 

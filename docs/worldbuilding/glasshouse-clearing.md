@@ -1,10 +1,10 @@
 # The Glasshouse Clearing
 
-Structured consolidation of the proposed negotiated evacuation, not an assault or implemented quest. Related: [complications](glasshouse-clearing-complications.md), [interception](remnant-goods-interception.md), [dialogue](hesh-challenges-oren.md), [Grey Lash](grey-lash.md).
+Structured consolidation of the proposed negotiated evacuation, not an assault or implemented quest. Related: [complications](glasshouse-clearing-complications.md), [interception](remnant-goods-interception.md), [dialogue](hesh-challenges-oren.md), [Grey Lash](grey-lash.md). Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ## Objective
 
-All six Kin leave Halwen, Sere reaches an inspected shelter, bounded restitution occurs, and Remnant gains glasshouse inspection access. Kin do not acknowledge a lord; forgiveness is not promised. Grey Lash has defined work and destination.
+All six Kin leave Halwen, Sere reaches an inspected shelter, bounded restitution occurs, and Remnant gains glasshouse inspection access. To the Remnant the Kin are squatters and thieves; to the Kin the Remnant is one more household that calls them gutter. Kin do not acknowledge a lord; forgiveness is not promised. Grey Lash has defined work and destination.
 
 ## Old Charcoal Lodge
 
@@ -14,7 +14,7 @@ Kett and Vey first inspect escape paths and cart approach. Moth later inspects o
 
 ## Terms at chapel court
 
-Elsin records, reads, corrects practical terms. Hesh can require oral repetition rather than pretend fluency in unfamiliar legal formulas.
+Elsin records, reads, corrects practical terms. None of the six learned letters under the Roofed Mile; Hesh can require oral repetition rather than pretend fluency in unfamiliar legal formulas.
 
 Oren: keep specified route open; prevent unauthorized seizures; bounded bundle inspection; occupy glasshouses only after sixth departs; pay agreed transport/clearance share. Hesh: six occupants leave, identify placed hazards along route, return listed goods, agreed carrying limit, no further theft during operation. Grey Lash: acceptable transport, assist all six to lodge, agreed load, remain until Sere settled and goods arrived, reassess unusable route. Destination obligation is repeated: not merely chapel court.
 

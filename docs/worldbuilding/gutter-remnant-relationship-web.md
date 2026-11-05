@@ -1,10 +1,10 @@
 # Gutter Kin–Halwen Remnant Relationship Web
 
-Structured consolidation of proposed cross-faction ties. New relationships are proposals, not retroactive knowledge or implemented reputation. See [Kin](gutter-kin.md), [members](gutter-kin-members.md), [Remnant](halwen-remnant.md).
+Structured consolidation of proposed cross-faction ties. New relationships are proposals, not retroactive knowledge or implemented reputation. See [Kin](gutter-kin.md), [members](gutter-kin-members.md), [Remnant](halwen-remnant.md). Revised 2026-11-05 for owner decision O1 (only humans are people): the Gutter Kin are a human household of road waifs. The original is in git history at commit fd60061.
 
 ## Main tension
 
-Interdependence: Remnant needs materials and secure access; Kin need food, transport, and shelter for Sere. Sabeth is employed by the claimant but quietly feeds the Kin. Garden Hands hold service access and restitution claims as outside pressure.
+Interdependence: Remnant needs materials and secure access; Kin need food, transport, and shelter for Sere. Sabeth is employed by the claimant but quietly feeds the Kin. Garden Hands hold service access and restitution claims as outside pressure. Under all of it sits class: the Remnant serves a family that owned the estate, the Kin grew up under the Roofed Mile robbing carts, and every term offered can sound like *gutter*.
 
 ```mermaid
 flowchart LR

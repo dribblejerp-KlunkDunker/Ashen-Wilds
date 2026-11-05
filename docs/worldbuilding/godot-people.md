@@ -14,8 +14,7 @@ Watchhouse refuge. A list of new names closes the file.
 
 ## Read this first
 
-- **Only humans are people.** By the owner's decision of 2026-11-05, which overrides the archive
-  and the canon sheet where they disagree, goblins, orks, ogres, trolls and every other creature
+- **Only humans are people.** By owner decision O1 (2026-11-05, in `CANON.md`), goblins, orks, ogres, trolls and every other creature
   are animals or monsters: no language, names, faith, bargains or society. Every companion and
   named person here is human. The archive's goblin household (the Gutter Kin of Halwen House) is
   not used, and the Gutter-kin background is a human road waif with no goblin connection. That

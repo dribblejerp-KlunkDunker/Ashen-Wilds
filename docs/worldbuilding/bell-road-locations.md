@@ -1,6 +1,6 @@
 # Seven Locations Along the Bell Road
 
-Structured consolidation of proposed location write-ups, not a verbatim transcript or finalized map. The road gradually loses maintained fences, roofs, and reliable shelter. [Last Gardens](the-last-gardens.md) has a separately preserved full expansion.
+Structured consolidation of proposed location write-ups, not a verbatim transcript or finalized map. The road gradually loses maintained fences, roofs, and reliable shelter. [Last Gardens](the-last-gardens.md) has a separately preserved full expansion. Revised 2026-11-05 for owner decision O1 (only humans are people). The original is in git history at commit fd60061.
 
 ## Proposed travel order
 
@@ -52,9 +52,9 @@ The bell sits low between timber supports, its tongue wrapped. Edrin does not an
 
 ## Saint Vey’s Fold
 
-Walled roadside hospice around a court, later used for sheep, now occupied in the rear range by a few displaced ork households. Chapel entrance blocked with dressed stone. Visitors cannot freely enter their shelter.
+Walled roadside hospice around a court, later used for sheep, now shared uneasily: a few orks den in the rear range, and the Fold’s people, who have walled it off with dressed stone across the chapel entrance and the range doors, live beside them. Nobody goes in.
 
-Cautious exchanges occur at an outer flat stone: iron, salt, or leather may be exchanged for repaired metal, bone work, or dry fuel. Theft could destroy this local arrangement. Human travelers still use the front dormitory with bed frames and a broken stove. The orks do not enter it; whether boundary, danger, or lack of need is unresolved. A southern religious claimant seeking recovery could imperil both occupants and human travelers without their consent.
+The Fold’s people trade with travelers: iron, salt, or leather for repaired metal, bone work, or dry fuel, and they keep the wall mended and the court quiet after dark. Human travelers use the front dormitory with bed frames and a broken stove. The orks do not enter it, or any roofed timber; whether wariness, smell, or something else keeps them out is unresolved. A southern religious claimant seeking recovery could break the wall open and imperil the Fold’s people and human travelers without their consent.
 
 ## The Bent Span
 

@@ -11,14 +11,12 @@ trade. Then fourteen new items that fit the systems the game already has. Last, 
 in-game texts ready to place: notes and letters, carved boards, discovery banners and alternative
 background epigraphs, each with its place in the Act I level.
 
-**Owner decision applied (2026-11-05), overriding the archive and `CANON.md`.** Goblins and orks
+**Owner decision O1 applied (2026-11-05).** Goblins and orks
 are **not peoples**. Only humans are people: every creature, goblins, orks, ogres and trolls
 included, is an animal or a monster, with no language, names, culture, faith, bargains or society. So this file has no trading stone, no trade with goblins or orks, and nothing made by
 them. Orks crave salt the way a beast craves a lick: they raid salt stores and hoard what they
-take. Their gear is stolen or scavenged human gear. Where the archive (`bestiary.md`, the Saint
-Vey's Fold ork households, "put it down and step back") or `CANON.md` (Tone: "Peoples, not
-monsters"; fact 14, "an ork road-clan") says otherwise, this file follows the decision. Those
-files need correcting to match. Trade in this file happens between people only.
+take. Their gear is stolen or scavenged human gear. This is owner decision O1 in `CANON.md`; the archive files
+were revised to match on 2026-11-05. Trade in this file happens between people only.
 
 **Rules for the in-game text below.** Everything in a `text` block, and every proposed description,
 is plain ASCII: straight quotes, hyphens, no arrows, symbols or em dashes (the browser build has
@@ -525,9 +523,9 @@ Burn the sacks if there is fuel. There is not.
 CAUSEWAY PARISH - ADMITTED TO SHELTER, S.1
 Fallow household, five.          departed
 Widow Pruett and two children.   departed
-Ancel the drover.                departed
+Abel the drover.                departed
 On the back, in another hand, older ink:
-REFUSED AT THE GATE, S.1: Fallow, five. Pruett, three. Ancel.
+REFUSED AT THE GATE, S.1: Fallow, five. Pruett, three. Abel.
 ```
 
 *(The archive's proposed Causeway register, `keeping-and-merewick.md` section 4: the same
@@ -883,7 +881,7 @@ on 2026-11-05 with no clashes:
 - **Grisel**: a hedge-priest "of no chapel".
 - **Sorrel**: a Rook's Stair quarry worker, named on the quarry slate.
 - **Lettice**: a child, written to by her mother in an unsent letter.
-- **The Fallow household**, **Widow Pruett**, **Ancel the drover**: households on the Causeway
+- **The Fallow household**, **Widow Pruett**, **Abel the drover**: households on the Causeway
   parish register leaf.
 - **Bog-pine**, **the barter board**, **hoard-right**, **the struck measure**: terms for things and
   customs.
