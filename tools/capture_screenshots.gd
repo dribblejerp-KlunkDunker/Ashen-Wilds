@@ -259,7 +259,7 @@ func _run() -> void:
 	await _frames(4)
 	dragger._begin_tell()
 	dragger._drop_from = dragger.global_position
-	var t: float = 0.45
+	var t: float = 0.7
 	var mid: Vector3 = dragger._drop_from.lerp(dragger._drop_target, t)
 	mid.y = lerpf(dragger._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
 	dragger.global_position = mid

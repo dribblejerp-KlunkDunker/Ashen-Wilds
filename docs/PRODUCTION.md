@@ -183,6 +183,8 @@ ours. Everything it does is taken from the story:
 - **Fire keeps it off** (the oil fire at the end): a lit torch held toward it within 4.2 m, longer
   than its lunge, and it circles for a way round the flame instead of coming in.
 - It climbs back to its ledge when it has lost the survivor. F9 teleports to the gallery.
+- The passage between wall and piers is 3 m wide, so the existing cramped rule applies there: sword
+  sweeps clang off the stone (the HUD says so), and a fight in the gallery wants thrusts.
 - Not built: the lime that drove it off coughing, its dragging of carcasses, and rearing to reach a
   climber. Proposed next, with the companion's view of it.
 - The body is the Ashbound stand-in, crouched and pale (no four-legged rig or clips exist in the
