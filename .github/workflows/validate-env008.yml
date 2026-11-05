@@ -30,14 +30,14 @@ jobs:
         run: |
           python -m pip install numpy==1.26.4 scipy==1.13.1 Pillow==12.2.0
           python tools/generate_env008.py assets/environment/env008
-      - name: Import and test in Godot 4.3
+      - name: Import and test in Godot 4.7.2
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/godot"
-          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
           unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-          engine="$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          engine="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
           chmod +x "$engine"
           project="$RUNNER_TEMP/env008-validation"
           mkdir -p "$project/assets/environment"
