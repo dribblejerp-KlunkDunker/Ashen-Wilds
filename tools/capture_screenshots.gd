@@ -62,7 +62,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
@@ -214,6 +214,20 @@ func _run() -> void:
 	troll._visual_root.visible = true
 	await _frames(14)
 	await _shot("12_quarry_troll.png")
+	troll._abandon_attack()
+
+	# 13: the Spore Hollow. Torch in hand, the survivor faces three husks; one has just burst into
+	# a cloud. They stand clear of it, out of the torch's reach of it, so it hangs for the shot.
+	_equip_now("pitch_torch")
+	_place(Vector3(-14.6, 0.0, 0.8), Vector3(-1.0, 0.0, -0.35))
+	for h: Node in enemies.filter(func(e: Node) -> bool: return e is EnemySporeHusk):
+		var husk: EnemySporeHusk = h
+		husk._face_toward(Vector3(-14.6, 0.0, 0.8), 50.0, 1.0)
+		husk._visual_root.visible = true
+		husk._model.play(&"Zombie_Walk_Fwd")
+	SporeCloud.spawn(_main, Vector3(-19.4, 0.0, -0.6), EnemySporeHusk.BURST_RADIUS, 60.0)
+	await _frames(14)
+	await _shot("13_spore_hollow.png")
 	Engine.time_scale = 1.0
 
 	quit(0)

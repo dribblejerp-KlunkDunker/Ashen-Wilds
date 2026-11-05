@@ -136,6 +136,11 @@ var weather_footing: float = 1.0
 ## Who the survivor was (SurvivorBackground): their kit, one trait, one flaw. Set by
 ## apply_background(); the Watch Deserter by default.
 var background: SurvivorBackground
+## Seconds of choking left (ash-spores: SporeCloud, a husk's claw). While choking, stamina barely
+## returns and the survivor can hardly see.
+var _choke_timer: float = 0.0
+const CHOKE_STAMINA_MULT: float = 0.25
+const CHOKE_SIGHT_MULT: float = 0.35
 var _base_stats: Dictionary = {}
 
 func _ready() -> void:
@@ -360,6 +365,18 @@ func _on_inventory_changed() -> void:
 				combat_banner_message.emit("Overburdened — cannot sprint or dodge", Color(0.90, 0.40, 0.25))
 		_last_load = load_state
 	inventory_changed.emit()
+
+## Breathing spores: choke for at least `seconds` more and lose `dps` health per second of it
+## (a cloud calls this every tick with its delta; a husk's claw once with 2 s and no damage).
+## Like bleeding, choking never kills by itself (it stops at 1 health).
+func choke(seconds: float, dps: float) -> void:
+	if current_state == ActionState.DEAD:
+		return
+	_choke_timer = maxf(_choke_timer, maxf(seconds, 0.35))
+	health = maxf(minf(health, 1.0), health - dps * seconds)
+
+func is_choking() -> bool:
+	return _choke_timer > 0.0
 
 ## Where the survivor faces (flat, unit length). Enemies read it to find an exposed back.
 func get_aim_direction() -> Vector3:
@@ -707,12 +724,19 @@ func _update_timers_and_conditions(delta: float) -> void:
 		if bleed_timer <= 0.0:
 			is_bleeding = false
 
+	if _choke_timer > 0.0:
+		_choke_timer = maxf(0.0, _choke_timer - delta)
+	if perception != null:
+		perception.obscured = CHOKE_SIGHT_MULT if _choke_timer > 0.0 else 1.0
+
 	if _stamina_delay_timer > 0.0:
 		_stamina_delay_timer = maxf(0.0, _stamina_delay_timer - delta)
 	elif current_state in [ActionState.IDLE, ActionState.MOVE, ActionState.BLOCK, ActionState.CHANNEL]:
 		var rate: float = stamina_regen_rate * (0.38 if current_state == ActionState.BLOCK else 1.0)
 		if is_bleeding:
 			rate *= 0.75
+		if _choke_timer > 0.0:
+			rate *= CHOKE_STAMINA_MULT
 		if inventory.get_load() == Inventory.Load.OVERBURDENED:
 			rate *= 0.7
 		stamina = minf(max_stamina, stamina + rate * delta)
@@ -1370,6 +1394,7 @@ func _emit_stats() -> void:
 		"state": ActionState.keys()[current_state],
 		"exhausted": is_exhausted,
 		"bleeding": is_bleeding,
+		"choking": _choke_timer > 0.0,
 		"main_label": main.get_label() if main else "Bare Fists",
 		"main_broken": main.is_broken() if main else false,
 		"off_label": off.get_label() if off else "— empty —",
