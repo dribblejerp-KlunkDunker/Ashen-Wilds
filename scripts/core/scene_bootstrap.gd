@@ -46,6 +46,9 @@ func _ready() -> void:
 
 	_spawn_scavenge_containers()
 	_spawn_bound_captive()
+	# The cart in the Spore Hollow: a fresh torch, for the one thing the spores fear.
+	_spawn_container("Spore-Choked Cart", Vector3(-22.5, 0.0, -1.5), Vector3(1.4, 0.6, 0.9), Color(0.36, 0.34, 0.26), 3.0,
+		[ItemDatabase.make("pitch_torch", 1), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)])
 
 	add_child(VisionConeOverlay.new(_player))
 	add_child(Vignette.new())
@@ -82,6 +85,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hud.show_banner("Vision cone %s" % ("on" if _player.perception.enabled else "off (dev)"), Color(0.75, 0.75, 0.75))
 			KEY_F5:
 				_weather.advance()
+			KEY_F7:
+				_player.global_position = Vector3(-14.0, 0.0, -2.0)
+				_hud.show_banner("Teleported: the Spore Hollow (Ash-Spore Husks). Fire burns spores.", Color(0.72, 0.74, 0.52))
 			KEY_F6:
 				_player.global_position = Vector3(8.0, 0.0, -10.0)
 				_hud.show_banner("Teleported: the Old Quarry (Blind Quarry-Troll). Keep still.", Color(0.80, 0.70, 0.52))
@@ -432,6 +438,15 @@ func _spawn_all_archetype_encounters() -> void:
 			_camera_rig.add_trauma(trauma)
 	)
 
+	# The Spore Hollow on the west edge: three husks round a cart they died beside.
+	for spot: Vector3 in [Vector3(-19.5, 0.0, -1.0), Vector3(-21.5, 0.0, -3.5), Vector3(-18.5, 0.0, -4.5)]:
+		var husk := EnemySporeHusk.new()
+		husk.position = spot
+		husk.player_ref = _player
+		husk.audio = _audio
+		husk.coordinator = _coordinator
+		add_child(husk)
+
 	var troll := EnemyQuarryTroll.new()
 	troll.position = Vector3(15.5, 0.0, -14.5)
 	troll.player_ref = _player
@@ -514,6 +529,7 @@ const CONTAINER_MODELS: Dictionary = {
 	"Watchhouse Supply Chest": ["env007/exports/env_crate_v11_hinged_lid.glb", Color(0.8, 0.78, 0.74)],
 	"Ork Plunder Pile": ["env007/exports/env_crate_v08_open_top.glb", Color(0.75, 0.72, 0.68)],
 	"Gnawed Bone Heap": ["env008/exports/env_ground_11_twigs_dense.glb", Color(1.6, 1.5, 1.3)],
+	"Spore-Choked Cart": ["env007/exports/env_crate_v08_open_top.glb", Color(0.72, 0.76, 0.6)],
 }
 
 ## Crates and chests are weathered planks; heaps keep a flat colour.

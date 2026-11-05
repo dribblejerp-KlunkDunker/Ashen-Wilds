@@ -33,6 +33,8 @@ var sight_range: float = 1.0e9
 ## The survivor's own eyes and ears (SurvivorBackground), on top of the weather.
 var sight_mult: float = 1.0
 var hearing_mult: float = 1.0
+## Choking on spores: the survivor's eyes stream (set by the player each tick).
+var obscured: float = 1.0
 
 var _player: Node3D
 ## The world node ripples and marks are added to.
@@ -77,7 +79,7 @@ func line_of_sight(point: Vector3, height: float = 1.0) -> bool:
 
 ## Inside the cone, within the weather's sight range, and not behind a wall.
 func can_see(point: Vector3, height: float = 1.0) -> bool:
-	if _player.global_position.distance_to(point) > sight_range * sight_mult:
+	if _player.global_position.distance_to(point) > sight_range * sight_mult * obscured:
 		return false
 	return in_cone(point) and line_of_sight(point, height)
 

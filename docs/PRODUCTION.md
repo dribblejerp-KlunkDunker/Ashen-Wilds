@@ -157,6 +157,38 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Bestiary 2 — Ash-Spore Husks: evidence (brief §24)
+
+**What.** No bestiary list exists in either repository; the README's history says the
+Deep-Seam Vaults released "ash-spores, goblin hordes, ork war-clans". This slice makes the spores
+a creature and a hazard, built to use what the game already has (the torch, the weather, the
+vision cone):
+- **Ash-Spore Husks**, the Ashbound's dead colonised by spores. 55 health, slow (1.9 m/s, under a
+  walk), half-blind (8 m, a 120 degree cone, cut by walls), hears a sprint or a swing at 8 m
+  (times the survivor's noise multiplier). A claw: 16 damage and 2 s of choking. Three stand in
+  the Spore Hollow on the west edge, round a cart that holds a full torch.
+- **Spore clouds.** Every wound puffs a small one (1.2 m, 3 s); death bursts a large one where the
+  husk stood (2.4 m, 8 s), so a husk cut down at arm's length leaves the survivor inside it. In a
+  cloud the survivor **chokes**: 3 health a second (never below 1, like bleeding), stamina
+  regeneration x0.25, and sight cut to 35% (8.4 m in ashfall, 2.5 m in the miasma).
+- **Fire burns spores.** A lit torch within 2 m of a cloud's edge burns it ten times faster (about
+  a second): the first real reason to carry the torch instead of the shield in the open.
+- **The weather sets how long a cloud hangs**, a new "spores" field in every profile: ashfall
+  x1.0, miasma x1.3, sleet x0.6, cinder-squall x0.4, hoarfrost x0.9, Dead Calm x1.6.
+- Enemies and the companion breathe it without harm. F7 teleports to the hollow.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 434 passed, 0 failures, twice (23 new:
+the three husks and the cart's torch; choking's health drain, HUD flag, lost sight and stamina
+regeneration against clear air; that it stops; that it never kills; a lit torch burning a cloud
+and an unlit one leaving it; the Dead Calm and cinder-squall cloud lives; the husk's cone and its
+speed; its claw's damage and choking; the wound's puff; the death burst where it stood, around a
+survivor at arm's length; standing down; and the model, clip and facing checks every enemy gets).
+Kit suites, live boot and `tools/net_spike.py` clean. A new README screenshot of the hollow.
+
+**Not covered by headless tests.** Whether the cloud reads as dangerous at a glance (a pale,
+translucent dome), whether 3 health a second is a threat or a nuisance, and whether players find
+the torch answer without being told (the F7 banner says "Fire burns spores").
+
 ## Bestiary 1 — the Blind Quarry-Troll: evidence (brief §24)
 
 **What.** The roadmap's "the Blind Quarry-Troll", built from its name and what the game already

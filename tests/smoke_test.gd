@@ -89,7 +89,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -115,6 +115,7 @@ func _run() -> void:
 	await _test_armour()
 	await _test_companions()
 	await _test_quarry_troll()
+	await _test_spore_husks()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1266,6 +1267,7 @@ func _test_enemy_models() -> void:
 		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Shield_Dash", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
 		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Push", &"Sprint", &"Hit_Knockback", &"Hit_Head", &"Death01"],
 		EnemyQuarryTroll: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Death01"],
+		EnemySporeHusk: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Melee_Hook", &"Hit_Chest", &"Death01"],
 	}
 	for cls: Variant in needed.keys():
 		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
@@ -2537,6 +2539,153 @@ func _test_quarry_troll() -> void:
 	await _ticks(2)
 	_check(t.state == EnemyQuarryTroll.AIState.RETURN_HOME, "with nothing to hear, far from home, it walks back")
 	t.queue_free()
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Bestiary: Ash-Spore Husks burst into choking clouds; fire burns spores; the weather sets how
+# long a cloud hangs.
+# ------------------------------------------------------------------------------
+func _clear_spores() -> void:
+	for n: Node in get_nodes_in_group("spore_cloud"):
+		n.queue_free()
+	_player._choke_timer = 0.0
+	await _ticks(1)
+
+func _test_spore_husks() -> void:
+	_section("Bestiary: Ash-Spore Husks")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.default_background())
+	_reset_player(OPEN)
+	await _ticks(2)
+	await _clear_spores()
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemySporeHusk)
+	_check(level.size() == 3 and level.all(func(h: Node3D) -> bool: return h.global_position.x < -17.0),
+		"three husks gather in the Spore Hollow on the west edge")
+	var cart: Lootable = null
+	for n: Node in get_nodes_in_group("lootable"):
+		if (n as Lootable).display_name == "Spore-Choked Cart":
+			cart = n
+	_check(cart != null and cart.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "pitch_torch" and i.condition >= i.data.max_condition - 0.5),
+		"a cart in the hollow holds a fresh torch")
+
+	# A cloud chokes: health drains, stamina barely returns, sight closes, the HUD says so.
+	var cloud := SporeCloud.spawn(_main, OPEN, 2.4, 8.0)
+	await _ticks(2)
+	_player.health = _player.max_health
+	_player.stamina = 40.0
+	_player._stamina_delay_timer = 0.0
+	var hp: float = _player.health
+	await _seconds(1.0)
+	var choked_regen: float = _player.stamina - 40.0
+	_check(_player.is_choking() and absf((hp - _player.health) - SporeCloud.CHOKE_DPS) < 0.4,
+		"inside a cloud the survivor chokes, losing %.0f health a second (lost %.1f)" % [SporeCloud.CHOKE_DPS, hp - _player.health])
+	_check(_hud._status_label.text.contains("CHOKING"), "the HUD flags it")
+	var g := _spawn_hunting_goblin(Vector3(10.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	_face(Vector3.RIGHT)
+	_check(not _player.perception.update_visibility(g, g._visual_root, 0.95), "choking, a goblin 10 m ahead cannot be seen (24 m x 0.35 = 8.4 m)")
+	cloud.queue_free()
+	_player.global_position = OPEN + Vector3(0.0, 0.0, 8.0)
+	await _seconds(0.6)
+	_player.stamina = 40.0
+	await _seconds(1.0)
+	var clear_regen: float = _player.stamina - 40.0
+	_check(not _player.is_choking() and choked_regen < clear_regen * 0.4,
+		"out of it, choking stops and stamina returns (%.1f choking vs %.1f clear)" % [choked_regen, clear_regen])
+	g.global_position = _player.global_position + Vector3(10.0, 0.0, 0.0)
+	await _ticks(1)
+	_check(_player.perception.update_visibility(g, g._visual_root, 0.95), "and the goblin is seen again")
+	g.queue_free()
+	_check(_player.health >= 1.0, "choking alone never kills (it stops at 1)")
+
+	# Fire burns spores: a lit torch eats a cloud in about a second; without one it hangs.
+	await _clear_spores()
+	_reset_player(OPEN)
+	var torch: ItemInstance = _player.inventory.find_first("pitch_torch")
+	_player.inventory.off_hand = torch
+	_player.inventory.notify_changed()
+	await _ticks(2)
+	_check(_player.is_torch_lit(), "(setup) the torch is lit")
+	var burnt := SporeCloud.spawn(_main, OPEN + Vector3(3.0, 0.0, 0.0), 2.4, 8.0)
+	await _seconds(1.2)
+	_check(not is_instance_valid(burnt), "a lit torch near a cloud burns it away within about a second")
+	_player.inventory.off_hand = _player.inventory.find_first("wooden_targe")
+	_player.inventory.notify_changed()
+	await _ticks(2)
+	var kept := SporeCloud.spawn(_main, OPEN + Vector3(3.0, 0.0, 0.0), 2.4, 8.0)
+	await _seconds(1.2)
+	_check(is_instance_valid(kept) and kept.life > 6.0, "without the torch the cloud hangs (%.1f s left)" % (kept.life if is_instance_valid(kept) else 0.0))
+	kept.queue_free()
+
+	# The weather sets how long a cloud hangs.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	var calm := SporeCloud.spawn(_main, OPEN + Vector3(-8.0, 0.0, 0.0), 2.4, 8.0)
+	w.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	var gusty := SporeCloud.spawn(_main, OPEN + Vector3(-8.0, 0.0, 6.0), 2.4, 8.0)
+	_check(absf(calm.life - 12.8) < 0.01 and absf(gusty.life - 3.2) < 0.01, "the Dead Calm keeps a cloud 12.8 s, a cinder-squall clears it in 3.2 s")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	await _clear_spores()
+
+	# The husk: half-blind, slow, and full of spores.
+	_reset_player(OGRE_YARD + Vector3(-5.0, 0.0, 0.0))
+	await _ticks(2)
+	var h := EnemySporeHusk.new()
+	h.audio = _player.audio
+	h.player_ref = _player
+	_main.add_child(h)
+	h.global_position = OGRE_YARD
+	h._facing_dir = Vector3.RIGHT  # looking away from the survivor
+	await _ticks(2)
+	_check(not h.sees_player(), "a husk looking away does not see a survivor 5 m behind it")
+	h._facing_dir = Vector3.LEFT
+	_check(h.sees_player(), "facing them, it does")
+	_check(EnemySporeHusk.SHAMBLE_SPEED < _player.move_speed, "it shambles slower than you walk (%.1f vs %.1f m/s)" % [EnemySporeHusk.SHAMBLE_SPEED, _player.move_speed])
+	# Its claw drives spores in.
+	_player.global_position = OGRE_YARD + Vector3(-1.2, 0.0, 0.0)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	hp = _player.health
+	h.state = EnemySporeHusk.AIState.CLAW_STARTUP
+	h._state_timer = 0.0
+	await _ticks(4)
+	_check(absf((hp - _player.health) - EnemySporeHusk.CLAW_DAMAGE) < 0.5 and _player.is_choking(),
+		"its claw does %.0f and leaves the survivor choking" % EnemySporeHusk.CLAW_DAMAGE)
+	_player._choke_timer = 0.0
+	# A wound puffs a small cloud; death bursts a big one where it stood.
+	h.state = EnemySporeHusk.AIState.IDLE
+	h._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 10.0, 1.0))
+	await _ticks(2)
+	var puffs: Array = get_nodes_in_group("spore_cloud")
+	_check(puffs.size() == 1 and absf((puffs[0] as SporeCloud).radius - EnemySporeHusk.PUFF_RADIUS) < 0.01, "a wound puffs a small cloud")
+	await _clear_spores()
+	h._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	var bursts: Array = get_nodes_in_group("spore_cloud")
+	_check(h.is_dead() and bursts.size() == 1 and absf((bursts[0] as SporeCloud).radius - EnemySporeHusk.BURST_RADIUS) < 0.01
+		and (bursts[0] as SporeCloud).contains(h.global_position), "killed, it bursts into a %.1f m cloud where it stood" % EnemySporeHusk.BURST_RADIUS)
+	_check((bursts[0] as SporeCloud).contains(_player.global_position), "and a survivor who killed it at arm's length stands in the cloud")
+	await _clear_spores()
+	h.queue_free()
+
+	# The survivor dies mid-claw: it stands down.
+	var h2 := EnemySporeHusk.new()
+	h2.player_ref = _player
+	_main.add_child(h2)
+	h2.global_position = OGRE_YARD
+	await _ticks(2)
+	h2.state = EnemySporeHusk.AIState.CLAW_STARTUP
+	h2._state_timer = 0.5
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(h2.state == EnemySporeHusk.AIState.IDLE and not h2._hitbox._is_swing_active, "the survivor dead, a husk stands down")
+	h2.queue_free()
 	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)
