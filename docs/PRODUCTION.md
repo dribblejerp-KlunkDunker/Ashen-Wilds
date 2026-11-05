@@ -157,6 +157,38 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Bestiary 3 — the Unnamed: evidence (brief §24)
+
+**What.** From the worldbuilding's faith, not its monsters (it names none): the Keeping teaches
+that "dead people are named", and a proposed custom is to "speak a corpse's name into its mouth"
+(grim-dark-ashen-wilds-, docs/worldbuilding/keeping-and-merewick.md). The Unnamed are the drowned
+dead of a burial ground in the yard's empty south-east corner, put down in the Smothering without
+their names, and they get up:
+- **They rise again.** At 0 health an Unnamed falls (walkable over, unhittable, no corpse) and 12 s
+  later rises whole (the `LayToIdle` clip). It stays down only when its name is spoken at its own
+  grave: each has a worn stone with an [E] "Speak a name" prompt, a 2.5 s channel that a blow
+  breaks off. Naming works whether it is down or standing, so a careful survivor can creep to a
+  stone unseen. Then it lies down for good and leaves a body to search.
+- 45 health, slow (2.6 m/s), sees 10 m in a 130 degree cone, hears a sprint or a swing at 10 m,
+  a grab for 14. Tied to its grave: it turns back past 14 m. F8 teleports to the graves.
+- The fight is a puzzle of attention: three of them, three stones; down one, then race to its
+  stone before it rises, with the other two on you. The companion holding them helps.
+
+**A slip on the way, owned.** Merging PR #24 failed once because the call carried a full commit
+hash filled in from the short one rather than read from the PR; it was read and the merge retried.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 455 passed, 0 failures, twice (21 new:
+three Unnamed bound to three graves; the grave's prompt; falling and not leaving a corpse; rising
+whole with the rise clip and standing hittable; naming a fallen one through the survivor's own
+channel laying it to rest, the prompt gone, a body to search, no rising again; naming a standing
+one; its cone; its grab; a blow breaking off the naming; the leash; standing down; and the model,
+clip and facing checks every enemy gets). Kit suites, live boot and `tools/net_spike.py` clean.
+A new README screenshot of a naming at a grave.
+
+**Not covered by headless tests.** Whether "find its grave" is clear from the banner alone (the
+first rise says so), whether 12 s is long enough to reach a stone with two more coming, and
+whether the stones read as graves (a ruin-pillar stump, scaled down).
+
 ## Bestiary 2 — Ash-Spore Husks: evidence (brief §24)
 
 **What.** No bestiary list exists in either repository; the README's history says the
