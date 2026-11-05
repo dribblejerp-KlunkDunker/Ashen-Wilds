@@ -14,7 +14,7 @@ Document precedence (appendix §66): the developers' latest explicit decision, t
 | Item | State |
 |---|---|
 | Base project | **CONFIRMED** (owner, 2026-11-03): this Godot repository (`dribblejerp-KlunkDunker/Ashen-Wilds`). The browser prototype (`Grim-Dark-Ashen-Wilds-`) is a design reference, a source of reusable rules and data, and a rollback baseline; it is not ported as code. |
-| Engine | **CONFIRMED**: Godot 4.7.2-stable (`4.7.2.stable.official.ed1daf0bf`), GDScript, Forward+. Pinned in `project.godot`, CI and the export tools. The upgrade to 4.7.2 is in progress on its own branch (decision P2; evidence below). Do not change versions during production without a recorded decision. |
+| Engine | **CONFIRMED**: Godot 4.7.2-stable (`4.7.2.stable.official.ed1daf0bf`), GDScript, Forward+. Pinned in `project.godot`, CI and the export tools. Upgraded from 4.3-stable on 2026-11-05 (decision P2; evidence below). Do not change versions during production without a recorded decision. |
 | Asset tools | **PROPOSED** (brief §4): Blender, exporting glTF/GLB into `res://`. Blender was not available in the session that wrote this; no 3D asset has been authored yet. |
 | Preserved prototype | `main.tscn` and everything under `scripts/` other than `scripts/net/` are the single-player Milestones 1–5 of the earlier plan: 177 headless checks, unchanged. The new networked work lives beside it, not inside it. |
 | Reproducible build | Source plus the Godot binary. No export templates are in use yet; the game runs from source with the commands below. Exported test builds (appendix §57, §91) are Milestone 1's last step. |
@@ -88,7 +88,7 @@ GitHub Actions. The browser build's procedural sound streams through the browser
 | # | Decision | Status | Date | Reason / consequence | Revisit trigger |
 |---|---|---|---|---|---|
 | P1 | Base the 3D game on this Godot repo | CONFIRMED | 2026-11-03 | Already real-time 3D, elevated orthographic rig with roof hiding and wall cutaway, built-in multiplayer, GLB import. The browser build would need a renderer first. | Only if the developers' machines cannot run the Godot editor (test: open the project, press F5). |
-| P2 | Godot 4.7.2-stable (was 4.3-stable, 2026-11-03) | **PROPOSED** (owner, 2026-11-04: "you can do it for me"); not merged while the browser build regresses (see the upgrade evidence) | 2026-11-04 | 4.7.2 was the current stable release. On it, with no code changes, every check passes: compile-check, the 274-check suite (twice), the four environment-kit collision suites, the live boot, the loopback test (65), all five exports, the loopback test on the exported binaries (65) and the web build in Chromium. Bone poses sampled from the same clips match 4.3 exactly, and a frozen pose renders the same on both engines and both renderers. The project can no longer be opened in 4.3: both developers move together. | A blocking engine bug, or the next stable release, recorded here first. |
+| P2 | Godot 4.7.2-stable (was 4.3-stable, 2026-11-03) | **CONFIRMED** (owner, 2026-11-04: "you can do it for me"; 2026-11-05: "fix both") | 2026-11-04 | 4.7.2 was the current stable release. On it, with no code changes, every check passes: compile-check, the 274-check suite (twice), the four environment-kit collision suites, the live boot, the loopback test (65), all five exports, the loopback test on the exported binaries (65) and the web build in Chromium. Bone poses sampled from the same clips match 4.3 exactly, and a frozen pose renders the same on both engines and both renderers. The project can no longer be opened in 4.3: both developers move together. | A blocking engine bug, or the next stable release, recorded here first. |
 | P3 | Target platforms | PROPOSED desktop first (Windows/Linux/macOS exports); browser export as a later option | 2026-11-03 | Brief §48. The owner's Chromebook is unmeasured. | The F5 test above, and the first exported build. |
 | P17 | Playtest distribution | **CONFIRMED** (owner, 2026-11-03: "yes set it up"): every merge to `main` publishes a browser build of the single-player prototype to GitHub Pages and replaces the desktop zips on the rolling `playtest` pre-release; pull requests get the zips as a workflow artifact. Browser multiplayer is not included: the courtyard uses ENet (UDP), which browsers cannot open; it needs a WebSocket transport and a publicly hosted `wss://` server (P4). | 2026-11-03 | Easier testing per update, no Linux setup needed on the Chromebook for the single-player build. Pages is free because the repository is public. | A decision on server hosting (P4), which is what browser multiplayer waits on. |
 | P4 | Online session model | OPEN. **TEMPORARY A1**: one player's game is also the server ("listen server"); the other joins by IP over Godot's ENet. | 2026-11-03 | Fastest route to a two-player test with no services. Changing to dedicated servers needs only the already-separate server role; a relay or NAT traversal needs a decision on hosting. | The owners' answer to the online-model question. |
@@ -169,7 +169,7 @@ later engine fix was four minor versions away.
 `tools/export_builds.sh`, `tools/net_spike.py`, and the docs. The 4.7 importer writes a `.uid`
 file beside every script and shader (committed; Godot 4.4+ needs them in version control), and
 adds its new default keys to the art's `.import` files (additions only; no existing setting
-changed). No GDScript changed.
+changed). One constant changed: `VisionConeOverlay.COMPATIBILITY_OUTPUT_GAMMA`, 0.6 to 0.9 (below).
 
 **Measured on 4.7.2** (2026-11-04, this branch, merged with `main` at `4aabe1b`):
 
@@ -182,7 +182,7 @@ changed). No GDScript changed.
 | `tools/net_spike.py` | 65 passed, 0 failed |
 | `tools/export_builds.sh` | all five builds; web pack 25.2 MB (the live 4.3 one is 26.0 MB) |
 | `tools/net_spike.py --exported builds` | 65 passed, 0 failed |
-| Web build in headless Chromium (SwiftShader WebGL 2) | runs, no console errors, but **two open regressions** (below) |
+| Web build in headless Chromium (SwiftShader WebGL 2) | runs, no console errors; the cone's charcoal fixed (below) |
 
 The art was checked directly, because the headless suite cannot see a pose. The same clips
 (`Idle`, `Sword_Idle`, `Idle_Shield`) sampled at the same time give the same bone rotations and
@@ -192,18 +192,24 @@ and under Compatibility. The eleven README shots re-rendered on 4.7.2 (Forward+)
 out of 255 on average, the vision cone and the start screen included; characters are caught at
 slightly different moments of their animations, so the committed shots were kept.
 
-**Open: the browser build regresses on 4.7.2 (blocks merging).** Run side by side with the live
-4.3 Pages build of the same `main`, by the same script in headless Chromium (SwiftShader), 90 s
-after pressing Enter on the start screen:
-- The survivor shows its rest pose (a T-pose) on 4.7.2 and is animated on 4.3. Bone poses are
-  correct on 4.7.2 (sampled in the live game and in an instrumented web export), so the skin is not
-  showing the skeleton. On the earlier `main` (no start screen) the 4.7.2 web survivor was T-posed at
-  28 s and animated at 120 s, which suggests each new skinned character takes a long time to show its
-  pose under SwiftShader; whether a real GPU shows it at all is not known.
-- Outside the vision cone the browser draws a washed-out light grey instead of the charcoal. The
-  cone's Compatibility settings (`output_gamma` 0.6 in `VisionConeOverlay`) were measured against
-  4.3's Compatibility renderer, and 4.7.2 handles that colour path differently.
-Desktop Forward+ shows neither. Merging as is would publish both to Pages.
+**The browser build: one real regression, fixed; one false alarm.** Compared with the live 4.3
+Pages build of the same `main`, by the same script in headless Chromium (SwiftShader), 30 and
+120 s after pressing Enter on the start screen:
+- *The vision cone's charcoal came out a washed-out light grey.* Real. 4.7.2's Compatibility
+  renderer now encodes this material's output itself, so the lift 4.3 needed (`output_gamma` 0.6)
+  is applied twice. Measured on the desktop Compatibility renderer, the ground outside the cone
+  against the same ground with the overlay hidden: 4.3 at 0.6, 41%; 4.7.2 at 0.6, 98%; at 1.0, 28%;
+  at 0.9, 41%. `COMPATIBILITY_OUTPUT_GAMMA` is now 0.9, and the browser shows the same charcoal as
+  4.3's. Forward+ is unchanged (1.0). The depth convention did not change: `reverse_z` off is still
+  right for Compatibility.
+- *The survivor stood in a T-pose.* Not the engine. Every web build exported from the working
+  checkout that had been through this session's imports and merge showed it; every build made the
+  way CI makes it (a clean copy of the commit, imported once, `tools/export_builds.sh`) animates
+  normally. The imported character scenes in that checkout's `.godot` cache differed in size from a
+  clean import of the same files. Bone poses and the skeleton's per-frame skin updates were right in
+  both. If a local web build ever shows a T-pose, delete `.godot/` and export again.
+- Under SwiftShader the browser build runs at about one frame a second on both engines, so judge
+  nothing about speed from it.
 
 **Not covered.** Feel, input timing, light levels on a real GPU, real audio, and the web build's
 load time on a real browser and GPU (the SwiftShader slowdown above may be SwiftShader alone).
@@ -329,7 +335,7 @@ and fixed by measurement: writing the whole frame back through the overlay ran i
 Compatibility's per-material tonemapping again and darkened the entire browser build (the overlay
 now blends only where it darkens; inside the cone the frame is untouched on both renderers,
 measured identical with the cone on and off), and the charcoal came out black there because that
-renderer writes the output without encoding (an output gamma of 0.6, measured against 1.0, 0.75
+renderer writes the output without encoding (on 4.3; 4.7.2 needs 0.9, see the engine upgrade) (an output gamma of 0.6, measured against 1.0, 0.75
 and 1/2.2, puts the charcoal at 43% of the lit level in the browser against 44% on Forward+).
 The mean luminance of the README shots is now 38 (was 59): the lit wedge is as bright as before
 and everything outside it is deliberately charcoal. If the owner finds the whole too dark, the

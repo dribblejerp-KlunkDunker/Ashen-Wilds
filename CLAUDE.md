@@ -22,7 +22,7 @@ export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
 $GODOT --version   # 4.7.2.stable.official.ed1daf0bf
 ```
 
-Use exactly 4.7.2-stable (upgraded from 4.3-stable on 2026-11-04, decision P2 in `docs/PRODUCTION.md`). GDScript and API details differ between minor versions, and a project opened in a newer editor is converted and cannot go back. Commit the `.uid` file Godot writes beside each new script or shader.
+Use exactly 4.7.2-stable (upgraded from 4.3-stable on 2026-11-05, decision P2 in `docs/PRODUCTION.md`). GDScript and API details differ between minor versions, and a project opened in a newer editor is converted and cannot go back. Commit the `.uid` file Godot writes beside each new script or shader.
 
 ## Verify every change
 

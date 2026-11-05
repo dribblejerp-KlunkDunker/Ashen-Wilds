@@ -19,9 +19,8 @@ uniform float near_radius = 1.4;       // metres around the survivor always lit
 uniform vec3 charcoal : source_color = vec3(0.05, 0.05, 0.065);
 uniform float darken : hint_range(0.0, 1.0) = 0.6;
 uniform float desaturate : hint_range(0.0, 1.0) = 0.85;
-// The Compatibility renderer hands this material the screen sample in linear light and writes
-// its output straight to the display, so the charcoal has to be sRGB-encoded here (1/2.2) or it
-// comes out black. Forward+ tonemaps and encodes it itself (1.0).
+// A lift on the charcoal for the Compatibility renderer (VisionConeOverlay sets it; measured per
+// engine version). Forward+ tonemaps and encodes the output itself (1.0).
 uniform float output_gamma = 1.0;
 
 void vertex() {
