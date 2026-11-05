@@ -32,48 +32,49 @@ const CYCLE: Array[Condition] = [
 ##   sight: metres; beyond it the survivor sees nothing, cone or not.
 ##   torch_burn: multiplies torch fuel use. fire: scales the shelter fire's light.
 ##   footing: multiplies the survivor's walking, sprinting and blocking speed.
+##   spores: how long a spore cloud hangs (still air keeps it, wind and sleet clear it).
 const PROFILES: Dictionary = {
 	Condition.ASHFALL: {
 		"name": "Ashfall", "banner": "Ash falls, as it always does.",
 		"fog_density": 0.012, "fog_color": Color(0.22, 0.25, 0.29), "fog_height_density": 0.08,
 		"ambient": 1.0, "moon": 1.0,
 		"flake_alpha": 0.4, "flake_color": Color(0.46, 0.44, 0.42), "fall_speed": 0.55, "drift": 0.35, "flake_size": 0.028,
-		"hearing": 1.0, "sight": 24.0, "torch_burn": 1.0, "fire": 1.0, "footing": 1.0,
+		"hearing": 1.0, "sight": 24.0, "torch_burn": 1.0, "fire": 1.0, "footing": 1.0, "spores": 1.0,
 	},
 	Condition.MIASMA_FOG: {
 		"name": "Miasma fog", "banner": "The miasma closes in. Sounds die in it, and you cannot see past a few paces.",
 		"fog_density": 0.055, "fog_color": Color(0.30, 0.34, 0.27), "fog_height_density": 0.22,
 		"ambient": 0.9, "moon": 0.6,
 		"flake_alpha": 0.15, "flake_color": Color(0.40, 0.42, 0.36), "fall_speed": 0.3, "drift": 0.2, "flake_size": 0.026,
-		"hearing": 0.7, "sight": 7.0, "torch_burn": 1.0, "fire": 0.9, "footing": 1.0,
+		"hearing": 0.7, "sight": 7.0, "torch_burn": 1.0, "fire": 0.9, "footing": 1.0, "spores": 1.3,
 	},
 	Condition.SLEET: {
 		"name": "Sleet", "banner": "Sleet. The torch gutters, and the ground turns to grease.",
 		"fog_density": 0.02, "fog_color": Color(0.24, 0.27, 0.33), "fog_height_density": 0.1,
 		"ambient": 0.95, "moon": 0.85,
 		"flake_alpha": 0.55, "flake_color": Color(0.62, 0.66, 0.74), "fall_speed": 2.6, "drift": 0.6, "flake_size": 0.02,
-		"hearing": 0.85, "sight": 14.0, "torch_burn": 1.8, "fire": 0.75, "footing": 0.85,
+		"hearing": 0.85, "sight": 14.0, "torch_burn": 1.8, "fire": 0.75, "footing": 0.85, "spores": 0.6,
 	},
 	Condition.CINDER_SQUALL: {
 		"name": "Cinder-squall", "banner": "A cinder-squall. Embers ride the wind, and nothing can be heard over it.",
 		"fog_density": 0.03, "fog_color": Color(0.33, 0.26, 0.21), "fog_height_density": 0.12,
 		"ambient": 1.05, "moon": 0.7,
 		"flake_alpha": 0.7, "flake_color": Color(0.95, 0.45, 0.15), "fall_speed": 0.9, "drift": 2.4, "flake_size": 0.03,
-		"hearing": 0.6, "sight": 9.0, "torch_burn": 1.4, "fire": 1.2, "footing": 0.95,
+		"hearing": 0.6, "sight": 9.0, "torch_burn": 1.4, "fire": 1.2, "footing": 0.95, "spores": 0.4,
 	},
 	Condition.HOARFROST: {
 		"name": "Hoarfrost", "banner": "Hoarfrost. The air rings: every step carries, and the ground is glass.",
 		"fog_density": 0.006, "fog_color": Color(0.30, 0.34, 0.42), "fog_height_density": 0.04,
 		"ambient": 1.1, "moon": 1.35,
 		"flake_alpha": 0.0, "flake_color": Color(0.7, 0.75, 0.85), "fall_speed": 0.3, "drift": 0.1, "flake_size": 0.02,
-		"hearing": 1.25, "sight": 32.0, "torch_burn": 1.2, "fire": 1.0, "footing": 0.8,
+		"hearing": 1.25, "sight": 32.0, "torch_burn": 1.2, "fire": 1.0, "footing": 0.8, "spores": 0.9,
 	},
 	Condition.DEAD_CALM: {
 		"name": "Dead Calm", "banner": "The Dead Calm. Nothing falls. Everything can be heard, by everyone.",
 		"fog_density": 0.004, "fog_color": Color(0.22, 0.25, 0.29), "fog_height_density": 0.03,
 		"ambient": 1.0, "moon": 1.1,
 		"flake_alpha": 0.0, "flake_color": Color(0.46, 0.44, 0.42), "fall_speed": 0.3, "drift": 0.1, "flake_size": 0.02,
-		"hearing": 1.6, "sight": 40.0, "torch_burn": 0.8, "fire": 1.0, "footing": 1.0,
+		"hearing": 1.6, "sight": 40.0, "torch_burn": 0.8, "fire": 1.0, "footing": 1.0, "spores": 1.6,
 	},
 }
 
