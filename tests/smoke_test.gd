@@ -89,7 +89,7 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 
 	await _test_loadout_and_inventory()
@@ -113,6 +113,8 @@ func _run() -> void:
 	await _test_weather()
 	await _test_backgrounds()
 	await _test_armour()
+	await _test_companions()
+	await _test_quarry_troll()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -1263,6 +1265,7 @@ func _test_enemy_models() -> void:
 		EnemyGoblinScavenger: [&"Crouch_Idle", &"Crouch_Fwd", &"Jog_Fwd", &"Sword_Dash", &"OverhandThrow", &"Hit_Knockback", &"Hit_Chest", &"Death01"],
 		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Shield_Dash", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
 		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Push", &"Sprint", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyQuarryTroll: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Death01"],
 	}
 	for cls: Variant in needed.keys():
 		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
@@ -2251,6 +2254,290 @@ func _test_armour() -> void:
 		"the causeway carter starts wearing a gambeson")
 	_player.apply_background(SurvivorBackground.default_background())
 	_check(inv.worn_armour().is_empty(), "back to the deserter, bare again")
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Companions: a captive cut free follows, holds, fights, takes blows, goes down, is lifted or dies.
+# ------------------------------------------------------------------------------
+func _find_companion() -> Companion:
+	var found: Array = _children_of(func(n: Node) -> bool: return n is Companion)
+	return found[0] if not found.is_empty() else null
+
+func _test_companions() -> void:
+	_section("Companions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	_player.apply_background(SurvivorBackground.default_background())
+	await _ticks(2)
+	var captives: Array = _children_of(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")
+	_check(captives.size() == 1 and (captives[0] as Lootable).search_verb == "Cut free" and (captives[0] as Lootable).get_prompt().begins_with("[E] Cut free"),
+		"a bound captive waits in the Watchhouse, with a [E] Cut free prompt")
+	_check(_find_companion() == null and not _hud._ally_row.visible, "no companion yet, no ALLY line")
+
+	# Cut free through the survivor's own channel: the captive becomes a companion at their side.
+	var captive: ActionPoint = captives[0]
+	_player.global_position = captive.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 0.05, captive)
+	await _seconds(0.2)
+	var c: Companion = _find_companion()
+	_check(c != null and not is_instance_valid(captive) or (c != null and captive.is_queued_for_deletion()), "cutting the captive free makes a companion and removes the captive")
+	_check(c != null and c.mode == Companion.Mode.FOLLOW and c.companion_name == "Edda", "the companion follows by default")
+	await _ticks(2)
+	_check(_hud._ally_row.visible and _hud._ally_label.text.contains("following"), "the HUD shows an ALLY line (%s)" % _hud._ally_label.text)
+
+	# Follow: walk away and it closes to a few paces; rejoin when left far behind.
+	_reset_player(OPEN)
+	_face(Vector3.RIGHT)
+	c.global_position = OPEN + Vector3(-8.0, 0.0, 0.0)
+	await _seconds(3.0)
+	var d: float = c.global_position.distance_to(_player.global_position)
+	_check(d < 4.0 and d > 1.0, "following, it closes to a few paces (%.1f m)" % d)
+	c.global_position = OPEN + Vector3(-30.0, 0.0, 0.0)
+	c._away_timer = Companion.REJOIN_SECONDS - 0.05
+	await _ticks(6)
+	_check(c.global_position.distance_to(_player.global_position) < 3.0, "left far behind, it rejoins behind the survivor")
+
+	# Hold: it stays put while the survivor walks off.
+	c.global_position = OPEN + Vector3(-2.5, 0.0, 0.0)
+	c.toggle_mode()
+	var spot: Vector3 = c.hold_spot
+	_player.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	await _seconds(1.5)
+	_check(c.mode == Companion.Mode.HOLD and c.global_position.distance_to(spot) < 1.0, "told to hold, it stays (%.1f m from the spot)" % c.global_position.distance_to(spot))
+	c.toggle_mode()
+	_reset_player(OPEN)
+	await _seconds(2.0)
+
+	# Fight: a goblin near it loses health to the cudgel; the cudgel never lands on the survivor.
+	# (The goblin stays live but blind, player_ref null: a process-disabled body leaves physics.)
+	var g := _spawn_hunting_goblin(Vector3(0.0, 0.0, 0.0))
+	g.player_ref = null
+	var beyond: Vector3 = (c.global_position - _player.global_position)
+	beyond.y = 0.0
+	beyond = beyond.normalized() if beyond.length() > 0.1 else Vector3.LEFT
+	g.global_position = c.global_position + beyond * 2.5  # on the companion's far side, clear of the survivor
+	var g_hp: float = g.health
+	var p_hp: float = _player.health
+	var saw_swing: bool = false
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_swing = saw_swing or c.state == Companion.State.ATTACK_ACTIVE
+		if g.health < g_hp:
+			break
+	_check(saw_swing and g.health < g_hp, "a goblin near it is cudgelled (%.0f -> %.0f)" % [g_hp, g.health])
+	_check(is_equal_approx(_player.health, p_hp), "the cudgel never lands on the survivor")
+	g.queue_free()
+	await _ticks(2)
+
+	# Takes blows: an ork's slash in front of it lands on it (it is on the survivor's hurtbox layer).
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	_main.add_child(o)
+	o.global_position = c.global_position + Vector3(1.2, 0.0, 0.0)
+	o._facing_dir = Vector3.LEFT
+	o._visual_root.look_at(o.global_position + Vector3.LEFT, Vector3.UP)
+	await _ticks(1)
+	var c_hp: float = c.health
+	o._enter_combo_1_active()
+	await _ticks(3)
+	o._hitbox.end_swing()
+	_check(c.health < c_hp, "an ork's slash in front of it lands on it (%.0f -> %.0f)" % [c_hp, c.health])
+	o.queue_free()
+
+	# Downed: lifted with a rag at 40% health; without a rag, nothing happens.
+	c.health = 5.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	_check(c.is_downed() and c.downed_left > 24.0 and c.collision_layer == 0, "knocked to nothing it goes down, not dead")
+	await _ticks(2)
+	var lift: Array = c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint)
+	_check(lift.size() == 1 and (lift[0] as Lootable).search_verb == "Lift", "a [E] Lift prompt appears at the body")
+	_check(_hud._ally_label.text.contains("DOWNED"), "the ALLY line says DOWNED")
+	var inv: Inventory = _player.inventory
+	for b: ItemInstance in inv.items.duplicate():
+		if b.data.item_id == "clean_rag_bandage":
+			inv.remove(b)
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(c.is_downed(), "no rag, no lift")
+	inv.add(ItemDatabase.make("clean_rag_bandage", 1))
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(not c.is_downed() and is_equal_approx(c.health, Companion.MAX_HEALTH * 0.4) and inv.count_of("clean_rag_bandage") == 0,
+		"a rag lifts them at 40%% health and is used up")
+	await _ticks(2)
+	_check(c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint).is_empty(), "the Lift prompt is gone")
+
+	# Death: down too long, and they die and leave a body to search.
+	c.health = 1.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	c.downed_left = 0.05
+	await _seconds(0.3)
+	var body: Array = c.get_children().filter(func(n: Node) -> bool: return n is Lootable and not n is ActionPoint)
+	_check(c.is_dead() and body.size() == 1 and (body[0] as Lootable).display_name == "Edda's body", "down too long, they die and leave a body")
+	await _ticks(2)
+	_check(_hud._ally_label.text.contains("dead"), "the ALLY line says dead")
+	c.queue_free()
+	_hud.companion = null
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Bestiary: the Blind Quarry-Troll hunts by sound alone and pounds where it heard you.
+# ------------------------------------------------------------------------------
+## A live, blind troll at OGRE_YARD; the survivor `offset` from it, at rest.
+func _spawn_test_troll(offset: Vector3) -> EnemyQuarryTroll:
+	_reset_player(OGRE_YARD + offset)
+	var t := EnemyQuarryTroll.new()
+	t.audio = _player.audio
+	t.player_ref = _player
+	_main.add_child(t)
+	t.global_position = OGRE_YARD
+	t._home_pos = OGRE_YARD
+	await _ticks(2)
+	return t
+
+func _test_quarry_troll() -> void:
+	_section("Bestiary: the Blind Quarry-Troll")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyQuarryTroll)
+	_check(level.size() == 1 and (level[0] as Node3D).global_position.distance_to(Vector3(15.5, 0.0, -14.5)) < 1.0,
+		"the troll lives in the old quarry, north-east")
+	var t: EnemyQuarryTroll = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
+	_check(is_equal_approx(t.aggression, 0.5) and is_equal_approx(t.attack_power, 1.0) and t.max_health >= 300.0,
+		"troll temperament: aggression 0.5, attack power 1.0, %.0f health" % t.max_health)
+
+	# Hearing, not sight: still is silent; each action has its own reach.
+	var sense := func(state: PlayerController.ActionState, dist: float) -> bool:
+		t.has_heard = false
+		t.state = EnemyQuarryTroll.AIState.LISTEN
+		_player.global_position = OGRE_YARD + Vector3(-dist, 0.0, 0.0)
+		_player.current_state = state
+		t._listen(1.0 / 60.0)
+		_player.current_state = PlayerController.ActionState.IDLE
+		return t.has_heard
+	_check(not sense.call(PlayerController.ActionState.IDLE, 1.5), "blind: a survivor standing still 1.5 m away is not found")
+	_check(not sense.call(PlayerController.ActionState.BLOCK, 2.0), "blocking still makes no sound")
+	_check(sense.call(PlayerController.ActionState.MOVE, 5.0) and not sense.call(PlayerController.ActionState.MOVE, 8.0), "walking carries 6 m")
+	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and not sense.call(PlayerController.ActionState.SPRINT, 16.0), "a sprint carries 14 m")
+	_check(sense.call(PlayerController.ActionState.RECOIL, 15.0), "a sword clanging off stone carries 16 m")
+	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and t.state == EnemyQuarryTroll.AIState.INVESTIGATE
+		and t.heard_pos.distance_to(OGRE_YARD + Vector3(-10.0, 0.0, 0.0)) < 0.1, "hearing sends it to where the sound was")
+	# The survivor's noise multiplier reaches it: weather, background, armour.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	_check(sense.call(PlayerController.ActionState.MOVE, 8.0), "dead calm: a walk 8 m away is heard (6 x 1.6)")
+	w.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "cinder-squall: a sprint 10 m away is lost (14 x 0.6)")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.by_id("gutter_kin"))
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "a gutter-kin sprints past at 10 m (14 x 0.65)")
+	_player.apply_background(SurvivorBackground.default_background())
+	var mail := ItemDatabase.make("rusted_hauberk")
+	_player.inventory.add(mail)
+	_player.inventory.equip(mail)
+	_check(sense.call(PlayerController.ActionState.MOVE, 7.0), "mail clinks: a walk 7 m away is heard (6 x 1.25)")
+	_player.inventory.remove(mail)
+	# Stone muffles.
+	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(-4.0, 1.25, 0.0), Vector3(0.4, 2.5, 6.0))
+	await _ticks(1)
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "through stone, a sprint 10 m away is muffled (14 x 0.55)")
+	wall.queue_free()
+	await _ticks(1)
+
+	# It pounds where it heard you: still there, you take the blow; it never saw you.
+	t.queue_free()
+	await _ticks(2)
+	t = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
+	_face(Vector3.RIGHT)
+	t.heard(_player.global_position)
+	var hp: float = _player.health
+	var saw_pound: bool = false
+	for i in range(int(4.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_pound = saw_pound or t.state == EnemyQuarryTroll.AIState.POUND_STARTUP
+		if _player.health < hp:
+			break
+	_check(saw_pound and is_equal_approx(hp - _player.health, EnemyQuarryTroll.POUND_DAMAGE),
+		"a survivor who stays where they were heard takes the pound (%.0f)" % (hp - _player.health))
+	await _seconds(1.6)
+	t.queue_free()
+	await _ticks(2)
+
+	# Crept away during the windup: it pounds empty ground.
+	t = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
+	var heard_at: Vector3 = _player.global_position
+	t.heard(heard_at)
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		if t.state == EnemyQuarryTroll.AIState.POUND_STARTUP:
+			break
+	_check(t.state == EnemyQuarryTroll.AIState.POUND_STARTUP and t._pound_ring.visible
+		and t._pound_ring.global_position.distance_to(heard_at + Vector3(0.0, 0.05, 0.0)) < 0.2,
+		"its ring marks the heard spot, not the survivor")
+	_player.global_position = heard_at + Vector3(0.0, 0.0, 4.5)
+	hp = _player.health
+	await _seconds(1.5)
+	_check(is_equal_approx(_player.health, hp), "a survivor who crept away is missed")
+	t.queue_free()
+	await _ticks(2)
+
+	# Standing still at arm's length: never found.
+	t = await _spawn_test_troll(Vector3(-2.0, 0.0, 0.0))
+	hp = _player.health
+	await _seconds(2.0)
+	_check(t.state == EnemyQuarryTroll.AIState.LISTEN and is_equal_approx(_player.health, hp), "a survivor 2 m away who keeps still is never found")
+
+	# Struck from close by, it thrashes round itself.
+	t._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 22.0, 18.0))
+	_check(t.state == EnemyQuarryTroll.AIState.THRASH_STARTUP and t.heard_pos.distance_to(_player.global_position) < 0.1,
+		"hit from close by, it knows where you are and thrashes")
+	hp = _player.health
+	await _seconds(1.0)
+	_check(is_equal_approx(hp - _player.health, EnemyQuarryTroll.THRASH_DAMAGE), "the thrash catches a survivor beside it (%.0f)" % (hp - _player.health))
+	t.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# It hears the companion too: Edda's cudgel draws it.
+	t = await _spawn_test_troll(Vector3(-12.0, 0.0, 0.0))
+	var c := Companion.new()
+	c.player_ref = _player
+	_main.add_child(c)
+	c.global_position = OGRE_YARD + Vector3(0.0, 0.0, 7.0)
+	c.process_mode = Node.PROCESS_MODE_DISABLED
+	c.state = Companion.State.ATTACK_ACTIVE
+	t.has_heard = false
+	t._listen(1.0 / 60.0)
+	_check(t.has_heard and t.heard_pos.distance_to(c.global_position) < 0.1, "it hears the companion's cudgel at 7 m and goes for her")
+	c.queue_free()
+
+	# The survivor dies mid-pound: it drops the blow, closes its hitboxes and listens.
+	_player.global_position = OGRE_YARD + Vector3(-2.0, 0.0, 0.0)
+	t._begin_pound(_player.global_position)
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(t.state == EnemyQuarryTroll.AIState.LISTEN and not t._pound_ring.visible and not t._pound_hitbox._is_swing_active,
+		"the survivor dead, it drops its blow and listens")
+	_reset_player(OPEN)
+	await _ticks(2)
+	# Lost the sound far from home: it walks back.
+	t.global_position = OGRE_YARD + Vector3(8.0, 0.0, 0.0)
+	t.has_heard = false
+	t.state = EnemyQuarryTroll.AIState.LISTEN
+	t._state_timer = 0.0
+	await _ticks(2)
+	_check(t.state == EnemyQuarryTroll.AIState.RETURN_HOME, "with nothing to hear, far from home, it walks back")
+	t.queue_free()
+	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)

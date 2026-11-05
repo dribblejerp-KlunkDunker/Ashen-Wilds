@@ -23,6 +23,10 @@ const TYPES: Dictionary = {
 	"goblin": [1.35, 1.0, Color(0.62, 0.74, 0.52), Color(0.9, 0.9, 0.85)],
 	"ork": [1.92, 1.18, Color(0.52, 0.60, 0.44), Color(0.8, 0.78, 0.74)],
 	"ogre": [2.95, 1.45, Color(0.74, 0.72, 0.68), Color(0.7, 0.68, 0.64)],
+	# The Blind Quarry-Troll: huge, stooped breadth, skin the blue-grey of quarry dust.
+	"troll": [2.6, 1.55, Color(0.62, 0.66, 0.70), Color(0.62, 0.60, 0.56)],
+	# A human in plain clothes (the companion): warm skin, undyed cloth, the hood like everyone's.
+	"companion": [1.72, 1.0, Color(0.96, 0.84, 0.74), Color(0.84, 0.80, 0.72)],
 }
 
 var anim: AnimationPlayer

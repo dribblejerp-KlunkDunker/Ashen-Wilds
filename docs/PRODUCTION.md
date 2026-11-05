@@ -171,12 +171,12 @@ file beside every script and shader (committed; Godot 4.4+ needs them in version
 adds its new default keys to the art's `.import` files (additions only; no existing setting
 changed). One constant changed: `VisionConeOverlay.COMPATIBILITY_OUTPUT_GAMMA`, 0.6 to 0.9 (below).
 
-**Measured on 4.7.2** (2026-11-05, this branch, merged with `main` at `3355df0`):
+**Measured on 4.7.2** (2026-11-05, this branch, merged with `main` at `107c9b3`):
 
 | Check | Result |
 |---|---|
 | Import and compile-check every script | clean, no errors or warnings |
-| `tests/smoke_test.gd` | 367 passed, 0 failures, twice |
+| `tests/smoke_test.gd` | 411 passed, 0 failures, twice |
 | Environment kit collision suites ENV-006 to ENV-009 | 1082 / 837 / 78 / 78 checks, 0 failures |
 | Live boot, 1200 frames | nothing after the usual filter |
 | `tools/net_spike.py` | 65 passed, 0 failed |
@@ -214,6 +214,81 @@ Pages build of the same `main`, by the same script in headless Chromium (SwiftSh
 **Not covered.** Feel, input timing, light levels on a real GPU, real audio, and the web build's
 load time on a real browser and GPU (the SwiftShader slowdown above may be SwiftShader alone).
 The second developer needs 4.7.2 too: a project opened in 4.7 is converted and cannot go back.
+
+## Bestiary 1 — the Blind Quarry-Troll: evidence (brief §24)
+
+**What.** The roadmap's "the Blind Quarry-Troll", built from its name and what the game already
+had: the noise systems. It lives in an old quarry dressed in the yard's empty north-east corner
+(an outcrop and standing stones at the back, masonry chips and rubble across the floor), 2.6 m
+tall, 360 health, 130 poise. It never looks:
+- **Hearing only.** Every action the survivor takes has a reach in metres (walk 6, sprint 14,
+  swing 12, dodge 9, a shield taking a blow 10, a sword clanging off stone 16, rummaging 5),
+  multiplied by the survivor's noise multiplier, so load, weather, background and armour all
+  reach it, and muffled to 55% through stone. Standing still, blocking still, and the quiet parts
+  of a channel make no sound it can hear. It hears the companion too (her cudgel 10 m, running 7).
+- **It strikes where the sound was.** It lumbers (2.7 m/s) to the heard spot and, within 2.4 m,
+  brings both fists down on it: a ring on the ground marks the spot for 1.1 s, then 55 damage
+  (heavy) to anything within 1.8 m of it, the survivor or the companion. Creep out of the ring
+  and it pounds empty ground. It then stands listening (2.6 s).
+- **Hit it and it knows.** A blow tells it where its attacker stands, and from close by it
+  thrashes round itself (30 damage within 2.8 m, 3 s cooldown). Its poise breaks on 130.
+- Forgets a sound after 6 s, walks home when it has strayed; stands down on the survivor's
+  death; takes and releases the attack turn like the ogre's committed blows. F6 teleports there.
+- Interactions that come free: the Dead Calm makes it deadly, a cinder-squall makes it deaf, a
+  gutter-kin can sprint past at 10 m, mail clinks bring it from 7.5 m, Edda's cudgel draws it.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 411 passed, 0 failures, twice (25 new:
+its home; its temperament; still and blocking are silent; walk, sprint and clang reaches;
+hearing sends it to the spot; the Dead Calm, the cinder-squall, the gutter-kin and the hauberk;
+stone muffling; the pound landing on a survivor who stayed; the ring marking the heard spot and
+missing a survivor who crept away; never finding a survivor still at 2 m; the thrash on being hit
+and its damage; hearing the companion; standing down on death; walking home; and the model,
+clip and facing checks every enemy gets). Kit suites, live boot and `tools/net_spike.py` clean.
+A new README screenshot of a pound on an empty spot.
+
+**Not covered by headless tests.** Whether "keep still" reads without a tutorial (the first
+time it hears you a banner says it is blind), whether 6 m for walking makes the quarry too tense
+to cross or too easy, and whether its slow lumber is threatening or comic.
+
+## Companions 1 — Edda: evidence (brief §24)
+
+**What.** The roadmap's "companions", built on Fable (CLAUDE.md flags companion AI as
+design-heavy) from that one word and the worldbuilding's people. One companion for now, Edda, a
+survivor the Ashbound left bound in the Watchhouse's south-east corner (a hooded figure sitting
+against the wall). Cutting her free is an `ActionPoint`, a Lootable whose timed [E] action runs a
+Callable instead of opening a loot window; the same thing is the "Lift" prompt at her body when
+she is down. The design, chosen to stay readable and honest about what the yard has:
+- **Follow / hold / fight.** She keeps 2.2 to 3.4 m behind the survivor (walks, runs past 7 m),
+  fights the nearest living enemy within 6 m of herself and 8 m of the survivor (4 m of a held
+  spot), and F toggles holding where she stands. A cudgel: 14 damage, 12 poise, 0.45 s startup,
+  0.8 s recovery. 70 health, 30 poise, no pack, no stamina.
+- **Enemies don't hunt her, but hit her.** Every enemy's senses are for the survivor; changing all
+  three AIs to pick targets was out of scope and would have made the companion a decoy. Instead
+  her hurtbox is on the survivor's hurtbox layer, so any blow, sweep, slam or stone that passes
+  through her lands on her. Her cudgel can only touch enemy hurtboxes.
+- **Downed, not dead.** At 0 health she goes down for 25 s; the survivor lifts her (3 s) with a
+  clean rag, at 40% health. Past 25 s she dies and leaves "Edda's body" to search (a rag).
+- **No pathfinding yet.** Enemies steer straight too. When she is further than 14 m behind for
+  4 s she rejoins a pace and a half behind the survivor; the notes say so plainly.
+- The HUD shows an ALLY bar with her name and state; she is always drawn (the vision cone hides
+  enemies, not friends).
+
+**A rule learned.** A process-disabled CollisionObject leaves physics (`disable_mode` REMOVE), so
+a frozen enemy can neither be hit nor hit: the companion skips targets that cannot process (the
+suite freezes the level's enemies), and the tests that want her to fight or be hit keep their
+enemies live and blind (`player_ref` null) instead of frozen.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 386 passed, 0 failures, twice (19 new:
+the captive and its prompt; no companion and no ALLY line at first; cutting free through the
+survivor's own channel; follow by default and the HUD line; closing to a few paces; the rejoin;
+holding; cudgelling a goblin and never the survivor; an ork's slash landing on her; down, not
+dead, with the Lift prompt and the HUD's DOWNED; no rag, no lift; a rag lifts her at 40% and is
+used up; dying after too long, the body, the HUD's dead). Kit suites, live boot and
+`tools/net_spike.py` clean. A new README screenshot of her at the survivor's back.
+
+**Not covered by headless tests.** Whether she gets in the way in the entry hall (she will stand
+in the doorway sometimes), whether enemies' blows land on her too often or too rarely to feel
+right, and whether a silent follower reads as a person. She has no lines beyond the one when freed.
 
 ## Armour 1 — three slots, six pieces: evidence (brief §24)
 
