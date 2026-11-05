@@ -89,7 +89,7 @@ platforms     linux-client (x86_64), linux-arm64-client (ARM Chromebooks and ARM
 CHROMEBOOK
   Turn on Linux (Settings > About ChromeOS > Developers > Linux development environment), copy the
   linux-client folder (Intel/AMD Chromebook) or linux-arm64-client folder (ARM Chromebook; check
-  Settings > About ChromeOS > Additional details, or run `uname -m` in the Linux terminal: x86_64 or
+  Settings > About ChromeOS > Additional details, or run \`uname -m\` in the Linux terminal: x86_64 or
   aarch64) into "Linux files", then in the terminal:  cd <folder> && chmod +x * && ./play-here.sh
   The scripts use the OpenGL Compatibility renderer, which ChromeOS's Linux supports more widely.
   For a friend on another machine to join a server on the Chromebook, ChromeOS must forward UDP 7788
@@ -107,7 +107,7 @@ HOW TO PLAY TOGETHER (temporary rules P4/A1: one of you runs the server, the oth
 SAVES (server only)
   The server keeps the world in ashen_world.json in Godot's user data folder (see Logs below) and
   writes it after every change and on shutdown. Choose another file with --save <path> after the
-  `--`. A save from a newer build is refused, never overwritten; if the save and its backup are
+  \`--\`. A save from a newer build is refused, never overwritten; if the save and its backup are
   both unreadable the server refuses to start until it is given --reset-world (which keeps the bad
   files aside). Save compatibility: schema 1, written by protocol-4 builds.
 
