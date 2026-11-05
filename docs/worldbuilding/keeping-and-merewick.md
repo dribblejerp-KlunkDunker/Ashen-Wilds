@@ -30,7 +30,7 @@ The Tithe can appropriate an existing kiln-maintenance obligation rather than in
 
 Older marsh practices survive beneath adopted saints: offerings at pools, untouched stones, and contradictory rules about bells, silence, and fish. Some have practical effects, some accomplish nothing, and apparent supernatural results remain uncertain.
 
-Proposed movements: the Last Hearth shelters everyone but forbids winter departure because labor sustains its fire; the Unnamed erase names and graves believing obligations let the catastrophe find them; scattered listeners beneath the hills suppress speech and bells but do not authoritatively explain the Vaults or what the orks fled.
+Proposed movements: the Last Hearth shelters everyone but forbids winter departure because labor sustains its fire; the Unwriters (renamed from "the Unnamed" on 2026-11-05: the game's Unnamed are the risen dead; see `CANON.md`) erase names and graves believing obligations let the catastrophe find them; scattered listeners beneath the hills suppress speech and bells but do not authoritatively explain the Vaults or what the orks fled.
 
 Faith crosses borders through southern appointments, refugee household saints, foreign contracts, battlefield devotions, pilgrims, rival relic shrines, and conflicting burial customs. At Wayfarer's Watchhouse, keeping a hearth raises disputes about admitting infected travelers, sanctuary for debtors, murderers seeking shelter, and allocating beds. A priest might offer consecration while registering the property. A widow might consider it sacred simply because someone stayed.
 

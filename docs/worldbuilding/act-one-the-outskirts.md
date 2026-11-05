@@ -555,6 +555,52 @@ stair, wallfall rubble in the doorway, and the tongueless bell on its side.
 
 ---
 
+## 11. The Drowned Graves (the yard's south-east corner)
+
+*Added 2026-11-05 for the Godot build's third bestiary slice (`docs/PRODUCTION.md`, Bestiary 3).*
+
+**What it was.** The waystation's burial ground: a low, wet corner of the yard below the road, where
+the Watch and the wardens buried the travellers who died on the Causeway. In the Holding Years it
+was where the Naming Stone's dead went after the lime: named on the stone, limed, carried down and
+put in.
+
+**What happened.** In the Long Dark the corner flooded and stayed flooded, and the dead came faster
+than anyone could carry them to the stone. Some were put into the wet ground with no name spoken
+over them: travellers nobody knew, the dead of a cough-winter, bodies brought in at night and buried
+before morning so the smell would not bring the ogre. The worn stones that mark them were cut for
+other graves, or for nothing. Nobody wrote down who lies under which.
+
+**What is there now.** Three graves, each a squared stump of old pillar sunk in the mud, and beside
+each the one who lies under it, standing. They do not speak. They do not seem to see the survivor
+until the survivor is close or loud, and then they come, slow, with their hands out, and grab. Cut
+one down and it lies in the mud a while, and then it gets up whole. It stays down only when someone
+kneels at its stone and speaks a name over it; then it lies down for good and is only a body, with
+whatever it was buried with.
+
+**What the player finds.** The graves, the three Unnamed (one per stone, none straying far from its
+own), and on each body, once named, what the burial left: a rag, a little salt. The order matters:
+knock one down, then run for its stone before it rises; or creep to a stone unseen and name it where
+it stands. A blow breaks the naming off.
+
+**Why it works the way it does (in-world).** Nobody knows, and the book keeps the guesses apart:
+- The Keeping: an unnamed body has no rest, and the naming is a debt owed to the dead, not a charm.
+  Any name honestly given pays it.
+- The healers: the bloom is in the wet ground, and what moves them is the same rot that moves the
+  husks. This does not explain why a name works.
+- Carriers: any name will do; one swears he named a man "Watchhouse" and he lay down. The faithful
+  call that blasphemy and say it did not happen.
+- Some blame the Unwriters, the movement that scratched names out of registers and off graves.
+  Nobody at the Watchhouse admits to having been one.
+
+**Props from the kit.** Square pillar stumps for the stones (in game: `env_ruin_pillars_03_square_stump`),
+mud and standing water, rushes, a broken fence where the corner meets the yard, a spade left upright.
+
+- **Hook:** the Naming Stone (section 4) and the graves are the same custom at two ends: a quest that
+  carries the three names scratched on the Naming Stone down to the graves, to see if the right name
+  lays one to rest faster.
+- **Hook:** a fourth stone with no one standing by it, and fresh earth.
+- **Hook:** in the Dead Calm they hear further; in a cinder-squall the survivor can kneel unheard.
+
 ## Gazetteer
 
 | Name | Old or other name | Where (level) | What it is now | Holds |
@@ -566,6 +612,7 @@ stair, wallfall rubble in the doorway, and the tongueless bell on its side.
 | Watchhouse Supply Chest | The warden's chest | (7.4, -5.6) | Where the salt was hidden | Spear, gambeson, rag, two salt |
 | The hall post | Assize corner, cold corner | (7.8, 0.2) | Where Edda was tied | Edda |
 | Naming Stone | The flat stone | (6.0, 12.5) | Three new names | |
+| The Drowned Graves | The waystation burial ground | about (15.5 to 21, 17.5 to 21) | Three Unnamed, three stones | A rag, a little salt (named bodies) |
 | Rotted Grain Crate | A relief crate, the dry box | (-4.2, 2.2) | A dead man's gear | Two timber, scrap, leather greaves |
 | Spore Hollow | Withy Bottom, the lime pit | Around (-20, -2.5) | Spore ground | Cart; three husks |
 | Spore-Choked Cart | | (-22.5, -1.5) | Untouched | Fresh torch, oil, rag |

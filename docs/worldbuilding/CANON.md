@@ -130,6 +130,16 @@ The archive was revised to fit O1 on the same day; see *Archive material revised
     **walking blooms** or husks. Fire burns spores *(in game)*; still air keeps a cloud hanging,
     wind and sleet clear it *(in game)*. *(Godot addition.)*
 
+18a. **The Unnamed** *(in game, the Drowned Graves in the yard's south-east corner)*: the drowned
+    dead of a burial ground put into the wet ground in the Smothering without their names, against
+    the Keeping's custom of speaking a corpse's name into its mouth *(archive)*. They walk. Cut one
+    down and it rises whole again; it lies down for good only when someone kneels at its grave and
+    speaks a name. They are monsters, not people (O1): they do not speak, plead or remember. **Why
+    they rise is not known**, and lore files must not settle it: the Keeping says an unnamed body
+    has no rest; healers suspect the bloom, which does not explain why a name works; carriers say
+    any name will do, which the faithful deny. The Unwriters (a human movement, renamed from the
+    archive's "the Unnamed") erased names and graves, and some blame them for the walking dead.
+
 ### The Godot game's people
 
 19. **Edda** *(in game)*: a survivor the band calling itself Ashbound left bound in the Watchhouse;
@@ -169,12 +179,12 @@ status line. The originals, as copied from the browser prototype, are in git his
 **In game:** the Smothering · the Highland Citadels · the Deep-Seam Vaults · the Blackfen · the
 Blackfen Outskirts · the Wayfarer's Watchhouse · the Old Causeway · the Roofed Mile · the Spore
 Hollow · the Old Quarry · the North-West Feeding Ground · Goblin Scavenger · Ork Vanguard ·
-Blackfen Ogre · Blind Quarry-Troll · Ash-Spore Husk · Edda · the eight backgrounds · the six
+Blackfen Ogre · Blind Quarry-Troll · Ash-Spore Husk · the Unnamed · the Drowned Graves · Edda · the eight backgrounds · the six
 weathers (Ashfall, Miasma fog, Sleet, Cinder-squall, Hoarfrost, the Dead Calm) · every item in
 `scripts/data/item_database.gd`.
 
 **Archive:** see the files themselves; above all the Keeping, the Keeper, the listeners, the
-Hush, the Tenant, the Tithe, the Last Hearth, the Unnamed, the four roads and the places in fact
+Hush, the Tenant, the Tithe, the Last Hearth, the Unwriters, the four roads and the places in fact
 12, Garden Hands, Halwen Remnant, Grey Lash, ash-lung, corpse-caps, the
 gallery-crawler, the warning book.
 

@@ -620,6 +620,28 @@ A sickness of the breath that the fen healers tie to the ash-spores from the Vau
 | What no one knows | How long a walking bloom lasts before it falls. Whether the dying feel it root. Why so few of the silent bloom early and the rest wait for death |
 | For the game | In play as it stands. A torch-first fight: burn the cloud, step back from the burst, never finish one in the Dead Calm |
 
+## The Unnamed
+
+**Tier II, III if you do not know the rule. In play (Godot: three at the Drowned Graves, the yard's
+south-east corner).** *Added 2026-11-05.* The drowned dead of the waystation's burial ground, put into
+the wet ground in the Smothering without their names being spoken over them, as the Keeping requires.
+They walk. The book counts them with the dead: whatever they were is gone, and they do not speak,
+plead or know anyone.
+
+|  |  |
+| --- | --- |
+| Measures | As the dead: 1.50 to 1.85 m, wasted |
+| Body | Drowned flesh, mud-caked, cold. Cut down, it falls and lies still; about twelve seconds later it rises whole, wounds and all gone. It stays down only once a name is spoken at its grave |
+| Senses | Sight fair, about 10 m in a cone like a person's; hearing fair: a sprint or a swing at about 10 m, louder in still air. Smell unknown |
+| Habitat | Its own grave. Each keeps to within about 14 m of its stone and turns back past it |
+| Sleep | None seen. They stand by their stones until something comes |
+| Diet | None. They grab and hold; nobody has seen one eat |
+| Temperament | Slow (about 2.6 m/s, under a jog) and tireless. Hands, not weapons: a grab for about 14. It never gives up on you inside its ground, and never follows you out of it |
+| Signs | Squared stones in standing water, no names on them; mud pressed into shapes beside the stones; a cold that is not the weather |
+| What we know | Knock one down, then kneel at its stone and speak a name (about two and a half seconds, and a blow breaks it off). It works whether the dead one is down or standing. Named, it lies down for good and leaves a body that can be searched |
+| What no one knows | Why they rise. Whether the name must be the true one (carriers say any name will do; the faithful deny it). Whether the bloom is in it. Whether other unnamed burial grounds have them: the Watchhouse has heard of one other, and nobody has gone to see |
+| For the game | Built: `scripts/enemies/enemy_unnamed.gd`. A fight of attention: three of them, three stones; down one, race to its stone, keep the others off |
+
 ## Things the book cannot name
 
 Two entries with more questions than answers. The first is one animal, seen once, by three people. The second has never been seen by anyone in the book.

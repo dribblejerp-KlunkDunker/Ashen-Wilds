@@ -421,7 +421,7 @@ The settlements took their present shape (Brackenreach's Upper Row, Merewick's m
 Rook's Stair's terraces, the Last Gardens, the Watchhouse). Salt became money, priced in
 **measures**. Registers were cut, sorted and fought over; gravediggers, midwives and chapel
 cleaners held offices nobody gave them. The faith fractured into penitents, the Last Hearth, the
-Unnamed and the listeners (`keeping-and-merewick.md`). **Collectors** began to arrive with certified
+Unwriters and the listeners (`keeping-and-merewick.md`). **Collectors** began to arrive with certified
 southern copies of old assessments, and later **priests claiming southern appointment**. Neither
 will say plainly where the south they speak for is. People began to say **the ash is thinning**.
 Some springs run a few days longer. No one can prove it.
