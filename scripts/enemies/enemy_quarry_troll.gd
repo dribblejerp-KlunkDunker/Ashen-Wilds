@@ -140,10 +140,16 @@ func listen_pause() -> float:
 
 ## How far the survivor's current action carries, in metres, before walls. 0: silent.
 func player_noise_radius() -> float:
-	if player_ref == null:
+	return survivor_noise_radius(player_ref)
+
+
+## How far what `p` is doing right now carries (HEARING times their noise multiplier); 0 when
+## silent. Static so other listeners (the Gallery Dragger) hear the survivor by the same table.
+static func survivor_noise_radius(p: PlayerController) -> float:
+	if p == null:
 		return 0.0
 	var key: String = ""
-	match player_ref.current_state:
+	match p.current_state:
 		PlayerController.ActionState.SPRINT:
 			key = "sprint"
 		PlayerController.ActionState.ATTACK_STARTUP, PlayerController.ActionState.ATTACK_ACTIVE:
@@ -157,10 +163,10 @@ func player_noise_radius() -> float:
 		PlayerController.ActionState.MOVE:
 			key = "move"
 		PlayerController.ActionState.CHANNEL:
-			key = "scavenge" if player_ref.is_scavenging() else "channel"
+			key = "scavenge" if p.is_scavenging() else "channel"
 	if key == "":
 		return 0.0
-	return float(HEARING[key]) * player_ref.get_noise_multiplier()
+	return float(HEARING[key]) * p.get_noise_multiplier()
 
 
 ## How far the companion's current action carries, before walls.

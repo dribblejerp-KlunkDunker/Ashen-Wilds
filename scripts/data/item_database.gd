@@ -55,6 +55,13 @@ static func roll_unnamed_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	return out
 
+## The Gallery Dragger swallows what it drags: a buckle, a few links of harness chain.
+static func roll_dragger_loot() -> Array[ItemInstance]:
+	var out: Array[ItemInstance] = []
+	if randf() < 0.6:
+		out.append(make("iron_scrap", 1))
+	return out
+
 static func roll_husk_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	out.append(make("iron_scrap", 1))
