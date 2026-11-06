@@ -271,10 +271,11 @@ func _run() -> void:
 	await _shot("15_roofed_gallery.png")
 
 	# 16: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
-	# cloud, rubbing its muzzle, its ring pale.
+	# cloud at the gallery's mouth, rubbing its muzzle, its ring pale.
 	crawler._drop_ring.visible = false
-	crawler.global_position = Vector3(-22.3, 0.0, 19.4)
-	_place(Vector3(-21.4, 0.0, 15.6), Vector3(-0.2, 0.0, 1.0))
+	# At the gallery's open south mouth: the piers stand on the camera's side all along the passage.
+	crawler.global_position = Vector3(-21.0, 0.0, 11.6)
+	_place(Vector3(-18.3, 0.0, 13.2), Vector3(-1.0, 0.0, -0.55))
 	LimeCloud.spawn(_main, crawler.global_position, 60.0)
 	await _frames(2)
 	crawler.blind(30.0)
