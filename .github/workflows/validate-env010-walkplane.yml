@@ -1,10 +1,16 @@
-name: Validate ENV-010 candidate without activation
+name: Validate activated ENV-010 preview
 on:
   push:
     branches: [assets/env-010-watchhouse-layout]
     paths:
       - .github/workflows/validate-env010-walkplane.yml
       - .github/env010-walkplane-candidate.patch
+      - scripts/environment/**
+      - scripts/net/**
+      - tests/test_env010_walkplane.gd
+      - scenes/environment/env010_watchhouse_courtyard.tscn
+      - assets/environment/**
+      - project.godot
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +27,7 @@ jobs:
         with:
           lfs: true
           persist-credentials: false
-      - name: Check and apply candidate in runner workspace only
+      - name: Verify activated candidate without modifying checkout
         shell: bash
         run: |
           set -euo pipefail
@@ -33,7 +39,6 @@ jobs:
           assert hashlib.sha256(patch).hexdigest() == "e8693f1c0e97590aa2f7de5607ae9b849a26138e3ea7aba32b78c191c28ddc97", "Candidate checksum mismatch"
           expected = {
               "scripts/environment/env010_layout.gd": "9b667b918c87f05ab671d228e5b0dfcd5445b030",
-              "scenes/environment/env010_watchhouse_courtyard.tscn": "141d7e4f6058ffc90136a2c4de53469f246c5f69",
               "assets/environment/env010/layout_manifest.json": "1d7e19134b440fa4092bef99456cc3be7f1a8406",
               "assets/environment/env010/layout_walkplane_v2.json": "a7bc8d9b9fa0da211c8821b52418cd526d03dc83",
               "scripts/net/net_player.gd": "75761a5addb94bed9c1ee97fa57971610d31a909",
@@ -41,8 +46,7 @@ jobs:
           for path, sha in expected.items():
               actual = subprocess.check_output(["git", "hash-object", path], text=True).strip()
               assert actual == sha, "Changed dependency: " + path
-          subprocess.run(["git", "apply", "--check", "--whitespace=error", "-"], input=patch, check=True)
-          subprocess.run(["git", "apply", "-"], input=patch, check=True)
+          subprocess.run(["git", "apply", "--reverse", "--check", "--whitespace=error", "-"], input=patch, check=True)
           Path("validation-artifacts/candidate.sha256").write_text(hashlib.sha256(patch).hexdigest() + "\n")
           PY
       - name: Get Godot 4.3-stable
@@ -103,7 +107,7 @@ jobs:
           run("live-boot", [godot, "--headless", "--path", ".", "--quit-after", "1200"])
           run("network-loopback", [sys.executable, "tools/net_spike.py"], seconds=300)
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-              summary.write("## ENV-010 headless candidate checks passed\nCandidate applied only inside this runner. No activation commit or merge. Rendered views require separate inspection; live loot and moving-door behavior remain outside scope.\n")
+              summary.write("## Activated ENV-010 headless checks passed\nChecked committed activation directly; no patch applied and no commit or merge performed by CI. Rendered views require separate inspection; live loot and moving-door behavior remain outside scope.\n")
           PY
       - name: Install software rendering tools
         run: |
@@ -158,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: env010-candidate-${{ github.run_number }}
+          name: env010-activated-${{ github.run_number }}
           path: validation-artifacts/
           if-no-files-found: warn
           retention-days: 14
