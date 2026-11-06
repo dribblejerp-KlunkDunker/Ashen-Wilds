@@ -157,6 +157,37 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Lore 1 — the world bible in the game: evidence (brief §24)
+
+**What.** The first slice of `docs/worldbuilding/` (merged in PR #27) that a player meets, built from
+`items-and-texts.md` and nothing invented here:
+- **Item lore.** Every item carries a line from the bible; its tooltip now gives what it does (the
+  old description, unchanged) and then where it came from. Mechanics text is kept on purpose.
+- **Eighteen notes.** Each is a `Category.NOTE` item (0.02 kg, unequippable) in the container the
+  bible put it in: three in the Shelter Stash, three in the Watchhouse chest, two in the grain crate,
+  three in the ork plunder pile, two in the bone heap, two on the spore cart; three lie on the ground
+  (the quarry's south edge, the feeding ground's near pillar, the choke-point wall). **Read** from
+  the loot window or the pack opens a reading panel beside them.
+- **Discovery banners.** The first time the survivor reaches seven places, opens the stash, takes the
+  salt, the pot, the kettle hat or the hauberk, reads a warning-book page or lights a torch, a line
+  from the bible shows. A discovery waits for the HUD to be free, so it never covers a warning.
+- **One source.** `tools/generate_lore_texts.py` writes `scripts/data/lore_texts.gd` from the bible
+  and fails on non-ASCII text (the browser build has no system fonts).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 503 passed, 0 failures, twice (17 new:
+every item has lore; the tooltip keeps both parts; eighteen notes, each light, readable and plain
+ASCII; a container gets its notes after its own goods; every note's place is in the level; the
+ground notes lie where the bible put them; reading opens the panel, captures input, shows the title
+and the whole text, is announced once, refuses a non-note and closes with the windows; a place is
+noticed once and its banner waits behind one already showing; taking the pot and reading a page are
+discoveries, taking timber is not). Kit suites, live boot and `tools/net_spike.py` (65) clean. A new
+README screenshot, `16_reading_a_note.png`; `04_pack_and_loot.png` re-rendered because the chest now
+lists its notes. The screenshot tool disables discovery so banners stay out of the other shots.
+
+**Not covered by headless tests.** Whether the notes are read or skipped, whether the reading panel's
+size and the 14 px text suit a real screen, and whether the discovery banners feel like a voice of
+the place or like interruptions. The placement circles are first guesses at each area's edge.
+
 ## Bestiary 4 — the Gallery Dragger: evidence (brief §24)
 
 **What.** The owner chose "more bestiary" (2026-11-05) after Bestiary 3. No bestiary list exists in

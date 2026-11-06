@@ -9,6 +9,10 @@ const PANEL_BORDER := Color(0.30, 0.26, 0.22, 1.0)
 const TEXT_DIM := Color(0.66, 0.62, 0.56)
 const TEXT_MAIN := Color(0.82, 0.78, 0.70)
 const TEXT_WARN := Color(0.90, 0.46, 0.28)
+const NOTE_TEXT := Color(0.86, 0.82, 0.72)
+
+## A note was opened in the reading panel (its item id). The bootstrap uses it for discovery banners.
+signal note_read(item_id: String)
 
 var _player: PlayerController
 var _inv_panel: PanelContainer
@@ -18,6 +22,10 @@ var _loot_panel: PanelContainer
 var _loot_title: Label
 var _loot_list: VBoxContainer
 var _loot_target: Lootable = null
+var _read_panel: PanelContainer
+var _read_title: Label
+var _read_text: Label
+var _reading: ItemData = null
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -43,15 +51,54 @@ func _ready() -> void:
 	_add_button(loot_buttons, "Close [Esc]", close_loot)
 	add_child(_loot_panel)
 
+	# The reading panel: left of the loot window, wide enough for a page of a warning book.
+	_read_panel = _make_panel(Vector2(470, 110), 460)
+	var read_box: VBoxContainer = _read_panel.get_child(0)
+	_read_title = _make_label("", 15, TEXT_MAIN)
+	read_box.add_child(_read_title)
+	_read_text = _make_label("", 14, NOTE_TEXT)
+	_read_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_read_text.custom_minimum_size = Vector2(436, 0)
+	read_box.add_child(_read_text)
+	var read_buttons := HBoxContainer.new()
+	read_box.add_child(read_buttons)
+	_add_button(read_buttons, "Put it away", close_reading)
+	add_child(_read_panel)
+
 	_inv_panel.visible = false
 	_loot_panel.visible = false
+	_read_panel.visible = false
 
 func bind_player(p: PlayerController) -> void:
 	_player = p
 	_player.inventory_changed.connect(_on_inventory_changed)
 
 func is_any_open() -> bool:
-	return _inv_panel.visible or _loot_panel.visible
+	return _inv_panel.visible or _loot_panel.visible or _read_panel.visible
+
+func is_reading() -> bool:
+	return _read_panel.visible
+
+## The note open in the reading panel, or null.
+func get_reading() -> ItemData:
+	return _reading if _read_panel.visible else null
+
+## Opens a note in the reading panel. Reading is not a channel: the world keeps moving, and like the
+## other windows any hit closes it.
+func read_note(data: ItemData) -> void:
+	if data == null or not data.is_note():
+		return
+	_reading = data
+	_read_title.text = data.display_name.to_upper()
+	_read_text.text = data.note_text
+	_read_panel.visible = true
+	_sync_capture()
+	note_read.emit(data.item_id)
+
+func close_reading() -> void:
+	_reading = null
+	_read_panel.visible = false
+	_sync_capture()
 
 func is_inventory_open() -> bool:
 	return _inv_panel.visible
@@ -67,6 +114,8 @@ func toggle_inventory() -> void:
 		_inv_panel.visible = false
 		if _loot_panel.visible:
 			close_loot()
+		if _read_panel.visible:
+			close_reading()
 	else:
 		_inv_panel.visible = true
 		_rebuild_inventory()
@@ -97,6 +146,8 @@ func close_all() -> void:
 		return
 	close_loot()
 	_inv_panel.visible = false
+	_read_panel.visible = false
+	_reading = null
 	_sync_capture()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -160,7 +211,7 @@ func _rebuild_inventory() -> void:
 		name_lbl.custom_minimum_size = Vector2(250, 0)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.clip_text = true
-		name_lbl.tooltip_text = inst.data.description
+		name_lbl.tooltip_text = inst.data.tooltip()
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
@@ -170,6 +221,8 @@ func _rebuild_inventory() -> void:
 			_add_button(row, "Unequip" if inv.is_equipped(inst) else "Equip", func() -> void: _player.request_equip(inst))
 		elif inst.data.category == ItemData.Category.CONSUMABLE:
 			_add_button(row, "Use", func() -> void: _player.use_item(inst))
+		elif inst.data.is_note():
+			_add_button(row, "Read", func() -> void: read_note(inst.data))
 		_add_button(row, "Drop", func() -> void: _player.drop_item(inst))
 		_inv_list.add_child(row)
 
@@ -188,13 +241,15 @@ func _rebuild_loot() -> void:
 		name_lbl.custom_minimum_size = Vector2(280, 0)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.clip_text = true
-		name_lbl.tooltip_text = inst.data.description
+		name_lbl.tooltip_text = inst.data.tooltip()
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		row.add_child(name_lbl)
 		var w_lbl := _make_label("%.1f kg" % inst.total_weight(), 12, TEXT_DIM)
 		w_lbl.custom_minimum_size = Vector2(52, 0)
 		row.add_child(w_lbl)
 		var target: Lootable = _loot_target
+		if inst.data.is_note():
+			_add_button(row, "Read", func() -> void: read_note(inst.data))
 		_add_button(row, "Take", func() -> void: _player.take_from(target, inst))
 		_loot_list.add_child(row)
 

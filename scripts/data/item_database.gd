@@ -106,7 +106,34 @@ static func _register_armour(id: String, display: String, desc: String, slot: It
 	_register(d)
 
 static func _register(item: ItemData) -> void:
+	if LoreTexts.ITEM_LORE.has(item.item_id):
+		item.lore = String(LoreTexts.ITEM_LORE[item.item_id])
 	_items[item.item_id] = item
+
+## A sheet of paper weighs next to nothing, but it is still carried.
+const NOTE_WEIGHT_KG: float = 0.02
+
+## The notes of the Act I level (LoreTexts.NOTES, generated from the world bible): one item each,
+## read from the pack. Where each one lies is the bootstrap's business.
+static func _register_notes() -> void:
+	for n: Dictionary in LoreTexts.NOTES:
+		var d := ItemData.new()
+		d.item_id = String(n["id"])
+		d.display_name = String(n["title"])
+		d.description = "Something written. Read it from the pack."
+		d.note_text = String(n["text"])
+		d.category = ItemData.Category.NOTE
+		d.weight_kg = NOTE_WEIGHT_KG
+		d.max_stack = 1
+		_register(d)
+
+## The ids of the notes that belong in a place: a container's label, or "ground".
+static func note_ids_for(place: String) -> Array[String]:
+	var out: Array[String] = []
+	for n: Dictionary in LoreTexts.NOTES:
+		if String(n["place"]) == place:
+			out.append(String(n["id"]))
+	return out
 
 static func _build() -> void:
 	# --- Weapons -------------------------------------------------------------
@@ -269,6 +296,8 @@ static func _build() -> void:
 	pot.category = ItemData.Category.TOOL
 	pot.weight_kg = 4.5
 	_register(pot)
+
+	_register_notes()
 
 static func _material(id: String, label: String, weight: float, stack: int, desc: String) -> ItemData:
 	var d := ItemData.new()
