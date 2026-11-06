@@ -20,6 +20,9 @@ var _weather_label: Label
 var _background_label: Label
 var _banner_label: Label
 var _banner_timer: float = 0.0
+var _stats_panel: PanelContainer
+var _objectives_panel: PanelContainer
+var _objectives_label: Label
 var _prompt_label: Label
 var _channel_panel: PanelContainer
 var _channel_label: Label
@@ -46,6 +49,7 @@ func _ready() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_theme_stylebox_override("panel", style)
 	root.add_child(panel)
+	_stats_panel = panel
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
@@ -76,6 +80,17 @@ func _ready() -> void:
 	_ally_row.visible = false
 	_status_label = _make_label("STATE: IDLE", 13, Color(0.72, 0.68, 0.62))
 	vbox.add_child(_status_label)
+
+	# The act's objectives, under the stats panel (which grows when an ally joins; _process follows it).
+	_objectives_panel = PanelContainer.new()
+	_objectives_panel.position = Vector2(24, 360)
+	_objectives_panel.custom_minimum_size = Vector2(360, 0)
+	_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_objectives_panel.add_theme_stylebox_override("panel", style)
+	root.add_child(_objectives_panel)
+	_objectives_label = _make_label("", 12, Color(0.76, 0.72, 0.64))
+	_objectives_panel.add_child(_objectives_label)
+	_objectives_panel.visible = false
 
 	var help_panel := PanelContainer.new()
 	help_panel.position = Vector2(24, 905)
@@ -142,6 +157,8 @@ func bind_player(p: PlayerController) -> void:
 	p.ui_force_close.connect(inventory_ui.close_all)
 
 func _process(delta: float) -> void:
+	if _objectives_panel.visible:
+		_objectives_panel.position.y = _stats_panel.position.y + _stats_panel.size.y + 10.0
 	_update_ally()
 	if _banner_timer > 0.0:
 		_banner_timer = maxf(0.0, _banner_timer - delta)
@@ -250,6 +267,18 @@ func set_background(title: String) -> void:
 
 func set_weather(condition_name: String) -> void:
 	_weather_label.text = "WEATHER  %s" % condition_name
+
+## The act's objectives: a title line, then one line per objective (Objectives builds them).
+func set_objectives(lines: Array[String]) -> void:
+	_objectives_label.text = "\n".join(lines)
+	_objectives_panel.visible = not lines.is_empty()
+
+func objectives_text() -> String:
+	return _objectives_label.text if _objectives_panel.visible else ""
+
+## True while a banner is still on screen. Discovery waits for it rather than cover a warning.
+func banner_showing() -> bool:
+	return _banner_timer > 0.0
 
 func show_banner(msg: String, col: Color = Color(0.82, 0.76, 0.65)) -> void:
 	_banner_label.text = msg

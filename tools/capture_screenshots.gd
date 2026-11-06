@@ -66,6 +66,11 @@ func _run() -> void:
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
+	# Discovery banners would land in shots framed for something else; each shot sets its own text.
+	for d: Node in _find(func(n: Node) -> bool: return n is Discovery or n is Objectives):
+		d.process_mode = Node.PROCESS_MODE_DISABLED
+	# The objectives panel stays out of the older shots; shot 17 shows it.
+	_hud.set_objectives([])
 	await _frames(10)
 	if OS.get_cmdline_user_args().has("--gallery"):
 		var start_screen: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
@@ -120,6 +125,11 @@ func _run() -> void:
 		_hud.inventory_ui.open_loot(chest)
 	await _frames(6)
 	await _shot("04_pack_and_loot.png")
+
+	# 16. Reading a note from the chest: the Watch's stores list, counted the week after the tower.
+	_hud.inventory_ui.read_note(ItemDatabase.get_item("note_03"))
+	await _frames(6)
+	await _shot("16_reading_a_note.png")
 	_hud.inventory_ui.close_all()
 
 	# 5. Ork choke point with the spear (two-handed, shield stowed).
@@ -261,9 +271,22 @@ func _run() -> void:
 
 	await _gallery_shots(enemies)
 
+	# 17. Act I under way, back at the shelter fire: the Watchhouse taken, the pot home on the fire,
+	# two pages of the warning book written back in; the Causeway still held.
+	var objectives: Objectives = _find(func(n: Node) -> bool: return n is Objectives)[0]
+	objectives._done["watchhouse"] = true
+	objectives._done["pot"] = true
+	objectives.pages_returned.assign(["note_02", "note_19"])
+	_main._on_objective_completed("pot")
+	objectives._refresh_hud()
+	_equip_now("pitch_torch")
+	_place(Vector3(-5.2, 0.0, 6.2), Vector3(-1, 0, -1.1))
+	await _frames(12)
+	await _shot("17_act_one_objectives.png")
+
 	quit(0)
 
-## 15 and 16, the Roofed Gallery. `-- --gallery` renders only these two (about a minute instead of
+## 15 and 18, the Roofed Gallery. `-- --gallery` renders only these two (about a minute instead of
 ## ten), for when nothing else changed.
 func _gallery_shots(enemies: Array) -> void:
 	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the crawler is
@@ -285,7 +308,7 @@ func _gallery_shots(enemies: Array) -> void:
 	await _frames(14)
 	await _shot("15_roofed_gallery.png")
 
-	# 16: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
+	# 18: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
 	# cloud at the gallery's mouth, rubbing its muzzle, its ring pale.
 	crawler._drop_ring.visible = false
 	# At the gallery's open south mouth: the piers stand on the camera's side all along the passage.
@@ -299,4 +322,4 @@ func _gallery_shots(enemies: Array) -> void:
 	crawler._model.play(&"Zombie_Scratch")
 	crawler._visual_root.visible = true
 	await _frames(14)
-	await _shot("16_quicklime.png")
+	await _shot("18_quicklime.png")

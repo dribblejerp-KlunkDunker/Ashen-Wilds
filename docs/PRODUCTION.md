@@ -167,7 +167,7 @@ lime and fire as the counters". Owner decision O2 keeps the bible's names, so:
 - **The rename.** `EnemyGalleryDragger` is `EnemyGalleryCrawler` (file, class, model type, signals,
   loot roll, texts, docs); the Bestiary 4 section below keeps the old name as history.
 - **Quicklime, the missing counter.** "Lime in the air drove it back coughing" (bestiary; the
-  story's split sack). A new item, the Sack of Quicklime (1.2 kg); the gallery's tipped handcart
+  story's split sack). A new item, the bible's proposed Sack of Lime (`items-and-texts.md` section 3, item 1: 2.0 kg, stacks of 5; its lore entry is added to section 1 and generated like the others); the gallery's tipped handcart
   holds two, as the Roofed Mile cart carried lime. **[G]** splits one and throws it: a 0.45 s throw
   (the goblin's `OverhandThrow` clip), a white cloud 3.5 m ahead or just short of stone, 2.6 m
   across, 6 s before the weather (the spores field: wind clears it, still air keeps it).
@@ -187,11 +187,68 @@ ahead; the weather sets its life; the survivor chokes in it without a wound and 
 a spore cloud it touches burns away; thrown at a pier it bursts short of the stone; the crawler
 blinded, its lunge dropped and the survivor forgotten; backing off home; climbing back once its eyes
 clear; untouched on its ledge; a stagger while blind returns to blindness). Kit suites, live boot
-and `tools/net_spike.py` clean. A new README screenshot of the crawler blind in the lime.
+and `tools/net_spike.py` clean. A new README screenshot of the crawler blind in the lime,
+`18_quicklime.png` (16 and 17 went to Lore 1 and the Act I objectives). Merged with `main` after
+Lore 1 and Act I (PRs #30, #31): 532 passed, 0 failures, twice; Lore 1's rule that every item has
+bible lore caught the new item, which now takes the bible's name and numbers.
 
 **Not covered by headless tests.** Whether 3.5 m is a good throw in a 3 m passage (the survivor is
 often closer than that to the crawler, and a short throw puts them in their own cloud), whether the
 white cloud reads at night, and whether blinding is too strong a counter for two sacks.
+
+## Act I objectives: evidence (brief §24)
+
+**What.** The act the README's premise and the bible describe, tracked: take back the Watchhouse
+(its two goblins dead), bring the Cast-Iron Cooking Pot to the shelter fire (within 2.6 m of the fire
+bed it is set on the fire: out of the pack, onto the bed), return the warning book's three torn pages
+(carried into the Watchhouse, each is written back in: out of the pack, counted), break the ork hold
+on the Old Causeway (its two orks dead). Any order; all four close the act. A panel under the stats
+panel lists them with `[x]` and `[ ]` (ASCII) and counts the pages. Each completion says a line
+through Discovery's queue (the pot's and the page's are the bible's). Objectives latch: enemies never
+respawn. The plan this came from, phased by model, is `docs/ROADMAP.md`.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 516 passed, 0 failures, twice (13 new:
+the act watches the right four enemies; the panel lists four undone objectives; one dead goblin is not
+enough, two are, said once; the pot far from the fire is only carried, at the fire it is set down and
+leaves the pack, and then sits on the fire; two pages count 2 of 3 and leave the pack, the third
+completes; three of four is not the act; the orks dead complete the act once; the panel shows all
+done and the close). Kit suites, live boot and `tools/net_spike.py` (65) clean. New screenshot
+`17_act_one_objectives.png`; the others are unchanged (the tool hides the panel in them).
+
+**Not covered by headless tests.** How long the act takes, whether the order players choose makes
+sense (nothing stops the choke point first), whether setting the pot down automatically at the fire
+reads as a reward or a surprise, and the panel on a real screen.
+
+## Lore 1 — the world bible in the game: evidence (brief §24)
+
+**What.** The first slice of `docs/worldbuilding/` (merged in PR #27) that a player meets, built from
+`items-and-texts.md` and nothing invented here:
+- **Item lore.** Every item carries a line from the bible; its tooltip now gives what it does (the
+  old description, unchanged) and then where it came from. Mechanics text is kept on purpose.
+- **Eighteen notes.** Each is a `Category.NOTE` item (0.02 kg, unequippable) in the container the
+  bible put it in: three in the Shelter Stash, three in the Watchhouse chest, two in the grain crate,
+  three in the ork plunder pile, two in the bone heap, two on the spore cart; three lie on the ground
+  (the quarry's south edge, the feeding ground's near pillar, the choke-point wall). **Read** from
+  the loot window or the pack opens a reading panel beside them.
+- **Discovery banners.** The first time the survivor reaches seven places, opens the stash, takes the
+  salt, the pot, the kettle hat or the hauberk, reads a warning-book page or lights a torch, a line
+  from the bible shows. A discovery waits for the HUD to be free, so it never covers a warning.
+- **One source.** `tools/generate_lore_texts.py` writes `scripts/data/lore_texts.gd` from the bible
+  and fails on non-ASCII text (the browser build has no system fonts).
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 503 passed, 0 failures, twice (17 new:
+every item has lore; the tooltip keeps both parts; eighteen notes, each light, readable and plain
+ASCII; a container gets its notes after its own goods; every note's place is in the level; the
+ground notes lie where the bible put them; reading opens the panel, captures input, shows the title
+and the whole text, is announced once, refuses a non-note and closes with the windows; a place is
+noticed once and its banner waits behind one already showing; taking the pot and reading a page are
+discoveries, taking timber is not). Kit suites, live boot and `tools/net_spike.py` (65) clean. A new
+README screenshot, `16_reading_a_note.png`; `04_pack_and_loot.png` re-rendered because the chest now
+lists its notes. The screenshot tool disables discovery so banners stay out of the other shots.
+
+**Not covered by headless tests.** Whether the notes are read or skipped, whether the reading panel's
+size and the 14 px text suit a real screen, and whether the discovery banners feel like a voice of
+the place or like interruptions. The placement circles are first guesses at each area's edge.
 
 ## Bestiary 4 — the Gallery Dragger: evidence (brief §24)
 

@@ -119,6 +119,8 @@ func _run() -> void:
 	await _test_unnamed()
 	await _test_gallery_crawler()
 	await _test_quicklime()
+	await _test_lore()
+	await _test_objectives()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -3146,4 +3148,206 @@ func _test_quicklime() -> void:
 	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)
+# Lore 1: the world bible in the game (item lore, notes, the reading panel, discovery banners)
+# ------------------------------------------------------------------------------
+func _test_lore() -> void:
+	_section("Lore 1: item lore, notes and discovery")
+	# Every item but the notes carries a line of lore from the bible, shown under its description.
+	var missing: Array[String] = []
+	for id: Variant in ItemDatabase.all_ids():
+		var d: ItemData = ItemDatabase.get_item(String(id))
+		if not d.is_note() and d.lore.is_empty():
+			missing.append(String(id))
+	_check(missing.is_empty(), "every item has a line of lore (missing: %s)" % [missing])
+	var sword: ItemData = ItemDatabase.get_item("arming_sword")
+	_check(sword.tooltip().begins_with(sword.description) and sword.tooltip().ends_with(sword.lore),
+		"an item's tooltip keeps what it does and adds where it came from")
+
+	# The notes: one NOTE item each, light, plain ASCII (the browser has no system fonts).
+	_check(LoreTexts.NOTES.size() == 18, "eighteen notes from the bible are in the game")
+	var bad_notes: Array[String] = []
+	for n: Dictionary in LoreTexts.NOTES:
+		var d: ItemData = ItemDatabase.get_item(String(n["id"]))
+		var ascii: bool = true
+		for ch: String in d.note_text + d.display_name:
+			if ch.unicode_at(0) > 127:
+				ascii = false
+		if d == null or not d.is_note() or d.note_text.is_empty() or not ascii or d.weight_kg > 0.05 or d.is_equippable():
+			bad_notes.append(String(n["id"]))
+	_check(bad_notes.is_empty(), "every note is a light, unequippable, readable, plain-ASCII item (bad: %s)" % [bad_notes])
+
+	# A container gets the notes the bible put in it, after its own goods.
+	var probe: Lootable = _main._spawn_container("Shelter Stash", Vector3(40.0, 0.0, 40.0), Vector3(0.9, 0.55, 0.6),
+		Color(0.4, 0.3, 0.2), 0.0, [ItemDatabase.make("timber", 1)])
+	var probe_ids: Array[String] = []
+	for inst: ItemInstance in probe.items:
+		probe_ids.append(inst.data.item_id)
+	_check(probe_ids == ["timber", "note_01", "note_02", "note_21"],
+		"the shelter stash holds its own goods, then its three notes (%s)" % [probe_ids])
+	probe.get_parent().queue_free()
+	var places: Dictionary = {}
+	for n: Dictionary in LoreTexts.NOTES:
+		places[String(n["place"])] = true
+	# Container Lootables sit under their StaticBody3D, so search the whole tree.
+	var containers: Array = _main.find_children("*", "", true, false).filter(func(n: Node) -> bool: return n is Lootable)
+	var labels: Dictionary = {}
+	for l: Lootable in containers:
+		labels[l.display_name] = true
+	var unplaced: Array[String] = []
+	for place: String in places.keys():
+		if place != "ground" and not labels.has(place):
+			unplaced.append(place)
+	_check(unplaced.is_empty(), "every note's place is a container in the level (missing: %s)" % [unplaced])
+	var ground_ok: bool = true
+	for note_id: String in ItemDatabase.note_ids_for("ground"):
+		var spec: Array = AshenWildsBootstrap.NOTE_GROUND_SPOTS[note_id]
+		var found: bool = false
+		for l: Lootable in containers:
+			if l.display_name == String(spec[1]) and l.global_position.distance_to(spec[0]) < 0.1:
+				found = l.items.size() == 1 and l.items[0].data.item_id == note_id
+		ground_ok = ground_ok and found
+	_check(ground_ok, "the three ground notes lie where the bible put them")
+
+	# Reading: from the pack, the reading panel opens, captures combat input, and says so.
+	var ui: InventoryUI = _hud.inventory_ui
+	ui.close_all()
+	var note: ItemInstance = ItemDatabase.make("note_03")
+	_player.inventory.add(note)
+	var read_ids: Array[String] = []
+	var on_read := func(item_id: String) -> void: read_ids.append(item_id)
+	ui.note_read.connect(on_read)
+	ui.toggle_inventory()
+	ui.read_note(note.data)
+	await _ticks(1)
+	_check(ui.is_reading() and ui.get_reading() == note.data and _player.ui_capture,
+		"reading a note opens the reading panel and suspends combat input")
+	_check(ui._read_text.text == note.data.note_text and ui._read_title.text == note.data.display_name.to_upper(),
+		"the reading panel shows the note's title and its whole text")
+	_check(read_ids == ["note_03"], "reading a note is announced once (note_read)")
+	ui.read_note(ItemDatabase.get_item("timber"))
+	_check(ui.get_reading() == note.data, "only notes can be read")
+	ui.close_all()
+	await _seconds(0.2) # the capture is released a moment later, so the closing click is not an attack
+	_check(not ui.is_reading() and not _player.ui_capture, "closing the windows puts the note away")
+	ui.note_read.disconnect(on_read)
+	_player.inventory.remove(note)
+
+	# Discovery: a place is noticed once; its banner waits for the HUD to be free, then shows.
+	var disc := Discovery.new()
+	_main.add_child(disc)
+	disc.bind(_player, _hud)
+	_hud.show_banner("An enemy's warning", Color.WHITE)
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(disc.has_seen("watchhouse") and disc.pending() == 1 and _hud._banner_label.text == "An enemy's warning",
+		"entering the Watchhouse is noticed, and its banner waits behind one already showing")
+	_hud._banner_timer = 0.0
+	await _ticks(2)
+	_check(disc.pending() == 0 and _hud._banner_label.text.begins_with("The Wayfarer's Watchhouse"),
+		"the discovery banner shows once the HUD is free")
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	await _ticks(2)
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(disc.pending() == 0, "a place is announced only the first time")
+	_player.item_taken.emit("cooking_pot", null)
+	_player.item_taken.emit("timber", null)
+	_check(disc.has_seen("took_cooking_pot") and not disc.has_seen("took_timber"),
+		"taking the cooking pot is a discovery; taking timber is not")
+	ui.note_read.emit("note_19")
+	_check(disc.has_seen("warning_book"), "reading a torn page of the warning book is a discovery")
+	disc.queue_free()
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	_hud._banner_timer = 0.0
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Act I objectives
+# ------------------------------------------------------------------------------
+## A stand-in foe: anything with is_dead() counts for Objectives.
+class FakeFoe:
+	var dead: bool = false
+	func is_dead() -> bool:
+		return dead
+
+func _test_objectives() -> void:
+	_section("Act I objectives")
+	var main_obj: Objectives = _main._objectives
+	_check(main_obj.watchhouse_foes.size() == 2
+		and main_obj.watchhouse_foes.all(func(e: Variant) -> bool: return e is EnemyGoblinScavenger)
+		and main_obj.choke_foes.size() == 2
+		and main_obj.choke_foes.all(func(e: Variant) -> bool: return e is EnemyOrkWarrior),
+		"the act watches the two Watchhouse goblins and the two choke-point orks")
+	# The rest drives a fresh tracker against stand-in foes, so nothing earlier in the suite counts.
+	main_obj.process_mode = Node.PROCESS_MODE_DISABLED
+	var disc := Discovery.new()
+	_main.add_child(disc)
+	disc.bind(_player, _hud)
+	disc.process_mode = Node.PROCESS_MODE_DISABLED # keep its queue to count what was said
+	var house: Array = [FakeFoe.new(), FakeFoe.new()]
+	var choke: Array = [FakeFoe.new(), FakeFoe.new()]
+	var obj := Objectives.new()
+	_main.add_child(obj)
+	obj.bind(_player, _hud, disc, house, choke)
+	var done_ids: Array[String] = []
+	obj.objective_completed.connect(func(id: String) -> void: done_ids.append(id))
+	var acts: Array[int] = [0]
+	obj.act_completed.connect(func() -> void: acts[0] += 1)
+	var text: String = _hud.objectives_text()
+	_check(text.begins_with(Objectives.TITLE) and text.contains("[ ] Take back the Watchhouse")
+		and text.contains("(0/3)"), "the HUD lists the act's four objectives, none done")
+
+	_player.global_position = Vector3(-12.0, 0.0, 8.0)
+	house[0].dead = true
+	await _ticks(2)
+	_check(not obj.is_done("watchhouse"), "one dead goblin does not take back the Watchhouse")
+	house[1].dead = true
+	await _ticks(2)
+	_check(obj.is_done("watchhouse") and done_ids == ["watchhouse"] and disc.pending() == 1,
+		"both dead: the Watchhouse is taken, once, and said")
+
+	# The pot: carried away from the fire it is only carried; at the fire it is set down.
+	var pot: ItemInstance = ItemDatabase.make("cooking_pot")
+	_check(_player.inventory.add(pot), "(the pot fits in the pack)")
+	await _ticks(2)
+	_check(not obj.is_done("pot"), "carrying the pot far from the fire is not bringing it home")
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	await _ticks(2)
+	_check(obj.is_done("pot") and _player.inventory.find_first("cooking_pot") == null,
+		"at the shelter fire the pot is set down: done, and out of the pack")
+	_main._on_objective_completed("pot")
+	var pot_mesh: Node = _main.find_child("PotOnTheFire", false, false)
+	_check(pot_mesh != null, "the pot then sits on the shelter fire")
+	if pot_mesh:
+		pot_mesh.queue_free()
+
+	# The pages: each one carried into the Watchhouse is written back in.
+	for page_id: String in ["note_02", "note_19"]:
+		_player.inventory.add(ItemDatabase.make(page_id))
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(obj.pages_returned.size() == 2 and not obj.is_done("pages") and _hud.objectives_text().contains("(2/3)")
+		and _player.inventory.find_first("note_02") == null,
+		"two pages carried into the Watchhouse are written in: 2 of 3, out of the pack")
+	_player.inventory.add(ItemDatabase.make("note_20"))
+	await _ticks(2)
+	_check(obj.is_done("pages"), "the third page makes the book whole")
+
+	# The choke point, and with it the act.
+	_check(acts[0] == 0 and not obj.is_act_done(), "three of four is not the act done")
+	choke[0].dead = true
+	choke[1].dead = true
+	await _ticks(2)
+	await _ticks(2)
+	text = _hud.objectives_text()
+	_check(obj.is_done("choke_point") and obj.is_act_done() and acts[0] == 1,
+		"the orks dead: the Causeway is open, and Act I is done, once")
+	_check(not text.contains("[ ]") and text.contains(Objectives.ACT_LINE), "the HUD shows every objective done and the act's close")
+
+	obj.queue_free()
+	disc.queue_free()
+	main_obj.process_mode = Node.PROCESS_MODE_INHERIT
+	main_obj._refresh_hud()
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	_hud._banner_timer = 0.0
 	await _ticks(2)

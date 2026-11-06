@@ -3,7 +3,9 @@ extends Resource
 ## Static definition of an item type. Runtime state (condition, quantity)
 ## lives on ItemInstance.
 
-enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL, ARMOUR }
+## NOTE: something written (a note, a page, a tag) that can be read from the pack. Appended last so
+## the earlier values keep their numbers.
+enum Category { WEAPON, SHIELD, TORCH, CONSUMABLE, MATERIAL, TOOL, ARMOUR, NOTE }
 ## Where a piece of armour is worn. One piece per slot.
 enum ArmourSlot { NONE, HEAD, BODY, LEGS }
 enum WeaponClass { NONE, BLADE, POLEARM, AXE }
@@ -11,6 +13,10 @@ enum WeaponClass { NONE, BLADE, POLEARM, AXE }
 @export var item_id: String = ""
 @export var display_name: String = ""
 @export_multiline var description: String = ""
+## A line of lore from the world bible (LoreTexts.ITEM_LORE), shown under the description.
+@export_multiline var lore: String = ""
+## The full text of a NOTE, shown in the reading panel.
+@export_multiline var note_text: String = ""
 @export var category: Category = Category.MATERIAL
 @export var weight_kg: float = 0.5
 @export var max_stack: int = 1
@@ -57,6 +63,18 @@ func has_durability() -> bool:
 
 func is_equippable() -> bool:
 	return category in [Category.WEAPON, Category.SHIELD, Category.TORCH, Category.ARMOUR]
+
+
+func is_note() -> bool:
+	return category == Category.NOTE
+
+## What the pack and loot windows show on hover: what the item does, then where it came from.
+func tooltip() -> String:
+	if lore.is_empty():
+		return description
+	if description.is_empty():
+		return lore
+	return description + "\n\n" + lore
 
 
 func is_armour() -> bool:
