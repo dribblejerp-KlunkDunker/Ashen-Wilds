@@ -95,7 +95,8 @@ The archive was revised to fit O1 on the same day; see *Archive material revised
     Merewick, Rook's Stair, Low Harrow, and along the Bell Road the Last Gardens, Halwen House,
     Darnel Cross, the Split Kiln, the Bell-Tender's House, Saint Vey's Fold, the Bent Span,
     Coldbarrow, and **the Roofed Mile**, an avalanche gallery now occupied by an unidentified
-    animal.
+    animal, which carriers call the gallery-crawler *(in game: one waits on the wall of the Roofed
+    Gallery in the yard's south-west corner; lime and fire are its counters)*.
 13. **The Wayfarer's Watchhouse** *(in game)*: a ruined Crown waystation at the Causeway's fen end,
     the survivors' refuge and hearth. It keeps the **warning book** (`bestiary.md`) and argues
     every winter about whom to admit. Its doorway is 1.35 m and stays that way, because of the

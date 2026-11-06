@@ -15,6 +15,7 @@ const ITEM_LORE: Dictionary = {
 	"leather_greaves": "Boiled leather shaped to the shin, laced at the back. Made for reed-cuts and dog bites. The rats ate the old laces.",
 	"padded_coif": "Quilted linen worn under a helmet, kept after the helmet was lost. Turns a glancing blow and little else.",
 	"pitch_torch": "Rag wound on a stave and dipped in bog-pine pitch. A light means fuel, not safety. Fire burns spores.",
+	"quicklime": "Burned at the kiln for chimneys and graves. Thrown, it blinds what breathes it and stops spores. Keep out of the cloud yourself.",
 	"quilted_gambeson": "Thirty layers of linen, a household's winter of stitching. Warm, and it stops a cut from going deep.",
 	"rusted_hauberk": "Crown mail from the Causeway tower, orange at every ring. Nobody alive can draw the wire to mend it.",
 	"salt": "One measure, struck level and sewn in oiled cloth. Keeps meat through the Smothering and pays for nearly everything.",

@@ -313,6 +313,22 @@ until kin come forward with a name.
 
 **Proposed description:** `Cast slag-iron. It holds its heat for hours after the fire is banked. With a pot, a shelter can boil water, rags and stew.`
 
+### Sack of Lime
+
+*Material, 2.0 kg, stacks of 5. Two in the Overturned Handcart in the Roofed Gallery. In game since
+Bestiary 4b: [G] splits a sack and throws it (proposal 1 in section 3; the corpse use is not built).*
+
+Quicklime from the Split Kiln or Rook's Stair, burned with fuel nobody can spare, in a sack that
+whitens everything it touches. *Lime the dead or meet them* (section 2): on a body it stops the
+corpse-caps fruiting, and in the air it stops spores. In *The third arch* a sack split across the
+passage and the animal in the Roofed Mile withdrew, coughing, and rubbed its muzzle on the paving.
+Annet's company carried six sacks up the Bell Road for four chimneys; the handcart in the gallery
+still holds two. It burns eyes and throats, the thrower's too.
+
+*Price:* 2 measures at the kiln; 4 at the Watchhouse.
+
+**Proposed description:** `Burned at the kiln for chimneys and graves. Thrown, it blinds what breathes it and stops spores. Keep out of the cloud yourself.`
+
 *(Edda's cudgel is not an item. It is part of her model and her attack.)*
 
 ---
@@ -436,11 +452,11 @@ families still keep them. They are worthless, and nobody throws them away.
 ## 3. New item proposals
 
 Fourteen items that use the systems the game already has (categories, condition, channels,
-`ActionPoint`, choking, noise, the torch, the HUD). None is implemented. Weights are suggestions.
+`ActionPoint`, choking, noise, the torch, the HUD). Only the first is in the game (Bestiary 4b), in part. Weights are suggestions.
 
 | # | Item | Category, weight | What it would do | Where found |
 |---|---|---|---|---|
-| 1 | **Sack of Lime** | Material, 2.0 kg, stack 5 | Used on a corpse (a 2 s channel through an `ActionPoint` "Lime the dead"), it stops that body ever making a spore cloud. Thrown into a spore cloud, it halves the cloud's remaining life. A later counter for the gallery-crawler. | Watchhouse Supply Chest. Later the Split Kiln and Rook's Stair |
+| 1 | **Sack of Lime** *(in game since Bestiary 4b: thrown, it blinds the gallery-crawler and burns spore clouds; the corpse use is not built)* | Material, 2.0 kg, stack 5 | Used on a corpse (a 2 s channel through an `ActionPoint` "Lime the dead"), it stops that body ever making a spore cloud. Thrown into a spore cloud, it halves the cloud's remaining life. A later counter for the gallery-crawler. | Watchhouse Supply Chest. Later the Split Kiln and Rook's Stair |
 | 2 | **Wet-Cloth Mask** | Armour (head), 0.2 kg | Halves choke damage and its sight loss while its condition (wetness) lasts. Dries over about 90 s, faster in a cinder-squall. Sleet keeps it wet. Re-wet at the shelter fire's water. Needs a `choke_mult` armour field. | Spore-Choked Cart, the Fen Healer's kit |
 | 3 | **Horn Lantern** | Torch, 1.2 kg | A shuttered lantern: less light range than the torch but burns half as fast. Refills from a Flask of Lamp Oil (the oil's description already says "Refuels lanterns"). Burns spores only when opened. | Watchhouse Supply Chest (empty), the Hedge-priest's kit |
 | 4 | **Fire-Rag** | Consumable, 0.3 kg, stack 5 | An oil-soaked rag, dropped and lit from the torch: burns a spore cloud and stays burning for 10 s, making a fire the husks avoid. Made at the fire from a bandage and lamp oil. | Ork Plunder Pile, made at the shelter |

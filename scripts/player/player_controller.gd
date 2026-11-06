@@ -27,7 +27,7 @@ enum ActionState {
 }
 
 ## Timed, cancellable actions that share the CHANNEL state.
-enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP }
+enum ChannelKind { NONE, SCAVENGE, BANDAGE, EQUIP_SWAP, THROW_LIME }
 
 const NEUTRAL_STATES: Array[ActionState] = [
 	ActionState.IDLE, ActionState.MOVE, ActionState.SPRINT, ActionState.BLOCK
@@ -143,6 +143,12 @@ var background: SurvivorBackground
 var _choke_timer: float = 0.0
 const CHOKE_STAMINA_MULT: float = 0.25
 const CHOKE_SIGHT_MULT: float = 0.35
+## What the survivor is choking on, for the HUD ("SPORES", "LIME").
+var choke_cause: String = "SPORES"
+## Splitting a sack of quicklime and throwing it ([G]): the throw takes this long, and the cloud
+## bursts this far ahead (or short of a wall).
+const LIME_THROW_SECONDS: float = 0.45
+const LIME_THROW_DISTANCE: float = 3.5
 var _base_stats: Dictionary = {}
 
 func _ready() -> void:
@@ -368,19 +374,21 @@ func _on_inventory_changed() -> void:
 		_last_load = load_state
 	inventory_changed.emit()
 
-## Breathing spores: choke for at least `seconds` more and lose `dps` health per second of it
-## (a cloud calls this every tick with its delta; a husk's claw once with 2 s and no damage).
-## Like bleeding, choking never kills by itself (it stops at 1 health).
-func choke(seconds: float, dps: float) -> void:
+## Breathing spores (or lime): choke for at least `seconds` more and lose `dps` health per second
+## of it (a cloud calls this every tick with its delta; a husk's claw once with 2 s and no damage).
+## Like bleeding, choking never kills by itself (it stops at 1 health). `cause` is for the HUD.
+func choke(seconds: float, dps: float, cause: String = "SPORES") -> void:
 	if current_state == ActionState.DEAD:
 		return
+	if _choke_timer <= 0.0 or cause != "SPORES":
+		choke_cause = cause
 	_choke_timer = maxf(_choke_timer, maxf(seconds, 0.35))
 	health = maxf(minf(health, 1.0), health - dps * seconds)
 
 func is_choking() -> bool:
 	return _choke_timer > 0.0
 
-## A beast worrying the survivor's guard (the Gallery Dragger) shakes the stamina out of them.
+## A beast worrying the survivor's guard (the gallery-crawler) shakes the stamina out of them.
 func drain_stamina(amount: float) -> void:
 	if current_state == ActionState.DEAD:
 		return
@@ -483,6 +491,27 @@ func start_bandage() -> bool:
 	_start_channel(ChannelKind.BANDAGE, ItemDatabase.get_item("clean_rag_bandage").use_duration)
 	return true
 
+## [G]: split a sack of quicklime and throw it. A short channel (a blow cancels it, the sack kept);
+## on completion one sack is spent and a LimeCloud bursts ahead, short of any wall in the way.
+func start_throw_lime() -> bool:
+	if not (current_state in NEUTRAL_STATES):
+		return false
+	if inventory.count_of("quicklime") <= 0:
+		combat_banner_message.emit("No quicklime to throw", Color(0.86, 0.55, 0.30))
+		return false
+	_start_channel(ChannelKind.THROW_LIME, LIME_THROW_SECONDS)
+	return true
+
+## Where a thrown sack bursts: LIME_THROW_DISTANCE ahead, or just short of stone (layer 1).
+func lime_landing_spot() -> Vector3:
+	var from: Vector3 = global_position + Vector3(0.0, 1.0, 0.0)
+	var to: Vector3 = from + _aim_direction * LIME_THROW_DISTANCE
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(from, to, 1))
+	var spot: Vector3 = to
+	if not hit.is_empty():
+		spot = (hit["position"] as Vector3) - _aim_direction * 0.4
+	return Vector3(spot.x, global_position.y, spot.z)
+
 func drop_item(inst: ItemInstance) -> bool:
 	if not inventory.has_item(inst):
 		return false
@@ -556,6 +585,8 @@ func _channel_label() -> String:
 			return "%s %s" % [_channel_lootable.search_verb_progressive, _channel_lootable.display_name]
 		ChannelKind.BANDAGE:
 			return "Binding wound"
+		ChannelKind.THROW_LIME:
+			return "Splitting a sack of quicklime"
 		ChannelKind.EQUIP_SWAP:
 			if _channel_item == null:
 				return "Changing grip"
@@ -628,6 +659,10 @@ func _complete_channel() -> void:
 				bleed_timer = 0.0
 				health = minf(max_health, health + (background.bandage_heal if background != null else 8.0))
 				combat_banner_message.emit("Wound bound with a clean rag — bleeding stopped", Color(0.75, 0.82, 0.68))
+		ChannelKind.THROW_LIME:
+			if inventory.consume("quicklime", 1):
+				LimeCloud.spawn(get_parent(), lime_landing_spot())
+				combat_banner_message.emit("The sack splits: white lime in the air. Keep out of it yourself.", Color(0.86, 0.86, 0.80))
 		ChannelKind.EQUIP_SWAP:
 			if item != null and inventory.has_item(item):
 				if unequip:
@@ -911,6 +946,10 @@ func _handle_neutral_combat_inputs(move_dir: Vector3) -> void:
 
 	if Input.is_action_just_pressed("bandage"):
 		if start_bandage():
+			return
+
+	if Input.is_action_just_pressed("throw_lime"):
+		if start_throw_lime():
 			return
 
 	for slot: int in range(1, 5):
@@ -1219,6 +1258,8 @@ func _update_animation() -> void:
 		ActionState.CHANNEL:
 			if _channel_kind == ChannelKind.BANDAGE:
 				_set_anim("bandage", &"Consume")
+			elif _channel_kind == ChannelKind.THROW_LIME:
+				_set_fitted("throw", &"OverhandThrow", LIME_THROW_SECONDS)
 			elif _channel_kind == ChannelKind.SCAVENGE:
 				_set_anim("search", &"Fixing_Kneeling")
 			else:
@@ -1423,6 +1464,7 @@ func _emit_stats() -> void:
 		"exhausted": is_exhausted,
 		"bleeding": is_bleeding,
 		"choking": _choke_timer > 0.0,
+		"choke_cause": choke_cause,
 		"main_label": main.get_label() if main else "Bare Fists",
 		"main_broken": main.is_broken() if main else false,
 		"off_label": off.get_label() if off else "— empty —",

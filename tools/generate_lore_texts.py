@@ -38,6 +38,7 @@ ITEM_IDS = {
     "Seasoned Timber": "timber",
     "Flask of Lamp Oil": "lamp_oil",
     "Cast-Iron Cooking Pot": "cooking_pot",
+    "Sack of Lime": "quicklime",
 }
 
 # Note number in section 4.1 -> where the bootstrap puts it (a container's label, or "ground").

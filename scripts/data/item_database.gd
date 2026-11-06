@@ -55,8 +55,8 @@ static func roll_unnamed_loot() -> Array[ItemInstance]:
 		out.append(make("clean_rag_bandage", 1))
 	return out
 
-## The Gallery Dragger swallows what it drags: a buckle, a few links of harness chain.
-static func roll_dragger_loot() -> Array[ItemInstance]:
+## The gallery-crawler swallows what it drags: a buckle, a few links of harness chain.
+static func roll_crawler_loot() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
 	if randf() < 0.6:
 		out.append(make("iron_scrap", 1))
@@ -288,6 +288,7 @@ static func _build() -> void:
 	_register(_material("salt", "Salt Ration", 0.4, 20, "Preserves meat through the Smothering."))
 	_register(_material("timber", "Seasoned Timber", 1.5, 10, "Dry enough to burn or build with."))
 	_register(_material("lamp_oil", "Flask of Lamp Oil", 0.9, 5, "Refuels lanterns; douses rags for fire."))
+	_register(_material("quicklime", "Sack of Lime", 2.0, 5, "[G] splits a sack and throws it: a white cloud that blinds what breathes it (you included) and stops spores."))
 
 	var pot := ItemData.new()
 	pot.item_id = "cooking_pot"

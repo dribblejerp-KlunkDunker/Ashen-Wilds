@@ -62,7 +62,7 @@ func _run() -> void:
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryDragger)
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryCrawler)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
@@ -72,6 +72,14 @@ func _run() -> void:
 	# The objectives panel stays out of the older shots; shot 17 shows it.
 	_hud.set_objectives([])
 	await _frames(10)
+	if OS.get_cmdline_user_args().has("--gallery"):
+		var start_screen: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
+		start_screen.select(0)
+		start_screen.confirm()
+		await _frames(3)
+		await _gallery_shots(enemies)
+		quit(0)
+		return
 
 	# 0. The start screen, over the paused yard.
 	var picker: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
@@ -261,24 +269,7 @@ func _run() -> void:
 	_player._clear_channel()
 	Engine.time_scale = 1.0
 
-	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the Dragger is
-	# in the air off the wall, coming down on the ring where they stand.
-	var dragger: EnemyGalleryDragger = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryDragger)[0]
-	_equip_now("pitch_torch")
-	_place(Vector3(-21.7, 0.0, 19.9), Vector3(-1.0, 0.0, -0.25))
-	await _frames(4)
-	dragger._begin_tell()
-	dragger._drop_from = dragger.global_position
-	var t: float = 0.7
-	var mid: Vector3 = dragger._drop_from.lerp(dragger._drop_target, t)
-	mid.y = lerpf(dragger._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
-	dragger.global_position = mid
-	dragger._face_toward(_player.global_position, 50.0, 1.0)
-	dragger.state = EnemyGalleryDragger.AIState.LEAP
-	dragger._update_visual_telegraph()
-	dragger._visual_root.visible = true
-	await _frames(14)
-	await _shot("15_roofed_gallery.png")
+	await _gallery_shots(enemies)
 
 	# 17. Act I under way, back at the shelter fire: the Watchhouse taken, the pot home on the fire,
 	# two pages of the warning book written back in; the Causeway still held.
@@ -294,3 +285,41 @@ func _run() -> void:
 	await _shot("17_act_one_objectives.png")
 
 	quit(0)
+
+## 15 and 18, the Roofed Gallery. `-- --gallery` renders only these two (about a minute instead of
+## ten), for when nothing else changed.
+func _gallery_shots(enemies: Array) -> void:
+	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the crawler is
+	# in the air off the wall, coming down on the ring where they stand.
+	var crawler: EnemyGalleryCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryCrawler)[0]
+	_equip_now("pitch_torch")
+	_place(Vector3(-21.7, 0.0, 19.9), Vector3(-1.0, 0.0, -0.25))
+	await _frames(4)
+	crawler._begin_tell()
+	crawler._drop_from = crawler.global_position
+	var t: float = 0.7
+	var mid: Vector3 = crawler._drop_from.lerp(crawler._drop_target, t)
+	mid.y = lerpf(crawler._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
+	crawler.global_position = mid
+	crawler._face_toward(_player.global_position, 50.0, 1.0)
+	crawler.state = EnemyGalleryCrawler.AIState.LEAP
+	crawler._update_visual_telegraph()
+	crawler._visual_root.visible = true
+	await _frames(14)
+	await _shot("15_roofed_gallery.png")
+
+	# 18: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
+	# cloud at the gallery's mouth, rubbing its muzzle, its ring pale.
+	crawler._drop_ring.visible = false
+	# At the gallery's open south mouth: the piers stand on the camera's side all along the passage.
+	crawler.global_position = Vector3(-19.4, 0.0, 11.0)
+	_place(Vector3(-16.6, 0.0, 12.8), Vector3(-1.0, 0.0, -0.6))
+	LimeCloud.spawn(_main, crawler.global_position, 60.0)
+	await _frames(2)
+	crawler.blind(30.0)
+	crawler._face_toward(crawler.global_position + Vector3(-1.0, 0.0, 0.3), 50.0, 1.0)
+	crawler._update_visual_telegraph()
+	crawler._model.play(&"Zombie_Scratch")
+	crawler._visual_root.visible = true
+	await _frames(14)
+	await _shot("18_quicklime.png")
