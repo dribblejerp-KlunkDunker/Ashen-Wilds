@@ -251,6 +251,10 @@ func set_background(title: String) -> void:
 func set_weather(condition_name: String) -> void:
 	_weather_label.text = "WEATHER  %s" % condition_name
 
+## True while a banner is still on screen. Discovery waits for it rather than cover a warning.
+func banner_showing() -> bool:
+	return _banner_timer > 0.0
+
 func show_banner(msg: String, col: Color = Color(0.82, 0.76, 0.65)) -> void:
 	_banner_label.text = msg
 	_banner_label.add_theme_color_override("font_color", col)

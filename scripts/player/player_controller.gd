@@ -6,6 +6,8 @@ signal combat_banner_message(text: String, color: Color)
 signal loot_opened(lootable: Lootable)
 signal ui_force_close
 signal inventory_changed
+## An item taken from the world into the pack (from a container, a corpse or a ground pile).
+signal item_taken(item_id: String, from: Lootable)
 
 enum ActionState {
 	IDLE,
@@ -507,6 +509,7 @@ func take_from(lootable: Lootable, inst: ItemInstance) -> bool:
 		)
 		return false
 	lootable.take(inst)
+	item_taken.emit(inst.data.item_id, lootable)
 	return true
 
 func get_nearest_lootable() -> Lootable:

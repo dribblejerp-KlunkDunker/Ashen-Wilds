@@ -7,6 +7,7 @@ var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
 var _weather: Weather
+var _discovery: Discovery
 var _companion: Companion
 var _unseen_cue_at: float = 0.0
 var _unseen_banner_at: float = 0.0
@@ -45,6 +46,7 @@ func _ready() -> void:
 	_spawn_all_archetype_encounters()
 
 	_spawn_scavenge_containers()
+	_spawn_ground_notes()
 	_spawn_bound_captive()
 	# The cart in the Spore Hollow: a fresh torch, for the one thing the spores fear.
 	_spawn_container("Spore-Choked Cart", Vector3(-22.5, 0.0, -1.5), Vector3(1.4, 0.6, 0.9), Color(0.36, 0.34, 0.26), 3.0,
@@ -67,6 +69,10 @@ func _ready() -> void:
 	_weather.bind(world_env.environment, find_child("Moon", false, false) as DirectionalLight3D, ash,
 		find_child("ShelterFireLight", true, false) as FlickerLight, _player)
 	_weather.changed.connect(_on_weather_changed)
+	_discovery = Discovery.new()
+	_discovery.name = "Discovery"
+	add_child(_discovery)
+	_discovery.bind(_player, _hud)
 	_hud.set_background(_player.background.title)
 	if DisplayServer.get_name() != "headless":
 		_show_background_select()
@@ -682,5 +688,25 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 	for inst: Variant in contents:
 		if inst is ItemInstance:
 			loot.items.append(inst)
+	# The notes the world bible put in this container (LoreTexts.NOTES), after its own goods.
+	for note_id: String in ItemDatabase.note_ids_for(label):
+		loot.items.append(ItemDatabase.make(note_id))
 	body.add_child(loot)
 	return loot
+
+## Notes that lie on the ground (LoreTexts.NOTES with place "ground"): where, and what a survivor
+## sees there before picking it up.
+const NOTE_GROUND_SPOTS: Dictionary = {
+	"note_16": [Vector3(14.0, 0.0, -9.6), "A slate wedged in a crack"],
+	"note_18": [Vector3(-11.5, 0.0, -13.3), "A board nailed to the pillar"],
+	"note_25": [Vector3(14.6, 0.0, 8.0), "Paper wedged in the wall"],
+}
+
+func _spawn_ground_notes() -> void:
+	for note_id: String in ItemDatabase.note_ids_for("ground"):
+		if not NOTE_GROUND_SPOTS.has(note_id):
+			push_error("No ground spot for %s" % note_id)
+			continue
+		var spec: Array = NOTE_GROUND_SPOTS[note_id]
+		var pile := Lootable.spawn_ground_pile(self, spec[0], ItemDatabase.make(note_id))
+		pile.display_name = String(spec[1])

@@ -66,6 +66,9 @@ func _run() -> void:
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
+	# Discovery banners would land in shots framed for something else; each shot sets its own text.
+	for d: Node in _find(func(n: Node) -> bool: return n is Discovery):
+		d.process_mode = Node.PROCESS_MODE_DISABLED
 	await _frames(10)
 
 	# 0. The start screen, over the paused yard.
@@ -112,6 +115,11 @@ func _run() -> void:
 		_hud.inventory_ui.open_loot(chest)
 	await _frames(6)
 	await _shot("04_pack_and_loot.png")
+
+	# 16. Reading a note from the chest: the Watch's stores list, counted the week after the tower.
+	_hud.inventory_ui.read_note(ItemDatabase.get_item("note_03"))
+	await _frames(6)
+	await _shot("16_reading_a_note.png")
 	_hud.inventory_ui.close_all()
 
 	# 5. Ork choke point with the spear (two-handed, shield stowed).
