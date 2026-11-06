@@ -5,7 +5,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 
 ![The Blackfen Ogre winds up a ground slam while the survivor holds a torch and broadaxe](docs/screenshots/06_ogre_lair.png)
 
-> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.7.2-stable (Forward+) · **503/503** headless regression checks passing
+> **Status:** single-player prototype, Milestones 1–5 complete · verified on Godot 4.7.2-stable (Forward+) · **516/516** headless regression checks passing
 > Art is still mostly placeholder (primitive meshes, procedural audio) — systems first. The survivor is now a rigged, animated character: the Ranger from [Quaternius](https://quaternius.com)'s Modular Character Outfits with his Universal Animation Libraries (CC0), recoloured dark and dirty for the Blackfen and replaceable later. Walls, ground, roof and crates wear photo-scanned textures from [ambientCG](https://ambientcg.com) (CC0), and the yard is dressed with the project's own environment kit: crates and barrels, dead trees, rocks, ruins, fences and ground cover. Nights are cold moonlight and low mist, with falling ash and warm, flickering firelight. The enemies are the Ashbound: hooded, ragged, grey-skinned figures (a hunched goblin, a shielded ork, a hulking ogre) on the same animation library.
 >
 > **Play it:** [in the browser](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/) (the single-player prototype; click the game once so it gets the keyboard) · [downloads for Linux, Chromebook, Windows and the dedicated server](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest). Both are rebuilt from `main` on every merge. The two-player courtyard needs a download: browsers cannot use its network transport yet.
@@ -29,8 +29,8 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 | ![The start screen: who were you, before the Smothering?](docs/screenshots/00_who_were_you.png) | ![Edda, cut free in the Watchhouse, two paces behind the survivor](docs/screenshots/11_companion.png) |
 | ![The Blind Quarry-Troll pounds the spot where it heard the survivor, who has crept clear](docs/screenshots/12_quarry_troll.png) | ![The Spore Hollow: torch in hand, the survivor faces three husks; one has burst into a cloud](docs/screenshots/13_spore_hollow.png) |
 | ![The Drowned Graves: kneeling at a grave to speak the name of a fallen Unnamed while two more come on](docs/screenshots/14_drowned_graves.png) | ![The Roofed Gallery: the Dragger comes down off the wall onto the ring where the survivor stands](docs/screenshots/15_roofed_gallery.png) |
-| ![Reading the Watch's stores list from the Watchhouse chest: the reading panel beside the loot and pack windows](docs/screenshots/16_reading_a_note.png) | |
-| **Cramped quarters.** A sword slash in the 1.7 m entry hall clangs off the stone: sparks, a recoil stagger and triple wear. Indoors, thrust. | **Notes in the world.** The Watch's stores list, counted the week after the tower fell, read straight from the chest. |
+| ![Reading the Watch's stores list from the Watchhouse chest: the reading panel beside the loot and pack windows](docs/screenshots/16_reading_a_note.png) | ![Act I under way at the shelter fire: the objectives panel, two done, and the pot on the fire](docs/screenshots/17_act_one_objectives.png) |
+| **Cramped quarters.** A sword slash in the 1.7 m entry hall clangs off the stone: sparks, a recoil stagger and triple wear. Indoors, thrust. | **Notes in the world.** The Watch's stores list, counted the week after the tower fell, read straight from the chest. | **Act I.** The Watchhouse taken and the pot home on the fire; two torn pages written back in, and the Causeway still held. |
 
 <sub>Rendered with the project's own `tools/capture_screenshots.gd` (software Vulkan under Xvfb) at the default brightness. Enemies are frozen and posed for framing; time is slowed for the clang so the sparks survive the slow software frame rate.</sub>
 
@@ -42,7 +42,7 @@ The Highland Citadels broke open the Deep-Seam Vaults hunting slag-iron and inst
 
 The world bible (history, places, peoples, the bestiary, the acts, and texts for the game; all proposed lore) is in [docs/worldbuilding/](docs/worldbuilding/README.md); start with its [canon sheet](docs/worldbuilding/CANON.md).
 
-Act I (the current playable slice) is the **Blackfen Outskirts**: secure the ruined Wayfarer's Watchhouse, scavenge what the shelter needs to survive, and break the Ork choke point on the Old Causeway.
+Act I (the current playable slice) is the **Blackfen Outskirts**: secure the ruined Wayfarer's Watchhouse, scavenge what the shelter needs to survive, and break the Ork choke point on the Old Causeway. The HUD tracks it: **take back the Watchhouse** (its two goblins), **bring the cooking pot to the shelter fire** (it is set on the fire and leaves your pack), **return the warning book's three torn pages** (carry them into the Watchhouse; they are written back in) and **break the ork hold on the Old Causeway** (its two orks). Any order; when all four are done, the act is.
 
 ---
 
@@ -202,7 +202,8 @@ scripts/
   data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
               lore_texts.gd (item lore and notes, generated from docs/worldbuilding/items-and-texts.md)
   inventory/  inventory.gd (stacking, weight, encumbrance, equip slots)
-  world/      lootable.gd (crates, corpses, ground piles), discovery.gd (one-time discovery banners)
+  world/      lootable.gd (crates, corpses, ground piles), discovery.gd (one-time discovery banners),
+              objectives.gd (Act I's four objectives)
   player/     player_controller.gd, survivor_model.gd (the animated character)
   enemies/    goblin scavenger, ork warrior, ogre brute
   ui/         tactical_hud.gd, inventory_ui.gd
@@ -210,7 +211,7 @@ art/quaternius/            The survivor character and its animations (CC0; see t
 art/ambientcg/             Photo textures for walls, ground, roof and props (CC0; see the README there)
 assets/environment/        The project's own environment kit (ENV-001 to ENV-010; each set has a README)
 tests/
-  smoke_test.gd            Headless regression suite (503 checks)
+  smoke_test.gd            Headless regression suite (516 checks)
 tools/
   capture_screenshots.gd   Renders docs/screenshots/
   generate_lore_texts.py   Regenerates scripts/data/lore_texts.gd from the world bible
@@ -232,9 +233,7 @@ docs/screenshots/          README images (ignored by Godot via docs/.gdignore)
 
 ## Roadmap
 
-Next milestone not yet chosen. Candidates from the design document:
-
-- More companions and their stories, the rest of the bestiary, and Acts II–III.
+The plan, phased by which model should do each part, is in [docs/ROADMAP.md](docs/ROADMAP.md). Next: the multiplayer port's design and first slice (server-owned health, one enemy, two players), then the rest of the bible's texts, new items (lime, a wet-cloth mask), more companions, and Acts II–III.
 
 ---
 

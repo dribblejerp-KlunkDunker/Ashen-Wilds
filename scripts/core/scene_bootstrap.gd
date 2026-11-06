@@ -8,6 +8,10 @@ var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
 var _weather: Weather
 var _discovery: Discovery
+var _objectives: Objectives
+## Act I's foes, for the objectives: the Watchhouse goblins and the choke point's orks.
+var _watchhouse_goblins: Array = []
+var _choke_orks: Array = []
 var _companion: Companion
 var _unseen_cue_at: float = 0.0
 var _unseen_banner_at: float = 0.0
@@ -73,6 +77,11 @@ func _ready() -> void:
 	_discovery.name = "Discovery"
 	add_child(_discovery)
 	_discovery.bind(_player, _hud)
+	_objectives = Objectives.new()
+	_objectives.name = "Objectives"
+	add_child(_objectives)
+	_objectives.bind(_player, _hud, _discovery, _watchhouse_goblins, _choke_orks)
+	_objectives.objective_completed.connect(_on_objective_completed)
 	_hud.set_background(_player.background.title)
 	if DisplayServer.get_name() != "headless":
 		_show_background_select()
@@ -421,6 +430,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_yard.coordinator = _coordinator
 	goblin_yard.patrol_points = [Vector3(-1.2, 0.0, -4.5), Vector3(-3.0, 0.0, 0.5)]
 	add_child(goblin_yard)
+	_watchhouse_goblins.append(goblin_yard)
 	goblin_yard.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var goblin_inside := EnemyGoblinScavenger.new()
@@ -430,6 +440,7 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_inside.coordinator = _coordinator
 	goblin_inside.patrol_points = [Vector3(6.8, 0.0, -5.2), Vector3(6.8, 0.0, -1.4)]
 	add_child(goblin_inside)
+	_watchhouse_goblins.append(goblin_inside)
 	goblin_inside.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var ork_shield := EnemyOrkWarrior.new()
@@ -440,6 +451,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_shield.coordinator = _coordinator
 	ork_shield.patrol_points = [Vector3(11.8, 0.0, 7.5), Vector3(13.5, 0.0, 10.5)]
 	add_child(ork_shield)
+	_choke_orks.append(ork_shield)
 	ork_shield.ork_combat_bark.connect(func(msg: String) -> void:
 		if _hud:
 			_hud.show_banner(msg, Color(0.86, 0.68, 0.38))
@@ -455,6 +467,7 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_cleaver.coordinator = _coordinator
 	ork_cleaver.patrol_points = [Vector3(14.0, 0.0, 11.2), Vector3(12.5, 0.0, 8.8)]
 	add_child(ork_cleaver)
+	_choke_orks.append(ork_cleaver)
 
 	var ogre := EnemyOgreBrute.new()
 	ogre.position = Vector3(-13.5, 0.0, -11.5)
@@ -548,6 +561,24 @@ func _show_background_select() -> void:
 		picker.queue_free()
 		_hud.show_banner(bg.epigraph, Color(0.86, 0.80, 0.68))
 	)
+
+## The pot comes home: it sits on the shelter fire's bed from now on.
+func _on_objective_completed(id: String) -> void:
+	if id == "pot" and find_child("PotOnTheFire", false, false) == null:
+		var pot := MeshInstance3D.new()
+		pot.name = "PotOnTheFire"
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.22
+		cyl.bottom_radius = 0.18
+		cyl.height = 0.26
+		pot.mesh = cyl
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.10, 0.10, 0.11)
+		mat.metallic = 0.6
+		mat.roughness = 0.55
+		pot.material_override = mat
+		pot.position = Objectives.FIRE_POS + Vector3(0.0, 0.55, 0.0)
+		add_child(pot)
 
 func _on_weather_changed(condition: Weather.Condition, banner: String) -> void:
 	if _hud:
