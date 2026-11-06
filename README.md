@@ -29,6 +29,7 @@ Thirty years into the Smothering, you are a broken survivor scavenging the Black
 | ![The start screen: who were you, before the Smothering?](docs/screenshots/00_who_were_you.png) | ![Edda, cut free in the Watchhouse, two paces behind the survivor](docs/screenshots/11_companion.png) |
 | ![The Blind Quarry-Troll pounds the spot where it heard the survivor, who has crept clear](docs/screenshots/12_quarry_troll.png) | ![The Spore Hollow: torch in hand, the survivor faces three husks; one has burst into a cloud](docs/screenshots/13_spore_hollow.png) |
 | ![The Drowned Graves: kneeling at a grave to speak the name of a fallen Unnamed while two more come on](docs/screenshots/14_drowned_graves.png) | ![The Roofed Gallery: the crawler comes down off the wall onto the ring where the survivor stands](docs/screenshots/15_roofed_gallery.png) |
+| ![Quicklime: the gallery-crawler stands blind in a white cloud at the gallery mouth, the survivor beside it with a torch](docs/screenshots/16_quicklime.png) | |
 | **Cramped quarters.** A sword slash in the 1.7 m entry hall clangs off the stone: sparks, a recoil stagger and triple wear. Indoors, thrust. | |
 
 <sub>Rendered with the project's own `tools/capture_screenshots.gd` (software Vulkan under Xvfb) at the default brightness. Enemies are frozen and posed for framing; time is slowed for the clang so the sparks survive the slow software frame rate.</sub>

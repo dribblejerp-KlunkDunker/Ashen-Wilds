@@ -67,6 +67,14 @@ func _run() -> void:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
 	await _frames(10)
+	if OS.get_cmdline_user_args().has("--gallery"):
+		var start_screen: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
+		start_screen.select(0)
+		start_screen.confirm()
+		await _frames(3)
+		await _gallery_shots(enemies)
+		quit(0)
+		return
 
 	# 0. The start screen, over the paused yard.
 	var picker: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
@@ -251,6 +259,13 @@ func _run() -> void:
 	_player._clear_channel()
 	Engine.time_scale = 1.0
 
+	await _gallery_shots(enemies)
+
+	quit(0)
+
+## 15 and 16, the Roofed Gallery. `-- --gallery` renders only these two (about a minute instead of
+## ten), for when nothing else changed.
+func _gallery_shots(enemies: Array) -> void:
 	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the crawler is
 	# in the air off the wall, coming down on the ring where they stand.
 	var crawler: EnemyGalleryCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryCrawler)[0]
@@ -274,8 +289,8 @@ func _run() -> void:
 	# cloud at the gallery's mouth, rubbing its muzzle, its ring pale.
 	crawler._drop_ring.visible = false
 	# At the gallery's open south mouth: the piers stand on the camera's side all along the passage.
-	crawler.global_position = Vector3(-21.0, 0.0, 11.6)
-	_place(Vector3(-18.3, 0.0, 13.2), Vector3(-1.0, 0.0, -0.55))
+	crawler.global_position = Vector3(-19.4, 0.0, 11.0)
+	_place(Vector3(-16.6, 0.0, 12.8), Vector3(-1.0, 0.0, -0.6))
 	LimeCloud.spawn(_main, crawler.global_position, 60.0)
 	await _frames(2)
 	crawler.blind(30.0)
@@ -285,5 +300,3 @@ func _run() -> void:
 	crawler._visual_root.visible = true
 	await _frames(14)
 	await _shot("16_quicklime.png")
-
-	quit(0)

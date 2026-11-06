@@ -76,7 +76,7 @@ xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulka
   --script res://tools/capture_screenshots.gd
 ```
 
-**Look at every image after rendering** (open the PNGs). The script poses enemies and freezes them, and the shots have exposed real bugs before: torch self-shadowing, and an occluding wall without the cutaway. `docs/.gdignore` keeps the images out of Godot's import pipeline.
+A full run takes about ten minutes under software Vulkan; `-- --gallery` after the script path renders only shots 15 and 16 (the Roofed Gallery) in about a minute. **Look at every image after rendering** (open the PNGs). The script poses enemies and freezes them, and the shots have exposed real bugs before: torch self-shadowing, and an occluding wall without the cutaway. `docs/.gdignore` keeps the images out of Godot's import pipeline.
 
 ## Layout
 
