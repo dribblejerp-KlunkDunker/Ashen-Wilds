@@ -67,8 +67,10 @@ func _run() -> void:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
 	# Discovery banners would land in shots framed for something else; each shot sets its own text.
-	for d: Node in _find(func(n: Node) -> bool: return n is Discovery):
+	for d: Node in _find(func(n: Node) -> bool: return n is Discovery or n is Objectives):
 		d.process_mode = Node.PROCESS_MODE_DISABLED
+	# The objectives panel stays out of the older shots; shot 17 shows it.
+	_hud.set_objectives([])
 	await _frames(10)
 
 	# 0. The start screen, over the paused yard.
@@ -277,5 +279,18 @@ func _run() -> void:
 	dragger._visual_root.visible = true
 	await _frames(14)
 	await _shot("15_roofed_gallery.png")
+
+	# 17. Act I under way, back at the shelter fire: the Watchhouse taken, the pot home on the fire,
+	# two pages of the warning book written back in; the Causeway still held.
+	var objectives: Objectives = _find(func(n: Node) -> bool: return n is Objectives)[0]
+	objectives._done["watchhouse"] = true
+	objectives._done["pot"] = true
+	objectives.pages_returned.assign(["note_02", "note_19"])
+	_main._on_objective_completed("pot")
+	objectives._refresh_hud()
+	_equip_now("pitch_torch")
+	_place(Vector3(-5.2, 0.0, 6.2), Vector3(-1, 0, -1.1))
+	await _frames(12)
+	await _shot("17_act_one_objectives.png")
 
 	quit(0)

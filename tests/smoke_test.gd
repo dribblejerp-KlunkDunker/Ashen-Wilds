@@ -119,6 +119,7 @@ func _run() -> void:
 	await _test_unnamed()
 	await _test_gallery_dragger()
 	await _test_lore()
+	await _test_objectives()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -3146,6 +3147,97 @@ func _test_lore() -> void:
 	ui.note_read.emit("note_19")
 	_check(disc.has_seen("warning_book"), "reading a torn page of the warning book is a discovery")
 	disc.queue_free()
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	_hud._banner_timer = 0.0
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Act I objectives
+# ------------------------------------------------------------------------------
+## A stand-in foe: anything with is_dead() counts for Objectives.
+class FakeFoe:
+	var dead: bool = false
+	func is_dead() -> bool:
+		return dead
+
+func _test_objectives() -> void:
+	_section("Act I objectives")
+	var main_obj: Objectives = _main._objectives
+	_check(main_obj.watchhouse_foes.size() == 2
+		and main_obj.watchhouse_foes.all(func(e: Variant) -> bool: return e is EnemyGoblinScavenger)
+		and main_obj.choke_foes.size() == 2
+		and main_obj.choke_foes.all(func(e: Variant) -> bool: return e is EnemyOrkWarrior),
+		"the act watches the two Watchhouse goblins and the two choke-point orks")
+	# The rest drives a fresh tracker against stand-in foes, so nothing earlier in the suite counts.
+	main_obj.process_mode = Node.PROCESS_MODE_DISABLED
+	var disc := Discovery.new()
+	_main.add_child(disc)
+	disc.bind(_player, _hud)
+	disc.process_mode = Node.PROCESS_MODE_DISABLED # keep its queue to count what was said
+	var house: Array = [FakeFoe.new(), FakeFoe.new()]
+	var choke: Array = [FakeFoe.new(), FakeFoe.new()]
+	var obj := Objectives.new()
+	_main.add_child(obj)
+	obj.bind(_player, _hud, disc, house, choke)
+	var done_ids: Array[String] = []
+	obj.objective_completed.connect(func(id: String) -> void: done_ids.append(id))
+	var acts: Array[int] = [0]
+	obj.act_completed.connect(func() -> void: acts[0] += 1)
+	var text: String = _hud.objectives_text()
+	_check(text.begins_with(Objectives.TITLE) and text.contains("[ ] Take back the Watchhouse")
+		and text.contains("(0/3)"), "the HUD lists the act's four objectives, none done")
+
+	_player.global_position = Vector3(-12.0, 0.0, 8.0)
+	house[0].dead = true
+	await _ticks(2)
+	_check(not obj.is_done("watchhouse"), "one dead goblin does not take back the Watchhouse")
+	house[1].dead = true
+	await _ticks(2)
+	_check(obj.is_done("watchhouse") and done_ids == ["watchhouse"] and disc.pending() == 1,
+		"both dead: the Watchhouse is taken, once, and said")
+
+	# The pot: carried away from the fire it is only carried; at the fire it is set down.
+	var pot: ItemInstance = ItemDatabase.make("cooking_pot")
+	_check(_player.inventory.add(pot), "(the pot fits in the pack)")
+	await _ticks(2)
+	_check(not obj.is_done("pot"), "carrying the pot far from the fire is not bringing it home")
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	await _ticks(2)
+	_check(obj.is_done("pot") and _player.inventory.find_first("cooking_pot") == null,
+		"at the shelter fire the pot is set down: done, and out of the pack")
+	_main._on_objective_completed("pot")
+	var pot_mesh: Node = _main.find_child("PotOnTheFire", false, false)
+	_check(pot_mesh != null, "the pot then sits on the shelter fire")
+	if pot_mesh:
+		pot_mesh.queue_free()
+
+	# The pages: each one carried into the Watchhouse is written back in.
+	for page_id: String in ["note_02", "note_19"]:
+		_player.inventory.add(ItemDatabase.make(page_id))
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(obj.pages_returned.size() == 2 and not obj.is_done("pages") and _hud.objectives_text().contains("(2/3)")
+		and _player.inventory.find_first("note_02") == null,
+		"two pages carried into the Watchhouse are written in: 2 of 3, out of the pack")
+	_player.inventory.add(ItemDatabase.make("note_20"))
+	await _ticks(2)
+	_check(obj.is_done("pages"), "the third page makes the book whole")
+
+	# The choke point, and with it the act.
+	_check(acts[0] == 0 and not obj.is_act_done(), "three of four is not the act done")
+	choke[0].dead = true
+	choke[1].dead = true
+	await _ticks(2)
+	await _ticks(2)
+	text = _hud.objectives_text()
+	_check(obj.is_done("choke_point") and obj.is_act_done() and acts[0] == 1,
+		"the orks dead: the Causeway is open, and Act I is done, once")
+	_check(not text.contains("[ ]") and text.contains(Objectives.ACT_LINE), "the HUD shows every objective done and the act's close")
+
+	obj.queue_free()
+	disc.queue_free()
+	main_obj.process_mode = Node.PROCESS_MODE_INHERIT
+	main_obj._refresh_hud()
 	_player.global_position = Vector3(-6.5, 0.0, 6.5)
 	_hud._banner_timer = 0.0
 	await _ticks(2)

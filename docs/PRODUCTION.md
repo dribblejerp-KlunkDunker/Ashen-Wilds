@@ -157,6 +157,29 @@ payload (§74).
 Durable state and presentation are already distinct (appendix §75): positions and the player table
 are durable, the turn animation and HUD messages are local.
 
+## Act I objectives: evidence (brief §24)
+
+**What.** The act the README's premise and the bible describe, tracked: take back the Watchhouse
+(its two goblins dead), bring the Cast-Iron Cooking Pot to the shelter fire (within 2.6 m of the fire
+bed it is set on the fire: out of the pack, onto the bed), return the warning book's three torn pages
+(carried into the Watchhouse, each is written back in: out of the pack, counted), break the ork hold
+on the Old Causeway (its two orks dead). Any order; all four close the act. A panel under the stats
+panel lists them with `[x]` and `[ ]` (ASCII) and counts the pages. Each completion says a line
+through Discovery's queue (the pot's and the page's are the bible's). Objectives latch: enemies never
+respawn. The plan this came from, phased by model, is `docs/ROADMAP.md`.
+
+**Tests (run in this container).** `tests/smoke_test.gd`: 516 passed, 0 failures, twice (13 new:
+the act watches the right four enemies; the panel lists four undone objectives; one dead goblin is not
+enough, two are, said once; the pot far from the fire is only carried, at the fire it is set down and
+leaves the pack, and then sits on the fire; two pages count 2 of 3 and leave the pack, the third
+completes; three of four is not the act; the orks dead complete the act once; the panel shows all
+done and the close). Kit suites, live boot and `tools/net_spike.py` (65) clean. New screenshot
+`17_act_one_objectives.png`; the others are unchanged (the tool hides the panel in them).
+
+**Not covered by headless tests.** How long the act takes, whether the order players choose makes
+sense (nothing stops the choke point first), whether setting the pot down automatically at the fire
+reads as a reward or a surprise, and the panel on a real screen.
+
 ## Lore 1 — the world bible in the game: evidence (brief §24)
 
 **What.** The first slice of `docs/worldbuilding/` (merged in PR #27) that a player meets, built from

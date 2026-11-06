@@ -10,11 +10,13 @@ extends Node
 ## waits in a queue until the HUD is free. Each fires once per run.
 
 const BANNER_COLOR := Color(0.80, 0.76, 0.62)
+## The Watchhouse interior on the ground (min x, max x, min z, max z); Objectives uses it too.
+const WATCHHOUSE_RECT: Array = [1.0, 9.0, -7.0, 1.0]
 
 ## Places, in the Act I level's coordinates. A place is a circle (centre, radius) or, for the
 ## Watchhouse interior, a rectangle on the ground (min x, max x, min z, max z).
 const PLACES: Array[Dictionary] = [
-	{"id": "watchhouse", "rect": [1.0, 9.0, -7.0, 1.0],
+	{"id": "watchhouse", "rect": WATCHHOUSE_RECT,
 		"text": "The Wayfarer's Watchhouse. Touch the lintel going in; everyone does."},
 	{"id": "choke_point", "centre": Vector3(12.8, 0.0, 9.6), "radius": 4.0,
 		"text": "The East Choke Point. The Watch held this wall for twenty-six years."},
@@ -65,6 +67,11 @@ func notice(id: String, text: String) -> void:
 	if _seen.has(id):
 		return
 	_seen[id] = true
+	_queue.append(text)
+
+## Queues a line that is not a one-time discovery (an objective done, a page written in the book),
+## on the same queue, so nothing covers anything else.
+func announce(text: String) -> void:
 	_queue.append(text)
 
 func pending() -> int:
