@@ -150,7 +150,7 @@ jobs:
                           return
               quit(0)
           GD
-          timeout 180s xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver vulkan --script res://.env010-capture.gd 2>&1 | tee validation-artifacts/render.log
+          timeout 180s xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --audio-driver Dummy --rendering-driver vulkan --script res://.env010-capture.gd 2>&1 | tee validation-artifacts/render.log
           python3 - <<'PY'
           from pathlib import Path
           text = Path("validation-artifacts/render.log").read_text()
