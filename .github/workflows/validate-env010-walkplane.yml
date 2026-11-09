@@ -1,8 +1,8 @@
 name: Validate activated ENV-010 preview
 on:
   push:
-    branches: [assets/env-010-watchhouse-layout]
-    paths:
+    branches: [main, ci/env010-godot-4-7-2, assets/env-010-watchhouse-layout]
+    paths: &env010_paths
       - .github/workflows/validate-env010-walkplane.yml
       - .github/env010-walkplane-candidate.patch
       - scripts/environment/**
@@ -11,15 +11,17 @@ on:
       - scenes/environment/env010_watchhouse_courtyard.tscn
       - assets/environment/**
       - project.godot
+  pull_request:
+    branches: [main]
+    paths: *env010_paths
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: env010-candidate-validation
+  group: env010-validation-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   validate:
-    if: github.ref == 'refs/heads/assets/env-010-watchhouse-layout'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -49,15 +51,16 @@ jobs:
           subprocess.run(["git", "apply", "--reverse", "--check", "--whitespace=error", "-"], input=patch, check=True)
           Path("validation-artifacts/candidate.sha256").write_text(hashlib.sha256(patch).hexdigest() + "\n")
           PY
-      - name: Get Godot 4.3-stable
+      - name: Get Godot 4.7.2-stable
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/godot"
-          curl --fail --location --retry 3 https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          curl --fail --location --retry 3 https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $RUNNER_TEMP/godot.zip" | sha256sum --check --strict
           unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-          chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
-          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
       - name: Import, compile, physics and regression checks
         shell: bash
         run: |
@@ -88,7 +91,7 @@ jobs:
               if not ok: raise SystemExit("Failed: " + label)
               return text
           version = run("engine-version", [godot, "--version"])
-          assert version.strip().startswith("4.3.stable"), version
+          assert version.strip() == "4.7.2.stable.official.ed1daf0bf", version
           run("import", [godot, "--headless", "--path", ".", "--editor", "--import", "--quit"], seconds=300)
           scripts = sorted(p for directory in ["scripts", "tests", "tools"] for p in Path(directory).rglob("*.gd"))
           for i, path in enumerate(scripts):
