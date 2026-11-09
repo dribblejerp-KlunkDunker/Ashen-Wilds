@@ -1,0 +1,168 @@
+name: Validate activated ENV-010 preview
+on:
+  push:
+    branches: [assets/env-010-watchhouse-layout]
+    paths:
+      - .github/workflows/validate-env010-walkplane.yml
+      - .github/env010-walkplane-candidate.patch
+      - scripts/environment/**
+      - scripts/net/**
+      - tests/test_env010_walkplane.gd
+      - scenes/environment/env010_watchhouse_courtyard.tscn
+      - assets/environment/**
+      - project.godot
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: env010-candidate-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/assets/env-010-watchhouse-layout'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Verify activated candidate without modifying checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p validation-artifacts
+          python3 - <<'PY'
+          import hashlib, subprocess
+          from pathlib import Path
+          patch = Path(".github/env010-walkplane-candidate.patch").read_bytes()
+          assert hashlib.sha256(patch).hexdigest() == "e8693f1c0e97590aa2f7de5607ae9b849a26138e3ea7aba32b78c191c28ddc97", "Candidate checksum mismatch"
+          expected = {
+              "scripts/environment/env010_layout.gd": "9b667b918c87f05ab671d228e5b0dfcd5445b030",
+              "assets/environment/env010/layout_manifest.json": "1d7e19134b440fa4092bef99456cc3be7f1a8406",
+              "assets/environment/env010/layout_walkplane_v2.json": "a7bc8d9b9fa0da211c8821b52418cd526d03dc83",
+              "scripts/net/net_player.gd": "75761a5addb94bed9c1ee97fa57971610d31a909",
+          }
+          for path, sha in expected.items():
+              actual = subprocess.check_output(["git", "hash-object", path], text=True).strip()
+              assert actual == sha, "Changed dependency: " + path
+          subprocess.run(["git", "apply", "--reverse", "--check", "--whitespace=error", "-"], input=patch, check=True)
+          Path("validation-artifacts/candidate.sha256").write_text(hashlib.sha256(patch).hexdigest() + "\n")
+          PY
+      - name: Get Godot 4.3-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip -o "$RUNNER_TEMP/godot.zip"
+          unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
+          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Import, compile, physics and regression checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re, shutil, subprocess, sys
+          from pathlib import Path
+          out = Path("validation-artifacts")
+          godot = os.environ["GODOT"]
+          data = Path(os.environ["RUNNER_TEMP"]) / "env010-user-data"
+          data.mkdir(exist_ok=True)
+          os.environ["XDG_DATA_HOME"] = str(data)
+          results = []
+          def run(label, command, warnings=False, seconds=240):
+              try:
+                  p = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=seconds)
+                  text, code = p.stdout, p.returncode
+              except subprocess.TimeoutExpired as error:
+                  text = error.stdout or b""
+                  if isinstance(text, bytes): text = text.decode(errors="replace")
+                  code = 124
+              (out / (label + ".log")).write_text(text)
+              print(text, flush=True)
+              bad = [line for line in text.splitlines() if (re.search(r"SCRIPT ERROR|Parse Error|Compile Error|ERROR:", line) or (warnings and "WARNING:" in line)) and 'Parameter "m" is null' not in line]
+              ok = code == 0 and not bad
+              results.append({"check":label,"passed":ok,"exit_code":code,"unexpected_errors":bad})
+              (out / "checks.json").write_text(json.dumps(results, indent=2))
+              if not ok: raise SystemExit("Failed: " + label)
+              return text
+          version = run("engine-version", [godot, "--version"])
+          assert version.strip().startswith("4.3.stable"), version
+          run("import", [godot, "--headless", "--path", ".", "--editor", "--import", "--quit"], seconds=300)
+          scripts = sorted(p for directory in ["scripts", "tests", "tools"] for p in Path(directory).rglob("*.gd"))
+          for i, path in enumerate(scripts):
+              run("compile-%03d" % i, [godot, "--headless", "--path", ".", "--check-only", "--script", "res://" + path.as_posix()], warnings=True)
+          for number in [6, 7, 8, 9]:
+              run("env%03d-collisions" % number, [godot, "--headless", "--path", ".", "--script", "res://tests/test_env%03d_collisions.gd" % number])
+          for iteration in [1, 2]:
+              run("env010-traversal-%d" % iteration, [godot, "--headless", "--path", ".", "--script", "res://tests/test_env010_walkplane.gd"])
+              reports = list(data.rglob("env010-walkplane-validation-report.json"))
+              assert len(reports) == 1, "Expected one actual traversal report"
+              report = json.loads(reports[0].read_text())
+              shutil.copy2(reports[0], out / ("env010-traversal-%d.json" % iteration))
+              assert report.get("passed") is True and report.get("reached_route_legs") == 12 and report.get("integrate_calls", 0) > 0, report
+              reports[0].unlink()
+          run("smoke", [godot, "--headless", "--path", ".", "--script", "res://tests/smoke_test.gd"])
+          run("live-boot", [godot, "--headless", "--path", ".", "--quit-after", "1200"])
+          run("network-loopback", [sys.executable, "tools/net_spike.py"], seconds=300)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("## Activated ENV-010 headless checks passed\nChecked committed activation directly; no patch applied and no commit or merge performed by CI. Rendered views require separate inspection; live loot and moving-door behavior remain outside scope.\n")
+          PY
+      - name: Install software rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth mesa-vulkan-drivers
+      - name: Capture four views with roofs on and hidden
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > .env010-capture.gd <<'GD'
+          extends SceneTree
+          func _initialize() -> void:
+              call_deferred("_run")
+          func _run() -> void:
+              root.size = Vector2i(1280,720)
+              var packed := load("res://scenes/environment/env010_watchhouse_courtyard.tscn") as PackedScene
+              if packed == null:
+                  quit(1)
+                  return
+              var layout: Node3D = packed.instantiate() as Node3D
+              root.add_child(layout)
+              var report: Dictionary = layout.get_meta("env010_build_report", {})
+              if not bool(report.get("revision_applied", false)):
+                  quit(1)
+                  return
+              var actor := NetPlayer.create(1,"env010-visual-reference",Vector3(0.5,0,3.1),0.0,Color(0.6,0.7,0.6))
+              root.add_child(actor)
+              for hidden in [false,true]:
+                  for node in get_nodes_in_group("env010_roof_visuals"):
+                      (node as Node3D).visible = not hidden
+                  for view in range(4):
+                      layout.call("set_preview_view",view)
+                      await process_frame
+                      await process_frame
+                      await RenderingServer.frame_post_draw
+                      var image: Image = root.get_texture().get_image()
+                      var path: String = "res://validation-artifacts/view-%d-roofs-%s.png" % [view,"hidden" if hidden else "on"]
+                      if image.save_png(path) != OK:
+                          quit(1)
+                          return
+              quit(0)
+          GD
+          timeout 180s xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --audio-driver Dummy --rendering-driver vulkan --script res://.env010-capture.gd 2>&1 | tee validation-artifacts/render.log
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path("validation-artifacts/render.log").read_text()
+          assert "SCRIPT ERROR" not in text and "ERROR:" not in text, text
+          images = list(Path("validation-artifacts").glob("view-*.png"))
+          assert len(images) == 8 and all(p.stat().st_size > 0 for p in images)
+          PY
+      - name: Keep logs, reports and unreviewed rendered views
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: env010-activated-${{ github.run_number }}
+          path: validation-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
