@@ -1,0 +1,76 @@
+name: Reconciliation conflict inventory
+on:
+  push:
+    branches: [integration/watchhouse-survivor]
+    paths: [.github/workflows/reconciliation-inventory.yml]
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      INTEGRATION_SHA: 3d990df811c7ded232cebea023013bc2eb50d7f0
+      MAIN_SHA: 9e649bf076f1d081de55a433b696c7fb824bd272
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3d990df811c7ded232cebea023013bc2eb50d7f0
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Inventory a disposable merge without pushing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/reconciliation"
+          git config user.name "Reconciliation inventory"
+          git config user.email "inventory@localhost"
+          test "$(git rev-parse HEAD)" = "$INTEGRATION_SHA"
+          git cat-file -e "$MAIN_SHA^{commit}"
+          git merge-base --all "$INTEGRATION_SHA" "$MAIN_SHA" > "$RUNNER_TEMP/reconciliation/merge-bases.txt"
+          printf 'integration=%s\nmain=%s\n' "$INTEGRATION_SHA" "$MAIN_SHA" > "$RUNNER_TEMP/reconciliation/inputs.txt"
+          result=0
+          git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$MAIN_SHA" > "$RUNNER_TEMP/reconciliation/merge.log" 2>&1 || result=$?
+          cat "$RUNNER_TEMP/reconciliation/merge.log"
+          test "$result" -le 1
+          git ls-files --unmerged > "$RUNNER_TEMP/reconciliation/index-stages.txt"
+          git status --short > "$RUNNER_TEMP/reconciliation/status.txt"
+          export MERGE_RESULT="$result"
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          out = Path(os.environ['RUNNER_TEMP']) / 'reconciliation'
+          raw = subprocess.check_output(['git', 'ls-files', '--unmerged', '-z'])
+          records = []
+          for entry in raw.split(b'\0'):
+              if not entry:
+                  continue
+              header, path_bytes = entry.split(b'\t', 1)
+              mode, object_id, stage = header.decode().split()
+              path = os.fsdecode(path_bytes)
+              index = len(records)
+              content = subprocess.check_output(['git', 'cat-file', 'blob', object_id])
+              artifact = f'stage-blobs/{index:04d}-stage-{stage}.blob'
+              target = out / artifact
+              target.parent.mkdir(exist_ok=True)
+              target.write_bytes(content)
+              records.append({'path': path, 'stage': int(stage), 'mode': mode, 'git_object': object_id, 'artifact': artifact})
+          paths = sorted({r['path'] for r in records})
+          result = int(os.environ['MERGE_RESULT'])
+          if result == 1 and not records:
+              raise SystemExit('Merge failed without indexed conflicts; inspect merge.log')
+          manifest = {'integration_sha': os.environ['INTEGRATION_SHA'], 'main_sha': os.environ['MAIN_SHA'], 'merge_exit': result, 'conflict_count': len(paths), 'conflict_paths': paths, 'index_stages': records, 'stage_meanings': {'1': 'merge base', '2': 'integration', '3': 'main'}, 'resolved': False, 'godot_tested': False}
+          (out / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'Conflict inventory: {len(paths)} paths. No resolution or push performed.\n\n')
+              for path in paths:
+                  summary.write('- ' + path.replace('\n', '\\n') + '\n')
+          PY
+      - name: Upload inventory even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reconciliation-conflict-inventory
+          path: ${{ runner.temp }}/reconciliation/
+          retention-days: 14
+          if-no-files-found: error
