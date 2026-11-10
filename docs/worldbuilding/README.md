@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-This index covers the worldbuilding from the current conversation through 2026-11-01 18:06 EST. These documents preserve proposed lore, not implemented game systems. Storage in GitHub does not automatically settle canon. No assets, development checkpoints, or existing lore documents are replaced by this additive batch.
+This index covers the original worldbuilding archive through 2026-11-01 18:06 EST, the Godot additions below, and the 2026-11-09 lore imports listed separately. These documents preserve proposed lore, not implemented game systems. Storage in GitHub does not automatically settle canon. No assets, development checkpoints, or existing lore documents are replaced by this additive batch.
 
 ## Previously preserved
 
@@ -44,6 +44,18 @@ Copied into the Godot repository with everything above (unchanged, from the brow
 - [The Godot game's people](godot-people.md): Edda, the eight backgrounds as people, the band that took Edda, future companions, the Watchhouse's named residents.
 - [Acts II and III](acts-two-and-three.md): the story built from the archive's places and factions, up the Bell Road to the Citadels and the Vaults; quests, set pieces, endings that save nothing.
 - [Items and texts](items-and-texts.md): lore and prices for every item in the game, material culture, new item proposals, and a library of notes, inscriptions, banners and epigraphs ready to place (plain ASCII).
+
+## Quarry and Drowned Measures imports (2026-11-09)
+
+Imported from the browser repository at commit `b46237b50b9aa1244e394b165364ad0ac5c6b5f6` on the review branch `integration/lore-parity`. This is a content-preservation and continuity pass, not a runtime merge. See the [integration report and remaining queue](INTEGRATION_REPORT.md).
+
+| Document | Lore status | Implementation status |
+| --- | --- | --- |
+| [Rook's Stair: The Held Benches](rooks-stair-quarry-supplement.md) | Proposed; speaking/trading salvagers adapted to humans under O1 | Documentation only; custom d20 rules are not Godot combat |
+| [The Silt Readers and the Drowned Measures](silt-readers-and-drowned-measures.md) | Proposed; no new canon approval implied | Documentation only; no basin simulation or faction AI |
+| [Drowned Measures playbook](drowned-measures-playbook.md) | Proposed player procedure, Cutwardens, Rootstone Witness, events and quest | Documentation only; no forecast journal, event integration or quest implementation |
+
+The `quarry-recreated/` workshop package remains pending import and validation. Its source README includes speaking goblins and requires O1 reconciliation or clearly segregated archival status. Do not treat a reference to that package in imported source prose as proof it is already present. Existing owner decisions and CANON.md keep precedence; these imports do not approve new species, exact placement, populations or balance.
 
 ## Continuity boundaries
 
