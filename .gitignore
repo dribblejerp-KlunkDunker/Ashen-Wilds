@@ -24,3 +24,6 @@ assets/environment/**/*_0.png
 # Written to the repo root by tests/test_env00*_collisions.gd on every run.
 /validation-report.json
 /env0*-validation-report.json
+
+# The 3D quality benchmark pack (CC0, about 150 MB): fetched by tools/fetch_benchmark_assets.py, never committed.
+assets/reference/benchmark/
