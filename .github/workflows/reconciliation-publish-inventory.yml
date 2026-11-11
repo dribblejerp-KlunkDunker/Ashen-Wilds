@@ -1,0 +1,87 @@
+name: Publish reconciliation inventory
+on:
+  push:
+    branches: [integration/watchhouse-survivor]
+    paths: [.github/workflows/reconciliation-publish-inventory.yml]
+permissions:
+  contents: write
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      INTEGRATION_SHA: b24a3fe2de4f4a46fe7d819aa06cdd1e49553b0b
+      MAIN_SHA: 9e649bf076f1d081de55a433b696c7fb824bd272
+      REPORT_BRANCH: reports/reconciliation-inventory-b24a3fe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b24a3fe2de4f4a46fe7d819aa06cdd1e49553b0b
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Compute pinned three-way inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/reconciliation-report"
+          mkdir -p "$out"
+          git config user.name "Reconciliation inventory"
+          git config user.email "inventory@localhost"
+          test "$(git rev-parse HEAD)" = "$INTEGRATION_SHA"
+          git cat-file -e "$MAIN_SHA^{commit}"
+          git merge-base --all "$INTEGRATION_SHA" "$MAIN_SHA" > "$out/merge-bases.txt"
+          result=0
+          git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$MAIN_SHA" > "$out/merge.log" 2>&1 || result=$?
+          test "$result" -le 1
+          git status --short > "$out/status.txt"
+          export MERGE_RESULT="$result"
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          out = Path(os.environ['RUNNER_TEMP']) / 'reconciliation-report'
+          records = []
+          for entry in subprocess.check_output(['git', 'ls-files', '--unmerged', '-z']).split(b'\0'):
+              if not entry:
+                  continue
+              header, path = entry.split(b'\t', 1)
+              mode, oid, stage = header.decode().split()
+              records.append({'path': os.fsdecode(path), 'mode': mode, 'git_object': oid, 'stage': int(stage)})
+          result = int(os.environ['MERGE_RESULT'])
+          if result == 1 and not records:
+              raise SystemExit('Merge failed without indexed conflicts')
+          bases = (out / 'merge-bases.txt').read_text().splitlines()
+          manifest = {'integration_sha': os.environ['INTEGRATION_SHA'], 'main_sha': os.environ['MAIN_SHA'], 'merge_bases': bases, 'merge_exit': result, 'conflict_paths': sorted({r['path'] for r in records}), 'index_stages': records, 'stage_meanings': {'1': 'base', '2': 'integration', '3': 'main'}, 'resolved': False, 'godot_tested': False}
+          (out / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          for i, base in enumerate(bases):
+              for label, tip in [('integration', os.environ['INTEGRATION_SHA']), ('main', os.environ['MAIN_SHA'])]:
+                  data = subprocess.check_output(['git', 'diff', '--name-status', base, tip])
+                  (out / f'base-{i}-to-{label}.txt').write_bytes(data)
+          PY
+          if git rev-parse --verify MERGE_HEAD >/dev/null 2>&1; then
+            git merge --abort
+          fi
+      - name: Publish report without overwriting existing branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "refs/heads/$REPORT_BRANCH"; then
+            echo 'Report branch already exists; refusing to overwrite it.'
+            exit 1
+          else
+            result=$?
+            test "$result" -eq 2
+          fi
+          git switch --orphan "$REPORT_BRANCH"
+          git rm -rf --ignore-unmatch .
+          cp "$RUNNER_TEMP/reconciliation-report/"* .
+          git add -- manifest.json merge-bases.txt merge.log status.txt base-*-to-*.txt
+          git -c core.hooksPath=/dev/null commit -m "Report pinned reconciliation inventory; no game resolution or testing"
+          git push origin "HEAD:refs/heads/$REPORT_BRANCH"
+          printf 'Published inventory to %s. No gameplay resolution or Godot testing performed.\n' "$REPORT_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: readable-reconciliation-inventory
+          path: ${{ runner.temp }}/reconciliation-report/
+          if-no-files-found: error
+          retention-days: 14
