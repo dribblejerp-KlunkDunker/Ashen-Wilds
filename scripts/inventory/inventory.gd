@@ -39,6 +39,8 @@ func hard_limit_kg() -> float:
 	return capacity_kg * hard_limit_ratio
 
 func can_carry(inst: ItemInstance) -> bool:
+	if inst == null or inst.data == null or inst.quantity <= 0:
+		return false
 	return total_weight() + inst.total_weight() <= hard_limit_kg() + 0.0001
 
 func has_item(inst: ItemInstance) -> bool:
@@ -97,7 +99,7 @@ func count_of(item_id: String) -> int:
 	return n
 
 func consume(item_id: String, quantity: int = 1) -> bool:
-	if count_of(item_id) < quantity:
+	if quantity <= 0 or count_of(item_id) < quantity:
 		return false
 	var left: int = quantity
 	for inst: ItemInstance in items.duplicate():
@@ -168,7 +170,7 @@ func _drop_armor_ref(inst: ItemInstance) -> void:
 			armor.erase(slot)
 
 func equip(inst: ItemInstance) -> bool:
-	if not items.has(inst):
+	if inst == null or inst.data == null or inst.quantity <= 0 or not items.has(inst):
 		return false
 	match inst.data.category:
 		ItemData.Category.WEAPON:
@@ -176,6 +178,8 @@ func equip(inst: ItemInstance) -> bool:
 		ItemData.Category.SHIELD, ItemData.Category.TORCH:
 			off_hand = inst
 		ItemData.Category.ARMOR:
+			if inst.data.armor_slot not in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
+				return false
 			armor[inst.data.armor_slot] = inst
 		_:
 			return false
