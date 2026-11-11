@@ -1,0 +1,87 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env007/exports/env_barrel_v07_open_crossbar.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_3"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_4"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_5"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_6"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_7"]
+size = Vector3(0.248744231037, 0.872, 0.0766820011984)
+
+[sub_resource type="BoxShape3D" id="Box_8"]
+size = Vector3(0.484, 0.028, 0.342239682094)
+
+[sub_resource type="BoxShape3D" id="Box_9"]
+size = Vector3(0.342239682094, 0.028, 0.484)
+
+[sub_resource type="BoxShape3D" id="Box_10"]
+size = Vector3(0.55, 0.026, 0.055)
+
+[node name="env_barrel_v07_open_crossbar" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Wall0" type="CollisionShape3D" parent="."]
+transform = Transform3D(-0.382683432365, 0, 0.923879532511, 0, 1, 0, -0.923879532511, 0, -0.382683432365, 0.241982386233, 0.464, 0.100232386233)
+shape = SubResource("Box_0")
+
+[node name="Wall1" type="CollisionShape3D" parent="."]
+transform = Transform3D(-0.923879532511, 0, 0.382683432365, 0, 1, 0, -0.382683432365, 0, -0.923879532511, 0.100232386233, 0.464, 0.241982386233)
+shape = SubResource("Box_1")
+
+[node name="Wall2" type="CollisionShape3D" parent="."]
+transform = Transform3D(-0.923879532511, 0, -0.382683432365, 0, 1, 0, 0.382683432365, 0, -0.923879532511, -0.100232386233, 0.464, 0.241982386233)
+shape = SubResource("Box_2")
+
+[node name="Wall3" type="CollisionShape3D" parent="."]
+transform = Transform3D(-0.382683432365, 0, -0.923879532511, 0, 1, 0, 0.923879532511, 0, -0.382683432365, -0.241982386233, 0.464, 0.100232386233)
+shape = SubResource("Box_3")
+
+[node name="Wall4" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.382683432365, 0, -0.923879532511, 0, 1, 0, 0.923879532511, 0, 0.382683432365, -0.241982386233, 0.464, -0.100232386233)
+shape = SubResource("Box_4")
+
+[node name="Wall5" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.923879532511, 0, -0.382683432365, 0, 1, 0, 0.382683432365, 0, 0.923879532511, -0.100232386233, 0.464, -0.241982386233)
+shape = SubResource("Box_5")
+
+[node name="Wall6" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.923879532511, 0, 0.382683432365, 0, 1, 0, -0.382683432365, 0, 0.923879532511, 0.100232386233, 0.464, -0.241982386233)
+shape = SubResource("Box_6")
+
+[node name="Wall7" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.382683432365, 0, 0.923879532511, 0, 1, 0, -0.923879532511, 0, 0.382683432365, 0.241982386233, 0.464, -0.100232386233)
+shape = SubResource("Box_7")
+
+[node name="FloorAcrossX" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.014, 0)
+shape = SubResource("Box_8")
+
+[node name="FloorAcrossZ" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.014, 0)
+shape = SubResource("Box_9")
+
+[node name="Crossbar" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.887, 0)
+shape = SubResource("Box_10")

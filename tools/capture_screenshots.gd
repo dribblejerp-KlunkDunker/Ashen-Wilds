@@ -2,9 +2,9 @@ extends SceneTree
 # Renders README screenshots into res://docs/screenshots/.
 # Needs a real renderer (not --headless). On Linux without a GPU:
 #   xvfb-run -s "-screen 0 1920x1080x24" godot --path . --script res://tools/capture_screenshots.gd
-# Enemies are frozen while staging so shots are repeatable. Shots use the in-game
-# brightness setting at +0.4 (the same as pressing ] four times). Facing is set
+# Enemies are frozen while staging so shots are repeatable. Facing is set
 # directly because there is no real mouse under a virtual display.
+# Shots use the default brightness, so they show what a player sees on first launch.
 
 const OUT_DIR := "res://docs/screenshots"
 
@@ -58,22 +58,37 @@ func _equip_now(item_id: String) -> void:
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
-	_main.set("show_background_picker", false)
-	_main.set("weather_cycle_enabled", false)
-	_main.set("day_cycle_enabled", false)
-	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	_player = _find(func(n: Node) -> bool: return n is PlayerController)[0]
 	_rig = _find(func(n: Node) -> bool: return n is IsoCameraRig)[0]
 	_hud = _find(func(n: Node) -> bool: return n is TacticalHUD)[0]
-	var enemies: Array = _find(func(n: Node) -> bool: return n.is_in_group("enemy"))
+	var enemies: Array = _find(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryCrawler)
 	for e: Node in enemies:
 		e.process_mode = Node.PROCESS_MODE_DISABLED
-	for r: Node in get_nodes_in_group("crow_roost"):
-		r.process_mode = Node.PROCESS_MODE_DISABLED
-	_rig.adjust_brightness(0.4)
 	_player.camera_rig = null # stop mouse-driven aim; the camera still follows
+	# Discovery banners would land in shots framed for something else; each shot sets its own text.
+	for d: Node in _find(func(n: Node) -> bool: return n is Discovery or n is Objectives):
+		d.process_mode = Node.PROCESS_MODE_DISABLED
+	# The objectives panel stays out of the older shots; shot 17 shows it.
+	_hud.set_objectives([])
 	await _frames(10)
+	if OS.get_cmdline_user_args().has("--gallery"):
+		var start_screen: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
+		start_screen.select(0)
+		start_screen.confirm()
+		await _frames(3)
+		await _gallery_shots(enemies)
+		quit(0)
+		return
+
+	# 0. The start screen, over the paused yard.
+	var picker: BackgroundSelect = _find(func(n: Node) -> bool: return n is BackgroundSelect)[0]
+	picker.select(4)
+	await _frames(3)
+	await _shot("00_who_were_you.png")
+	picker.select(0)
+	picker.confirm()
+	await _frames(3)
 
 	# 1. Shelter start: fire, stash prompt, starting gear.
 	_place(Vector3(-7.0, 0.0, 6.6), Vector3(-0.9, 0, 0.5))
@@ -101,7 +116,8 @@ func _run() -> void:
 	await _frames(4)
 	await _shot("03_searching_chest.png")
 
-	# 4. Pack + loot windows after the search completes.
+	# 4. Pack + loot windows after the search completes (the coif from the stash is worn).
+	_equip_now("padded_coif")
 	_player._channel_elapsed = chest.search_duration
 	await _frames(6)
 	if not _hud.inventory_ui.is_loot_open():
@@ -109,6 +125,11 @@ func _run() -> void:
 		_hud.inventory_ui.open_loot(chest)
 	await _frames(6)
 	await _shot("04_pack_and_loot.png")
+
+	# 16. Reading a note from the chest: the Watch's stores list, counted the week after the tower.
+	_hud.inventory_ui.read_note(ItemDatabase.get_item("note_03"))
+	await _frames(6)
+	await _shot("16_reading_a_note.png")
 	_hud.inventory_ui.close_all()
 
 	# 5. Ork choke point with the spear (two-handed, shield stowed).
@@ -154,306 +175,151 @@ func _run() -> void:
 	Engine.time_scale = 0.05
 	await _frames(3)
 	await _shot("07_entry_hall_clang.png")
-	Engine.time_scale = 1.0
-	await _frames(10)
 
-	# 8. Milestone 6: the cleaver Ork follows you into the entry hall and clangs.
+	# 08: the vision cone. The survivor faces east across the yard; the yard goblin creeps up from
+	# the west, out of the cone, so it is not drawn: only its footstep ripples and the charcoal
+	# mark where it was last seen. The charcoal memory map covers everything behind the survivor.
+	# Time still runs at 0.05 from the clang shot, so the rings hold their first moments.
 	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
-	_place(Vector3(3.7, 0.0, -2.675), Vector3(-1, 0, 0))
-	var cleaver_ork: EnemyOrkWarrior = enemies.filter(func(e: Node) -> bool: return e is EnemyOrkWarrior and not e.has_shield)[0]
-	cleaver_ork.global_position = Vector3(2.3, 0.0, -2.675)
-	cleaver_ork._face_direction(Vector3.RIGHT, 50.0, 1.0)
-	cleaver_ork._visual_root.visible = true
-	await _frames(30)
-	cleaver_ork._enter_combo_1_active()
-	cleaver_ork._update_visual_telegraph()
-	Engine.time_scale = 0.05
-	await _frames(3)
-	await _shot("08_ork_hall_clang.png")
-	Engine.time_scale = 1.0
-	await _frames(10)
-
-	# 10. Milestone 8: vision cone, charcoal memory and ripples. Sweep the cone
-	# around the yard to build memory, then face west, away from the
-	# watchhouse. The goblin inside and the Ogre to the north-west are heard,
-	# not seen.
-	_equip_now("wooden_targe")
-	var field: AcousticField = _find(func(n: Node) -> bool: return n is AcousticField)[0]
-	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0))
-	for a in range(0, 360, 15):
-		_player._aim_direction = Vector3.FORWARD.rotated(Vector3.UP, deg_to_rad(a))
-		await _frames(2)
-	_place(Vector3(-1.6, 0.0, -1.2), Vector3(-1, 0, 0.35))
-	await _frames(20)
-	inside_goblin.global_position = Vector3(4.6, 0.0, -4.4)
-	field.emit_noise(inside_goblin.global_position, 12.5, inside_goblin, "footstep")
+	_place(Vector3(-4.0, 0.0, 6.0), Vector3(1.0, 0.0, 0.0))
 	var yard_goblin: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
-	yard_goblin.global_position = Vector3(-1.4, 0.0, -6.6)
-	yard_goblin._visual_root.visible = false # out of the cone
-	field.emit_noise(yard_goblin.global_position, 9.0, yard_goblin, "footstep")
-	Engine.time_scale = 0.12
-	await _frames(4)
-	await _shot("10_vision_cone_ripples.png")
+	yard_goblin.global_position = Vector3(-7.5, 0.0, 5.0)
+	yard_goblin._visual_root.visible = false
+	await _frames(6)
+	AcousticRipple.spawn_mark(_main, Vector3(-6.4, 0.0, 7.6), 6.0)
+	AcousticRipple.spawn(_main, Vector3(-7.5, 0.0, 5.0), 8.0)
+	AcousticRipple.spawn(_main, Vector3(-7.0, 0.0, 5.6), 8.0)
+	await _frames(3)
+	await _shot("08_vision_cone_unseen_goblin.png")
 	Engine.time_scale = 1.0
-	await _frames(10)
 
-	# 11-13. Milestone 9: weather. Each is set instantly and given a moment
-	# for the flakes to spread.
-	var weather: WeatherSystem = _find(func(n: Node) -> bool: return n is WeatherSystem)[0]
-	_equip_now("pitch_torch")
-	weather.set_weather(WeatherSystem.Weather.ASHFALL, true)
-	_place(Vector3(-5.2, 0.0, 3.2), Vector3(0.6, 0, -1))
-	await _frames(45)
-	await _shot("11_weather_ashfall.png")
-	weather.set_weather(WeatherSystem.Weather.CINDER_SQUALL, true)
-	_place(Vector3(10.6, 0.0, 9.6), Vector3(1.2, 0, -0.4))
-	for e: Node in enemies:
-		if e is EnemyOrkWarrior:
-			e._visual_root.visible = true
-	await _frames(45)
-	await _shot("12_weather_cinder_squall.png")
-	weather.set_weather(WeatherSystem.Weather.MIASMA, true)
-	_place(Vector3(-9.0, 0.0, -9.2), Vector3(-1.4, 0, -0.6))
-	ogre.state = EnemyOgreBrute.AIState.IDLE
-	ogre._update_visual_telegraph()
-	ogre._visual_root.visible = true
-	await _frames(45)
-	await _shot("13_weather_miasma.png")
-	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
-	await _frames(5)
+	# 09, 10: two weathers. Miasma fog in the yard (the sight range closes to 7 m, the fog is
+	# thick and green-grey); a cinder-squall at the ork choke point (embers ride the wind).
+	var weather: Weather = _find(func(n: Node) -> bool: return n is Weather)[0]
+	weather.cycling = false
+	weather.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_place(Vector3(-4.0, 0.0, 6.0), Vector3(1.0, 0.0, 0.3))
+	await _frames(12)
+	await _shot("09_miasma_fog.png")
+	weather.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	_place(Vector3(8.5, 0.0, 8.5), Vector3(1.0, 0.0, 0.2))
+	await _frames(12)
+	await _shot("10_cinder_squall.png")
+	weather.set_condition(Weather.Condition.ASHFALL, true)
 
-	# 14. Milestone 11: the Blind Quarry-Troll stalks a thrown stone's thud.
-	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
+	# 11: the companion. Cut free off-screen (found by name: the graves are ActionPoints too), then posed two paces behind the survivor in the yard.
+	var captive: ActionPoint = _find(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")[0]
+	captive.on_search_complete(_player)
+	await _frames(2)
+	var companion: Companion = _find(func(n: Node) -> bool: return n is Companion)[0]
+	_place(Vector3(-3.0, 0.0, 4.0), Vector3(1.0, 0.0, -0.4))
+	companion.global_position = Vector3(-4.6, 0.0, 5.2)
+	companion._face_toward(Vector3(-3.0, 0.0, 4.0) + Vector3(1.0, 0.0, -0.4) * 3.0, 50.0, 1.0)
+	companion.process_mode = Node.PROCESS_MODE_DISABLED
+	companion._model.play(&"Idle")
+	await _frames(12)
+	await _shot("11_companion.png")
+
+	# 12: the Blind Quarry-Troll in the old quarry, bringing both fists down on the spot where it
+	# heard the survivor, who has crept a few paces clear of the ring.
 	var troll: EnemyQuarryTroll = enemies.filter(func(e: Node) -> bool: return e is EnemyQuarryTroll)[0]
-	_place(Vector3(11.6, 0.0, -13.0), Vector3(1.0, 0, -0.9))
-	troll.global_position = Vector3(15.6, 0.0, -16.2)
-	troll._face_direction(Vector3(-0.3, 0, 1).normalized(), 50.0, 1.0)
-	troll.state = EnemyQuarryTroll.AIState.STALK
+	_place(Vector3(11.0, 0.0, -10.2), Vector3(1.0, 0.0, -0.9))
+	troll.global_position = Vector3(15.5, 0.0, -14.5)
+	var heard_spot := Vector3(13.4, 0.0, -12.4)
+	troll._face_toward(heard_spot, 50.0, 1.0)
+	troll._begin_pound(heard_spot)
 	troll._update_visual_telegraph()
 	troll._visual_root.visible = true
-	await _frames(30)
-	field.emit_noise(Vector3(14.6, 0.0, -13.4), 10.0, troll, "thud")
-	Engine.time_scale = 0.12
-	await _frames(4)
-	await _shot("14_quarry_troll.png")
-	Engine.time_scale = 1.0
-	await _frames(5)
+	await _frames(14)
+	await _shot("12_quarry_troll.png")
+	troll._abandon_attack()
 
-	# 15. Milestone 13: the Act I card, at the shelter fire.
-	_equip_now("wooden_targe")
-	_place(Vector3(-7.0, 0.0, 6.6), Vector3(-0.9, 0, 0.5))
-	await _frames(20)
-	var acts: ActObjectives = _find(func(n: Node) -> bool: return n is ActObjectives)[0]
-	for o: Dictionary in acts.objectives:
-		o["done"] = not o["optional"] or o["id"] == "ogre"
-	acts.elapsed = 47.0 * 60.0 + 12.0
-	_hud._refresh_objectives()
-	_hud.show_act_complete()
-	await _frames(4)
-	await _shot("15_act_one_complete.png")
-	_hud.close_act_complete()
-
-	# 16. Milestone 15: crows on the Old Gibbet; the Ghoul gnawing a corpse.
-	_equip_now("arming_sword")
+	# 13: the Spore Hollow. Torch in hand, the survivor faces three husks; one has just burst into
+	# a cloud. They stand clear of it, out of the torch's reach of it, so it hangs for the shot.
 	_equip_now("pitch_torch")
-	var ghoul: EnemyGhoul = enemies.filter(func(e: Node) -> bool: return e is EnemyGhoul)[0]
-	var meal: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0]
-	meal.global_position = Vector3(10.4, 0.0, 17.9) # screen-right of the ghoul, so the flat corpse shows
-	meal.state = EnemyGoblinScavenger.AIState.DEAD
-	meal._visual_root.rotation_degrees.x = -85.0
-	meal._visual_root.position.y = 0.2
-	meal._status_pip.visible = false # as the death code does
-	meal._visual_root.visible = true
-	ghoul.global_position = Vector3(11.4, 0.0, 16.9)
-	ghoul._face_direction((meal.global_position - ghoul.global_position).normalized(), 50.0, 1.0)
-	ghoul.state = EnemyGhoul.AIState.EAT
-	ghoul._update_visual_telegraph()
-	ghoul._visual_root.visible = true
-	_place(Vector3(6.2, 0.0, 17.6), Vector3(1.0, 0, -0.25))
-	for e: Node in enemies:
-		if e is EnemyCarrionCrow:
-			e._visual_root.visible = true
-	await _frames(40)
-	await _shot("16_gibbet_crows_ghoul.png")
-
-	# 17. Milestone 16: the Bog Bear rears from a raised torch; rot mounds nearby.
-	_equip_now("woodsmans_broadaxe")
-	_equip_now("pitch_torch")
-	var bear: EnemyBogBear = enemies.filter(func(e: Node) -> bool: return e is EnemyBogBear)[0]
-	var bear_spot := Vector3(-19.6, 0.0, 1.2)
-	var stand := bear_spot + Vector3(2.8, 0.0, -1.5)
-	_place(stand, (bear_spot - stand).normalized())
-	bear.global_position = bear_spot
-	bear._face_direction((stand - bear_spot).normalized(), 50.0, 1.0)
-	bear.state = EnemyBogBear.AIState.REAR
-	bear._update_visual_telegraph()
-	bear._visual_root.visible = true
-	await _frames(40)
-	await _shot("17_bog_bear_torch.png")
-
-	# 18. Milestone 17: freezing and hungry, out in the hoarfrost.
-	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
-	weather.set_weather(WeatherSystem.Weather.HOARFROST, true)
-	_place(Vector3(-3.0, 0.0, 12.5), Vector3(-1.0, 0, -0.6))
-	_player.warmth = 11.0
-	_player.satiety = 24.0
-	_player.stamina = 55.0
-	await _frames(45)
-	await _shot("18_survival_freezing.png")
-	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
-	_player.warmth = _player.max_warmth
-	_player.satiety = 80.0
-	await _frames(5)
-
-	# 19. Milestone 18: working at the shelter fire.
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_equip_now("arming_sword")
-	_equip_now("wooden_targe")
-	_player.inventory.main_hand.condition = 34.0
-	_player.inventory.add(ItemDatabase.make("iron_scrap", 3))
-	_player.inventory.add(ItemDatabase.make("raw_bear_meat", 1))
-	_player.inventory.add(ItemDatabase.make("bear_pelt", 1))
-	boot._stash.put(ItemDatabase.make("cooking_pot"))
-	_place(Vector3(-7.4, 0.0, 6.0), Vector3(0.5, 0, -1.0))
-	await _frames(25)
-	boot._crafting.open()
-	await _frames(6)
-	await _shot("19_crafting_at_fire.png")
-	boot._crafting.close()
-
-	# 20. Milestone 19: night. Torchlight in the yard, a goblin at the edge of it.
-	var dn: DayNightCycle = _find(func(n: Node) -> bool: return n is DayNightCycle)[0]
-	dn.set_hour(23.0)
-	_equip_now("pitch_torch")
-	_place(Vector3(-2.4, 0.0, 1.6), Vector3(-0.5, 0, -0.86))
-	var night_gob: EnemyGoblinScavenger = enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger and not e.is_dead())[0]
-	night_gob.global_position = Vector3(-3.9, 0.0, -1.0)
-	night_gob._facing_dir = Vector3(0.5, 0, 0.86).normalized()
-	night_gob._visual_root.look_at(night_gob.global_position + night_gob._facing_dir, Vector3.UP)
-	night_gob._visual_root.visible = true
-	await _frames(40)
-	await _shot("20_night_torchlight.png")
-	dn.set_hour(8.0)
-	await _frames(5)
-
-	# 21. Milestone 20: the Bog-Bull paws the ground, horns lowered, in the Grey Pasture.
-	# Side-on to the camera (which looks along -X-Z), so its length and horns read.
-	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
-	var bull: EnemyBogBull = enemies.filter(func(e: Node) -> bool: return e is EnemyBogBull)[0]
-	bull.global_position = AshenWildsBootstrap.PASTURE_POS + Vector3(-1.0, 0.0, -0.6)
-	var bull_stand: Vector3 = bull.global_position + Vector3(3.4, 0.0, -3.4)
-	_place(bull_stand, (bull.global_position - bull_stand).normalized())
-	bull._facing_dir = (bull_stand - bull.global_position).normalized()
-	bull._visual_root.look_at(bull.global_position + bull._facing_dir, Vector3.UP)
-	bull.state = EnemyBogBull.AIState.PAW
-	bull._update_visual_telegraph()
-	bull._visual_root.visible = true
-	await _frames(40)
-	await _shot("21_bog_bull_paws.png")
-
-	# 22. Milestone 20: at night the Skull-Deer don't run. They stare.
-	dn.set_hour(21.5)
-	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
-	var glade_stand: Vector3 = AshenWildsBootstrap.GLADE_POS + Vector3(-3.6, 0.0, 3.0)
-	_place(glade_stand, Vector3(1.0, 0, -0.6))
-	for e: Node in enemies:
-		if e is EnemySkullDeer:
-			var deer: EnemySkullDeer = e
-			deer._facing_dir = (glade_stand - deer.global_position).normalized()
-			deer._visual_root.look_at(deer.global_position + deer._facing_dir, Vector3.UP)
-			deer.state = EnemySkullDeer.AIState.STARE
-			deer._update_visual_telegraph()
-			deer._visual_root.visible = true
-	await _frames(40)
-	await _shot("22_skull_deer_stare.png")
-	dn.set_hour(8.0)
-	await _frames(5)
-
-	# 23. Milestone 21: a fungus zombie rears back to spew, among the rot mounds.
-	_equip_now("arming_sword")
-	_equip_now("pitch_torch")
-	var zombie: EnemyFungusZombie = enemies.filter(func(e: Node) -> bool: return e is EnemyFungusZombie)[0]
-	var z_stand: Vector3 = zombie.global_position + Vector3(2.6, 0.0, -2.6)
-	_place(z_stand, (zombie.global_position - z_stand).normalized())
-	zombie._facing_dir = (z_stand - zombie.global_position).normalized()
-	zombie._visual_root.look_at(zombie.global_position + zombie._facing_dir, Vector3.UP)
-	zombie.state = EnemyFungusZombie.AIState.SPEW_STARTUP
-	zombie._update_visual_telegraph()
-	zombie._visual_root.visible = true
-	for e: Node in enemies:
-		if e is EnemyRotMound:
-			e._visual_root.visible = true
-	await _frames(40)
-	await _shot("23_fungus_zombie_spew.png")
-
-	# 24. Milestone 21: the Rot-Beast swells to vomit again; its last spew lies steaming beside it.
-	var beast: EnemyRotBeast = enemies.filter(func(e: Node) -> bool: return e is EnemyRotBeast)[0]
-	var b_stand: Vector3 = beast.global_position + Vector3(3.6, 0.0, -3.0)
-	_place(b_stand, (beast.global_position - b_stand).normalized())
-	beast._facing_dir = Vector3(0.2, 0, 1).normalized()
-	beast._visual_root.look_at(beast.global_position + beast._facing_dir, Vector3.UP)
-	beast.vomit()
-	beast._facing_dir = (b_stand - beast.global_position).normalized()
-	beast._visual_root.look_at(beast.global_position + beast._facing_dir, Vector3.UP)
-	beast.state = EnemyRotBeast.AIState.VOMIT_STARTUP
-	beast._state_timer = 0.2
-	beast._update_visual_telegraph()
-	beast._visual_root.visible = true
-	_hud.show_banner("", Color.WHITE)
-	await _frames(30)
-	await _shot("24_rot_beast_bile.png")
-	for n: Node in get_nodes_in_group("bile_pool"):
+	_place(Vector3(-14.6, 0.0, 0.8), Vector3(-1.0, 0.0, -0.35))
+	for h: Node in enemies.filter(func(e: Node) -> bool: return e is EnemySporeHusk):
+		var husk: EnemySporeHusk = h
+		husk._face_toward(Vector3(-14.6, 0.0, 0.8), 50.0, 1.0)
+		husk._visual_root.visible = true
+		husk._model.play(&"Zombie_Walk_Fwd")
+	SporeCloud.spawn(_main, Vector3(-19.4, 0.0, -0.6), EnemySporeHusk.BURST_RADIUS, 60.0)
+	await _frames(14)
+	await _shot("13_spore_hollow.png")
+	for n: Node in get_nodes_in_group("spore_cloud"):
 		n.queue_free()
 
-	# 25. Milestone 21: night. The Pallid Crawler circles at the edge of the torchlight.
-	dn.set_hour(23.0)
-	var crawler: EnemyPallidCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyPallidCrawler)[0]
-	var c_stand: Vector3 = AshenWildsBootstrap.CRAWLER_LAIR + Vector3(5.0, 0.0, -5.0)
-	crawler.state = EnemyPallidCrawler.AIState.STALK
-	crawler._set_buried(false)
-	crawler.global_position = c_stand + Vector3(-4.2, 0.0, 3.4)
-	_place(c_stand, (crawler.global_position - c_stand).normalized())
-	crawler._facing_dir = (c_stand - crawler.global_position).normalized()
-	crawler._visual_root.look_at(crawler.global_position + crawler._facing_dir, Vector3.UP)
-	crawler._update_visual_telegraph()
-	crawler._visual_root.visible = true
-	await _frames(40)
-	await _shot("25_pallid_crawler_torchlight.png")
+	# 14: the Drowned Graves. One Unnamed lies fallen (its ring pale: down, not done); the survivor
+	# kneels at its grave speaking the name while the other two come on.
+	var unnamed: Array = enemies.filter(func(e: Node) -> bool: return e is EnemyUnnamed)
+	var fallen: EnemyUnnamed = unnamed[0]
+	var fallen_grave: ActionPoint = fallen.grave
+	_place(fallen_grave.global_position + Vector3(-1.1, 0.0, -0.4), Vector3(1.0, 0.0, 0.35))
+	fallen._fall()
+	fallen._update_visual_telegraph()
+	fallen._visual_root.visible = true
+	for i: int in range(1, unnamed.size()):
+		var u: EnemyUnnamed = unnamed[i]
+		u._face_toward(_player.global_position, 50.0, 1.0)
+		u._visual_root.visible = true
+		u._model.play(&"Zombie_Walk_Fwd")
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 60.0, fallen_grave)
+	await _frames(14)
+	await _shot("14_drowned_graves.png")
+	_player._clear_channel()
+	Engine.time_scale = 1.0
 
-	# 26. Interim art: dusk at the shelter fire. Painted survivor, creatures, stash and campfire.
-	# The creatures stand inside the torch's cone so the charcoal overlay doesn't grey them.
-	dn.set_hour(20.5)
-	var a_stand: Vector3 = AshenWildsBootstrap.FIRE_POS + Vector3(1.3, 0.0, -1.3)
-	_place(a_stand, Vector3(1, 0, -0.35))
-	var posed: Array = [
-		[enemies.filter(func(e: Node) -> bool: return e is EnemyGoblinScavenger)[0], Vector3(2.3, 0.0, -1.1)],
-		[enemies.filter(func(e: Node) -> bool: return e is EnemyOrkWarrior)[0], Vector3(3.0, 0.0, 0.5)],
-		[enemies.filter(func(e: Node) -> bool: return e is EnemyBogBear)[0], Vector3(4.4, 0.0, -2.0)],
-	]
-	for pair: Array in posed:
-		var e: Node3D = pair[0]
-		e.global_position = a_stand + (pair[1] as Vector3)
-		var to_survivor: Vector3 = (a_stand - e.global_position).normalized()
-		var vis: Node3D = e.get("_visual_root")
-		e.set("_facing_dir", to_survivor)
-		vis.look_at(e.global_position + to_survivor, Vector3.UP)
-		vis.visible = true
-	await _frames(40)
-	await _shot("26_painted_art_shelter.png")
-	dn.set_hour(8.0)
-	await _frames(5)
+	await _gallery_shots(enemies)
 
-	# 9. Milestone 7: the survivor picker.
-	var picker := BackgroundPicker.new()
-	root.add_child(picker)
-	picker.select(5)
-	await _frames(6)
-	await _shot("09_survivor_picker.png")
-	picker.confirm()
+	# 17. Act I under way, back at the shelter fire: the Watchhouse taken, the pot home on the fire,
+	# two pages of the warning book written back in; the Causeway still held.
+	var objectives: Objectives = _find(func(n: Node) -> bool: return n is Objectives)[0]
+	objectives._done["watchhouse"] = true
+	objectives._done["pot"] = true
+	objectives.pages_returned.assign(["note_02", "note_19"])
+	_main._on_objective_completed("pot")
+	objectives._refresh_hud()
+	_equip_now("pitch_torch")
+	_place(Vector3(-5.2, 0.0, 6.2), Vector3(-1, 0, -1.1))
+	await _frames(12)
+	await _shot("17_act_one_objectives.png")
 
 	quit(0)
+
+## 15 and 18, the Roofed Gallery. `-- --gallery` renders only these two (about a minute instead of
+## ten), for when nothing else changed.
+func _gallery_shots(enemies: Array) -> void:
+	# 15: the Roofed Gallery. Torch in hand, the survivor has walked under the ledge; the crawler is
+	# in the air off the wall, coming down on the ring where they stand.
+	var crawler: EnemyGalleryCrawler = enemies.filter(func(e: Node) -> bool: return e is EnemyGalleryCrawler)[0]
+	_equip_now("pitch_torch")
+	_place(Vector3(-21.7, 0.0, 19.9), Vector3(-1.0, 0.0, -0.25))
+	await _frames(4)
+	crawler._begin_tell()
+	crawler._drop_from = crawler.global_position
+	var t: float = 0.7
+	var mid: Vector3 = crawler._drop_from.lerp(crawler._drop_target, t)
+	mid.y = lerpf(crawler._drop_from.y, 0.0, t * t) + sin(t * PI) * 0.8
+	crawler.global_position = mid
+	crawler._face_toward(_player.global_position, 50.0, 1.0)
+	crawler.state = EnemyGalleryCrawler.AIState.LEAP
+	crawler._update_visual_telegraph()
+	crawler._visual_root.visible = true
+	await _frames(14)
+	await _shot("15_roofed_gallery.png")
+
+	# 18: quicklime. The survivor has thrown a sack; the gallery-crawler stands blind in the white
+	# cloud at the gallery's mouth, rubbing its muzzle, its ring pale.
+	crawler._drop_ring.visible = false
+	# At the gallery's open south mouth: the piers stand on the camera's side all along the passage.
+	crawler.global_position = Vector3(-19.4, 0.0, 11.0)
+	_place(Vector3(-16.6, 0.0, 12.8), Vector3(-1.0, 0.0, -0.6))
+	LimeCloud.spawn(_main, crawler.global_position, 60.0)
+	await _frames(2)
+	crawler.blind(30.0)
+	crawler._face_toward(crawler.global_position + Vector3(-1.0, 0.0, 0.3), 50.0, 1.0)
+	crawler._update_visual_telegraph()
+	crawler._model.play(&"Zombie_Scratch")
+	crawler._visual_root.visible = true
+	await _frames(14)
+	await _shot("18_quicklime.png")

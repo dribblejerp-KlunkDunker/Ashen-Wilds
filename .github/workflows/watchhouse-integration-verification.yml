@@ -1,7 +1,7 @@
 name: Watchhouse integration verification
 on:
   push:
-    branches: [integration/watchhouse-survivor]
+    branches: [integration/watchhouse-survivor, reconcile/watchhouse-onto-main]
 permissions:
   contents: read
 jobs:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [smoke_test, reconciliation_smoke_test, ogre_target_cleanup_test]
+        suite: [smoke_test, ogre_target_cleanup_test, inventory_boundary_test]
     env:
       GODOT_SILENCE_ROOT_WARNING: '1'
       EXPECTED_COMMIT: ${{ github.sha }}
@@ -26,29 +26,29 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Install Godot 4.3 stable
+      - name: Install Godot 4.7.2 stable (the production pin)
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/godot" "$RUNNER_TEMP/verification-logs"
           curl --fail --location --retry 3 --max-time 180 \
-            https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip \
+            https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip \
             -o "$RUNNER_TEMP/godot.zip"
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-          chmod +x "$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64"
-          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.3-stable_linux.x86_64" >> "$GITHUB_ENV"
+          chmod +x "$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          echo "GODOT=$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
       - name: Record identity and import
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_COMMIT"
           git rev-parse HEAD | tee "$RUNNER_TEMP/verification-logs/commit.log"
           "$GODOT" --version | tee "$RUNNER_TEMP/verification-logs/version.log"
-          grep -q '^4\.3\.stable' "$RUNNER_TEMP/verification-logs/version.log"
+          grep -q '^4\.7\.2\.stable' "$RUNNER_TEMP/verification-logs/version.log"
           timeout 300 "$GODOT" --headless --path . --editor --import 2>&1 | tee "$RUNNER_TEMP/verification-logs/import.log"
           if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing' "$RUNNER_TEMP/verification-logs/import.log"; then exit 1; fi
       - name: Compile adapter and regression entry points
         run: |
           set -euo pipefail
-          for script in scripts/combat/wall_deflection.gd tests/smoke_test.gd tests/reconciliation_smoke_test.gd tests/ogre_target_cleanup_test.gd; do
+          for script in scripts/combat/wall_deflection.gd tests/smoke_test.gd tests/ogre_target_cleanup_test.gd tests/inventory_boundary_test.gd; do
             log="$RUNNER_TEMP/verification-logs/compile-$(basename "$script").log"
             timeout 180 "$GODOT" --headless --path . --check-only --script "res://$script" 2>&1 | tee "$log"
             if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script' "$log"; then exit 1; fi
@@ -63,10 +63,6 @@ jobs:
               grep -Eq '^--- Ogre cleanup: [1-9][0-9]* passed, 0 failure\(s\) ---$' "$log"
             else
               grep -Eq '^--- [1-9][0-9]* passed, 0 failure\(s\) ---$' "$log"
-            fi
-            if [ "$TEST_SUITE" = reconciliation_smoke_test ]; then
-              grep -Fq '== Reconciliation: Ogre target-loss cleanup ==' "$log"
-              grep -Fq 'another attacker obtains token after gap' "$log"
             fi
             if grep -Eq 'SCRIPT ERROR|Parse Error|Failed to load script|^FAIL[[:space:]]' "$log"; then exit 1; fi
           done

@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/env008/exports/env_rocks_08_large_outcrop.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="Box_0"]
+size = Vector3(1.09068817316, 0.890914238841, 0.840676245039)
+
+[sub_resource type="BoxShape3D" id="Box_1"]
+size = Vector3(0.809371887547, 0.746587581935, 0.688022161659)
+
+[sub_resource type="BoxShape3D" id="Box_2"]
+size = Vector3(0.79412907402, 0.700407022134, 0.681412010315)
+
+[node name="env_rocks_08_large_outcrop" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/collision_status = "generated; see CI validation report"
+
+[node name="Visual" parent="." instance=ExtResource("1_visual")]
+
+[node name="Rock0" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0788698012006, 0.44545711942, -0.367575344919)
+shape = SubResource("Box_0")
+
+[node name="Rock1" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.555331428708, 0.373293790967, 0.120184513844)
+shape = SubResource("Box_1")
+
+[node name="Rock2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.562952835471, 0.350203511067, -0.48236386484)
+shape = SubResource("Box_2")

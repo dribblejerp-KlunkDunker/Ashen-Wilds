@@ -5,10 +5,6 @@ extends "res://tests/smoke_test.gd"
 
 func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
-	_main.set("show_background_picker", false)
-	_main.set("weather_cycle_enabled", false)
-	_main.set("day_cycle_enabled", false)
-	_main.set("survival_enabled", false)
 	_main.process_mode = Node.PROCESS_MODE_DISABLED
 	root.add_child(_main)
 	await _ticks(5)
@@ -22,6 +18,8 @@ func _run() -> void:
 		EnemyOgreBrute.AIState.SLAM_ACTIVE,
 		EnemyOgreBrute.AIState.SWEEP_STARTUP,
 		EnemyOgreBrute.AIState.SWEEP_ACTIVE,
+		EnemyOgreBrute.AIState.CHARGE_STARTUP,
+		EnemyOgreBrute.AIState.CHARGE_ACTIVE,
 	]
 	for target_missing: bool in [false, true]:
 		for attack_state: int in attack_states:
@@ -37,14 +35,18 @@ func _run() -> void:
 			ogre.coordinator = coord
 			ogre.state = attack_state
 			ogre.velocity = Vector3(2.0, 0.0, 1.0)
-			var active: bool = attack_state in [EnemyOgreBrute.AIState.SLAM_ACTIVE, EnemyOgreBrute.AIState.SWEEP_ACTIVE]
-			if active:
+			var club_active: bool = attack_state in [EnemyOgreBrute.AIState.SLAM_ACTIVE, EnemyOgreBrute.AIState.SWEEP_ACTIVE]
+			var charge_active: bool = attack_state == EnemyOgreBrute.AIState.CHARGE_ACTIVE
+			ogre._hitbox.end_swing()
+			ogre._charge_hitbox.end_swing()
+			if club_active:
 				ogre._hitbox.begin_swing(CombatPayload.new(ogre, ogre.global_position, Vector3.FORWARD, 1.0, 1.0))
-			else:
-				ogre._hitbox.end_swing()
+			if charge_active:
+				ogre._charge_hitbox.begin_swing(CombatPayload.new(ogre, ogre.global_position, Vector3.FORWARD, 1.0, 1.0))
 			ogre._slam_ring.visible = attack_state in [EnemyOgreBrute.AIState.SLAM_STARTUP, EnemyOgreBrute.AIState.SLAM_ACTIVE]
 			_check(coord.request_attack_token(ogre, true), "setup: Ogre owns attack token")
-			_check(ogre._hitbox._is_swing_active == active, "setup: hitbox matches attack phase")
+			_check(ogre._hitbox._is_swing_active == club_active, "setup: club hitbox matches attack phase")
+			_check(ogre._charge_hitbox._is_swing_active == charge_active, "setup: charge hitbox matches attack phase")
 			if target_missing:
 				ogre.player_ref = null
 			else:
@@ -52,7 +54,8 @@ func _run() -> void:
 			ogre._process_ai_state(0.0)
 			_check(ogre.state == EnemyOgreBrute.AIState.IDLE, "target lost: Ogre returns to idle")
 			_check(ogre.velocity == Vector3.ZERO, "target lost: movement stops")
-			_check(not ogre._hitbox._is_swing_active, "target lost: hitbox is closed")
+			_check(not ogre._hitbox._is_swing_active, "target lost: club hitbox is closed")
+			_check(not ogre._charge_hitbox._is_swing_active, "target lost: charge hitbox is closed")
 			_check(not ogre._slam_ring.visible, "target lost: slam ring is hidden")
 			_check(not coord._active_holders.has(ogre.get_instance_id()), "target lost: attack token released")
 			var cooldown: float = coord._cooldown_timer

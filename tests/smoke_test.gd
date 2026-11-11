@@ -1,5 +1,5 @@
 extends SceneTree
-# Headless regression checks for Ashen Wilds (Milestones 1-9).
+# Headless regression checks for Ashen Wilds (Milestones 1-5 and enemy wall deflection).
 # Run: godot --headless --path . --script res://tests/smoke_test.gd
 # Exit code is the number of failures (0 = all passed).
 
@@ -79,10 +79,6 @@ func _reset_player(pos: Vector3) -> void:
 
 func _run() -> void:
 	_main = (load("res://main.tscn") as PackedScene).instantiate()
-	_main.set("show_background_picker", false)
-	_main.set("weather_cycle_enabled", false)
-	_main.set("day_cycle_enabled", false)
-	_main.set("survival_enabled", false)
 	root.add_child(_main)
 	await _ticks(5)
 
@@ -93,10 +89,8 @@ func _run() -> void:
 	await _test_milestones_1_to_3()
 
 	# Freeze enemies so M4 checks are deterministic (they'd otherwise interrupt searches).
-	for e: Node in _children_of(func(n: Node) -> bool: return n.is_in_group("enemy")):
+	for e: Node in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger or n is EnemyOrkWarrior or n is EnemyOgreBrute or n is EnemyQuarryTroll or n is EnemySporeHusk or n is EnemyUnnamed or n is EnemyGalleryCrawler):
 		e.process_mode = Node.PROCESS_MODE_DISABLED
-	for r: Node in _main.get_tree().get_nodes_in_group("crow_roost"):
-		r.process_mode = Node.PROCESS_MODE_DISABLED # its mobbing would caw over later checks
 
 	await _test_loadout_and_inventory()
 	await _test_encumbrance()
@@ -108,23 +102,25 @@ func _run() -> void:
 	await _test_world_containers()
 	await _test_wall_deflection()
 	await _test_weapon_lodging()
-	await _test_enemy_clangs()
-	await _test_survivor_backgrounds()
-	await _test_vision_and_ripples()
+	await _test_enemy_wall_deflection()
+	await _test_ogre_drops_attack_when_player_dies()
+	await _test_survivor_model()
+	await _test_environment_surfaces()
+	await _test_atmosphere()
+	await _test_enemy_models()
+	await _test_enemy_temperaments()
+	await _test_perception()
 	await _test_weather()
-	await _test_enemy_ears()
+	await _test_backgrounds()
+	await _test_armour()
+	await _test_companions()
 	await _test_quarry_troll()
-	await _test_armor()
-	await _test_bestiary_one()
-	await _test_bestiary_two()
-	await _test_survival()
-	await _test_crafting()
-	await _test_day_night()
-	await _test_bestiary_three()
-	await _test_bestiary_four()
-	await _test_painted_art()
-	await _test_act_one()
-	await _test_save_load() # last: it replaces the world
+	await _test_spore_husks()
+	await _test_unnamed()
+	await _test_gallery_crawler()
+	await _test_quicklime()
+	await _test_lore()
+	await _test_objectives()
 
 	print("\n--- %d passed, %d failure(s) ---" % [_passes, _fails])
 	quit(_fails)
@@ -720,2268 +716,2638 @@ func _test_weapon_lodging() -> void:
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Milestone 6 — enemy wall clangs
+# Enemy wall deflection. Each enemy's checks live in their own function below;
+# spawn your own enemy dummies (the level's enemies are frozen by now).
 # ------------------------------------------------------------------------------
-func _spawn_dummy_ork(pos: Vector3, shield: bool, facing: Vector3) -> EnemyOrkWarrior:
+func _test_enemy_wall_deflection() -> void:
+	await _test_goblin_corridor()
+	await _test_ork_clang()
+	await _test_ogre_clang()
+
+# ------------------------------------------------------------------------------
+# Goblin: its shiv jab is a thrust, so it never clangs, even in the entry hall.
+# Keep goblin helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+## A live (processing) goblin with no player or coordinator, facing `dir`.
+func _spawn_attacking_goblin(pos: Vector3, dir: Vector3) -> EnemyGoblinScavenger:
+	var g := EnemyGoblinScavenger.new()
+	g.audio = _player.audio
+	_main.add_child(g)
+	g.global_position = pos
+	g._facing_dir = dir.normalized()
+	g._visual_root.look_at(g.global_position + g._facing_dir, Vector3.UP)
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	return g
+
+func _wall_sparks_now() -> Array:
+	return _main.get_children().filter(func(c: Node) -> bool: return String(c.name).contains("WallSparks"))
+
+## Starts the goblin's real windup and watches it tick by tick until its
+## startup ends. Returns the state it resolves into and whether the hitbox
+## opened at any point up to `watch_after` seconds afterwards.
+func _goblin_attack_resolve(g: EnemyGoblinScavenger, watch_after: float) -> Dictionary:
+	var result: Dictionary = {"state": g.state, "hitbox": false, "new_sparks": 0}
+	var sparks_before: Array = _wall_sparks_now()
+	if not g._try_begin_attack_windup():
+		return result
+	var limit: int = int(ceil(1.2 * Engine.physics_ticks_per_second))
+	for i in range(limit):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+		if g.state != EnemyGoblinScavenger.AIState.ATTACK_STARTUP:
+			break
+	result["state"] = g.state
+	for i in range(int(ceil(watch_after * Engine.physics_ticks_per_second))):
+		await _ticks(1)
+		result["hitbox"] = result["hitbox"] or g._hitbox._is_swing_active
+	result["new_sparks"] = _wall_sparks_now().filter(func(c: Node) -> bool: return not sparks_before.has(c)).size()
+	return result
+
+func _test_goblin_corridor() -> void:
+	_section("Enemy deflection: goblin")
+
+	# 1) Default: the shiv jab is a thrust and connects even in the entry hall.
+	var g1 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	await _ticks(2)
+	_check(g1.attack_is_thrust, "goblin jab is a thrust by default")
+	_check(not WallDeflection.sweep_obstruction(g1, Vector3.RIGHT, EnemyGoblinScavenger.SWEEP_ARC_DEGREES, EnemyGoblinScavenger.SWEEP_REACH).is_empty(),
+		"entry hall: a goblin-sized sweep would be obstructed (sanity)")
+	var r1: Dictionary = await _goblin_attack_resolve(g1, 0.0)
+	_check(r1["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g1._hitbox._is_swing_active,
+		"entry hall: goblin jab reaches ATTACK_ACTIVE with its hitbox open (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r1["state"]])
+	_check(r1["new_sparks"] == 0, "entry hall: goblin jab throws no sparks")
+	g1.queue_free()
+	await _ticks(2)
+
+	# 2) As a sweep, the same placement clangs through the shared rule.
+	var g2 := _spawn_attacking_goblin(HALL, Vector3.RIGHT)
+	g2.attack_is_thrust = false
+	await _ticks(2)
+	var r2: Dictionary = await _goblin_attack_resolve(g2, 0.3)
+	_check(r2["state"] == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY, "entry hall: goblin sweep clangs into ATTACK_RECOVERY (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r2["state"]])
+	_check(not r2["hitbox"], "entry hall: a clanged goblin sweep never opens its hitbox")
+	_check(r2["new_sparks"] > 0, "entry hall: goblin clang throws WallSparks")
+	_check(g2.state == EnemyGoblinScavenger.AIState.ATTACK_RECOVERY and g2._state_timer > 0.0 and g2._state_timer <= 0.31,
+		"goblin clang recovery lasts 0.6 s (%.2f s left after 0.3 s)" % g2._state_timer)
+	g2.attack_is_thrust = true
+	g2.queue_free()
+	await _ticks(2)
+
+	# 3) As a sweep on open ground, nothing obstructs it.
+	var g3 := _spawn_attacking_goblin(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	g3.attack_is_thrust = false
+	await _ticks(2)
+	var r3: Dictionary = await _goblin_attack_resolve(g3, 0.0)
+	_check(r3["state"] == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE and g3._hitbox._is_swing_active,
+		"open ground: goblin sweep is not deflected (state=%s)" % EnemyGoblinScavenger.AIState.keys()[r3["state"]])
+	_check(r3["new_sparks"] == 0, "open ground: goblin sweep throws no sparks")
+	g3.attack_is_thrust = true
+	g3.queue_free()
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Ork: the combo's opening slash clangs in cramped space; the overhead chop does not.
+# Keep ork helpers between this banner and the next one.
+# ------------------------------------------------------------------------------
+func _spawn_dummy_ork(pos: Vector3, facing: Vector3) -> EnemyOrkWarrior:
 	var o := EnemyOrkWarrior.new()
-	o.has_shield = shield
+	o.has_shield = true
 	_main.add_child(o)
 	o.global_position = pos
-	o.process_mode = Node.PROCESS_MODE_DISABLED
 	o._facing_dir = facing.normalized()
-	o.state = EnemyOrkWarrior.AIState.PURSUE
+	o._visual_root.look_at(o.global_position + o._facing_dir, Vector3.UP)
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
 	return o
 
-func _sparks_count() -> int:
+func _ork_sparks() -> int:
 	return _main.find_children("WallSparks*", "Node3D", false, false).size()
 
-func _test_enemy_clangs() -> void:
-	_section("Enemy wall clangs")
-	await _ticks(30) # let earlier sparks expire
+## Ticks until the ork leaves `from_state` (max ~1 s). Returns true if the
+## hitbox was ever active on any sampled tick.
+func _ork_wait_leave(o: EnemyOrkWarrior, from_state: EnemyOrkWarrior.AIState) -> bool:
+	var hb_seen: bool = o._hitbox._is_swing_active
+	for i in range(60):
+		if o.state != from_state:
+			break
+		await physics_frame
+		hb_seen = hb_seen or o._hitbox._is_swing_active
+	return hb_seen
 
-	# Ork cleaver sweep: clangs in the hall, connects in the open.
-	var hall_ork := _spawn_dummy_ork(HALL, false, Vector3.RIGHT)
+func _test_ork_clang() -> void:
+	_section("Enemy deflection: ork")
+	# Park the player on open ground, well clear of both dummies' swings.
+	_reset_player(OPEN)
 	await _ticks(2)
-	_check(hall_ork.is_cramped(), "entry hall: ork sweep flagged as cramped")
-	var sparks_before: int = _sparks_count()
-	hall_ork._enter_combo_1_active()
-	_check(hall_ork.state == EnemyOrkWarrior.AIState.RECOIL, "entry hall: ork cleaver sweep clangs into RECOIL")
-	_check(not hall_ork._hitbox._is_swing_active, "a clanged ork swing never opens its hitbox")
-	_check(_sparks_count() > sparks_before, "ork clang throws sparks")
-	_check(hall_ork.is_staggered(), "a recoiling ork counts as staggered (punishable, can lodge)")
-	hall_ork._process_ai_state(hall_ork.wall_recoil_time + 0.05)
-	_check(hall_ork.state == EnemyOrkWarrior.AIState.PURSUE, "ork recovers from recoil back into pursuit")
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var audio_list: Array = _children_of(func(n: Node) -> bool: return n is ProceduralAudio)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
 
-	hall_ork.state = EnemyOrkWarrior.AIState.PURSUE
-	hall_ork._enter_combo_2_active()
-	_check(hall_ork.state == EnemyOrkWarrior.AIState.COMBO_2_ACTIVE, "entry hall: ork overhead chop never clangs")
-	hall_ork._hitbox.end_swing()
+	# 1) In the entry hall, facing down it: the opening slash clangs.
+	var ork := _spawn_dummy_ork(HALL, Vector3.RIGHT)
+	ork.coordinator = coord
+	if not audio_list.is_empty():
+		ork.audio = audio_list[0]
+	var barks: Array[String] = []
+	ork.ork_combat_bark.connect(func(msg: String) -> void: barks.append(msg))
+	await _ticks(2)
+	var sparks_before: int = _ork_sparks()
+	_check(ork._try_begin_combo() and coord._active_holders.has(ork.get_instance_id()), "ork: combo takes an attack token")
+	var hb_seen: bool = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL,
+		"ork: entry hall combo slash clangs into RECOIL (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(not hb_seen and not ork._hitbox._is_swing_active, "ork: a clanged slash never opens its hitbox")
+	_check(_ork_sparks() > sparks_before, "ork: clang throws WallSparks")
+	_check(ork.is_staggered(), "ork: RECOIL counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ork.get_instance_id()), "ork: clang releases the attack token")
+	_check(barks.size() == 1 and barks[0].contains("Clang"), "ork: clang barks once (%s)" % [barks])
+	_check(ork._knockback_vel.length() > 0.5, "ork: clang pushes the ork back off the wall (%.2f m/s)" % ork._knockback_vel.length())
 
-	var open_ork := _spawn_dummy_ork(OPEN + Vector3(0, 0, -3.0), false, Vector3.RIGHT)
-	await _ticks(2)
-	_check(not open_ork.is_cramped(), "open ground: ork sweep not cramped")
-	open_ork._enter_combo_1_active()
-	_check(open_ork.state == EnemyOrkWarrior.AIState.COMBO_1_ACTIVE, "open ground: ork cleaver sweep swings normally")
-	open_ork._hitbox.end_swing()
+	# Guard is down during the recoil: a frontal hit lands instead of being blocked.
+	var hp: float = ork.health
+	var guard: float = ork.guard_stamina
+	ork._on_hurtbox_hit_received(CombatPayload.new(_player, ork.global_position + Vector3.RIGHT * 1.2, Vector3.LEFT, 5.0, 1.0))
+	_check(ork.health < hp and is_equal_approx(ork.guard_stamina, guard), "ork: shield guard is down during RECOIL (frontal hit lands)")
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: a light hit doesn't cut the recoil short")
+	# Forget the attacker so the dummy doesn't start a fresh combo afterwards.
+	ork._has_last_known_pos = false
+	ork._memory_timer = 0.0
 
-	# Vanguard discipline: cramped shielded ork opens with the overhead chop.
-	var vanguard := _spawn_dummy_ork(HALL + Vector3(-0.6, 0, 0), true, Vector3.RIGHT)
-	await _ticks(2)
-	_check(vanguard._try_begin_combo() and vanguard.state == EnemyOrkWarrior.AIState.COMBO_2_STARTUP, "cramped Vanguard opens with the overhead chop")
-	var brute := _spawn_dummy_ork(HALL + Vector3(0.6, 0, 0), false, Vector3.RIGHT)
-	await _ticks(2)
-	_check(brute._try_begin_combo() and brute.state == EnemyOrkWarrior.AIState.COMBO_1_STARTUP, "unshielded ork sweeps anyway")
-	var vanguard_open := _spawn_dummy_ork(OPEN + Vector3(2.0, 0, -3.0), true, Vector3.RIGHT)
-	await _ticks(2)
-	_check(vanguard_open._try_begin_combo() and vanguard_open.state == EnemyOrkWarrior.AIState.COMBO_1_STARTUP, "Vanguard sweeps normally in the open")
+	# 2) Still reeling just before wall_recoil_time; recovered just after, without the combo resuming.
+	# A clang must leave a longer opening than a whiffed slash (active + link + recovery).
+	_check(ork.wall_recoil_time > 0.16 + 0.24 + 0.78,
+		"ork: a clang opens a longer window than a whiffed slash (%.2f s > 1.18 s)" % ork.wall_recoil_time)
+	ork.guard_stamina = 20.0
+	await _seconds(ork.wall_recoil_time - 0.12)
+	_check(ork.state == EnemyOrkWarrior.AIState.RECOIL, "ork: still in RECOIL before %.2f s" % ork.wall_recoil_time)
+	await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.RECOIL)
+	_check(ork.state == EnemyOrkWarrior.AIState.SHIELD_ADVANCE,
+		"ork: shielded ork returns to SHIELD_ADVANCE (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	_check(ork.guard_stamina < 21.0, "ork: recoil doesn't refill guard stamina (%.1f)" % ork.guard_stamina)
+	await _seconds(0.2)
+	_check(ork.state not in [EnemyOrkWarrior.AIState.RECOIL, EnemyOrkWarrior.AIState.COMBO_LINK,
+		EnemyOrkWarrior.AIState.COMBO_2_STARTUP, EnemyOrkWarrior.AIState.COMBO_2_ACTIVE],
+		"ork: combo does not continue after a clang (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
 
-	# Goblin stab never clangs.
-	var hall_gob := _spawn_dummy_goblin(HALL + Vector3(0.4, 0, 0))
-	hall_gob._facing_dir = Vector3.RIGHT
+	# 3) In the hall, the overhead chop is never deflected.
+	ork.global_position = HALL
+	ork._facing_dir = Vector3.RIGHT
+	ork._knockback_vel = Vector3.ZERO
 	await _ticks(2)
-	hall_gob._enter_attack_active()
-	_check(hall_gob.state == EnemyGoblinScavenger.AIState.ATTACK_ACTIVE, "entry hall: goblin knife stab never clangs")
-	hall_gob._hitbox.end_swing()
+	ork.state = EnemyOrkWarrior.AIState.COMBO_2_STARTUP
+	ork._state_timer = 0.05
+	hb_seen = await _ork_wait_leave(ork, EnemyOrkWarrior.AIState.COMBO_2_STARTUP)
+	_check(ork.state == EnemyOrkWarrior.AIState.COMBO_2_ACTIVE and hb_seen,
+		"ork: entry hall overhead chop reaches COMBO_2_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork.state])
+	await _seconds(0.3)
+	ork.queue_free()
 
-	# Ogre club sweep clangs off a lair pillar; the slam doesn't.
+	# 4) On open ground (3 m from the player, swinging away from them) the slash connects as before.
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	var ork_open := _spawn_dummy_ork(OPEN + Vector3(0.0, 0.0, 3.0), Vector3.RIGHT)
+	ork_open.coordinator = coord
+	await _ticks(2)
+	sparks_before = _ork_sparks()
+	ork_open._try_begin_combo()
+	hb_seen = await _ork_wait_leave(ork_open, EnemyOrkWarrior.AIState.COMBO_1_STARTUP)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_1_ACTIVE and hb_seen,
+		"ork: open ground combo slash reaches COMBO_1_ACTIVE, hitbox open (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	_check(_ork_sparks() == sparks_before, "ork: no sparks when nothing obstructs")
+	await _seconds(0.25)
+	_check(ork_open.state == EnemyOrkWarrior.AIState.COMBO_LINK or ork_open.state == EnemyOrkWarrior.AIState.ATTACK_RECOVERY,
+		"ork: unobstructed slash flows into the combo link (state=%s)" % EnemyOrkWarrior.AIState.keys()[ork_open.state])
+	await _seconds(0.3)
+	ork_open.queue_free()
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Ogre: the club sweep clangs off walls; the ground slam never does.
+# Keep ogre helpers below this banner.
+# ------------------------------------------------------------------------------
+func _test_ogre_clang() -> void:
+	_section("Enemy deflection: ogre")
+	# The ogre is too big for the entry hall, so build a cramped spot in open
+	# ground ~13 m from the player: a stone wall running along the ogre's left
+	# side, inside the 150-degree sweep arc but clear of its 0.85 m body.
+	_reset_player(OPEN)
+	await _ticks(2)
+	var spot: Vector3 = OGRE_YARD
+	var wall := _make_ogre_test_wall(spot + Vector3(0.8, 1.25, -1.5), Vector3(4.0, 2.5, 0.4))
+	var level_ogre: EnemyOgreBrute = _children_of(func(n: Node) -> bool: return n is EnemyOgreBrute)[0]
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var saved_holders: Dictionary = coord._active_holders.duplicate()
+	coord._active_holders.clear()
+
 	var ogre := EnemyOgreBrute.new()
 	_main.add_child(ogre)
-	ogre.global_position = Vector3(-11.5, 0.0, -11.9) # 1.8 m south of the pillar at z -14.5
+	ogre.audio = level_ogre.audio
+	ogre.coordinator = coord
 	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	var banners: Array[String] = []
+	ogre.ogre_event_banner.connect(func(txt: String, _col: Color) -> void: banners.append(txt))
+	_check(_player.current_state != PlayerController.ActionState.DEAD and _player.global_position.distance_to(spot) > 10.0,
+		"ogre test: player parked alive, %.1f m away" % _player.global_position.distance_to(spot))
+
+	# 1) Sweep beside the wall clangs. Driven through the real state machine:
+	#    SWEEP_STARTUP with its timer expired goes active on the next tick.
+	#    player_ref is the live, distant player so _process_ai_state runs its
+	#    match normally (it forces IDLE only for a missing or dead player).
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	coord.request_attack_token(ogre, true)
+	_check(coord._active_holders.has(ogre.get_instance_id()), "ogre holds the attack token before its sweep")
+	var sparks_before: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
 	ogre.player_ref = _player
-	ogre._facing_dir = Vector3.FORWARD
-	await _ticks(2)
-	ogre._enter_sweep_active()
-	_check(ogre.state == EnemyOgreBrute.AIState.RECOIL, "ogre club sweep smashes into the pillar (RECOIL)")
-	_check(not ogre._hitbox._is_swing_active and ogre.is_staggered(), "clanged ogre swing deals nothing and leaves it open")
-	ogre.state = EnemyOgreBrute.AIState.PURSUE
-	ogre._enter_slam_active()
-	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE, "ogre overhead slam never clangs")
-	ogre._hitbox.end_swing()
-	ogre._facing_dir = Vector3.BACK
-	ogre.state = EnemyOgreBrute.AIState.PURSUE
-	ogre._enter_sweep_active()
-	_check(ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE, "ogre sweep facing open ground swings normally")
-	ogre._hitbox.end_swing()
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	var hb_ever_active: bool = false
+	var reached_sweep_active: bool = false
+	for i in range(3):
+		await physics_frame
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(ogre.state == EnemyOgreBrute.AIState.RECOIL,
+		"wall beside the ogre: club sweep clangs into RECOIL (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() > sparks_before, "ogre clang throws sparks")
+	_check(ogre.is_staggered() and not ogre.is_dead(), "recoiling ogre counts as staggered (lodging opening)")
+	_check(not coord._active_holders.has(ogre.get_instance_id()), "clang releases the ogre's attack token")
+	_check(banners.any(func(t: String) -> bool: return t.contains("smashes into the wall")), "clang raises the 'smashes into the wall' banner")
+	_check(not ogre._slam_ring.visible, "no slam ring shown during recoil")
+	var ticks_in_recoil: int = 0
+	while ogre.state == EnemyOgreBrute.AIState.RECOIL and ticks_in_recoil < 600:
+		await physics_frame
+		ticks_in_recoil += 1
+		hb_ever_active = hb_ever_active or ogre._hitbox._is_swing_active
+		reached_sweep_active = reached_sweep_active or ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE
+	_check(not hb_ever_active and not reached_sweep_active, "a clanged ogre sweep never opens its hitbox")
+	# The wall is on the -Z side; the knockback (1.2 m/s, decaying at 18 m/s^2)
+	# is a ~4 cm nudge, so compare against the pre-swing position.
+	_check(ogre.global_position.z > spot.z + 0.02,
+		"recoil knocks the ogre away from the wall (z %.3f -> %.3f)" % [spot.z, ogre.global_position.z])
 
-	# A heavy blow on a recoiling ork can lodge.
-	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
-	var saved_chance: float = axe_w.heavy_lodge_chance
-	axe_w.heavy_lodge_chance = 1.0
-	_equip_now("woodsmans_broadaxe")
-	_reset_player(OPEN)
-	await _ticks(2)
-	hall_ork.state = EnemyOrkWarrior.AIState.RECOIL
-	hall_ork.health = hall_ork.max_health
-	_make_lodge(hall_ork, false)
-	_check(_player.current_state == PlayerController.ActionState.LODGED, "heavy axe blow on a recoiling ork lodges")
-	await _seconds(0.5)
-	_check(_player.inventory.main_hand != null and _player.inventory.main_hand.data.item_id == "woodsmans_broadaxe", "...and the tug wrenches it free")
-	axe_w.heavy_lodge_chance = saved_chance
-	_equip_now("arming_sword")
-	_equip_now("wooden_targe")
-	await _seconds(0.6)
+	# 2) Recoil length. Still the real state machine with the live player as
+	#    player_ref, so this also proves RECOIL isn't cut short while the
+	#    player is alive.
+	var recoil_secs: float = float(ticks_in_recoil) / float(Engine.physics_ticks_per_second)
+	# A clang must leave a longer opening than a whiffed sweep (active + long recovery).
+	_check(ogre.wall_recoil_time > 0.24 + 1.30,
+		"a clang opens a longer window than a whiffed sweep (%.2f s > 1.54 s)" % ogre.wall_recoil_time)
+	_check(absf(recoil_secs - ogre.wall_recoil_time) < 0.1,
+		"recoil lasts wall_recoil_time (%.2f s of %.2f s)" % [recoil_secs, ogre.wall_recoil_time])
+	await _seconds(0.05)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre.is_staggered(),
+		"after recoil the ogre resumes PURSUE (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
 
-	for n: Node3D in [hall_ork, open_ork, vanguard, brute, vanguard_open, hall_gob, ogre]:
-		n.queue_free()
+	# 3) Ground slam beside the same wall: vertical, never deflected.
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	var sparks_pre_slam: int = _main.find_children("WallSparks*", "Node3D", false, false).size()
+	ogre.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE and ogre._hitbox._is_swing_active,
+		"beside the wall: ground slam reaches SLAM_ACTIVE with its hitbox open")
+	_check(_main.find_children("WallSparks*", "Node3D", false, false).size() == sparks_pre_slam, "ground slam throws no sparks")
+	await _seconds(0.3)
+	_check(ogre.state == EnemyOgreBrute.AIState.LONG_RECOVERY and not ogre._slam_ring.visible and not ogre._hitbox._is_swing_active,
+		"after the slam: long recovery, slam ring hidden, hitbox closed")
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	# 4) Same spot with the wall gone: the sweep connects exactly as before.
+	wall.queue_free()
+	await _ticks(3)
+	await _pose_ogre(ogre, spot, Vector3.RIGHT)
+	ogre.state = EnemyOgreBrute.AIState.SWEEP_STARTUP
+	ogre._state_timer = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.SWEEP_ACTIVE and ogre._hitbox._is_swing_active,
+		"no wall nearby: club sweep reaches SWEEP_ACTIVE with its hitbox open (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+
+	ogre.queue_free()
+	coord._active_holders = saved_holders
+	await _ticks(2)
+
+const OGRE_YARD := Vector3(-12.0, 0.0, 18.0)   # open ground, ~13 m north-west of OPEN
+
+func _make_ogre_test_wall(center: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = "OgreTestWall"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	_main.add_child(body)
+	return body
+
+## Places a frozen ogre on its feet, still, idle and facing `facing`.
+func _pose_ogre(ogre: EnemyOgreBrute, pos: Vector3, facing: Vector3) -> void:
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre._hitbox.end_swing()
+	ogre._slam_ring.visible = false
+	ogre.global_position = pos
+	ogre.velocity = Vector3.ZERO
+	ogre._knockback_vel = Vector3.ZERO
+	ogre._home_pos = pos
+	ogre._facing_dir = facing.normalized()
+	ogre._visual_root.look_at(pos + facing.normalized(), Vector3.UP)
+	ogre.state = EnemyOgreBrute.AIState.IDLE
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Milestone 7 — survivor backgrounds
+# Ogre: if the player dies mid-attack, the ogre goes idle without leaving its
+# hitbox open or keeping the attack token (which would stop every other enemy
+# attacking after the respawn).
 # ------------------------------------------------------------------------------
-func _bg(id: String) -> SurvivorBackground:
-	var bg: SurvivorBackground = BackgroundDatabase.get_background(id)
-	_player.apply_background(bg)
-	return bg
-
-func _test_survivor_backgrounds() -> void:
-	_section("Survivor backgrounds")
-	var all: Array[SurvivorBackground] = BackgroundDatabase.all()
-	var ids: Dictionary = {}
-	var well_formed: bool = true
-	for bg: SurvivorBackground in all:
-		ids[bg.background_id] = true
-		if bg.trait_name == "" or bg.flaw_name == "" or bg.trait_desc == "" or bg.flaw_desc == "":
-			well_formed = false
-		var loadout_ids: Array = bg.loadout.map(func(e: Dictionary) -> String: return String(e["id"]))
-		for id: String in loadout_ids:
-			if not ItemDatabase.all_ids().has(id):
-				well_formed = false
-		if bg.main_hand_id != "" and not loadout_ids.has(bg.main_hand_id):
-			well_formed = false
-		if bg.off_hand_id != "" and not loadout_ids.has(bg.off_hand_id):
-			well_formed = false
-	_check(all.size() == 8 and ids.size() == 8, "eight survivors with unique ids")
-	_check(well_formed, "every survivor has a trait, a flaw and a valid loadout")
-
+func _test_ogre_drops_attack_when_player_dies() -> void:
+	_section("Ogre drops its attack when the player dies")
 	_reset_player(OPEN)
 	await _ticks(2)
-	var all_fit: bool = true
-	for bg: SurvivorBackground in all:
-		_player.apply_background(bg)
-		var main_ok: bool = bg.main_hand_id == "" or (_player.inventory.main_hand != null and _player.inventory.main_hand.data.item_id == bg.main_hand_id)
-		var off_ok: bool = bg.off_hand_id == "" or (_player.inventory.off_hand != null and _player.inventory.off_hand.data.item_id == bg.off_hand_id)
-		if not main_ok or not off_ok or _player.inventory.get_load() == Inventory.Load.OVERBURDENED:
-			all_fit = false
-			print("   loadout problem: ", bg.background_id)
-	_check(all_fit, "every loadout equips its weapons and starts below overburdened")
+	var level_ogre: EnemyOgreBrute = _children_of(func(n: Node) -> bool: return n is EnemyOgreBrute)[0]
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var saved_holders: Dictionary = coord._active_holders.duplicate()
+	coord._active_holders.clear()
 
-	# Citadel Deserter
-	_bg("citadel_deserter")
-	_check(_player.inventory.main_hand.data.item_id == "arming_sword" and _player.inventory.off_hand.data.item_id == "wooden_targe", "Deserter: sword & targe readied")
-	_player.current_state = PlayerController.ActionState.BLOCK
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = level_ogre.audio
+	ogre.coordinator = coord
+	await _pose_ogre(ogre, OGRE_YARD, Vector3.RIGHT)
+
+	# Mid-slam: hitbox open, slam ring shown, token held. (The slam never clangs.)
+	coord.request_attack_token(ogre, true)
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	ogre._state_timer = 0.0
+	ogre._slam_ring.visible = true
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(2)
+	_check(ogre.state == EnemyOgreBrute.AIState.SLAM_ACTIVE and ogre._hitbox._is_swing_active,
+		"ogre is mid-slam with its hitbox open (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(2)
+	_check(ogre.state == EnemyOgreBrute.AIState.IDLE, "player died: ogre goes idle")
+	_check(not ogre._hitbox._is_swing_active, "player died: ogre's hitbox is closed")
+	_check(not ogre._slam_ring.visible, "player died: slam ring is hidden")
+	_check(not coord._active_holders.has(ogre.get_instance_id()), "player died: ogre hands back its attack token")
+
+	_reset_player(OPEN)
+	ogre.queue_free()
+	await _ticks(2)
+	coord._active_holders = saved_holders
+
+# ------------------------------------------------------------------------------
+# Look and feel: the survivor is an animated character driven by the state machine.
+func _test_survivor_model() -> void:
+	_section("Survivor model (Quaternius Ranger, presentation only)")
+	_reset_player(OPEN)
+	_player.camera_rig = null
+	var model: SurvivorModel = _player._model
+	_check(model != null and model.is_inside_tree(), "player has an animated survivor model")
+	var needed: Array[StringName] = [&"Idle", &"Sword_Idle", &"Idle_Torch", &"Walk", &"Jog_Fwd", &"Sprint",
+		&"Sword_Regular_A", &"Sword_Regular_B", &"Sword_Regular_C", &"Sword_Dash", &"Punch_Jab", &"Punch_Cross", &"Idle_Shield",
+		&"Shield_OneShot", &"Idle_Shield_Break", &"Roll", &"Hit_Knockback", &"Hit_Head", &"Push", &"Death01", &"Interact",
+		&"Fixing_Kneeling", &"Consume"]
+	var missing: Array[StringName] = needed.filter(func(n: StringName) -> bool: return not model.has_animation(n))
+	_check(missing.is_empty(), "every animation the states use is loaded (missing: %s)" % str(missing))
+	_check(_player._weapon_mesh.get_parent().get_parent() == model.right_socket, "the weapon hangs off the right-hand socket")
+	_check(_player._shield_mesh.get_parent() == model.shield_mount and model.shield_mount.get_parent() == model.left_socket
+		and _player._torch_root.get_parent() == model.left_socket, "shield and torch hang off the left-hand socket")
+
+	await _ticks(3)
+	_check(model.current_animation() == &"Sword_Idle", "idle with a sword plays Sword_Idle (got %s)" % model.current_animation())
+
 	_player.stamina = _player.max_stamina
-	var front: Vector3 = _player.global_position + _player._aim_direction * 1.5
-	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, -_player._aim_direction, 10.0, 20.0))
-	var drilled_cost: float = _player.max_stamina - _player.stamina
-	_check(absf(drilled_cost - 20.0 * 0.55 * 0.75) < 0.05, "Shield Drill: block costs 25%% less stamina (%.2f)" % drilled_cost)
-	_player.current_state = PlayerController.ActionState.IDLE
-	_check(is_equal_approx(_player.get_modifiers().sprint_speed_mult, 0.88), "Bad Knee: sprint multiplier 0.88")
-
-	# Peat-Cutter
-	_bg("peat_cutter")
-	_check(is_equal_approx(_player.inventory.capacity_kg, 23.0), "Strong Back: 23 kg capacity")
-	_check(is_equal_approx(_player.max_stamina, 85.0) and is_equal_approx(_player.stamina, 85.0), "Bog Lung: 85 max stamina")
-
-	# Boar Hunter: quieter walking.
-	_bg("boar_hunter")
-	_check(is_equal_approx(_player.max_health, 80.0) and is_equal_approx(_player.health, 80.0), "Old Goring: 80 max health")
-	var listener := _spawn_dummy_goblin(OPEN + Vector3(3.1, 0, 0))
-	listener.player_ref = _player
-	listener._facing_dir = Vector3.RIGHT # facing away: can't see you
-	listener.state = EnemyGoblinScavenger.AIState.PATROL
-	_player.current_state = PlayerController.ActionState.MOVE
-	_player.emit_gait_noise()
-	listener._evaluate_senses(0.016)
-	_check(listener.state == EnemyGoblinScavenger.AIState.PATROL, "Light Step: a goblin 3.1 m away doesn't hear you walk")
-	_bg("citadel_deserter")
-	_player.current_state = PlayerController.ActionState.MOVE
-	_player.emit_gait_noise()
-	_check(listener.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "...but it hears an ordinary survivor")
-	_player.current_state = PlayerController.ActionState.IDLE
-
-	# Hedge Surgeon
-	_bg("hedge_surgeon")
-	_check(_player.inventory.count_of("clean_rag_bandage") == 5 and _player.inventory.off_hand == null, "Hedge Surgeon: 5 bandages, empty off-hand")
-	_check(is_equal_approx(_player.max_poise, 25.0), "Frail: 25 max poise")
-	_player.is_bleeding = true
-	_player.health = 50.0
-	_player.start_bandage()
-	_check(absf(_player._channel_total - 1.6 * 0.55) < 0.01, "Steady Hands: bandaging takes 0.88 s")
-	await _seconds(1.0)
-	_check(not _player.is_bleeding and absf(_player.health - 68.0) < 1.0, "Steady Hands: bandage heals 18 (hp %.1f)" % _player.health)
-
-	# Ferryman's Widow: torch fuel.
-	_bg("ferrymans_widow")
-	var torch: ItemInstance = _player.inventory.off_hand
-	var fuel: float = torch.condition
-	await _seconds(1.0)
-	var burned: float = fuel - torch.condition
-	_check(burned > 0.45 and burned < 0.8, "Fire-Keeper: torch burns ~0.6 s of fuel per second (%.2f)" % burned)
-	_check(is_equal_approx(_player.get_modifiers().stamina_regen_mult, 0.85), "Grief-Worn: stamina regen x0.85")
-
-	# Vault Runaway: clangs and the cough.
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_bg("vault_runaway")
-	var axe: ItemInstance = _player.inventory.main_hand
-	_reset_player(HALL)
-	_face(Vector3.RIGHT)
+	_face(Vector3.FORWARD)
+	_player._start_attack(true)
 	await _ticks(2)
-	var cond: float = axe.condition
-	_ready_for_attack()
+	var heavy_clip: StringName = model.current_animation()
+	_check(heavy_clip == &"Sword_Dash", "the sword's heavy (a thrust) plays the lunge (got %s)" % heavy_clip)
+	await _seconds(1.5)
+	_player.stamina = _player.max_stamina
 	_player._start_attack(false)
-	await _seconds(_player.weapon.light_startup_time + 0.03)
-	_check(_player.current_state == PlayerController.ActionState.RECOIL, "Vault Runaway still clangs in the hall")
-	_check(absf((cond - axe.condition) - 1.0) < 0.01, "Tunnel-Born: clang costs normal wear (%.1f)" % (cond - axe.condition))
-	_check(absf(_player._state_timer - 0.25) < 0.05, "Tunnel-Born: recoil is halved")
-	await _seconds(0.4)
+	await _ticks(2)
+	var light_clip: StringName = model.current_animation()
+	_check(String(light_clip).begins_with("Sword_Regular_"), "the sword's light (a sweep) plays a regular swing (got %s)" % light_clip)
+	var expected_speed: float = model.anim.get_animation(light_clip).length / (_player.weapon.light_startup_time + _player.weapon.light_active_time + _player.weapon.light_recovery_time)
+	_check(absf(model.anim.speed_scale - expected_speed) < 0.05, "the swing animation is fitted to the attack's duration (%.2f vs %.2f)" % [model.anim.speed_scale, expected_speed])
+	await _seconds(1.5)
+
+	# The torch stays upright whatever the hand does, and its light hangs over the shoulder, above the hood.
+	var torch: ItemInstance = ItemDatabase.make("pitch_torch")
+	_player.inventory.add(torch)
+	_player.inventory.equip(torch)
+	await _ticks(3)
+	var torch_up: Vector3 = _player._torch_root.global_basis.y.normalized()
+	_check(torch_up.y > 0.9, "the torch points up (up·y = %.2f)" % torch_up.y)
+	_check(model.current_animation() == &"Idle_Torch", "idle with a lit torch holds it up (got %s)" % model.current_animation())
+	_check(_player._torch_light.global_position.y - _player.global_position.y > 2.0,
+		"the torch light hangs above the hood (%.2f m up)" % (_player._torch_light.global_position.y - _player.global_position.y))
+
+	var hp: float = _player.health
+	_player.health = 1.0
+	_player._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position + Vector3.FORWARD, Vector3.BACK, 50.0, 10.0))
+	await _ticks(2)
+	_check(_player.current_state == PlayerController.ActionState.DEAD and model.current_animation() == &"Death01", "death plays Death01")
+	_player.health = hp
+	_reset_player(OPEN)
+	await _ticks(3)
+	_check(String(model.current_animation()).contains("Idle"), "respawn returns to an idle (got %s)" % model.current_animation())
+	_player.inventory.remove(torch)
+
+# ------------------------------------------------------------------------------
+# Look and feel 2: the level's boxes wear photo textures (ambientCG, CC0); the owner's kit dresses it.
+func _test_environment_surfaces() -> void:
+	await _ticks(1)
+	_section("Environment surfaces (ambientCG)")
+	var textured: int = 0
+	var flat: int = 0
+	for n: Node in _main.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var sm := mi.material_override as ShaderMaterial
+		if sm == null or not (mi.get_parent() is StaticBody3D):
+			continue
+		if sm.get_shader_parameter("use_texture") and sm.get_shader_parameter("albedo_tex") is Texture2D:
+			textured += 1
+		else:
+			flat += 1
+	_check(textured >= 15 and flat == 0, "every level box wears a photo texture (%d textured, %d flat)" % [textured, flat])
+	# Containers wear the owner's kit (assets/environment/env007), fitted inside their collision.
+	var fitted: int = 0
+	var poking: int = 0
+	for label: String in ["ShelterStash", "RottedGrainCrate", "WatchhouseSupplyChest", "OrkPlunderPile", "GnawedBoneHeap"]:
+		var body := _main.find_child(label, true, false) as StaticBody3D
+		var holder: Node3D = body.get_node_or_null("Model") as Node3D if body else null
+		if holder == null or holder.get_child_count() == 0:
+			continue
+		fitted += 1
+		var box: Vector3 = ((body.get_child(0) as CollisionShape3D).shape as BoxShape3D).size
+		var bb: AABB = SetDressing._bounds(holder.get_child(0) as Node3D)
+		var sc: Vector3 = (holder.get_child(0) as Node3D).scale
+		if bb.size.x * sc.x > box.x + 0.01 or bb.size.z * sc.z > box.z + 0.01:
+			poking += 1
+	_check(fitted == 5 and poking == 0, "all five containers wear kit models inside their collision (%d fitted, %d poking out)" % [fitted, poking])
+	var dressing := _main.find_child("SetDressing", true, false) as SetDressing
+	_check(dressing != null and dressing.placed >= 90, "the yard is dressed with the kit (%d pieces)" % (dressing.placed if dressing else 0))
+	# Solid pieces block bodies on layer 7 "Props" only; every combat and sight ray uses layer 1.
+	var bodies: Array[Node] = dressing.find_children("*", "CollisionObject3D", true, false) if dressing else []
+	var off_layer: int = bodies.filter(func(b: Node) -> bool: return (b as CollisionObject3D).collision_layer != SetDressing.PROPS_LAYER).size()
+	_check(dressing != null and bodies.size() == dressing.solids and dressing.solids >= 15 and off_layer == 0,
+		"solid dressing (%d pieces) is on the Props layer only (%d elsewhere)" % [bodies.size(), off_layer])
+	var tree_at := Vector3(-21.0, 0.0, 12.0)
+	var space := _player.get_world_3d().direct_space_state
+	var ray := PhysicsRayQueryParameters3D.create(tree_at + Vector3(-2.0, 1.0, 0.0), tree_at + Vector3(2.0, 1.0, 0.0), 1)
+	_check(space.intersect_ray(ray).is_empty(), "sight and combat rays (layer 1) pass through a tree trunk")
+	var props_ray := PhysicsRayQueryParameters3D.create(tree_at + Vector3(-2.0, 1.0, 0.0), tree_at + Vector3(2.0, 1.0, 0.0), SetDressing.PROPS_LAYER)
+	_check(not space.intersect_ray(props_ray).is_empty(), "the tree trunk is solid on the Props layer")
+	_reset_player(tree_at + Vector3(-1.5, 0.0, 0.0))
+	await _ticks(2)
+	var blocked: bool = _player.test_move(_player.global_transform, Vector3(1.5, 0.0, 0.0))
+	_check(blocked, "the survivor bumps into the tree instead of walking through it")
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Look and feel 3: night lighting, mist, glow, the grade, falling ash, the vignette, fire flicker.
+func _test_atmosphere() -> void:
+	_section("Atmosphere (look and feel 3)")
+	var env: Environment = null
+	for n: Node in _main.get_children():
+		if n is WorldEnvironment:
+			env = (n as WorldEnvironment).environment
+	_check(env != null and env.fog_enabled and env.fog_height_density > 0.0 and env.glow_enabled and env.adjustment_enabled
+		and env.adjustment_saturation < 1.0, "night grade: fog with ground mist, glow, desaturated adjustment")
+	var moon := _main.find_child("Moon", true, false) as DirectionalLight3D
+	_check(moon != null and moon.light_color.b > moon.light_color.r, "the moon is cold (blue over red)")
+	var ash := _main.find_child("AshFall", true, false) as AshFall
+	_check(ash != null and ash.multimesh.instance_count == AshFall.FLAKES and ash.follow == _player, "ash falls around the survivor (%d flakes)" % (ash.multimesh.instance_count if ash else 0))
+	await _ticks(2)
+	_check(ash != null and Vector2(ash.global_position.x - _player.global_position.x, ash.global_position.z - _player.global_position.z).length() < 0.01,
+		"the ash box follows the survivor")
+	var vig := _main.find_child("Vignette", true, false) as Vignette
+	_check(vig != null and vig.layer < _hud.layer and (vig.get_child(0) as Control).mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"the vignette sits under the HUD and ignores the mouse")
+	var fire := _main.find_child("ShelterFireLight", true, false) as FlickerLight
+	var energies: Array[float] = []
+	for i: int in range(6):
+		await _ticks(5)
+		energies.append(fire.light_energy if fire else 0.0)
+	var spread: float = energies.max() - energies.min()
+	_check(fire != null and spread > 0.02 and energies.max() <= fire.base_energy * 1.05, "the shelter fire flickers (energy spread %.2f)" % spread)
+
+# ------------------------------------------------------------------------------
+# Look and feel 4: the Ashbound enemy bodies, and every character facing where it aims.
+func _toes_dir(model: Node3D) -> Vector3:
+	var sk := model.find_child("Skeleton3D", true, false) as Skeleton3D
+	var foot: Vector3 = sk.to_global(sk.get_bone_global_pose(sk.find_bone("foot_l")).origin)
+	var ball: Vector3 = sk.to_global(sk.get_bone_global_pose(sk.find_bone("ball_l")).origin)
+	var d := ball - foot
+	d.y = 0.0
+	return d.normalized()
+
+func _test_enemy_models() -> void:
+	_section("Enemy models (Ashbound) and facing")
+	# The Quaternius characters face +Z in their files; the game aims down -Z. Toes must point
+	# the way a character aims (this shipped backwards once, in LF-1b).
+	_reset_player(OPEN)
+	_face(Vector3(1.0, 0.0, 0.0))
+	await _ticks(2)
+	var survivor_toes: Vector3 = _toes_dir(_player._model)
+	_check(survivor_toes.dot(Vector3(1.0, 0.0, 0.0)) > 0.8, "the survivor faces where it aims (toes·aim = %.2f)" % survivor_toes.dot(Vector3(1.0, 0.0, 0.0)))
+
+	var needed: Dictionary = {
+		EnemyGoblinScavenger: [&"Crouch_Idle", &"Crouch_Fwd", &"Jog_Fwd", &"Sword_Dash", &"OverhandThrow", &"Hit_Knockback", &"Hit_Chest", &"Death01"],
+		EnemyOrkWarrior: [&"Sword_Idle", &"Walk", &"Jog_Fwd", &"Idle_Shield", &"Sword_Regular_A", &"Sword_Regular_C", &"Shield_Dash", &"Idle_Shield_Break", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyOgreBrute: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Sword_Regular_A", &"Sword_Regular_C", &"Push", &"Sprint", &"Hit_Knockback", &"Hit_Head", &"Death01"],
+		EnemyQuarryTroll: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Sword_Regular_A", &"Sword_Regular_C", &"Hit_Knockback", &"Death01"],
+		EnemySporeHusk: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Melee_Hook", &"Hit_Chest", &"Death01"],
+		EnemyUnnamed: [&"Zombie_Idle", &"Zombie_Walk_Fwd", &"Punch_Cross", &"Hit_Chest", &"Death01", &"LayToIdle"],
+		EnemyGalleryCrawler: [&"Crouch_Idle", &"Crouch_Fwd", &"NinjaJump_Start", &"NinjaJump_Idle", &"NinjaJump_Land", &"Sword_Dash", &"Zombie_Scratch", &"Hit_Knockback", &"ClimbUp_1m", &"Death01"],
+	}
+	for cls: Variant in needed.keys():
+		var e: Node3D = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))[0]
+		var m: EnemyModel = e.get("_model")
+		var missing: Array = (needed[cls] as Array).filter(func(a: StringName) -> bool: return m == null or not m.has_animation(a))
+		_check(m != null and missing.is_empty(), "%s has an Ashbound body with every clip it uses (missing %s)" % [e.get("enemy_name"), str(missing)])
+		var weapon: Node3D = e.get("_club_pivot") if e is EnemyOgreBrute else e.get("_weapon_arm")
+		_check(m != null and weapon != null and weapon.get_parent() == m.right_socket, "%s holds its weapon in its right hand" % e.get("enemy_name"))
+		var vr: Node3D = e.get("_visual_root")
+		var saved: Transform3D = vr.global_transform
+		vr.look_at(vr.global_position + Vector3(0.0, 0.0, 1.0), Vector3.UP)
+		await _ticks(2)
+		var toes: Vector3 = _toes_dir(m)
+		_check(toes.z > 0.8, "%s faces where it aims (toes·aim = %.2f)" % [e.get("enemy_name"), toes.z])
+		vr.global_transform = saved
+
+	# Every gait and idle a character holds must loop, or the body freezes after one cycle (the
+	# goblin's creep and the ogre's shamble shipped that way in LF-4).
+	var held: Array[StringName] = [&"Idle", &"Idle_Torch", &"Sword_Idle", &"Idle_Shield", &"Walk", &"Jog_Fwd", &"Sprint",
+		&"Crouch_Idle", &"Crouch_Fwd", &"Zombie_Idle", &"Zombie_Walk_Fwd", &"Zombie_Scratch", &"Push"]
+	var lib: AnimationLibrary = SurvivorModel.shared_library()
+	var one_shot: Array = held.filter(func(n: StringName) -> bool: return lib.get_animation(n).loop_mode != Animation.LOOP_LINEAR)
+	_check(one_shot.is_empty(), "every walk and idle clip loops (one-shot: %s)" % str(one_shot))
+
+	# A goblin's attack plays the jab; its death plays the death clip, and the body is not tipped flat.
+	var goblin := EnemyGoblinScavenger.new()
+	_main.add_child(goblin)
+	goblin.global_position = OPEN + Vector3(3.0, 0.0, 0.0)
+	await _ticks(2)
+	goblin.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	goblin._state_timer = 0.56
+	goblin._update_visual_telegraph()
+	_check(goblin._model.current_animation() == &"Sword_Dash", "a goblin's attack plays the jab (got %s)" % goblin._model.current_animation())
+	goblin.state = EnemyGoblinScavenger.AIState.IDLE
+	goblin._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 10.0))
+	await _ticks(2)
+	_check(goblin.state == EnemyGoblinScavenger.AIState.DEAD and goblin._model.current_animation() == &"Death01"
+		and absf(goblin._visual_root.rotation_degrees.x) < 1.0, "a goblin's death plays Death01 instead of tipping the body flat")
+	goblin.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Enemy temperaments: each enemy fights in its own way (attack style, aggression, power).
+# Keep temperament helpers between this banner and the end of the file.
+# ------------------------------------------------------------------------------
+func _test_enemy_temperaments() -> void:
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	await _test_goblin_temperament()
+	await _test_ork_temperament()
+	await _test_ogre_temperament()
+	await _test_attack_power()
+	await _test_temperament_audit()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
-	listener.state = EnemyGoblinScavenger.AIState.PATROL
-	listener.global_position = OPEN + Vector3(7.0, 0, 0)
-	_player._cough_timer = 0.01
-	await _ticks(2)
-	_check(_player.is_coughing(), "Ash-Lung: the survivor coughs")
-	listener._evaluate_senses(0.016)
-	_check(listener.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "Ash-Lung: a goblin 7 m away hears the cough")
-	_check(_player._cough_timer > 10.0, "next cough rescheduled")
-	listener.queue_free()
 
-	# Salt-Smuggler
-	_bg("salt_smuggler")
-	var cache := _make_test_lootable(OPEN + Vector3(0.8, 0, 0), 2.0, [ItemDatabase.make("salt", 1)])
-	await _ticks(2)
-	_player._try_interact()
-	_check(absf(_player._channel_total - 1.3) < 0.01, "Light Fingers: 2.0 s search takes 1.3 s")
-	_player._cancel_channel("")
-	cache.queue_free()
-	_player.inventory.add(ItemDatabase.make("woodsmans_broadaxe"))
-	_player.request_equip(_player.inventory.find_first("woodsmans_broadaxe"))
-	_check(absf(_player._channel_total - 0.55 * 1.5) < 0.01, "Shaking Hands: swaps take 50% longer")
-	_player._cancel_channel("")
+## A live goblin hunting the survivor, standing `offset` from them.
+func _spawn_hunting_goblin(offset: Vector3) -> EnemyGoblinScavenger:
+	var g := EnemyGoblinScavenger.new()
+	g.audio = _player.audio
+	g.player_ref = _player
+	_main.add_child(g)
+	g.global_position = _player.global_position + offset
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	return g
 
-	# Disgraced Squire
-	_bg("disgraced_squire")
-	_check(is_equal_approx(_player.max_poise, 47.0), "Tourney Poise: 47 max poise")
-	var sword: ItemInstance = _player.inventory.main_hand
-	var c0: float = sword.condition
-	_player._on_confirmed_hit_landed(_main, CombatPayload.new(_player, Vector3.ZERO, Vector3.FORWARD, 1, 1))
-	_check(absf((c0 - sword.condition) - 1.5) < 0.001, "Soft Grip: a light hit wears 1.5")
-
-	# Flaws are permanent; the picker pauses the world.
-	_player.respawn_at_shelter(OPEN)
-	_check(_player.background != null and _player.background.background_id == "disgraced_squire" and is_equal_approx(_player.max_poise, 47.0), "respawning keeps the survivor and their flaw")
-
-	var picker := BackgroundPicker.new()
-	var chosen: Array = []
-	picker.background_chosen.connect(func(bg: SurvivorBackground) -> void: chosen.append(bg))
-	root.add_child(picker)
-	await process_frame
-	_check(paused, "the survivor picker pauses the world")
-	picker.select(3)
-	_check(picker.get_selected().background_id == "hedge_surgeon", "picker selects by index")
-	picker.confirm()
-	await process_frame
-	_check(not paused and chosen.size() == 1 and chosen[0].background_id == "hedge_surgeon", "confirming emits the choice and unpauses")
-
-	# Back to the legacy loadout for anything that follows.
-	_player.apply_background(null)
-	_check(absf(_player.inventory.total_weight() - 5.9) < 0.01 and is_equal_approx(_player.max_health, 100.0), "clearing the background restores the legacy loadout")
+func _test_goblin_temperament() -> void:
+	_section("Enemy temperament: the goblin opportunist")
 	_reset_player(OPEN)
 	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 8 — vision cone, memory map, acoustic ripples
-# ------------------------------------------------------------------------------
-func _test_vision_and_ripples() -> void:
-	_section("Vision cone & acoustic ripples")
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_reset_player(OPEN)
-	_face(Vector3.RIGHT)
-	await _ticks(3)
-	var p: Vector3 = _player.global_position + Vector3(0, 1.0, 0)
-
-	_check(_player.can_see_point(p + Vector3(6, 0, 0)), "sees a point 6 m ahead")
-	_check(_player.can_see_point(p + Vector3(5, 0, 4)), "sees 40° off the aim (inside the 130° cone)")
-	_check(not _player.can_see_point(p + Vector3(-6, 0, 0)), "can't see 6 m behind")
-	_check(not _player.can_see_point(p + Vector3(1, 0, 6)), "can't see 80° off the aim")
-	_check(_player.can_see_point(p + Vector3(-1.2, 0, 0)), "senses 1.2 m behind (sense radius)")
-	_check(not _player.can_see_point(p + Vector3(17, 0, 0)), "can't see past vision range")
-	# Walls block sight: from the yard west of the watchhouse, look east through the wall.
-	_reset_player(Vector3(-0.5, 0.0, -5.0))
-	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
 	await _ticks(2)
-	_check(not _player.can_see_point(Vector3(3.0, 1.0, -5.0)), "a wall in the cone still blocks sight")
+	_check(is_equal_approx(g.aggression, 0.3) and is_equal_approx(g.attack_power, 1.0),
+		"goblin temperament: aggression 0.3, attack power 1.0 (%.2f, %.2f)" % [g.aggression, g.attack_power])
 
-	# Enemies outside the cone aren't drawn.
-	_reset_player(OPEN)
+	# Openings: a turned back or a swing's recovery opens the survivor; facing it squarely doesn't.
 	_face(Vector3.RIGHT)
-	await _ticks(2)
-	var ahead := _spawn_dummy_goblin(OPEN + Vector3(4.0, 0, 0))
-	var behind := _spawn_dummy_goblin(OPEN + Vector3(-4.0, 0, 0))
-	ahead.player_ref = _player
-	behind.player_ref = _player
-	await _ticks(2)
-	ahead._update_player_los_visibility(0.016)
-	behind._update_player_los_visibility(0.016)
-	_check(ahead._visual_root.visible, "goblin inside the cone is drawn")
-	_check(not behind._visual_root.visible, "goblin behind you is hidden")
-
-	# Exploration memory.
-	var vision: VisionCone = _children_of(func(n: Node) -> bool: return n is VisionCone)[0]
-	vision.update_now()
-	_check(vision.is_visible_now(OPEN + Vector3(6, 0, 0)), "cone marks ground ahead as visible")
-	_check(not vision.is_visible_now(OPEN + Vector3(-6, 0, 0)), "ground behind is not visible")
-	_check(vision.is_explored(OPEN + Vector3(6, 0, 0)), "ground ahead is now explored")
+	_check(not g.player_is_open(), "goblin: a survivor facing it, at rest, is not open")
 	_face(Vector3.LEFT)
-	vision.update_now()
-	_check(not vision.is_visible_now(OPEN + Vector3(6, 0, 0)) and vision.is_explored(OPEN + Vector3(6, 0, 0)), "turning away: still explored (charcoal) but no longer visible")
-	_check(not vision.is_explored(Vector3(24.0, 0, -24.0)), "far corner never seen stays unexplored")
-	_reset_player(Vector3(-0.5, 0.0, -5.0))
+	_check(g.player_is_open(), "goblin: a survivor with their back turned is open")
 	_face(Vector3.RIGHT)
-	vision.update_now()
-	_check(not vision.is_visible_now(Vector3(4.0, 0.0, -5.0)), "cone rays stop at walls (interior stays unlit)")
-	_check(vision.overlay != null and vision.overlay.get_parent() is Camera3D, "memory overlay is attached to the camera")
-
-	# Noises and ripples.
-	_reset_player(OPEN)
-	_face(Vector3.RIGHT)
-	await _ticks(2)
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	var ripples: AcousticRipples = _children_of(func(n: Node) -> bool: return n is AcousticRipples)[0]
-	var heard: Array = []
-	var listener := func(_pos: Vector3, loud: float, _src: Node3D, kind: String) -> void: heard.append([kind, loud])
-	field.noise_emitted.connect(listener)
-
-	var r0: int = ripples.active_ripple_count()
-	field.emit_noise(behind.global_position, 6.0, behind, "footstep")
-	_check(ripples.active_ripple_count() == r0 + 1, "unseen goblin's footstep draws a ripple")
-	field.emit_noise(behind.global_position, 6.0, behind, "footstep")
-	_check(ripples.active_ripple_count() == r0 + 1, "one ripple per source per 0.28 s")
-	field.emit_noise(ahead.global_position, 6.0, ahead, "footstep")
-	_check(ripples.active_ripple_count() == r0 + 1, "a goblin you can see makes no ripple")
-	var far := _spawn_dummy_goblin(OPEN + Vector3(-12.0, 0, 0))
-	field.emit_noise(far.global_position, 6.0, far, "footstep")
-	_check(ripples.active_ripple_count() == r0 + 1, "a footstep beyond its reach isn't heard")
-	field.emit_noise(far.global_position, 18.0, far, "slam")
-	_check(ripples.active_ripple_count() == r0 + 2, "a loud slam at 12 m is heard")
-	field.emit_noise(_player.global_position, 9.0, _player, "cough")
-	_check(ripples.active_ripple_count() == r0 + 2, "your own noises make no ripple")
-	var rip: Node3D = ripples.get_children().back()
-	await _seconds(0.5)
-	_check(rip.get_child(0).scale.x > 0.6, "ripple ring expands (scale %.2f)" % rip.get_child(0).scale.x)
-	await _seconds(1.2)
-	_check(ripples.active_ripple_count() == r0, "ripples fade out and free themselves")
-
-	# Emitters.
-	heard.clear()
-	behind.velocity = Vector3(3.0, 0, 0)
-	var t: float = AcousticField.step_cadence(behind, 0.01, 0.05, 0.34, 4.5)
-	_check(heard.size() == 1 and heard[0][0] == "footstep" and is_equal_approx(t, 0.34), "moving goblin reports a footstep")
-	behind.velocity = Vector3.ZERO
-	heard.clear()
-	AcousticField.step_cadence(behind, 0.01, 0.05, 0.34, 4.5)
-	_check(heard.is_empty(), "a standing goblin makes no footsteps")
-	heard.clear()
-	var hall_ork := _spawn_dummy_ork(HALL, false, Vector3.RIGHT)
-	await _ticks(2)
-	hall_ork._enter_combo_1_active()
-	_check(heard.any(func(h: Array) -> bool: return h[0] == "clang"), "an ork clang is reported to the acoustic field")
-	heard.clear()
-	field.hearing_multiplier = 0.5
-	field.emit_noise(OPEN, 10.0, null, "test")
-	_check(heard.size() == 1 and is_equal_approx(float(heard[0][1]), 5.0), "hearing multiplier scales noise reach")
-	field.hearing_multiplier = 1.0
-
-	field.noise_emitted.disconnect(listener)
-	for n: Node in [ahead, behind, far, hall_ork]:
-		n.queue_free()
-	_player.camera_rig = rig
-	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 9 — weather & atmosphere
-# ------------------------------------------------------------------------------
-const INSIDE := Vector3(6.0, 0.0, -3.0) # watchhouse interior (sheltered)
-
-func _test_weather() -> void:
-	_section("Weather & atmosphere")
-	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	var W := WeatherSystem.Weather
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_check(not weather.cycle_enabled and weather.current == W.OVERCAST, "starts Overcast (cycle off under test)")
-	var all_named: bool = true
-	for w: int in W.values():
-		if String(WeatherSystem.profile(w)["name"]) == "" or String(WeatherSystem.profile(w)["summary"]) == "":
-			all_named = false
-	_check(W.size() == 7 and all_named, "seven weathers, each named and described")
-	_reset_player(OPEN)
-	_face(Vector3.RIGHT)
-	await _ticks(2)
-	var neutral: bool = true
-	for key: String in ["sight", "hearing", "torch_burn", "torch_light", "traction", "sprint", "stamina_regen"]:
-		if not is_equal_approx(WeatherSystem.factor(_player, key), 1.0):
-			neutral = false
-	_check(neutral and is_equal_approx(WeatherSystem.factor(_player, "dodge_extra"), 0.0), "Overcast is neutral")
-
-	var changes: Array = []
-	var on_change := func(_w: int, n: String, _s: String) -> void: changes.append(n)
-	weather.weather_changed.connect(on_change)
-	weather.advance(true)
-	_check(weather.current == W.ASHFALL and changes == ["Ashfall"], "F4 / advance() moves to the next weather and announces it")
-	_check(absf(_player.get_vision_range() - 12.0) < 0.01, "Ashfall: vision range 16 -> 12 m")
-	_check(absf(field.hearing_multiplier - 0.8) < 0.01, "Ashfall: noise reach x0.8")
-
-	# Miasma: sight halved for you and for goblins.
-	weather.set_weather(W.MIASMA, true)
-	_check(absf(_player.get_vision_range() - 8.0) < 0.01, "Miasma: vision range 8 m")
-	_check(not _player.can_see_point(_player.global_position + Vector3(10, 1, 0)), "Miasma: can't see 10 m ahead")
-	var watcher := _spawn_dummy_goblin(OPEN + Vector3(10.0, 0, 0))
-	watcher.player_ref = _player
-	watcher._facing_dir = Vector3.LEFT
-	watcher.state = EnemyGoblinScavenger.AIState.PATROL
-	_player.current_state = PlayerController.ActionState.IDLE
-	watcher._evaluate_senses(0.016)
-	_check(watcher.state == EnemyGoblinScavenger.AIState.PATROL, "Miasma: a goblin 10 m away can't see you")
-	weather.set_weather(W.OVERCAST, true)
-	watcher._evaluate_senses(0.016)
-	_check(watcher.state == EnemyGoblinScavenger.AIState.PURSUE, "Overcast: the same goblin spots you")
-	weather.set_weather(W.MIASMA, true)
-	_check(absf(WeatherSystem.factor(_player, "stamina_regen") - 0.75) < 0.01, "Miasma: stamina regen x0.75 (even indoors)")
-
-	# Dead Calm: sound carries.
-	weather.set_weather(W.DEAD_CALM, true)
-	watcher.global_position = OPEN + Vector3(-5.0, 0, 0)
-	watcher._facing_dir = Vector3.LEFT
-	watcher.state = EnemyGoblinScavenger.AIState.PATROL
-	_player.current_state = PlayerController.ActionState.MOVE
-	_player.emit_gait_noise()
-	_check(watcher.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "Dead Calm: footsteps carry 5 m to a goblin")
-	weather.set_weather(W.OVERCAST, true)
-	watcher.state = EnemyGoblinScavenger.AIState.PATROL
-	_player.emit_gait_noise()
-	_check(watcher.state == EnemyGoblinScavenger.AIState.PATROL, "Overcast: the same footsteps go unheard")
-	_player.current_state = PlayerController.ActionState.IDLE
-	watcher.queue_free()
-
-	# Sleet: torch burns faster outdoors only; dodges cost more.
-	weather.set_weather(W.SLEET, true)
-	_equip_now("pitch_torch")
-	await _ticks(2)
-	var torch: ItemInstance = _player.inventory.off_hand
-	var fuel: float = torch.condition
-	await _seconds(1.0)
-	var burned_out: float = fuel - torch.condition
-	_check(burned_out > 1.7 and burned_out < 2.4, "Sleet: torch burns ~2 s of fuel per second outdoors (%.2f)" % burned_out)
-	_reset_player(INSIDE)
-	await _ticks(2)
-	_check(weather.is_sheltered(_player.global_position), "the watchhouse interior is sheltered")
-	fuel = torch.condition
-	await _seconds(1.0)
-	var burned_in: float = fuel - torch.condition
-	_check(burned_in > 0.8 and burned_in < 1.3, "Sleet: indoors the torch burns normally (%.2f)" % burned_in)
-	_reset_player(OPEN)
-	await _ticks(2)
-	_ready_for_attack()
-	_player._try_start_dodge(Vector3.RIGHT)
-	_check(absf((_player.max_stamina - _player.stamina) - 26.0) < 0.01, "Sleet: dodge costs 26 stamina outdoors")
-	await _seconds(0.6)
-	_check(get_precip_ok(weather, WeatherSystem.Precip.SLEET), "Sleet: sleet streaks are falling")
-	_equip_now("wooden_targe")
-
-	# Hoarfrost: you slide.
-	weather.set_weather(W.HOARFROST, true)
-	_reset_player(OPEN)
-	await _ticks(2)
-	_player.velocity = Vector3.ZERO
-	_player.current_state = PlayerController.ActionState.MOVE
-	_player._apply_locomotion(Vector3.RIGHT, 1.0 / 60.0)
-	var icy: float = _player.velocity.x
-	weather.set_weather(W.OVERCAST, true)
-	_player.velocity = Vector3.ZERO
-	_player._apply_locomotion(Vector3.RIGHT, 1.0 / 60.0)
-	var firm: float = _player.velocity.x
-	_check(icy < firm * 0.25 and firm > 4.0, "Hoarfrost: ice slows your first step (%.2f vs %.2f m/s)" % [icy, firm])
-	weather.set_weather(W.HOARFROST, true)
-	_check(absf(field.hearing_multiplier - 1.25) < 0.01 and absf(_player.get_vision_range() - 18.4) < 0.01, "Hoarfrost: sound carries x1.25, sight 18.4 m")
+	_player.current_state = PlayerController.ActionState.ATTACK_RECOVERY
+	_check(g.player_is_open(), "goblin: a survivor recovering from a swing is open")
 	_player.current_state = PlayerController.ActionState.IDLE
 
-	# Cinder-squall: gusts shove you outdoors, not indoors.
-	weather.set_weather(W.CINDER_SQUALL, true)
-	_reset_player(OPEN)
-	await _ticks(1)
-	_player._knockback_velocity = Vector3.ZERO
-	_check(weather.trigger_gust() and _player._knockback_velocity.length() > 4.0, "Cinder-squall: an ember gust shoves you outdoors")
-	_reset_player(INSIDE)
-	await _ticks(1)
-	_player._knockback_velocity = Vector3.ZERO
-	_check(not weather.trigger_gust() and _player._knockback_velocity.length() < 0.01, "Cinder-squall: no gusts inside the watchhouse")
-	_check(WeatherSystem.factor(_player, "torch_light") <= 1.0 + 0.001, "torch flare doesn't apply indoors")
-	_reset_player(OPEN)
-	await _ticks(1)
-	_check(WeatherSystem.factor(_player, "torch_light") > 1.29, "Cinder-squall: torches flare outdoors")
+	# Patience follows aggression.
+	g.aggression = 0.0
+	g._reset_patience()
+	var slow: float = g._patience
+	g.aggression = 1.0
+	g._reset_patience()
+	_check(slow > 3.5 and g._patience < 1.5, "goblin: a timid one circles longer before losing patience (%.1f s vs %.1f s)" % [slow, g._patience])
+	g.aggression = 0.3
 
-	# Smooth transitions.
-	weather.set_weather(W.OVERCAST, true)
-	var env: Environment = weather.environment
-	var d0: float = env.fog_density
-	weather.set_weather(W.MIASMA)
-	_check(weather.is_transitioning(), "a weather change blends in")
-	await _seconds(weather.transition_time * 0.5)
-	var mid: float = env.fog_density
-	_check(mid > d0 + 0.01 and mid < 0.075 - 0.01, "fog thickens gradually (%.3f mid-way)" % mid)
-	await _seconds(weather.transition_time * 0.6)
-	_check(not weather.is_transitioning() and absf(env.fog_density - 0.075) < 0.001, "blend completes at the new weather's fog")
+	# The jab: weak from the front, double from behind the guard. (4 m away: the hitbox opens on nothing.)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var front: float = g._hitbox._active_payload.physical_damage if g._hitbox._active_payload else -1.0
+	g._hitbox.end_swing()
+	_face(Vector3.LEFT)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var back: float = g._hitbox._active_payload.physical_damage if g._hitbox._active_payload else -1.0
+	var bleeds: bool = g._hitbox._active_payload != null and g._hitbox._active_payload.causes_bleed
+	g._hitbox.end_swing()
+	_check(is_equal_approx(front, EnemyGoblinScavenger.JAB_DAMAGE), "goblin: a jab from the front deals %.0f (got %.0f)" % [EnemyGoblinScavenger.JAB_DAMAGE, front])
+	_check(is_equal_approx(back, front * EnemyGoblinScavenger.BACKSTAB_MULT), "goblin: a backstab deals double (%.0f)" % back)
+	_check(bleeds, "goblin: the jab can still open a bleeding wound")
+	_face(Vector3.RIGHT)
 
-	weather.set_weather(W.OVERCAST, true)
+	# Hit and run: after the jab's recovery it skitters back out of reach, still facing the survivor.
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_RECOVERY
+	g._state_timer = 0.02
 	await _ticks(3)
-	_check(weather.get_precip_visible_count() == 0, "Overcast: nothing falls")
-	weather.weather_changed.disconnect(on_change)
-	_player.camera_rig = rig
+	_check(g.state == EnemyGoblinScavenger.AIState.DISENGAGE, "goblin: after a jab it disengages (state=%s)" % EnemyGoblinScavenger.AIState.keys()[g.state])
+	var d0: float = g.global_position.distance_to(_player.global_position)
+	await _seconds(0.4)
+	_check(g.global_position.distance_to(_player.global_position) > d0 + 0.8, "goblin: disengaging backs it away (%.1f m -> %.1f m)" % [d0, g.global_position.distance_to(_player.global_position)])
+	_check(g._facing_dir.dot((_player.global_position - g.global_position).normalized()) > 0.7, "goblin: it backs away still facing the survivor")
+	_check(g._model.anim.speed_scale < 0.0 and g._model.current_animation() == &"Crouch_Fwd", "goblin: backing away plays the crouched walk in reverse")
+	var pos_a: float = g._model.anim.current_animation_position
+	await _ticks(3)
+	var pos_b: float = g._model.anim.current_animation_position
+	_check(g._model.anim.is_playing() and not is_equal_approx(pos_a, pos_b) and (pos_b < pos_a or pos_b > pos_a + 1.0),
+		"goblin: the reversed walk actually runs backwards (%.2f s -> %.2f s)" % [pos_a, pos_b])
+	g.queue_free()
 	await _ticks(2)
 
-func get_precip_ok(weather: WeatherSystem, kind: WeatherSystem.Precip) -> bool:
-	return weather.get_active_precip() == kind and weather.get_precip_visible_count() > 100
-
-# ------------------------------------------------------------------------------
-# Milestone 10 — enemy ears
-# ------------------------------------------------------------------------------
-func _test_enemy_ears() -> void:
-	_section("Enemy ears")
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	var heard: Array = []
-	var rec := func(_pos: Vector3, reach: float, src: Node3D, kind: String) -> void:
-		if src == _player:
-			heard.append([kind, reach])
-	field.noise_emitted.connect(rec)
-
-	# The survivor's own noises.
+	# Stones: at range and in sight it throws one, which flies, strikes once and is gone.
 	_reset_player(OPEN)
 	await _ticks(2)
+	var thrower := _spawn_hunting_goblin(Vector3(7.0, 0.0, 0.0))
+	await _ticks(2)
+	_check(thrower._try_begin_throw(7.0) and thrower.state == EnemyGoblinScavenger.AIState.THROW_STARTUP,
+		"goblin: at 7 m it winds up a throw")
+	_check(not thrower._try_begin_throw(7.0), "goblin: and must rest its arm before the next one")
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	var taker := Node3D.new()
+	_main.add_child(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	coord.request_attack_token(taker)
+	var waiting := _spawn_hunting_goblin(Vector3(0.0, 0.0, 7.0))
+	waiting.coordinator = coord
+	await _ticks(1)
+	_check(not waiting._try_begin_throw(7.0), "goblin: a throw waits its turn while another enemy attacks")
+	coord.release_attack_token(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	waiting.queue_free()
+	taker.queue_free()
+	thrower._update_visual_telegraph()
+	_check(thrower._model.current_animation() == &"OverhandThrow", "goblin: the throw plays the overhand throw")
+	var hp: float = _player.health
+	var saw_stone: bool = false
+	for i in range(int(2.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_stone = saw_stone or not _main.find_children("ThrownStone*", "", false, false).is_empty()
+		if _player.health < hp:
+			break
+	_check(saw_stone, "goblin: the throw releases a stone")
+	_check(is_equal_approx(hp - _player.health, EnemyGoblinScavenger.STONE_DAMAGE),
+		"goblin: the stone strikes the survivor for %.0f (took %.1f)" % [EnemyGoblinScavenger.STONE_DAMAGE, hp - _player.health])
+	await _ticks(2)
+	_check(_main.find_children("ThrownStone*", "", false, false).is_empty(), "goblin: a stone that hits is gone")
+	thrower.queue_free()
+
+	# A stone thrown at stone stops there.
+	var wall := StaticBody3D.new()
+	var wc := CollisionShape3D.new()
+	var wb := BoxShape3D.new()
+	wb.size = Vector3(0.4, 3.0, 4.0)
+	wc.shape = wb
+	wall.add_child(wc)
+	_main.add_child(wall)
+	wall.global_position = OPEN + Vector3(-3.0, 1.5, 6.0)
+	var lone := ThrownStone.launch(_main, OPEN + Vector3(0.0, 1.0, 6.0), Vector3.LEFT,
+		CombatPayload.new(_main, OPEN, Vector3.LEFT, 1.0, 1.0))
+	await _seconds(0.5)
+	_check(not is_instance_valid(lone), "goblin: a stone that meets a wall stops there")
+	wall.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+func _test_ork_temperament() -> void:
+	_section("Enemy temperament: the ork soldier")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var orks: Array = _children_of(func(n: Node) -> bool: return n is EnemyOrkWarrior)
+	var shielded: Array = orks.filter(func(o: EnemyOrkWarrior) -> bool: return o.has_shield)
+	var cleavers: Array = orks.filter(func(o: EnemyOrkWarrior) -> bool: return not o.has_shield)
+	_check(not shielded.is_empty() and is_equal_approx(shielded[0].aggression, 0.5) and is_equal_approx(shielded[0].recovery_scale(), 1.0),
+		"ork: the shield ork is the steady baseline (aggression 0.5, recovery x1.0)")
+	_check(not cleavers.is_empty() and cleavers[0].aggression > 0.7 and cleavers[0].recovery_scale() < 0.85,
+		"ork: the shieldless cleaver is reckless (aggression %.2f, recovery x%.2f)" % [cleavers[0].aggression if not cleavers.is_empty() else 0.0, cleavers[0].recovery_scale() if not cleavers.is_empty() else 0.0])
+
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	o.audio = _player.audio
+	o.player_ref = _player
+	_main.add_child(o)
+	o.global_position = _player.global_position + Vector3(1.5, 0.0, 0.0)
+	o._facing_dir = Vector3.LEFT
+	o._visual_root.look_at(o.global_position + o._facing_dir, Vector3.UP)
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	await _ticks(2)
+
+	# A survivor facing it without a guard raised gives it no reason to bash.
+	_face(Vector3.RIGHT)
+	o._turtle_timer = 0.0
+	o._watch_for_raised_guard(1.0)
+	_check(is_zero_approx(o._turtle_timer), "ork: no raised guard, no patience lost")
+
+	# Hide behind the targe in front of it and it bashes the guard aside. (Earlier sections may have
+	# left a two-handed weapon or the torch in hand: hold the targe in a free off hand for this.)
+	var inv: Inventory = _player.inventory
+	var saved_main: ItemInstance = inv.main_hand
+	var saved_off: ItemInstance = inv.off_hand
+	if inv.main_hand != null and inv.main_hand.data.two_handed:
+		inv.main_hand = null
+	var targe: ItemInstance = inv.find_first("wooden_targe")
+	if targe != null:
+		targe.condition = maxf(targe.condition, 60.0)
+		inv.off_hand = targe
+	_check(_player._has_ready_shield(), "ork: (setup) the survivor has the targe ready")
+	Input.action_press("block")
+	await _ticks(3)
+	_face(Vector3.RIGHT)
+	_check(_player.current_state == PlayerController.ActionState.BLOCK, "ork: (setup) the survivor holds a guard (state=%s)" % PlayerController.ActionState.keys()[_player.current_state])
+	o._watch_for_raised_guard(0.5)
+	_check(o._turtle_timer > 0.4, "ork: it notices a guard raised in front of it")
+	o._turtle_timer = 5.0
+	o.state = EnemyOrkWarrior.AIState.SHIELD_ADVANCE
+	o._has_last_known_pos = true
+	o._last_known_player_pos = _player.global_position
+	var hp: float = _player.health
+	var stam: float = _player.stamina
+	var saw_bash: bool = false
+	var was_bashed: bool = false
+	for i in range(int(1.5 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		_face(Vector3.RIGHT)
+		saw_bash = saw_bash or o.state == EnemyOrkWarrior.AIState.BASH_STARTUP
+		if _player.current_state == PlayerController.ActionState.STAGGER:
+			was_bashed = true
+			break
+	Input.action_release("block")
+	_check(saw_bash, "ork: a guard held too long draws the shield bash")
+	_check(was_bashed, "ork: the bash knocks the guard aside and staggers the survivor")
+	_check(is_equal_approx(_player.health, hp), "ork: the blocked bash costs no health (%.0f -> %.0f)" % [hp, _player.health])
+	_check(_player.stamina < stam, "ork: but it costs stamina (%.0f -> %.0f)" % [stam, _player.stamina])
+	o._update_visual_telegraph()
+	o.queue_free()
+	inv.main_hand = saved_main
+	inv.off_hand = saved_off
+	inv.notify_changed()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+## A live ogre at `offset` from the survivor, facing them, mid-chase with its charge ready.
+func _spawn_charging_ogre(offset: Vector3) -> EnemyOgreBrute:
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = _player.audio
+	await _pose_ogre(ogre, _player.global_position + offset, -offset)
+	ogre.player_ref = _player
+	ogre.state = EnemyOgreBrute.AIState.PURSUE
+	ogre._pursuit_time = 2.0
+	ogre._charge_cooldown = 0.0
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	return ogre
+
+func _wait_ogre_state(ogre: EnemyOgreBrute, wanted: EnemyOgreBrute.AIState, secs: float) -> bool:
+	for i in range(int(secs * Engine.physics_ticks_per_second)):
+		if ogre.state == wanted:
+			return true
+		await _ticks(1)
+	return ogre.state == wanted
+
+func _test_ogre_temperament() -> void:
+	_section("Enemy temperament: the ogre juggernaut")
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var probe := EnemyOgreBrute.new()
+	_main.add_child(probe)
+	probe.process_mode = Node.PROCESS_MODE_DISABLED
+	_check(is_equal_approx(probe.aggression, 0.8) and is_equal_approx(probe.leash_distance(), 20.0),
+		"ogre temperament: aggression 0.8 keeps the 20 m chase (%.1f m)" % probe.leash_distance())
+	var calm_cd: float = probe.charge_cooldown_time()
+
+	# It doesn't flinch mid-windup: poise damage counts for x0.35 while it winds up.
+	probe.state = EnemyOgreBrute.AIState.SLAM_STARTUP
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 50.0))
+	var armoured: float = probe.poise_damage
+	probe.state = EnemyOgreBrute.AIState.IDLE
+	probe.poise_damage = 0.0
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 50.0))
+	_check(is_equal_approx(armoured, 50.0 * EnemyOgreBrute.WINDUP_POISE_MULT) and is_equal_approx(probe.poise_damage, 50.0),
+		"ogre: a blow during its windup barely rocks it (%.1f poise vs %.1f at rest)" % [armoured, probe.poise_damage])
+	probe.poise_damage = 0.0
+
+	# Enraged below 40% health: quicker to swing and to charge again, and it says so.
+	var banners: Array[String] = []
+	probe.ogre_event_banner.connect(func(txt: String, _c: Color) -> void: banners.append(txt))
+	probe.health = probe.max_health * 0.45
+	probe._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 30.0, 1.0))
+	_check(probe.enraged and banners.any(func(t: String) -> bool: return t.contains("enraged")), "ogre: below 40% health it is enraged")
+	probe._begin_committed_attack(Vector3.LEFT)
+	_check(probe._state_timer <= 1.12 * EnemyOgreBrute.ENRAGE_STARTUP_MULT + 0.001, "ogre: enraged, it winds up faster (%.2f s)" % probe._state_timer)
+	_check(probe.charge_cooldown_time() < calm_cd, "ogre: enraged, it charges again sooner (%.1f s vs %.1f s)" % [probe.charge_cooldown_time(), calm_cd])
+	probe.queue_free()
+
+	# 1) The charge: at 8 m in the open it lowers its head, then hits a survivor who stands there.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var ogre: EnemyOgreBrute = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.CHARGE_STARTUP, 1.0), "ogre: at 8 m it braces to charge")
+	ogre._update_visual_telegraph()
+	_check(ogre._model.current_animation() == &"Push", "ogre: bracing plays the shove (got %s)" % ogre._model.current_animation())
+	var hp: float = _player.health
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		if _player.health < hp or ogre.state == EnemyOgreBrute.AIState.LONG_RECOVERY:
+			break
+	_check(is_equal_approx(hp - _player.health, EnemyOgreBrute.CHARGE_DAMAGE),
+		"ogre: the charge hits a survivor who stands still for %.0f (took %.1f)" % [EnemyOgreBrute.CHARGE_DAMAGE, hp - _player.health])
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "ogre: and knocks them reeling")
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.LONG_RECOVERY, 2.0) and not ogre._charge_hitbox._is_swing_active,
+		"ogre: after the charge it recovers, its charge hitbox closed")
+	ogre.queue_free()
+	await _ticks(2)
+
+	# 2) Sidestep with a wall behind you: it thunders past and crashes into the stone, dazed.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(-2.5, 1.25, 0.0), Vector3(0.4, 2.5, 8.0))
+	ogre = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	_check(await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.CHARGE_ACTIVE, 2.0), "ogre: (setup) the charge is under way")
+	_player.global_position += Vector3(0.0, 0.0, 3.5)
+	hp = _player.health
+	var crashed: bool = await _wait_ogre_state(ogre, EnemyOgreBrute.AIState.RECOIL, 2.0)
+	_check(is_equal_approx(_player.health, hp), "ogre: a sidestep makes the charge miss (it cannot steer)")
+	_check(crashed and ogre.is_staggered() and ogre._state_timer > 1.5,
+		"ogre: it crashes into the wall behind and reels (state=%s, %.1f s)" % [EnemyOgreBrute.AIState.keys()[ogre.state], ogre._state_timer])
+	ogre.queue_free()
+
+	# 3b) A knee-high crate in the lane, or a doorway narrower than its shoulders, also stops the
+	#     charge before it starts; the chest-height ray alone looked over both.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	var crate := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 0.3, 0.0), Vector3(0.9, 0.6, 0.9))
+	var lane_ogre := EnemyOgreBrute.new()
+	_main.add_child(lane_ogre)
+	await _pose_ogre(lane_ogre, OGRE_YARD + Vector3(8.0, 0.0, 0.0), Vector3.LEFT)
+	lane_ogre.player_ref = _player
+	lane_ogre._pursuit_time = 2.0
+	lane_ogre._visual_root.visible = true
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a knee-high crate in the lane stops the charge")
+	crate.queue_free()
+	await _ticks(2)
+	var jamb_a := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, 1.4), Vector3(0.4, 3.0, 1.5))
+	var jamb_b := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.5, -1.4), Vector3(0.4, 3.0, 1.5))
+	await _ticks(2)
+	_check(not lane_ogre._try_begin_charge(8.0, Vector3.LEFT), "ogre: a 1.3 m doorway (narrower than its shoulders) stops the charge")
+	jamb_a.queue_free()
+	jamb_b.queue_free()
+	await _ticks(2)
+	_check(lane_ogre._try_begin_charge(8.0, Vector3.LEFT) and lane_ogre.state == EnemyOgreBrute.AIState.CHARGE_STARTUP,
+		"ogre: with the lane clear again it charges")
+	lane_ogre.queue_free()
+
+	# 3) With a wall between, it doesn't charge at all.
+	_reset_player(OGRE_YARD)
+	await _ticks(2)
+	ogre = EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	await _pose_ogre(ogre, OGRE_YARD + Vector3(-7.0, 0.0, 0.0), Vector3.RIGHT)
+	ogre.player_ref = _player
+	ogre._pursuit_time = 2.0
+	ogre._visual_root.visible = true
+	_check(not ogre._try_begin_charge(7.0, Vector3.RIGHT), "ogre: it won't charge with a wall in the way")
+	ogre.queue_free()
+	wall.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+## attack_power scales every blow each enemy deals (checked on the payload each attack builds).
+func _test_attack_power() -> void:
+	_section("Enemy temperament: attack power")
+	_reset_player(OPEN)
+	await _ticks(2)
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	await _ticks(2)
+	_face(Vector3.RIGHT)
+	g.attack_power = 1.5
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	var jab: float = g._hitbox._active_payload.physical_damage
+	g._hitbox.end_swing()
+	g.queue_free()
+	var o := EnemyOrkWarrior.new()
+	_main.add_child(o)
+	o.process_mode = Node.PROCESS_MODE_DISABLED
+	o.global_position = OGRE_YARD  # open ground: the slash must not clang
+	o.attack_power = 1.5
+	var ork: Array[float] = []
+	for f: Callable in [o._enter_combo_1_active, o._enter_combo_2_active, o._enter_bash_active]:
+		f.call()
+		ork.append(o._hitbox._active_payload.physical_damage if o._hitbox._active_payload else -1.0)
+		o._hitbox.end_swing()
+	o.queue_free()
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre.global_position = OGRE_YARD
+	ogre.attack_power = 1.5
+	ogre._enter_slam_active()
+	var slam: float = ogre._hitbox._active_payload.physical_damage
+	ogre._hitbox.end_swing()
+	ogre._enter_charge_active()
+	var charge: float = ogre._charge_hitbox._active_payload.physical_damage
+	ogre._charge_hitbox.end_swing()
+	ogre.queue_free()
+	_check(is_equal_approx(jab, EnemyGoblinScavenger.JAB_DAMAGE * 1.5), "attack power 1.5: goblin jab %.0f" % jab)
+	_check(is_equal_approx(ork[0], EnemyOrkWarrior.SLASH_DAMAGE * 1.5) and is_equal_approx(ork[1], EnemyOrkWarrior.CHOP_DAMAGE * 1.5)
+		and is_equal_approx(ork[2], EnemyOrkWarrior.BASH_DAMAGE * 1.5), "attack power 1.5: ork slash, chop, bash %s" % str(ork))
+	_check(is_equal_approx(slam, EnemyOgreBrute.SLAM_DAMAGE * 1.5) and is_equal_approx(charge, EnemyOgreBrute.CHARGE_DAMAGE * 1.5),
+		"attack power 1.5: ogre slam %.0f, charge %.0f" % [slam, charge])
+	await _ticks(2)
+
+## Fixes from the temperament audit: enemies stand down when the survivor dies, a goblin's
+## attack is knocked out by any blow, the backstab bark waits for a hit, a dart that finds the
+## turn taken circles before retrying, and the ogre's charge waits its turn.
+func _test_temperament_audit() -> void:
+	_section("Enemy temperament: audit fixes")
+	var coord: EncounterCoordinator = _children_of(func(n: Node) -> bool: return n is EncounterCoordinator)[0]
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	_reset_player(OPEN)
+	await _ticks(2)
+	_face(Vector3.LEFT)
+
+	# A backstab that hits nothing doesn't bark (4 m away: the jab lands on air).
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	g.coordinator = coord
+	var barks: Array[String] = []
+	g.goblin_combat_bark.connect(func(m: String) -> void: barks.append(m))
+	await _ticks(2)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	g._enter_attack_active()
+	await _ticks(3)
+	g._hitbox.end_swing()
+	_check(barks.is_empty(), "audit: a backstab that misses says nothing (%s)" % str(barks))
+
+	# Any blow knocks a goblin out of its windup, and the jab never opens.
+	_face(Vector3.RIGHT)
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._state_timer = 99.0
+	_check(g._try_begin_attack_windup(), "audit: (setup) goblin winds up a jab")
+	g._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 1.0, 1.0))
+	var opened: bool = false
+	for i in range(int(0.6 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		opened = opened or g._hitbox._is_swing_active
+	_check(not opened, "audit: a light blow knocks the goblin out of its jab")
+	_check(not coord._active_holders.has(g.get_instance_id()), "audit: and it holds no attack turn")
+
+	# A dart that finds the turn taken backs off and circles before trying again.
+	var taker := Node3D.new()
+	_main.add_child(taker)
+	coord.request_attack_token(taker)
+	g.global_position = _player.global_position + Vector3(1.6, 0.0, 0.0)
+	g._has_last_known_pos = true
+	g._last_known_player_pos = _player.global_position
+	g._committed = true
+	g.state = EnemyGoblinScavenger.AIState.PURSUE
+	await _ticks(2)
+	_check(g.state == EnemyGoblinScavenger.AIState.FLANK and g._recommit_delay > 0.5 and not g._committed,
+		"audit: turn taken, the dart breaks off to circle (state=%s, delay %.2f s)" % [EnemyGoblinScavenger.AIState.keys()[g.state], g._recommit_delay])
+
+	# The ogre's charge waits its turn too.
+	var ogre: EnemyOgreBrute = await _spawn_charging_ogre(Vector3(8.0, 0.0, 0.0))
+	ogre.coordinator = coord
+	ogre.process_mode = Node.PROCESS_MODE_DISABLED
+	ogre._visual_root.visible = true
+	_check(not ogre._try_begin_charge(8.0, Vector3.LEFT), "audit: the ogre won't charge while another enemy has the turn")
+	coord.release_attack_token(taker)
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	ogre.enraged = true
+	_check(ogre.leash_distance() > 20.0, "audit: enraged, the ogre chases further (%.1f m)" % ogre.leash_distance())
+	ogre.queue_free()
+	taker.queue_free()
+
+	# When the survivor dies, goblins and orks stop attacking the body and go back to patrol.
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = true
+	o.audio = _player.audio
+	o.player_ref = _player
+	o.coordinator = coord
+	_main.add_child(o)
+	o.global_position = _player.global_position + Vector3(-1.5, 0.0, 0.0)
+	await _ticks(2)
+	g.state = EnemyGoblinScavenger.AIState.ATTACK_STARTUP
+	coord.request_attack_token(g)
+	o.state = EnemyOrkWarrior.AIState.COMBO_1_STARTUP
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(g.state in [EnemyGoblinScavenger.AIState.PATROL, EnemyGoblinScavenger.AIState.IDLE] and not g._has_last_known_pos and not g._hitbox._is_swing_active,
+		"audit: survivor dead, the goblin stands down (state=%s)" % EnemyGoblinScavenger.AIState.keys()[g.state])
+	_check(o.state in [EnemyOrkWarrior.AIState.PATROL, EnemyOrkWarrior.AIState.IDLE] and not o._hitbox._is_swing_active,
+		"audit: survivor dead, the ork stands down (state=%s)" % EnemyOrkWarrior.AIState.keys()[o.state])
+	_check(coord._active_holders.is_empty(), "audit: and both hand back the attack turn")
+	g.queue_free()
+	o.queue_free()
+	coord._active_holders.clear()
+	coord._cooldown_timer = 0.0
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Perception: the survivor's 130-degree vision cone, cut by walls, and the acoustic ripples that
+# show unseen noises. Presentation only: nothing here changes a hit or an enemy's senses.
+# ------------------------------------------------------------------------------
+func _count_nodes(group: String) -> int:
+	return get_nodes_in_group(group).size()
+
+## Ripples and marks left by earlier sections (they fade on their own) must not skew a count.
+func _clear_perception_leftovers() -> void:
+	for n: Node in get_nodes_in_group("acoustic_ripple") + get_nodes_in_group("last_seen_mark"):
+		n.queue_free()
+	await _ticks(1)
+
+func _test_perception() -> void:
+	_section("Perception: vision cone and acoustic ripples")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var per: Perception = _player.perception
+	await _clear_perception_leftovers()
+	_check(per != null and per.enabled and is_equal_approx(Perception.CONE_DEGREES, 130.0), "the survivor has a 130-degree vision cone, on by default")
+	_check(_main.find_children("VisionConeOverlay", "", false, false).size() == 1, "the charcoal overlay is in the scene")
+
+	# The cone around the aim.
+	_face(Vector3.RIGHT)
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 0.0)), "straight ahead is in the cone")
+	_check(per.in_cone(OPEN + Vector3(5.0, 0.0, 5.0)), "45 degrees off the aim is in the cone")
+	_check(not per.in_cone(OPEN + Vector3(0.0, 0.0, 5.0)), "90 degrees off the aim is outside it")
+	_check(not per.in_cone(OPEN + Vector3(-5.0, 0.0, 0.0)), "behind the survivor is outside it")
+
+	# An enemy is drawn only while seen; slipping out of sight leaves one charcoal mark.
+	var g := _spawn_hunting_goblin(Vector3(4.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	await _ticks(1)
+	_check(per.update_visibility(g, g._visual_root, 0.95) and g._visual_root.visible, "a goblin 4 m ahead is drawn")
+	_face(Vector3.LEFT)
+	var marks: int = _count_nodes("last_seen_mark")
+	_check(not per.update_visibility(g, g._visual_root, 0.95) and not g._visual_root.visible, "turn your back and it is no longer drawn")
+	_check(_count_nodes("last_seen_mark") == marks + 1, "a charcoal mark is left where it was last seen")
+	per.update_visibility(g, g._visual_root, 0.95)
+	_check(_count_nodes("last_seen_mark") == marks + 1, "staying unseen leaves no second mark")
+	_face(Vector3.RIGHT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "turn back and it is drawn again")
+	var wall := _make_ogre_test_wall(OPEN + Vector3(2.0, 1.25, 0.0), Vector3(0.4, 2.5, 3.0))
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "a wall between hides it even inside the cone")
+	wall.queue_free()
+	await _ticks(1)
+	per.enabled = false
+	_face(Vector3.LEFT)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "cone off (F4): line of sight alone, a goblin behind you is drawn")
+	per.enabled = true
+	_face(Vector3.RIGHT)
+	per.update_visibility(g, g._visual_root, 0.95)
+	_face(Vector3.LEFT)
+	marks = _count_nodes("last_seen_mark")
+	per.update_visibility(g, g._visual_root, 0.95, false)
+	_check(_count_nodes("last_seen_mark") == marks, "a corpse slipping out of sight leaves no mark")
+
+	# Noises: heard within their loudness, ripples only for what you cannot see.
+	_face(Vector3.RIGHT)
+	var heard: Array[float] = []
+	var on_heard := func(_p: Vector3, l: float) -> void: heard.append(l)
+	per.heard.connect(on_heard)
+	var ripples: int = _count_nodes("acoustic_ripple")
+	_check(per.report_noise(OPEN + Vector3(4.0, 0.0, 0.0), 8.0, g) and heard.is_empty() and _count_nodes("acoustic_ripple") == ripples,
+		"a noise where you can see raises no ripple")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and heard.size() == 1 and _count_nodes("acoustic_ripple") == ripples + 1,
+		"a noise behind you raises a ripple and the cue")
+	var ring: AcousticRipple = get_nodes_in_group("acoustic_ripple").back()
+	_check(ring.global_position.distance_to(OPEN + Vector3(-4.0, 0.03, 0.0)) < 0.05, "the ripple sits where the noise was")
+	_check(per.report_noise(OPEN + Vector3(-4.0, 0.0, 0.0), 8.0, g) and _count_nodes("acoustic_ripple") == ripples + 1,
+		"one source cannot carpet the ground: one ripple per %.2f s" % Perception.RIPPLE_GAP)
+	var loud := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 0.0), 30.0)
+	var quiet := AcousticRipple.spawn(_main, OPEN + Vector3(-6.0, 0.0, 2.0), 5.0)
+	_check(loud.scale.x > quiet.scale.x * 2.0, "a louder noise makes a larger ring (%.2f vs %.2f)" % [loud.scale.x, quiet.scale.x])
+	_check(not per.report_noise(OPEN + Vector3(-12.0, 0.0, 0.0), 8.0, null), "a noise beyond its loudness is not heard")
+	var muffle := _make_ogre_test_wall(OPEN + Vector3(-3.0, 1.25, 0.0), Vector3(0.4, 2.5, 4.0))
+	await _ticks(1)
+	_check(not per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "an 8 m noise 6 m away through a wall is muffled out of hearing")
+	muffle.queue_free()
+	await _ticks(1)
+	_check(per.report_noise(OPEN + Vector3(-6.0, 0.0, 0.0), 8.0, null), "the same noise with no wall is heard")
+	await _seconds(0.3)
+	ripples = _count_nodes("acoustic_ripple")
+	g.global_position = OPEN + Vector3(-4.0, 0.0, 0.0)
+	for i in range(30):
+		per.report_footsteps(g, 1.0 / 60.0, 3.4, 1.1, 8.0)
+	_check(_count_nodes("acoustic_ripple") == ripples + 1, "half a second of jogging at 3.4 m/s is one footstep ripple at a 1.1 m stride")
+	await _seconds(1.5)
+	_check(_count_nodes("acoustic_ripple") == 0, "ripples fade and clean themselves up")
+	per.heard.disconnect(on_heard)
+	g.queue_free()
+	await _ticks(2)
+
+	# Live enemies report: a jogging ork behind you is unseen but heard, step by step.
+	_reset_player(OPEN)
+	await _ticks(2)
+	await _clear_perception_leftovers()
+	_face(Vector3.RIGHT)
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.audio = _player.audio
+	o.player_ref = _player
+	_main.add_child(o)
+	o.global_position = OPEN + Vector3(-7.0, 0.0, 0.0)
+	o.state = EnemyOrkWarrior.AIState.PURSUE
+	o._has_last_known_pos = true
+	o._last_known_player_pos = OPEN + Vector3(-9.0, 0.0, 0.0)
+	await _seconds(0.6)
+	_check(not o._visual_root.visible, "a live ork behind you is not drawn")
+	_check(_count_nodes("acoustic_ripple") >= 1, "its footsteps raise ripples (%d)" % _count_nodes("acoustic_ripple"))
+	o.queue_free()
+
+	# The cone is the survivor's sight, not the enemies': an ogre behind you still spots you.
+	var ogre := EnemyOgreBrute.new()
+	_main.add_child(ogre)
+	ogre.audio = _player.audio
+	await _pose_ogre(ogre, OPEN + Vector3(-8.0, 0.0, 0.0), Vector3.RIGHT)
+	ogre.player_ref = _player
+	ogre.process_mode = Node.PROCESS_MODE_INHERIT
+	await _ticks(3)
+	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE and not ogre._visual_root.visible,
+		"an unseen ogre behind you still spots you with its own eyes (state=%s)" % EnemyOgreBrute.AIState.keys()[ogre.state])
+	ogre.queue_free()
+	await _seconds(1.2)
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Weather: six conditions that change sight, hearing, fire, footing and the look of the night.
+# ------------------------------------------------------------------------------
+func _test_weather() -> void:
+	_section("Weather: the Smothering's six conditions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var ws: Array = _children_of(func(n: Node) -> bool: return n is Weather)
+	_check(ws.size() == 1, "the yard has one Weather")
+	var w: Weather = ws[0]
+	w.cycling = false
+	var env: Environment = (_children_of(func(n: Node) -> bool: return n is WorldEnvironment)[0] as WorldEnvironment).environment
+	var ash: AshFall = _children_of(func(n: Node) -> bool: return n is AshFall)[0]
+	var fire: FlickerLight = _main.find_child("ShelterFireLight", true, false) as FlickerLight
+	var per: Perception = _player.perception
+	_check(w.current == Weather.Condition.ASHFALL and is_equal_approx(env.fog_density, 0.012) and is_equal_approx(per.hearing, 1.0),
+		"it starts in ashfall: the ordinary night, fog 0.012, hearing x1")
+	var base_fire: float = fire.base_energy
+	var changes: Array[String] = []
+	var on_change := func(_c: Weather.Condition, banner: String) -> void: changes.append(banner)
+	w.changed.connect(on_change)
+
+	# Miasma: thick fog, short sight, deadened hearing. Dead Calm: the opposite.
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(is_equal_approx(env.fog_density, 0.055) and is_equal_approx(per.sight_range, 7.0) and is_equal_approx(per.hearing, 0.7),
+		"miasma: fog 0.055, sight 7 m, hearing x0.7")
+	_check(changes.size() == 1 and changes[0].begins_with("The miasma"), "a change announces itself")
+	_check(_hud._weather_label.text.ends_with("Miasma fog"), "the HUD names the weather (%s)" % _hud._weather_label.text)
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(9.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT  # looking away: it cannot see the survivor, only hear them
+	await _ticks(1)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "miasma: a goblin 9 m ahead, in the cone, is lost in the fog")
+	_check(not per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "miasma: an 8 m noise 9 m away is not heard (reach 5.6 m)")
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE, "miasma: a goblin 9 m away does not hear you sprint (9 x 0.7 = 6.3 m)")
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "dead calm: the same goblin is seen")
+	_check(per.report_noise(OPEN + Vector3(-9.0, 0.0, 0.0), 8.0, null), "dead calm: the same noise is heard (reach 12.8 m)")
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "dead calm: the goblin hears you sprint from 9 m (9 x 1.6 = 14.4 m)")
+	_check(not ash.visible, "dead calm: nothing falls")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Sleet: the torch burns faster, the fire dims, footing goes. Hoarfrost: ice, bright moon.
+	w.set_condition(Weather.Condition.SLEET, true)
+	_check(is_equal_approx(_player.weather_torch_burn, 1.8) and absf(fire.base_energy - base_fire * 0.75) < 0.001,
+		"sleet: the torch burns x1.8 and the shelter fire dims to x0.75")
+	_check(ash.visible and (ash.material_override as ShaderMaterial).get_shader_parameter("fall_speed") > 2.0, "sleet: fast pale streaks fall")
 	Input.action_press("move_right")
-	await _seconds(1.0)
+	await _ticks(20)
+	var sleet_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	await _ticks(20)
+	var dry_speed: float = Vector2(_player.velocity.x, _player.velocity.z).length()
 	Input.action_release("move_right")
 	await _ticks(2)
-	var steps: Array = heard.filter(func(h: Array) -> bool: return h[0] == "footstep")
-	_check(steps.size() >= 2 and absf(float(steps[0][1]) - 3.5) < 0.01, "walking reports 3.5 m footsteps (%d in 1 s)" % steps.size())
-	heard.clear()
-	_player.current_state = PlayerController.ActionState.SPRINT
-	_check(absf(_player.emit_gait_noise() - 9.0) < 0.01, "sprinting carries 9 m")
-	var timber := ItemDatabase.make("timber", 6)
-	_player.inventory.add(timber)
-	_check(absf(_player.emit_gait_noise() - 9.0 * 1.35) < 0.01, "a burdened pack clatters: sprint carries 12.2 m")
-	_player.inventory.remove(timber)
+	_check(absf(dry_speed - _player.move_speed) < 0.2 and absf(sleet_speed - _player.move_speed * 0.85) < 0.2,
+		"sleet: walking drops to 85%% (%.2f m/s vs %.2f dry)" % [sleet_speed, dry_speed])
+	w.set_condition(Weather.Condition.HOARFROST, true)
+	var moon: DirectionalLight3D = _main.find_child("Moon", false, false) as DirectionalLight3D
+	_check(is_equal_approx(_player.weather_footing, 0.8) and moon.light_energy > 3.5 and is_equal_approx(per.hearing, 1.25),
+		"hoarfrost: footing x0.8, a hard bright moon, hearing x1.25")
+
+	# Blends: a change drifts in over 8 s instead of snapping.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	w.set_condition(Weather.Condition.MIASMA_FOG)
+	await _seconds(4.0)
+	var mid: float = env.fog_density
+	_check(mid > 0.015 and mid < 0.045, "half way through a change the fog is between the two (%.3f)" % mid)
+	await _seconds(5.0)
+	_check(is_equal_approx(env.fog_density, 0.055), "after 8 s the change is complete")
+
+	# The cycle visits all six and comes round.
+	var seen_conditions: Array[Weather.Condition] = []
+	for i in range(Weather.CYCLE.size()):
+		w.advance()
+		seen_conditions.append(w.current)
+	_check(seen_conditions.size() == 6 and seen_conditions.back() == Weather.Condition.MIASMA_FOG
+		and Weather.Condition.CINDER_SQUALL in seen_conditions and Weather.Condition.DEAD_CALM in seen_conditions,
+		"advancing six times visits every condition and comes round")
+	w.changed.disconnect(on_change)
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Survivor backgrounds: eight starting characters, each a kit, a trait and a permanent flaw.
+# ------------------------------------------------------------------------------
+func _test_backgrounds() -> void:
+	_section("Survivor backgrounds")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	var all: Array[SurvivorBackground] = SurvivorBackground.all()
+	var ids: Array[String] = []
+	var complete: bool = true
+	for b: SurvivorBackground in all:
+		ids.append(b.id)
+		complete = complete and b.title != "" and b.epigraph != "" and b.trait_name != "" and b.trait_text != "" and b.flaw_name != "" and b.flaw_text != "" and not b.gear.is_empty()
+	_check(all.size() == 8 and ids.size() == 8, "eight backgrounds")
+	var unique: Dictionary = {}
+	for i: String in ids:
+		unique[i] = true
+	_check(unique.size() == 8 and complete, "each has a unique id, a title, an epigraph, a kit, a trait and a flaw")
+	# (The kit itself is checked at the start of the suite, before other sections swap and spend it.)
+	_check(_player.background != null and _player.background.id == "watch_deserter" and is_equal_approx(_player.max_health, 90.0)
+		and is_equal_approx(_player.background.block_cost_mult, 0.75), "the default is the Watch Deserter: 90 health, cheaper blocks")
+	_check(_main.find_children("BackgroundSelect", "", false, false).is_empty(), "headless, no start screen: the default stands")
+	_check(_hud._background_label.text == "WATCH DESERTER", "the HUD names the background")
+	var banners: Array[String] = []
+	var on_banner := func(msg: String, _c: Color) -> void: banners.append(msg)
+	_player.combat_banner_message.connect(on_banner)
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	var per: Perception = _player.perception
+
+	# Fen Healer: five bandages, a spear, quick bandaging, and night-blind (sight x0.6 on the weather).
+	_player.apply_background(SurvivorBackground.by_id("fen_healer"))
+	_check(_player.inventory.count_of("clean_rag_bandage") == 5 and _player.inventory.main_hand.data.item_id == "boar_spear",
+		"fen healer: five bandages and a spear")
+	_player._start_channel(PlayerController.ChannelKind.BANDAGE, 1.6)
+	_check(absf(_player._channel_total - 0.8) < 0.01, "fen healer: bandaging takes half the time (%.2f s)" % _player._channel_total)
+	_player._clear_channel()
 	_player.current_state = PlayerController.ActionState.IDLE
-	_check(is_equal_approx(_player.emit_gait_noise(), 0.0), "standing still is silent")
-	heard.clear()
+	_face(Vector3.RIGHT)
+	var g := _spawn_hunting_goblin(Vector3(5.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	g._facing_dir = Vector3.RIGHT
+	await _ticks(1)
+	w.set_condition(Weather.Condition.MIASMA_FOG, true)
+	_check(not per.update_visibility(g, g._visual_root, 0.95), "fen healer in the miasma: 7 m x 0.6, a goblin 5 m ahead is unseen")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	g.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	_check(per.update_visibility(g, g._visual_root, 0.95), "fen healer in ashfall: 24 m x 0.6, a goblin 9 m ahead is seen")
+
+	# Hedge-priest: sworn hands, no heavy blow; 50 poise.
+	_player.apply_background(SurvivorBackground.by_id("hedge_priest"))
+	_player.stamina = _player.max_stamina
+	banners.clear()
+	_player._start_attack(true)
+	_check(_player.current_state == PlayerController.ActionState.IDLE and banners.size() == 1 and banners[0].contains("sworn"),
+		"hedge-priest: a heavy blow is refused, and says why")
+	_player._start_attack(false)
+	_check(_player.current_state == PlayerController.ActionState.ATTACK_STARTUP and is_equal_approx(_player.max_poise, 50.0),
+		"hedge-priest: light blows are fine; 50 poise")
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# Gutter-kin: soft-footed (own noise x0.65), frail (75 health, longer bleeds).
+	_player.apply_background(SurvivorBackground.by_id("gutter_kin"))
+	_face(Vector3.RIGHT)
+	g.global_position = OPEN + Vector3(8.0, 0.0, 0.0)
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g.state = EnemyGoblinScavenger.AIState.IDLE
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.IDLE and is_equal_approx(_player.max_health, 75.0) and is_equal_approx(_player.background.bleed_seconds, 18.0),
+		"gutter-kin: a goblin 8 m away does not hear you sprint (9 x 0.65 = 5.9 m); 75 health; 18 s bleeds")
+	_player.apply_background(SurvivorBackground.by_id("causeway_carter"))
+	_player.current_state = PlayerController.ActionState.SPRINT
+	g._evaluate_senses(1.0 / 60.0)
+	_check(g.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "causeway carter: the same goblin hears the same sprint (9 m)")
+	_player.current_state = PlayerController.ActionState.IDLE
+	g.queue_free()
+
+	# Causeway Carter: hardy, one good ear (hearing x0.7 on the weather).
+	_check(is_equal_approx(_player.max_health, 120.0) and not per.report_noise(OPEN + Vector3(-7.0, 0.0, 0.0), 8.0, null),
+		"causeway carter: 120 health; an 8 m noise 7 m behind is not heard (reach 5.6 m)")
+
+	# Chapel Cleaner: no weapon, quick searches. Peat-cutter and Cinder Factor: the numbers.
+	_player.apply_background(SurvivorBackground.by_id("chapel_cleaner"))
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 2.0)
+	_check(_player.inventory.main_hand == null and absf(_player._channel_total - 1.3) < 0.01, "chapel cleaner: bare hands, searches at x0.65")
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.apply_background(SurvivorBackground.by_id("peat_cutter"))
+	_check(is_equal_approx(_player.max_stamina, 80.0) and is_equal_approx(_player.inventory.capacity_kg, 23.0)
+		and _player.inventory.main_hand.data.item_id == "woodsmans_broadaxe", "peat-cutter: 80 stamina, 23 kg, the broadaxe")
+	_player.apply_background(SurvivorBackground.by_id("cinder_factor"))
+	_check(absf(_player.sprint_speed - 6.3 * 0.85) < 0.01 and is_equal_approx(_player.dodge_stamina_cost, 30.0) and is_equal_approx(_player.inventory.capacity_kg, 26.0),
+		"cinder factor: 26 kg, sprint at 85%%, dodges cost 30")
+
+	# The start screen: arrows and digits move the choice, confirm hands back the background.
+	var picker := BackgroundSelect.new()
+	_main.add_child(picker)
+	var got: Array[SurvivorBackground] = []
+	picker.chosen.connect(func(b: SurvivorBackground) -> void: got.append(b))
+	picker.move_selection(1)
+	picker.move_selection(0, 1)
+	picker.confirm()
+	picker.select(7)
+	picker.confirm()
+	_check(got.size() == 2 and got[0].id == "hedge_priest" and got[1].id == "causeway_carter",
+		"the start screen: right then down is the hedge-priest, 8 is the carter")
+	picker.queue_free()
+
+	_player.combat_banner_message.disconnect(on_banner)
+	_player.apply_background(SurvivorBackground.default_background())
+	_check(_player.inventory.main_hand.data.item_id == "arming_sword" and _player.inventory.off_hand.data.item_id == "wooden_targe"
+		and _player.inventory.count_of("clean_rag_bandage") == 2 and is_equal_approx(_player.health, 90.0),
+		"back to the deserter: the old kit, full health")
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Armour: three slots, six pieces; a flat soak off every blow, poise, wear, bleed guard, noise.
+# ------------------------------------------------------------------------------
+func _test_armour() -> void:
+	_section("Armour slots")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	await _ticks(2)
+	_player.apply_background(SurvivorBackground.default_background())
+	var inv: Inventory = _player.inventory
+	var pieces: Array[String] = ["padded_coif", "kettle_hat", "quilted_gambeson", "rusted_hauberk", "leather_greaves", "splinted_greaves"]
+	var all_armour: bool = true
+	for id: String in pieces:
+		var d: ItemData = ItemDatabase.get_item(id)
+		all_armour = all_armour and d != null and d.is_armour() and d.protection > 0.0 and d.max_condition > 0.0
+	_check(all_armour, "six pieces of armour, each with a slot, protection and condition")
+	_check(inv.worn_armour().is_empty() and is_zero_approx(inv.total_protection()) and _player._armour_label() == "none", "the deserter starts bare")
+
+	# Wearing: one piece per slot; a second body piece replaces the first; weight counts.
+	var coif := ItemDatabase.make("padded_coif")
+	var gambeson := ItemDatabase.make("quilted_gambeson")
+	var hauberk := ItemDatabase.make("rusted_hauberk")
+	var w0: float = inv.total_weight()
+	inv.add(coif)
+	inv.add(gambeson)
+	inv.equip(coif)
+	inv.equip(gambeson)
+	_check(inv.armour_in(ItemData.ArmourSlot.HEAD) == coif and inv.armour_in(ItemData.ArmourSlot.BODY) == gambeson and inv.is_equipped(coif),
+		"a coif on the head and a gambeson on the body")
+	_check(is_equal_approx(inv.total_protection(), 7.0) and is_equal_approx(inv.armour_poise_bonus(), 9.0) and is_equal_approx(_player.effective_max_poise(), 44.0),
+		"coif and gambeson: soak 7, poise 35 + 9")
+	_check(absf(inv.total_weight() - (w0 + 3.8)) < 0.01, "worn armour weighs what it weighs (+3.8 kg)")
+	inv.add(hauberk)
+	inv.equip(hauberk)
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) == hauberk and not inv.is_equipped(gambeson) and inv.worn_armour().size() == 2,
+		"a hauberk replaces the gambeson on the body")
+	_check(_player._armour_label().begins_with("Padded Coif, Rusted Mail Hauberk") and _player._armour_label().ends_with("(soak 12)"),
+		"the HUD line names what is worn (%s)" % _player._armour_label())
+	_check(absf(inv.armour_noise_mult() - 1.25) < 0.001 and _player.get_noise_multiplier() > 1.2, "mail clinks: own noise x1.25")
+
+	# Taking blows: a light slash loses the soak; a heavy slam loses 60% of it; never below 30%.
+	_face(Vector3.RIGHT)
+	var front: Vector3 = _player.global_position + Vector3(1.5, 0.0, 0.0)
+	var hp: float = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 24.0, 10.0, false, false))
+	_check(absf((hp - _player.health) - 12.0) < 0.01, "a 24 slash through soak 12 does 12 (took %.1f)" % (hp - _player.health))
+	_player.current_state = PlayerController.ActionState.IDLE
+	hp = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 62.0, 85.0, false, true))
+	_check(absf((hp - _player.health) - (62.0 - 12.0 * 0.6)) < 0.01, "a heavy 62 slam counts the soak at 60%%: 54.8 (took %.1f)" % (hp - _player.health))
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "an 85-poise slam still staggers (poise bonus 15 is not half of it)")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.health = _player.max_health
+	hp = _player.health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 10.0, 1.0, false, false))
+	_check(absf((hp - _player.health) - 3.0) < 0.01, "a 10 jab is never soaked below 30%%: 3 (took %.1f)" % (hp - _player.health))
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# Poise: the full set (kettle hat 5 + hauberk 10 + splinted greaves 4 = 19) shrugs an ork chop
+	# (38 poise, heavy) once, since 19 is half of it; coif and hauberk alone (13) do not. Blows wear
+	# every worn piece.
+	_player.poise_damage_taken = 0.0
+	_player.health = _player.max_health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 36.0, 38.0, false, true))
+	_check(_player.current_state == PlayerController.ActionState.STAGGER, "coif and hauberk (poise 13) still stagger under an ork chop")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.poise_damage_taken = 0.0
+	var hat := ItemDatabase.make("kettle_hat")
+	var splint := ItemDatabase.make("splinted_greaves")
+	inv.add(hat)
+	inv.add(splint)
+	inv.equip(hat)
+	inv.equip(splint)
+	_check(is_equal_approx(inv.armour_poise_bonus(), 19.0) and not inv.is_equipped(coif), "kettle hat, hauberk and splinted greaves: poise 19; the hat replaced the coif")
+	var c0: float = hauberk.condition
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 36.0, 38.0, false, true))
+	_check(_player.current_state != PlayerController.ActionState.STAGGER, "the full set shrugs off an ork chop (38 poise) without a stagger")
+	_check(absf((c0 - hauberk.condition) - 2.0) < 0.01, "a heavy blow wears each worn piece by 2 (%.0f -> %.0f)" % [c0, hauberk.condition])
+	_player.current_state = PlayerController.ActionState.IDLE
+	inv.remove(hat)
+	inv.remove(splint)
+	inv.equip(coif)
+
+	# Bleed guard: the hauberk turns four bleeding cuts in five; broken, it turns none and soaks half.
+	var resist: float = inv.bleed_resist()
+	_check(absf(resist - 0.8) < 0.001, "a hauberk turns 80%% of bleeding cuts")
+	hauberk.condition = 0.5
+	_player.health = _player.max_health
+	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, Vector3.LEFT, 24.0, 10.0, false, false))
+	_check(hauberk.is_broken() and is_zero_approx(inv.bleed_resist()) and absf(inv.total_protection() - 7.0) < 0.01,
+		"a ruined hauberk turns no cuts and soaks half (coif 2 + 5)")
+	_check(_player._armour_label().contains("ruined"), "the HUD line says so")
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.is_bleeding = false
+
+	# Donning takes the piece's own time through the pack; doffing half of it.
+	inv.unequip(hauberk)
+	_player.health = _player.max_health
+	_check(_player.request_equip(gambeson) and absf(_player._channel_total - 2.5) < 0.01 and _player._channel_label().begins_with("Putting on"),
+		"putting on a gambeson takes 2.5 s (%s)" % _player._channel_label())
+	await _seconds(2.6)
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) == gambeson, "and it is worn when the time is up")
+	_check(_player.request_equip(gambeson) and absf(_player._channel_total - 1.25) < 0.01, "taking it off takes half")
+	_player._clear_channel()
+	_player.current_state = PlayerController.ActionState.IDLE
+
+	# The world has armour to find, and a carter starts in a gambeson.
+	var stash: Lootable = null
+	for n: Node in get_nodes_in_group("lootable"):
+		if (n as Lootable).display_name == "Shelter Stash":
+			stash = n
+	var stash_has_coif: bool = stash != null and stash.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "padded_coif")
+	_check(stash_has_coif, "the deserter's old coif waits in the shelter stash")
+	_player.apply_background(SurvivorBackground.by_id("causeway_carter"))
+	_check(inv.armour_in(ItemData.ArmourSlot.BODY) != null and inv.armour_in(ItemData.ArmourSlot.BODY).data.item_id == "quilted_gambeson",
+		"the causeway carter starts wearing a gambeson")
+	_player.apply_background(SurvivorBackground.default_background())
+	_check(inv.worn_armour().is_empty(), "back to the deserter, bare again")
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Companions: a captive cut free follows, holds, fights, takes blows, goes down, is lifted or dies.
+# ------------------------------------------------------------------------------
+func _find_companion() -> Companion:
+	var found: Array = _children_of(func(n: Node) -> bool: return n is Companion)
+	return found[0] if not found.is_empty() else null
+
+func _test_companions() -> void:
+	_section("Companions")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_reset_player(OPEN)
+	_player.apply_background(SurvivorBackground.default_background())
+	await _ticks(2)
+	var captives: Array = _children_of(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Bound Captive")
+	_check(captives.size() == 1 and (captives[0] as Lootable).search_verb == "Cut free" and (captives[0] as Lootable).get_prompt().begins_with("[E] Cut free"),
+		"a bound captive waits in the Watchhouse, with a [E] Cut free prompt")
+	_check(_find_companion() == null and not _hud._ally_row.visible, "no companion yet, no ALLY line")
+
+	# Cut free through the survivor's own channel: the captive becomes a companion at their side.
+	var captive: ActionPoint = captives[0]
+	_player.global_position = captive.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 0.05, captive)
+	await _seconds(0.2)
+	var c: Companion = _find_companion()
+	_check(c != null and not is_instance_valid(captive) or (c != null and captive.is_queued_for_deletion()), "cutting the captive free makes a companion and removes the captive")
+	_check(c != null and c.mode == Companion.Mode.FOLLOW and c.companion_name == "Edda", "the companion follows by default")
+	await _ticks(2)
+	_check(_hud._ally_row.visible and _hud._ally_label.text.contains("following"), "the HUD shows an ALLY line (%s)" % _hud._ally_label.text)
+
+	# Follow: walk away and it closes to a few paces; rejoin when left far behind.
 	_reset_player(OPEN)
 	_face(Vector3.RIGHT)
-	await _ticks(2)
-	_ready_for_attack()
-	_player._start_attack(false)
-	await _seconds(_player.weapon.light_startup_time + 0.05)
-	_check(heard.any(func(h: Array) -> bool: return h[0] == "swing"), "a swing is heard")
-	await _seconds(0.8)
-	heard.clear()
-	var cache := _make_test_lootable(OPEN + Vector3(0.8, 0, 0), 2.0, [ItemDatabase.make("salt", 1)])
-	await _ticks(2)
-	_player._try_interact()
-	await _seconds(1.2)
-	_check(heard.any(func(h: Array) -> bool: return h[0] == "rummage"), "rummaging through a container is heard")
-	_player._cancel_channel("")
-	cache.queue_free()
+	c.global_position = OPEN + Vector3(-8.0, 0.0, 0.0)
+	await _seconds(3.0)
+	var d: float = c.global_position.distance_to(_player.global_position)
+	_check(d < 4.0 and d > 1.0, "following, it closes to a few paces (%.1f m)" % d)
+	c.global_position = OPEN + Vector3(-30.0, 0.0, 0.0)
+	c._away_timer = Companion.REJOIN_SECONDS - 0.05
+	await _ticks(6)
+	_check(c.global_position.distance_to(_player.global_position) < 3.0, "left far behind, it rejoins behind the survivor")
 
-	# Walls muffle.
-	var inside := _spawn_dummy_goblin(Vector3(3.0, 0.0, -5.0))
-	await _ticks(2)
-	_check(absf(AcousticField.muffled_reach(inside, Vector3(-0.5, 0, -5.0), 10.0) - 6.0) < 0.01, "a wall cuts a noise's reach to 60%")
-	_check(absf(AcousticField.muffled_reach(inside, Vector3(5.5, 0, -5.0), 10.0) - 10.0) < 0.01, "no wall, full reach")
+	# Hold: it stays put while the survivor walks off.
+	c.global_position = OPEN + Vector3(-2.5, 0.0, 0.0)
+	c.toggle_mode()
+	var spot: Vector3 = c.hold_spot
+	_player.global_position = OPEN + Vector3(9.0, 0.0, 0.0)
+	await _seconds(1.5)
+	_check(c.mode == Companion.Mode.HOLD and c.global_position.distance_to(spot) < 1.0, "told to hold, it stays (%.1f m from the spot)" % c.global_position.distance_to(spot))
+	c.toggle_mode()
+	_reset_player(OPEN)
+	await _seconds(2.0)
 
-	# Goblins investigate where the sound came from.
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(-6.0, 0, 0))
-	gob.state = EnemyGoblinScavenger.AIState.PATROL
+	# Fight: a goblin near it loses health to the cudgel; the cudgel never lands on the survivor.
+	# (The goblin stays live but blind, player_ref null: a process-disabled body leaves physics.)
+	var g := _spawn_hunting_goblin(Vector3(0.0, 0.0, 0.0))
+	g.player_ref = null
+	var beyond: Vector3 = (c.global_position - _player.global_position)
+	beyond.y = 0.0
+	beyond = beyond.normalized() if beyond.length() > 0.1 else Vector3.LEFT
+	g.global_position = c.global_position + beyond * 2.5  # on the companion's far side, clear of the survivor
+	var g_hp: float = g.health
+	var p_hp: float = _player.health
+	var saw_swing: bool = false
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_swing = saw_swing or c.state == Companion.State.ATTACK_ACTIVE
+		if g.health < g_hp:
+			break
+	_check(saw_swing and g.health < g_hp, "a goblin near it is cudgelled (%.0f -> %.0f)" % [g_hp, g.health])
+	_check(is_equal_approx(_player.health, p_hp), "the cudgel never lands on the survivor")
+	g.queue_free()
+	await _ticks(2)
+
+	# Takes blows: an ork's slash in front of it lands on it (it is on the survivor's hurtbox layer).
+	var o := EnemyOrkWarrior.new()
+	o.has_shield = false
+	o.state = EnemyOrkWarrior.AIState.IDLE
+	o._state_timer = 99.0
+	_main.add_child(o)
+	o.global_position = c.global_position + Vector3(1.2, 0.0, 0.0)
+	o._facing_dir = Vector3.LEFT
+	o._visual_root.look_at(o.global_position + Vector3.LEFT, Vector3.UP)
 	await _ticks(1)
-	field.emit_noise(OPEN, 5.0, _player, "footstep")
-	_check(gob.state == EnemyGoblinScavenger.AIState.PATROL, "a 5 m footstep doesn't reach a goblin 6 m away")
-	field.emit_noise(OPEN, 9.0, _player, "footstep")
-	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE and gob._last_known_player_pos.distance_to(OPEN) < 0.01, "a 9 m sprint does: it investigates the spot")
-	gob.state = EnemyGoblinScavenger.AIState.PATROL
-	field.emit_noise(OPEN, 9.0, inside, "footstep")
-	_check(gob.state == EnemyGoblinScavenger.AIState.PATROL, "goblins ignore other creatures' footsteps")
-	field.emit_noise(OPEN, 13.0, inside, "clang")
-	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "...but come to see what clanged")
-	gob.state = EnemyGoblinScavenger.AIState.PATROL
-	field.emit_noise(Vector3(3.0, 0, -5.0) + Vector3(-7.0, 0, 0), 9.0, _player, "footstep")
-	_check(inside.state != EnemyGoblinScavenger.AIState.INVESTIGATE, "the goblin indoors doesn't hear a 9 m sprint 7 m away through the wall")
+	var c_hp: float = c.health
+	o._enter_combo_1_active()
+	await _ticks(3)
+	o._hitbox.end_swing()
+	_check(c.health < c_hp, "an ork's slash in front of it lands on it (%.0f -> %.0f)" % [c_hp, c.health])
+	o.queue_free()
 
-	# Orks come straight for a sound; the Ogre wakes.
-	var ork := _spawn_dummy_ork(OPEN + Vector3(0, 0, -6.0), true, Vector3.FORWARD)
-	ork.state = EnemyOrkWarrior.AIState.PATROL
-	field.emit_noise(OPEN, 9.0, _player, "swing")
-	_check(ork.state == EnemyOrkWarrior.AIState.SHIELD_ADVANCE, "a shielded ork advances on a sound it hears")
-	var ogre := EnemyOgreBrute.new()
-	_main.add_child(ogre)
-	ogre.global_position = OPEN + Vector3(8.0, 0, 0)
-	ogre.process_mode = Node.PROCESS_MODE_DISABLED
-	ogre.player_ref = _player
-	await _ticks(1)
-	field.emit_noise(OPEN, 9.0, _player, "footstep")
-	_check(ogre.state == EnemyOgreBrute.AIState.PURSUE, "a sleeping Ogre wakes to the survivor's noise")
-	field.hearing_multiplier = 0.6
-	ogre.state = EnemyOgreBrute.AIState.IDLE
-	field.emit_noise(OPEN, 9.0, _player, "footstep")
-	_check(ogre.state == EnemyOgreBrute.AIState.IDLE, "weather that muffles sound (x0.6) lets it sleep")
-	field.hearing_multiplier = 1.0
+	# Downed: lifted with a rag at 40% health; without a rag, nothing happens.
+	c.health = 5.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	_check(c.is_downed() and c.downed_left > 24.0 and c.collision_layer == 0, "knocked to nothing it goes down, not dead")
+	await _ticks(2)
+	var lift: Array = c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint)
+	_check(lift.size() == 1 and (lift[0] as Lootable).search_verb == "Lift", "a [E] Lift prompt appears at the body")
+	_check(_hud._ally_label.text.contains("DOWNED"), "the ALLY line says DOWNED")
+	var inv: Inventory = _player.inventory
+	for b: ItemInstance in inv.items.duplicate():
+		if b.data.item_id == "clean_rag_bandage":
+			inv.remove(b)
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(c.is_downed(), "no rag, no lift")
+	inv.add(ItemDatabase.make("clean_rag_bandage", 1))
+	(lift[0] as ActionPoint).on_search_complete(_player)
+	_check(not c.is_downed() and is_equal_approx(c.health, Companion.MAX_HEALTH * 0.4) and inv.count_of("clean_rag_bandage") == 0,
+		"a rag lifts them at 40%% health and is used up")
+	await _ticks(2)
+	_check(c.get_children().filter(func(n: Node) -> bool: return n is ActionPoint).is_empty(), "the Lift prompt is gone")
 
-	field.noise_emitted.disconnect(rec)
-	for n: Node in [inside, gob, ork, ogre]:
-		n.queue_free()
+	# Death: down too long, and they die and leave a body to search.
+	c.health = 1.0
+	c._hurtbox.receive_attack(CombatPayload.new(_main, c.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 20.0, 5.0))
+	c.downed_left = 0.05
+	await _seconds(0.3)
+	var body: Array = c.get_children().filter(func(n: Node) -> bool: return n is Lootable and not n is ActionPoint)
+	_check(c.is_dead() and body.size() == 1 and (body[0] as Lootable).display_name == "Edda's body", "down too long, they die and leave a body")
+	await _ticks(2)
+	_check(_hud._ally_label.text.contains("dead"), "the ALLY line says dead")
+	c.queue_free()
+	_hud.companion = null
 	_player.camera_rig = rig
+	_reset_player(OPEN)
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Milestone 11 — the Blind Quarry-Troll and thrown stones
+# Bestiary: the Blind Quarry-Troll hunts by sound alone and pounds where it heard you.
 # ------------------------------------------------------------------------------
-func _spawn_dummy_troll(pos: Vector3) -> EnemyQuarryTroll:
+## A live, blind troll at OGRE_YARD; the survivor `offset` from it, at rest.
+func _spawn_test_troll(offset: Vector3) -> EnemyQuarryTroll:
+	_reset_player(OGRE_YARD + offset)
 	var t := EnemyQuarryTroll.new()
-	t.position = pos
-	t.process_mode = Node.PROCESS_MODE_DISABLED
+	t.audio = _player.audio
 	t.player_ref = _player
 	_main.add_child(t)
+	t.global_position = OGRE_YARD
+	t._home_pos = OGRE_YARD
+	await _ticks(2)
 	return t
 
 func _test_quarry_troll() -> void:
-	_section("Blind Quarry-Troll & thrown stones")
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	_section("Bestiary: the Blind Quarry-Troll")
 	var rig: IsoCameraRig = _player.camera_rig
 	_player.camera_rig = null
-	var world_troll: Array = _children_of(func(n: Node) -> bool: return n is EnemyQuarryTroll)
-	_check(world_troll.size() == 1 and world_troll[0].global_position.distance_to(Vector3(16, 0, -15.5)) < 2.0, "the troll lairs in the Old Quarry")
-	var names: Array = get_nodes_in_group("lootable").map(func(l: Lootable) -> String: return l.display_name)
-	_check(names.has("Quarry Rubble Pile"), "the quarry has a rubble pile to search")
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyQuarryTroll)
+	_check(level.size() == 1 and (level[0] as Node3D).global_position.distance_to(Vector3(15.5, 0.0, -14.5)) < 1.0,
+		"the troll lives in the old quarry, north-east")
+	var t: EnemyQuarryTroll = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
+	_check(is_equal_approx(t.aggression, 0.5) and is_equal_approx(t.attack_power, 1.0) and t.max_health >= 300.0,
+		"troll temperament: aggression 0.5, attack power 1.0, %.0f health" % t.max_health)
 
-	_reset_player(OPEN)
-	_face(Vector3.RIGHT)
-	await _ticks(2)
-	var T := EnemyQuarryTroll.AIState
-	var troll := _spawn_dummy_troll(OPEN + Vector3(4.0, 0, 0))
-	troll._facing_dir = Vector3.LEFT
-	await _ticks(2)
-	for i in range(5):
-		troll._process_ai_state(0.1)
-	_check(troll.state == T.IDLE, "a silent survivor 4 m in front of it goes unnoticed (it's blind)")
-
-	field.emit_noise(OPEN + Vector3(1.0, 0, 0), 3.5, _player, "footstep")
-	_check(troll.state == T.STALK and troll.get_target().distance_to(OPEN + Vector3(1.0, troll.global_position.y, 0)) < 0.01, "a footstep 3 m off: it stalks toward the sound")
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(6.0, 0, 2.0))
-	troll.state = T.IDLE
-	troll._has_target = false
-	field.emit_noise(gob.global_position, 4.5, gob, "footstep")
-	_check(troll.state == T.IDLE, "it ignores other creatures' footsteps")
-	field.emit_noise(OPEN + Vector3(-6.0, 0, 0), 13.0, gob, "clang")
-	_check(troll.state == T.CHARGE, "a clang 10 m away: it charges")
-	var clang_spot: Vector3 = troll.get_target()
-	field.emit_noise(OPEN + Vector3(2.5, 0, 0), 3.5, _player, "footstep")
-	_check(troll.get_target().distance_to(clang_spot) < 0.01, "a fainter fresh sound doesn't pull it off the louder one")
-	troll._target_age = 2.0
-	field.emit_noise(OPEN + Vector3(2.5, 0, 0), 3.5, _player, "footstep")
-	_check(troll.get_target().distance_to(clang_spot) > 1.0, "...once the old sound is stale, it turns to the new one")
-
-	# Arriving where nobody is: it searches, then gives up.
-	troll._target_pos = troll.global_position + Vector3(0, 0, 1.0)
-	troll.state = T.STALK
-	troll._process_ai_state(0.05)
-	_check(troll.state == T.SEARCH, "arriving at an empty spot: it feels around")
-	troll._process_ai_state(troll.search_time + 0.1)
-	_check(troll.state == T.IDLE, "...and gives up after a few seconds")
-
-	# Touch and pain give you away.
-	_reset_player(troll.global_position + Vector3(-1.2, 0, 0))
+	# Hearing, not sight: still is silent; each action has its own reach.
+	var sense := func(state: PlayerController.ActionState, dist: float) -> bool:
+		t.has_heard = false
+		t.state = EnemyQuarryTroll.AIState.LISTEN
+		# East of it: the open ground (west is the Roofed Gallery's stone since Bestiary 4).
+		_player.global_position = OGRE_YARD + Vector3(dist, 0.0, 0.0)
+		_player.current_state = state
+		t._listen(1.0 / 60.0)
+		_player.current_state = PlayerController.ActionState.IDLE
+		return t.has_heard
+	_check(not sense.call(PlayerController.ActionState.IDLE, 1.5), "blind: a survivor standing still 1.5 m away is not found")
+	_check(not sense.call(PlayerController.ActionState.BLOCK, 2.0), "blocking still makes no sound")
+	_check(sense.call(PlayerController.ActionState.MOVE, 5.0) and not sense.call(PlayerController.ActionState.MOVE, 8.0), "walking carries 6 m")
+	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and not sense.call(PlayerController.ActionState.SPRINT, 16.0), "a sprint carries 14 m")
+	_check(sense.call(PlayerController.ActionState.RECOIL, 15.0), "a sword clanging off stone carries 16 m")
+	_check(sense.call(PlayerController.ActionState.SPRINT, 10.0) and t.state == EnemyQuarryTroll.AIState.INVESTIGATE
+		and t.heard_pos.distance_to(OGRE_YARD + Vector3(10.0, 0.0, 0.0)) < 0.1, "hearing sends it to where the sound was")
+	# The survivor's noise multiplier reaches it: weather, background, armour.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	_check(sense.call(PlayerController.ActionState.MOVE, 8.0), "dead calm: a walk 8 m away is heard (6 x 1.6)")
+	w.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "cinder-squall: a sprint 10 m away is lost (14 x 0.6)")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.by_id("gutter_kin"))
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "a gutter-kin sprints past at 10 m (14 x 0.65)")
+	_player.apply_background(SurvivorBackground.default_background())
+	var mail := ItemDatabase.make("rusted_hauberk")
+	_player.inventory.add(mail)
+	_player.inventory.equip(mail)
+	_check(sense.call(PlayerController.ActionState.MOVE, 7.0), "mail clinks: a walk 7 m away is heard (6 x 1.25)")
+	_player.inventory.remove(mail)
+	# Stone muffles.
+	var wall := _make_ogre_test_wall(OGRE_YARD + Vector3(4.0, 1.25, 0.0), Vector3(0.4, 2.5, 6.0))
 	await _ticks(1)
-	troll._process_ai_state(0.05)
-	_check(troll.state == T.SWEEP_STARTUP, "brushing within 1.5 m of it: it swings")
-	_reset_player(OPEN)
+	_check(not sense.call(PlayerController.ActionState.SPRINT, 10.0), "through stone, a sprint 10 m away is muffled (14 x 0.55)")
+	wall.queue_free()
 	await _ticks(1)
-	troll.state = T.IDLE
-	var hp: float = troll.health
-	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 10.0, false, false))
-	_check(absf((hp - troll.health) - 7.0) < 0.01, "light blows skid off its hide (20 -> 7)")
-	_check(troll.state == T.SWEEP_STARTUP and troll.get_target().distance_to(Vector3(OPEN.x, troll.global_position.y, OPEN.z)) < 0.01, "pain tells it where you are: it swings back")
-	hp = troll.health
-	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 10.0, false, true))
-	_check(absf((hp - troll.health) - 20.0) < 0.01, "heavy blows land in full")
-	troll.state = T.STAGGER
-	hp = troll.health
-	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 20.0, 1.0, false, false))
-	_check(absf((hp - troll.health) - 20.0) < 0.01 and troll.is_staggered(), "a staggered troll takes light blows in full")
 
-	# Its club clangs off the quarry walls.
-	var pit_troll := _spawn_dummy_troll(Vector3(16.0, 0.0, -19.2))
-	pit_troll._facing_dir = Vector3.FORWARD
+	# It pounds where it heard you: still there, you take the blow; it never saw you.
+	t.queue_free()
 	await _ticks(2)
-	pit_troll._enter_sweep_active()
-	_check(pit_troll.state == T.RECOIL, "its club cracks against the quarry wall (RECOIL)")
-
-	troll._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.RIGHT, 999.0, 1.0, false, true))
-	await _ticks(2)
-	var corpse: Lootable = null
-	for c: Node in troll.get_children():
-		if c is Lootable:
-			corpse = c
-	_check(troll.is_dead() and corpse != null and corpse.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "troll_hide"), "a dead troll leaves its hide")
-
-	# Thrown stones.
-	_reset_player(OPEN)
+	t = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
 	_face(Vector3.RIGHT)
-	await _ticks(2)
-	_player._throw_cooldown_left = 0.0
-	_check(not _player.throw_stone(), "no stones, no throw")
-	_player.inventory.add(ItemDatabase.make("throwing_stone", 2))
-	var thuds: Array = []
-	var rec := func(pos: Vector3, _reach: float, src: Node3D, kind: String) -> void:
-		if kind == "thud":
-			thuds.append([pos, src])
-	field.noise_emitted.connect(rec)
-	var lure := _spawn_dummy_goblin(OPEN + Vector3(7.2, 0, 5.0))
-	lure.state = EnemyGoblinScavenger.AIState.PATROL
-	_check(_player.throw_stone() and _player.inventory.count_of("throwing_stone") == 1, "[G] throws a stone")
-	_check(not _player.throw_stone(), "throwing has a short cooldown")
-	await _seconds(0.6)
-	_check(thuds.size() == 1 and thuds[0][1] == _player and (thuds[0][0] as Vector3).distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.3, "it thuds down ~7 m ahead, credited to you")
-	_check(lure.state == EnemyGoblinScavenger.AIState.INVESTIGATE and lure._last_known_player_pos.distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.3, "a goblin goes to look where it landed, not where you are")
-	var piles: Array = get_nodes_in_group("lootable").filter(func(l: Lootable) -> bool: return l.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "throwing_stone") and l.global_position.distance_to(OPEN + Vector3(7.2, 0, 0)) < 0.5)
-	_check(piles.size() == 1, "the stone stays where it landed, to pick up again")
-	field.noise_emitted.disconnect(rec)
-	_player.inventory.consume("throwing_stone", _player.inventory.count_of("throwing_stone"))
-
-	for n: Node in [troll, gob, pit_troll, lure] + piles:
-		n.queue_free()
-	_player.camera_rig = rig
+	t.heard(_player.global_position)
+	var hp: float = _player.health
+	var saw_pound: bool = false
+	for i in range(int(4.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		saw_pound = saw_pound or t.state == EnemyQuarryTroll.AIState.POUND_STARTUP
+		if _player.health < hp:
+			break
+	_check(saw_pound and is_equal_approx(hp - _player.health, EnemyQuarryTroll.POUND_DAMAGE),
+		"a survivor who stays where they were heard takes the pound (%.0f)" % (hp - _player.health))
+	await _seconds(1.6)
+	t.queue_free()
 	await _ticks(2)
 
-# ------------------------------------------------------------------------------
-# Milestone 12 — armor
-# ------------------------------------------------------------------------------
-func _test_armor() -> void:
-	_section("Armor")
-	var S := ItemData.ArmorSlot
-	var ids: Dictionary = {"padded_hood": S.HEAD, "iron_skullcap": S.HEAD, "quilted_gambeson": S.BODY,
-		"riveted_mail": S.BODY, "leather_leggings": S.LEGS, "splinted_greaves": S.LEGS}
-	var ok: bool = true
-	for id: String in ids.keys():
-		var d: ItemData = ItemDatabase.get_item(id)
-		if d.category != ItemData.Category.ARMOR or d.armor_slot != ids[id] or d.protection <= 0.0 or not d.is_equippable():
-			ok = false
-	_check(ok, "six armor pieces across head, body and legs")
-	var lootables: Array = get_nodes_in_group("lootable")
-	var holds := func(label: String, id: String) -> bool:
-		for l: Lootable in lootables:
-			if l.display_name == label:
-				return l.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == id)
-		return false
-	_check(holds.call("Watchhouse Supply Chest", "quilted_gambeson") and holds.call("Ork Plunder Pile", "riveted_mail") and holds.call("Gnawed Bone Heap", "splinted_greaves"), "armor is out there to scavenge (chest, plunder pile, bone heap)")
-
-	_reset_player(OPEN)
+	# Crept away during the windup: it pounds empty ground.
+	t = await _spawn_test_troll(Vector3(-6.0, 0.0, 0.0))
+	var heard_at: Vector3 = _player.global_position
+	t.heard(heard_at)
+	for i in range(int(3.0 * Engine.physics_ticks_per_second)):
+		await _ticks(1)
+		if t.state == EnemyQuarryTroll.AIState.POUND_STARTUP:
+			break
+	_check(t.state == EnemyQuarryTroll.AIState.POUND_STARTUP and t._pound_ring.visible
+		and t._pound_ring.global_position.distance_to(heard_at + Vector3(0.0, 0.05, 0.0)) < 0.2,
+		"its ring marks the heard spot, not the survivor")
+	_player.global_position = heard_at + Vector3(0.0, 0.0, 4.5)
+	hp = _player.health
+	await _seconds(1.5)
+	_check(is_equal_approx(_player.health, hp), "a survivor who crept away is missed")
+	t.queue_free()
 	await _ticks(2)
-	var inv: Inventory = _player.inventory
-	var hood := ItemDatabase.make("padded_hood")
-	var gamb := ItemDatabase.make("quilted_gambeson")
-	var legs := ItemDatabase.make("leather_leggings")
-	var mail := ItemDatabase.make("riveted_mail")
-	for a: ItemInstance in [hood, gamb, legs, mail]:
-		inv.add(a)
-	var w0: float = inv.total_weight()
-	_check(_player.request_equip(hood) and _player._channel_label() == "Donning Padded Hood", "donning a hood is a timed swap")
-	await _seconds(0.7)
-	_check(inv.get_armor(S.HEAD) == hood and inv.is_equipped(hood), "the hood goes on your head")
-	_player.request_equip(mail)
-	_check(absf(_player._channel_total - 2.4) < 0.01, "mail takes 2.4 s to pull on")
-	await _seconds(2.6)
-	_check(inv.get_armor(S.BODY) == mail and is_equal_approx(inv.total_weight(), w0), "mail worn; worn armor still weighs what it weighs")
-	_player.current_state = PlayerController.ActionState.MOVE
-	var pack: float = _player.get_noise_multiplier()
-	_check(absf(_player.emit_gait_noise() - 3.5 * 1.4 * pack) < 0.01, "mail jingles: footsteps carry x1.4 (%.1f m with this pack)" % (3.5 * 1.4 * pack))
-	_player.current_state = PlayerController.ActionState.IDLE
 
-	# Protection, wear and bleeding.
-	_player.health = 100.0
-	_player.is_bleeding = false
-	var prot: float = _player.get_armor_protection()
-	_check(absf(prot - 0.32) < 0.001, "hood + mail = 32%% protection (%.2f)" % prot)
-	var mail_cond: float = mail.condition
-	_player._on_hurtbox_hit_received(CombatPayload.new(_main, OPEN + Vector3(1, 0, 0), Vector3.LEFT, 50.0, 1.0, true))
-	_check(absf(_player.health - 66.0) < 0.01, "a 50-damage blow deals 34 through hood and mail")
-	_check(absf((mail_cond - mail.condition) - 12.5) < 0.01, "each worn piece wears with the blow (mail -12.5)")
-	_check(not _player.is_bleeding, "mail turns the edge: no bleeding")
-	_player.current_state = PlayerController.ActionState.IDLE
-	inv.equip(gamb)
-	_player._on_hurtbox_hit_received(CombatPayload.new(_main, OPEN + Vector3(1, 0, 0), Vector3.LEFT, 10.0, 1.0, true))
-	_check(_player.is_bleeding and inv.get_armor(S.BODY) == gamb, "a gambeson doesn't stop bleeding")
-	_player.is_bleeding = false
-	_player.current_state = PlayerController.ActionState.IDLE
-	gamb.condition = 0.0
-	_check(absf(_player.get_armor_protection() - 0.06) < 0.001, "a ruined piece protects nothing")
-	gamb.condition = gamb.data.max_condition
-	var saved: float = mail.data.protection
-	mail.data.protection = 0.9
-	inv.equip(mail)
-	_check(is_equal_approx(_player.get_armor_protection(), 0.6), "protection is capped at 60%")
-	mail.data.protection = saved
+	# Standing still at arm's length: never found.
+	t = await _spawn_test_troll(Vector3(-2.0, 0.0, 0.0))
+	hp = _player.health
+	await _seconds(2.0)
+	_check(t.state == EnemyQuarryTroll.AIState.LISTEN and is_equal_approx(_player.health, hp), "a survivor 2 m away who keeps still is never found")
 
-	# Blocking keeps armor clean; greaves slow sprinting.
-	_player.current_state = PlayerController.ActionState.BLOCK
-	_player.stamina = _player.max_stamina
-	_player.is_exhausted = false
-	mail_cond = mail.condition
-	var front: Vector3 = _player.global_position + _player._aim_direction * 1.5
-	_player._on_hurtbox_hit_received(CombatPayload.new(_main, front, -_player._aim_direction, 30.0, 10.0))
-	_check(is_equal_approx(mail.condition, mail_cond), "a blocked blow doesn't wear your armor")
-	_player.current_state = PlayerController.ActionState.IDLE
-	var greaves := ItemDatabase.make("splinted_greaves")
-	inv.add(greaves)
-	inv.equip(greaves)
-	_check(is_equal_approx(_player._armor_sprint_multiplier(), 0.95), "splinted greaves: sprint x0.95")
-
-	# Drop and unequip.
-	_player.request_equip(hood)
-	await _seconds(0.7)
-	_check(inv.get_armor(S.HEAD) == null and inv.has_item(hood), "unequipping takes the hood off")
-	_player.drop_item(mail)
-	_check(inv.get_armor(S.BODY) == null, "dropping worn armor empties the slot")
-	await _ticks(2)
-	_emit_check_hud()
-
-	# Survivors start with a piece.
-	_bg("citadel_deserter")
-	_check(_player.inventory.get_armor(S.HEAD) != null and _player.inventory.get_armor(S.HEAD).data.item_id == "padded_hood", "Citadel Deserter starts in a padded hood")
-	_bg("disgraced_squire")
-	_check(_player.inventory.get_armor(S.HEAD) != null and _player.inventory.get_armor(S.HEAD).data.item_id == "iron_skullcap", "Disgraced Squire starts in an iron skullcap")
-	_player.apply_background(null)
-	_check(_player.inventory.armor.is_empty(), "legacy loadout wears nothing")
-	for l: Node in get_nodes_in_group("lootable"):
-		if (l as Lootable).items.has(mail):
-			l.queue_free()
+	# Struck from close by, it thrashes round itself.
+	t._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 22.0, 18.0))
+	_check(t.state == EnemyQuarryTroll.AIState.THRASH_STARTUP and t.heard_pos.distance_to(_player.global_position) < 0.1,
+		"hit from close by, it knows where you are and thrashes")
+	hp = _player.health
+	await _seconds(1.0)
+	_check(is_equal_approx(hp - _player.health, EnemyQuarryTroll.THRASH_DAMAGE), "the thrash catches a survivor beside it (%.0f)" % (hp - _player.health))
+	t.queue_free()
 	_reset_player(OPEN)
 	await _ticks(2)
 
-func _emit_check_hud() -> void:
-	_player._emit_stats()
-	var lbl: Label = _hud._armor_label
-	_check(lbl.text.begins_with("ARMOR ") and lbl.text.contains("%"), "HUD shows armor (%s)" % lbl.text)
-
-# ------------------------------------------------------------------------------
-# Milestone 15 — Carrion Crows & the Ghoul
-# ------------------------------------------------------------------------------
-func _spawn_dummy_crow(pos: Vector3) -> EnemyCarrionCrow:
-	var c := EnemyCarrionCrow.new()
-	c.position = pos
-	c.process_mode = Node.PROCESS_MODE_DISABLED
+	# It hears the companion too: Edda's cudgel draws it.
+	t = await _spawn_test_troll(Vector3(-12.0, 0.0, 0.0))
+	var c := Companion.new()
 	c.player_ref = _player
 	_main.add_child(c)
-	return c
+	c.global_position = OGRE_YARD + Vector3(0.0, 0.0, 7.0)
+	c.process_mode = Node.PROCESS_MODE_DISABLED
+	c.state = Companion.State.ATTACK_ACTIVE
+	t.has_heard = false
+	t._listen(1.0 / 60.0)
+	_check(t.has_heard and t.heard_pos.distance_to(c.global_position) < 0.1, "it hears the companion's cudgel at 7 m and goes for her")
+	c.queue_free()
 
-func _test_bestiary_one() -> void:
-	_section("Bestiary I: Carrion Crows & the Ghoul")
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
+	# The survivor dies mid-pound: it drops the blow, closes its hitboxes and listens.
+	_player.global_position = OGRE_YARD + Vector3(-2.0, 0.0, 0.0)
+	t._begin_pound(_player.global_position)
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(t.state == EnemyQuarryTroll.AIState.LISTEN and not t._pound_ring.visible and not t._pound_hitbox._is_swing_active,
+		"the survivor dead, it drops its blow and listens")
+	_reset_player(OPEN)
+	await _ticks(2)
+	# Lost the sound far from home: it walks back.
+	t.global_position = OGRE_YARD + Vector3(8.0, 0.0, 0.0)
+	t.has_heard = false
+	t.state = EnemyQuarryTroll.AIState.LISTEN
+	t._state_timer = 0.0
+	await _ticks(2)
+	_check(t.state == EnemyQuarryTroll.AIState.RETURN_HOME, "with nothing to hear, far from home, it walks back")
+	t.queue_free()
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Bestiary: Ash-Spore Husks burst into choking clouds; fire burns spores; the weather sets how
+# long a cloud hangs.
+# ------------------------------------------------------------------------------
+func _clear_spores() -> void:
+	for n: Node in get_nodes_in_group("spore_cloud"):
+		n.queue_free()
+	_player._choke_timer = 0.0
+	await _ticks(1)
+
+func _test_spore_husks() -> void:
+	_section("Bestiary: Ash-Spore Husks")
 	var rig: IsoCameraRig = _player.camera_rig
 	_player.camera_rig = null
-	var crows: Array = _children_of(func(n: Node) -> bool: return n is EnemyCarrionCrow)
-	var ghouls: Array = _children_of(func(n: Node) -> bool: return n is EnemyGhoul)
-	var roost_crows: Array = (_main as AshenWildsBootstrap)._roost.crows
-	_check(crows.filter(func(c: Node) -> bool: return not roost_crows.has(c)).size() == 5 and ghouls.size() == 1, "five crows (gibbet & bone heap) and a ghoul in the world")
-	_check(crows.any(func(c: Node3D) -> bool: return c.global_position.y > 2.5), "some crows perch up on the gibbet beam")
-
-	# Crows: sentinels.
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	_player.apply_background(SurvivorBackground.default_background())
 	_reset_player(OPEN)
+	await _ticks(2)
+	await _clear_spores()
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemySporeHusk)
+	_check(level.size() == 3 and level.all(func(h: Node3D) -> bool: return h.global_position.x < -17.0),
+		"three husks gather in the Spore Hollow on the west edge")
+	var cart: Lootable = null
+	for n: Node in get_nodes_in_group("lootable"):
+		if (n as Lootable).display_name == "Spore-Choked Cart":
+			cart = n
+	_check(cart != null and cart.items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "pitch_torch" and i.condition >= i.data.max_condition - 0.5),
+		"a cart in the hollow holds a fresh torch")
+
+	# A cloud chokes: health drains, stamina barely returns, sight closes, the HUD says so.
+	var cloud := SporeCloud.spawn(_main, OPEN, 2.4, 8.0)
+	await _ticks(2)
+	_player.health = _player.max_health
+	_player.stamina = 40.0
+	_player._stamina_delay_timer = 0.0
+	var hp: float = _player.health
+	await _seconds(1.0)
+	var choked_regen: float = _player.stamina - 40.0
+	_check(_player.is_choking() and absf((hp - _player.health) - SporeCloud.CHOKE_DPS) < 0.4,
+		"inside a cloud the survivor chokes, losing %.0f health a second (lost %.1f)" % [SporeCloud.CHOKE_DPS, hp - _player.health])
+	_check(_hud._status_label.text.contains("CHOKING"), "the HUD flags it")
+	var g := _spawn_hunting_goblin(Vector3(10.0, 0.0, 0.0))
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	_face(Vector3.RIGHT)
+	_check(not _player.perception.update_visibility(g, g._visual_root, 0.95), "choking, a goblin 10 m ahead cannot be seen (24 m x 0.35 = 8.4 m)")
+	cloud.queue_free()
+	_player.global_position = OPEN + Vector3(0.0, 0.0, 8.0)
+	await _seconds(0.6)
+	_player.stamina = 40.0
+	await _seconds(1.0)
+	var clear_regen: float = _player.stamina - 40.0
+	_check(not _player.is_choking() and choked_regen < clear_regen * 0.4,
+		"out of it, choking stops and stamina returns (%.1f choking vs %.1f clear)" % [choked_regen, clear_regen])
+	g.global_position = _player.global_position + Vector3(10.0, 0.0, 0.0)
+	await _ticks(1)
+	_check(_player.perception.update_visibility(g, g._visual_root, 0.95), "and the goblin is seen again")
+	g.queue_free()
+	_check(_player.health >= 1.0, "choking alone never kills (it stops at 1)")
+
+	# Fire burns spores: a lit torch eats a cloud in about a second; without one it hangs.
+	await _clear_spores()
+	_reset_player(OPEN)
+	var torch: ItemInstance = _player.inventory.find_first("pitch_torch")
+	_player.inventory.off_hand = torch
+	_player.inventory.notify_changed()
+	await _ticks(2)
+	_check(_player.is_torch_lit(), "(setup) the torch is lit")
+	var burnt := SporeCloud.spawn(_main, OPEN + Vector3(3.0, 0.0, 0.0), 2.4, 8.0)
+	await _seconds(1.2)
+	_check(not is_instance_valid(burnt), "a lit torch near a cloud burns it away within about a second")
+	_player.inventory.off_hand = _player.inventory.find_first("wooden_targe")
+	_player.inventory.notify_changed()
+	await _ticks(2)
+	var kept := SporeCloud.spawn(_main, OPEN + Vector3(3.0, 0.0, 0.0), 2.4, 8.0)
+	await _seconds(1.2)
+	_check(is_instance_valid(kept) and kept.life > 6.0, "without the torch the cloud hangs (%.1f s left)" % (kept.life if is_instance_valid(kept) else 0.0))
+	kept.queue_free()
+
+	# The weather sets how long a cloud hangs.
+	w.set_condition(Weather.Condition.DEAD_CALM, true)
+	var calm := SporeCloud.spawn(_main, OPEN + Vector3(-8.0, 0.0, 0.0), 2.4, 8.0)
+	w.set_condition(Weather.Condition.CINDER_SQUALL, true)
+	var gusty := SporeCloud.spawn(_main, OPEN + Vector3(-8.0, 0.0, 6.0), 2.4, 8.0)
+	_check(absf(calm.life - 12.8) < 0.01 and absf(gusty.life - 3.2) < 0.01, "the Dead Calm keeps a cloud 12.8 s, a cinder-squall clears it in 3.2 s")
+	w.set_condition(Weather.Condition.ASHFALL, true)
+	await _clear_spores()
+
+	# The husk: half-blind, slow, and full of spores.
+	_reset_player(OGRE_YARD + Vector3(-5.0, 0.0, 0.0))
+	await _ticks(2)
+	var h := EnemySporeHusk.new()
+	h.audio = _player.audio
+	h.player_ref = _player
+	_main.add_child(h)
+	h.global_position = OGRE_YARD
+	h._facing_dir = Vector3.RIGHT  # looking away from the survivor
+	await _ticks(2)
+	_check(not h.sees_player(), "a husk looking away does not see a survivor 5 m behind it")
+	h._facing_dir = Vector3.LEFT
+	_check(h.sees_player(), "facing them, it does")
+	_check(EnemySporeHusk.SHAMBLE_SPEED < _player.move_speed, "it shambles slower than you walk (%.1f vs %.1f m/s)" % [EnemySporeHusk.SHAMBLE_SPEED, _player.move_speed])
+	# Its claw drives spores in.
+	_player.global_position = OGRE_YARD + Vector3(-1.2, 0.0, 0.0)
 	_face(Vector3.RIGHT)
 	await _ticks(2)
-	var crow := _spawn_dummy_crow(OPEN + Vector3(9.0, 0, 0))
-	var buddy := _spawn_dummy_crow(OPEN + Vector3(9.5, 0, 0.6))
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(14.0, 0, 6.0))
-	gob.state = EnemyGoblinScavenger.AIState.PATROL
-	await _ticks(2)
-	crow._process_ai_state(0.05)
-	_check(crow.is_perched(), "9 m away and quiet: the crow stays put")
-	var caws: Array = []
-	var rec := func(pos: Vector3, _r: float, src: Node3D, kind: String) -> void:
-		if kind == "caw":
-			caws.append([pos, src])
-	field.noise_emitted.connect(rec)
-	_reset_player(OPEN + Vector3(4.5, 0, 0))
-	await _ticks(1)
-	crow._process_ai_state(0.05)
-	_check(not crow.is_perched() and caws.size() >= 1, "within 6 m in its sight: it bursts up cawing")
-	_check(not buddy.is_perched(), "one crow's caw sets off the flock")
-	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE and gob._last_known_player_pos.distance_to(OPEN + Vector3(9.0, 0, 0)) < 1.5, "a goblin 7 m off comes to see what the crows saw")
-	crow._process_ai_state(1.5)
-	crow._process_ai_state(crow.away_time + 0.1)
-	_check(crow.state == EnemyCarrionCrow.AIState.RETURNING, "the crow comes back after a while")
-	crow._process_ai_state(1.7)
-	_check(crow.is_perched(), "...and settles on its perch again")
-
-	# A thrown stone near a flock is a distraction.
-	_reset_player(OPEN)
-	await _ticks(1)
-	var c3 := _spawn_dummy_crow(OPEN + Vector3(-9.0, 0, 0))
-	await _ticks(1)
-	caws.clear()
-	field.emit_noise(OPEN + Vector3(-8.0, 0, 0), 10.0, _player, "thud")
-	_check(not c3.is_perched() and caws.any(func(c: Array) -> bool: return (c[0] as Vector3).distance_to(c3.global_position) < 2.0 or c[1] == c3), "a stone landing near crows sets them off (a distraction elsewhere)")
-	var troll := _spawn_dummy_troll(OPEN + Vector3(-9.0, 0, 9.0))
-	await _ticks(1)
-	field.emit_noise(OPEN + Vector3(-9.0, 0, 0), 14.0, c3, "caw")
-	_check(troll.state == EnemyQuarryTroll.AIState.CHARGE, "the Quarry-Troll charges at cawing")
-	field.noise_emitted.disconnect(rec)
-
-	# One blow kills a crow; nothing lodges in it.
-	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
-	var saved_chance: float = axe_w.heavy_lodge_chance
-	axe_w.heavy_lodge_chance = 1.0
-	_equip_now("woodsmans_broadaxe")
-	var c4 := _spawn_dummy_crow(OPEN + Vector3(1.0, 0, 0))
-	await _ticks(1)
-	_make_lodge(c4, true)
-	_check(c4.is_dead(), "a single blow kills a crow")
-	_check(_player.current_state != PlayerController.ActionState.LODGED, "weapons never lodge in a crow")
-	_player.current_state = PlayerController.ActionState.IDLE
-	axe_w.heavy_lodge_chance = saved_chance
-	_equip_now("arming_sword")
-
-	# The Ghoul: corpses and blood.
-	var G := EnemyGhoul.AIState
-	_reset_player(OPEN)
-	_player.is_bleeding = false
-	await _ticks(1)
-	var victim := _spawn_dummy_goblin(OPEN + Vector3(-6.0, 0, -6.0))
-	victim._on_hurtbox_hit_received(CombatPayload.new(_player, victim.global_position, Vector3.FORWARD, 999.0, 1.0))
-	await _ticks(2)
-	var corpse: Lootable = null
-	for c: Node in victim.get_children():
-		if c is Lootable:
-			corpse = c
-	corpse.items = [ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2), ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("iron_skullcap")] as Array[ItemInstance]
-	var ghoul := EnemyGhoul.new()
-	ghoul.position = OPEN + Vector3(-12.0, 0, -6.0)
-	ghoul.process_mode = Node.PROCESS_MODE_DISABLED
-	ghoul.player_ref = _player
-	_main.add_child(ghoul)
-	await _ticks(2)
-	_check(ghoul.find_nearest_corpse() == corpse, "the ghoul finds the nearest corpse")
-	ghoul._process_ai_state(0.05)
-	_check(ghoul.state == G.SEEK_CORPSE, "...and goes to eat it")
-	ghoul.global_position = corpse.global_position + Vector3(-1.0, 0, 0)
-	ghoul._process_ai_state(0.05)
-	_check(ghoul.is_eating(), "at the body it starts gnawing")
-	ghoul.health = 20.0
-	var gnaws: Array = []
-	var rec2 := func(_p: Vector3, _r: float, src: Node3D, kind: String) -> void:
-		if kind == "gnaw" and src == ghoul:
-			gnaws.append(true)
-	field.noise_emitted.connect(rec2)
-	for i in range(int(ghoul.eat_time / 0.1) + 2):
-		ghoul._process_ai_state(0.1)
-	field.noise_emitted.disconnect(rec2)
-	_check(gnaws.size() >= 3, "gnawing is audible (%d crunches)" % gnaws.size())
-	_check(is_equal_approx(ghoul.health, ghoul.max_health) and ghoul.state == G.WANDER, "eating heals it fully")
-	_check(corpse.count_of("clean_rag_bandage") == 0 and corpse.count_of("salt") == 0, "food and cloth on the body are spoiled")
-	_check(corpse.count_of("iron_scrap") == 2 and corpse.count_of("iron_skullcap") == 1, "metal survives")
-	_check(corpse.display_name.begins_with("Gnawed ") and ghoul.find_nearest_corpse() != corpse, "a gnawed corpse isn't eaten twice")
-
-	# Blood scent, through walls.
-	ghoul.global_position = Vector3(3.0, 0.0, -5.0) # inside the watchhouse
-	_reset_player(Vector3(-8.0, 0.0, -5.0))
-	await _ticks(1)
-	ghoul.state = G.WANDER
-	ghoul._evaluate_senses(0.016)
-	_check(ghoul.state == G.WANDER, "no blood, 11 m away behind stone: it doesn't know you're there")
-	_player.is_bleeding = true
-	_player.bleed_timer = 10.0
-	ghoul._evaluate_senses(0.016)
-	_check(ghoul.state == G.PURSUE and ghoul._target_pos.distance_to(_player.global_position) < 0.01, "bleeding: it smells exactly where you are, through walls")
-	_player.is_bleeding = false
-
-	# Claws never clang; they cause bleeding.
-	var hall_ghoul := EnemyGhoul.new()
-	hall_ghoul.position = HALL
-	hall_ghoul.process_mode = Node.PROCESS_MODE_DISABLED
-	_main.add_child(hall_ghoul)
-	hall_ghoul._facing_dir = Vector3.RIGHT
-	hall_ghoul.claw_bleed_chance = 1.0
-	await _ticks(1)
-	hall_ghoul._enter_attack_active()
-	_check(hall_ghoul.state == G.ATTACK_ACTIVE and hall_ghoul._hitbox._active_payload.causes_bleed, "in the entry hall its claws rake without clanging, and they open wounds")
-	hall_ghoul._hitbox.end_swing()
-	ghoul._on_hurtbox_hit_received(CombatPayload.new(_player, ghoul.global_position, Vector3.FORWARD, 999.0, 1.0))
-	await _ticks(2)
-	_check(ghoul.is_dead() and ghoul.get_children().any(func(c: Node) -> bool: return c is Lootable), "a dead ghoul leaves a searchable corpse")
-
-	for n: Node in [crow, buddy, gob, c3, troll, c4, victim, ghoul, hall_ghoul]:
-		n.queue_free()
-	_player.camera_rig = rig
-	_reset_player(OPEN)
-	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 16 — the Bog Bear & rot mounds
-# ------------------------------------------------------------------------------
-func _spawn_dummy_bear(den: Vector3) -> EnemyBogBear:
-	var b := EnemyBogBear.new()
-	b.position = den
-	b.process_mode = Node.PROCESS_MODE_DISABLED
-	b.player_ref = _player
-	_main.add_child(b)
-	return b
-
-func _spawn_dummy_mound(pos: Vector3) -> EnemyRotMound:
-	var m := EnemyRotMound.new()
-	m.position = pos
-	m.process_mode = Node.PROCESS_MODE_DISABLED
-	m.player_ref = _player
-	_main.add_child(m)
-	return m
-
-func _test_bestiary_two() -> void:
-	_section("Bestiary II: the Bog Bear & rot mounds")
-	var B := EnemyBogBear.AIState
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_check(_children_of(func(n: Node) -> bool: return n is EnemyBogBear).size() == 1 and _children_of(func(n: Node) -> bool: return n is EnemyRotMound).size() == 5, "a bear in its wallow and five rot mounds in the marsh")
-
-	# Territory.
-	var den: Vector3 = OPEN + Vector3(0.0, 0.0, -14.0)
-	var bear := _spawn_dummy_bear(den)
-	_reset_player(OPEN)
-	_face(Vector3.FORWARD)
-	await _ticks(2)
-	bear._process_ai_state(0.05)
-	_check(bear.state == B.IDLE, "14 m from its wallow: the bear stays put")
-	_reset_player(den + Vector3(0.0, 0.0, 9.0))
-	await _ticks(1)
-	bear._process_ai_state(0.05)
-	_check(bear.state == B.CHARGE, "inside its 11 m territory: it charges (it doesn't need to see you)")
-
-	# Fire.
-	_equip_now("pitch_torch")
-	_player.inventory.off_hand.condition = 200.0
-	bear.global_position = _player.global_position + Vector3(0.0, 0.0, -3.0)
-	_face(Vector3.FORWARD)
-	await _ticks(3)
-	_check(_player.is_torch_lit() and bear.is_threatened_by_fire(), "a lit torch held toward it within 4.5 m threatens it")
-	bear._process_ai_state(0.05)
-	_check(bear.state == B.REAR, "...and it rears back from the flame")
-	bear._process_ai_state(1.6)
-	_check(bear.state == B.CHARGE and bear._fear_cooldown > 0.0, "then it comes again, after a moment")
-	_face(Vector3.BACK)
-	_check(not bear.is_threatened_by_fire(), "a torch held away from it doesn't scare it")
-	_face(Vector3.FORWARD)
-	bear.health = bear.max_health * 0.45
-	_check(bear.is_enraged() and not bear.is_threatened_by_fire(), "wounded below half: enraged, fire no longer holds it back")
-	bear.health = bear.max_health
-	_equip_now("wooden_targe")
-
-	# Leash.
-	bear.state = B.CHARGE
-	_reset_player(den + Vector3(0.0, 0.0, 19.0))
-	await _ticks(1)
-	bear._process_ai_state(0.05)
-	_check(bear.state == B.RETURN, "past 18 m from its wallow it gives up and goes home")
-
-	# The maul: swipe, swipe, bite.
-	var arena := _spawn_dummy_bear(OPEN + Vector3(30.0, 0, 0)) # far from walls
-	arena.global_position = OPEN + Vector3(3.0, 0, 6.0)
-	arena._facing_dir = Vector3.RIGHT
-	await _ticks(1)
-	var bites: Array = []
-	for i in range(3):
-		arena._combo_step = i
-		arena._enter_maul_active()
-		bites.append(arena._hitbox._active_payload.causes_bleed)
-		arena._hitbox.end_swing()
-	_check(arena.state == B.MAUL_ACTIVE and bites == [false, false, true], "maul: two swipes, then a bite that makes you bleed")
-	var hall_bear := _spawn_dummy_bear(HALL)
-	hall_bear._facing_dir = Vector3.RIGHT
-	await _ticks(1)
-	hall_bear._combo_step = 0
-	hall_bear._enter_maul_active()
-	_check(hall_bear.state == B.RECOIL, "in the entry hall its swipe clangs off the stone")
-	hall_bear._combo_step = 2
-	hall_bear.state = B.MAUL_LINK
-	hall_bear._enter_maul_active()
-	_check(hall_bear.state == B.MAUL_ACTIVE, "...but its bite doesn't")
-	hall_bear._hitbox.end_swing()
-
-	# Woken by noise; carcass.
-	var sleeper := _spawn_dummy_bear(OPEN + Vector3(0, 0, 30.0))
-	await _ticks(1)
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	field.emit_noise(OPEN + Vector3(0, 0, 21.0), 12.0, _player, "footstep")
-	_check(sleeper.state == B.CHARGE, "a loud noise near its wallow brings it out")
-	sleeper._on_hurtbox_hit_received(CombatPayload.new(_player, sleeper.global_position, Vector3.FORWARD, 9999.0, 1.0))
-	await _ticks(2)
-	var carcass: Lootable = null
-	for c: Node in sleeper.get_children():
-		if c is Lootable:
-			carcass = c
-	_check(carcass != null and carcass.count_of("bear_pelt") == 1, "a dead bear leaves its pelt")
-
-	# Rot mounds.
-	_reset_player(OPEN)
-	_player.cure_spores()
-	await _ticks(1)
-	var m1 := _spawn_dummy_mound(OPEN + Vector3(5.0, 0, 0))
-	await _ticks(1)
-	m1._physics_process(0.016)
-	_check(not m1.is_dead(), "a rot mound 5 m away sits there")
-	_reset_player(OPEN + Vector3(4.0, 0, 0))
-	await _ticks(1)
-	m1._physics_process(0.016)
-	_check(m1.is_dead() and _player.is_spore_sick(), "walk into one: it bursts and you're spore-sick")
-	var stamina_rate := func() -> float:
-		_player.stamina = 40.0
-		_player._stamina_delay_timer = 0.0
-		_player.current_state = PlayerController.ActionState.IDLE
-		_player._update_timers_and_conditions(0.1)
-		return (_player.stamina - 40.0) / 0.1
-	var sick_rate: float = stamina_rate.call()
-	_player.cure_spores()
-	var well_rate: float = stamina_rate.call()
-	_check(absf(sick_rate - well_rate * 0.5) < 0.5, "spore sickness halves stamina regen (%.1f vs %.1f /s)" % [sick_rate, well_rate])
-	_player.afflict_spores(10.0)
-	await _seconds(1.2)
-	_check(_player.is_coughing() or _player._spore_cough_timer > 3.0, "spore sickness makes you cough")
-	var m2 := _spawn_dummy_mound(OPEN + Vector3(-8.0, 0, 0))
-	_player.cure_spores()
-	await _ticks(1)
-	field.emit_noise(m2.global_position + Vector3(0.6, 0, 0), 10.0, _player, "thud")
-	_check(m2.is_dead() and not _player.is_spore_sick(), "a thrown stone pops one safely from range")
-	var m3 := _spawn_dummy_mound(OPEN + Vector3(0, 0, 4.0))
-	await _ticks(1)
-	m3._on_hurtbox_hit_received(CombatPayload.new(_player, OPEN, Vector3.BACK, 5.0, 1.0))
-	_check(m3.is_dead(), "striking one bursts it")
-	_player.cure_spores()
-	_reset_player(OPEN)
-	_equip_now("pitch_torch")
-	var m4 := _spawn_dummy_mound(OPEN + Vector3(1.2, 0, -1.0))
-	await _ticks(3)
-	for i in range(20):
-		m4._physics_process(0.1)
-	_check(m4.is_dead() and not _player.is_spore_sick(), "a torch held close burns one away without spores")
-	_equip_now("wooden_targe")
-
-	# Resting at the fire clears the spores.
-	SaveGame.save_path = "user://smoke_test_save.json"
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_player.afflict_spores(30.0)
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
-	await _ticks(1)
-	_player.afflict_spores(30.0)
-	boot.rest_at_fire()
-	_check(not _player.is_spore_sick(), "resting at the fire clears your lungs")
-	SaveGame.delete()
-
-	for n: Node in [bear, arena, hall_bear, sleeper, m1, m2, m3, m4]:
-		n.queue_free()
-	_player.camera_rig = rig
-	_reset_player(OPEN)
-	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 17 — survival: cold & hunger
-# ------------------------------------------------------------------------------
-func _test_survival() -> void:
-	_section("Survival: cold & hunger")
-	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
-	var W := WeatherSystem.Weather
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_check(not _player.survival_enabled, "(survival is off for the rest of the suite)")
-	var foods: Array = ["hardtack", "dried_meat", "raw_bear_meat"].filter(func(id: String) -> bool: return ItemDatabase.get_item(id).food_value > 0.0)
-	_check(foods.size() == 3, "three foods: hardtack, dried meat, raw bear meat")
-	_check(ItemDatabase.get_item("quilted_gambeson").insulation > 0.2 and ItemDatabase.get_item("riveted_mail").insulation == 0.0, "padding insulates; mail doesn't")
-	var stash: Lootable = null
-	for l: Lootable in get_nodes_in_group("lootable"):
-		if l.display_name == "Shelter Stash":
-			stash = l
-	_check(stash != null and stash.count_of("hardtack") >= 3, "the shelter stash holds hardtack")
-	_check(ItemDatabase.roll_ork_loot().any(func(i: ItemInstance) -> bool: return i.data.item_id == "dried_meat"), "orks carry dried meat")
-
-	_equip_now("wooden_targe")
-	_reset_player(OPEN)
-	await _ticks(2)
-	weather.set_weather(W.OVERCAST, true)
-	_check(absf(_player.warmth_rate() + 0.2) < 0.001, "outdoors in Overcast you lose 0.2 warmth/s (%.3f)" % _player.warmth_rate())
-	weather.set_weather(W.SLEET, true)
-	_check(absf(_player.warmth_rate() + 0.44) < 0.001, "Sleet: x2.2 colder")
-	weather.set_weather(W.HOARFROST, true)
-	_check(absf(_player.warmth_rate() + 0.56) < 0.001, "Hoarfrost: x2.8 colder")
-	weather.set_weather(W.CINDER_SQUALL, true)
-	_check(absf(_player.warmth_rate() + 0.12) < 0.001, "Cinder-squall embers: only x0.6")
-	weather.set_weather(W.OVERCAST, true)
-	_reset_player(INSIDE)
-	await _ticks(1)
-	_check(absf(_player.warmth_rate() + 0.05) < 0.001, "under the watchhouse roof: a quarter of the drain")
-	_reset_player(OPEN)
-	_equip_now("pitch_torch")
-	await _ticks(3)
-	_check(_player.is_torch_lit() and absf(_player.warmth_rate() + 0.08) < 0.001, "a lit torch cuts the drain by 60%")
-	_equip_now("wooden_targe")
-	var gamb := ItemDatabase.make("quilted_gambeson")
-	_player.inventory.add(gamb)
-	_player.inventory.equip(gamb)
-	await _ticks(2)
-	_check(absf(_player.warmth_rate() + 0.15) < 0.001, "a gambeson insulates (x0.75)")
-	_player.drop_item(gamb)
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(2.5, 0, 1.0))
-	await _ticks(1)
-	_check(is_equal_approx(_player.warmth_rate(), 4.0), "by the shelter fire you warm up (+4/s)")
-	_reset_player(OPEN)
-	await _ticks(1)
-
-	# Thresholds.
-	_player.survival_enabled = true
-	_player.warmth = 30.0
-	_player.satiety = 80.0
-	_check(_player.is_chilled() and is_equal_approx(_player._survival_regen_mult(), 0.75), "below 40 warmth: chilled, stamina regen x0.75")
-	_player.warmth = 10.0
-	_check(_player.is_freezing() and is_equal_approx(_player.get_stamina_cap(), 60.0) and is_equal_approx(_player._survival_regen_mult(), 0.5), "below 15: freezing, max stamina 60, regen x0.5")
-	var hp: float = _player.health
-	_player._update_survival(1.0)
-	_check(absf((hp - _player.health) - 0.4) < 0.02, "freezing costs 0.4 health/s")
-	_check(_player.stamina <= 60.0, "...and stamina is held to the cap")
-	_player.warmth = 80.0
-	_player.satiety = 20.0
-	_check(_player.is_hungry() and is_equal_approx(_player.get_stamina_cap(), 85.0) and is_equal_approx(_player._survival_regen_mult(), 0.8), "below 30 food: hungry, -15 max stamina, regen x0.8")
-	var sat: float = _player.satiety
-	_player._update_survival(10.0)
-	_check(absf((sat - _player.satiety) - 0.8) < 0.01, "food drains 0.08/s")
-	_player.satiety = 5.0
 	hp = _player.health
-	_player._update_survival(1.0)
-	_check(_player.is_starving() and absf((hp - _player.health) - 0.3) < 0.02, "starving costs 0.3 health/s")
-	_player.warmth = 0.0
-	_player.satiety = 80.0
-	_player.health = 1.0
-	_player._update_survival(1.0)
-	_check(_player.current_state == PlayerController.ActionState.DEAD, "at zero warmth you can freeze to death")
-	_reset_player(OPEN)
-	_check(is_equal_approx(_player.warmth, _player.max_warmth) and _player.current_state == PlayerController.ActionState.IDLE, "waking at the fire: warm again")
+	h.state = EnemySporeHusk.AIState.CLAW_STARTUP
+	h._state_timer = 0.0
+	await _ticks(4)
+	_check(absf((hp - _player.health) - EnemySporeHusk.CLAW_DAMAGE) < 0.5 and _player.is_choking(),
+		"its claw does %.0f and leaves the survivor choking" % EnemySporeHusk.CLAW_DAMAGE)
+	_player._choke_timer = 0.0
+	# A wound puffs a small cloud; death bursts a big one where it stood.
+	h.state = EnemySporeHusk.AIState.IDLE
+	h._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 10.0, 1.0))
+	await _ticks(2)
+	var puffs: Array = get_nodes_in_group("spore_cloud")
+	_check(puffs.size() == 1 and absf((puffs[0] as SporeCloud).radius - EnemySporeHusk.PUFF_RADIUS) < 0.01, "a wound puffs a small cloud")
+	await _clear_spores()
+	h._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	var bursts: Array = get_nodes_in_group("spore_cloud")
+	_check(h.is_dead() and bursts.size() == 1 and absf((bursts[0] as SporeCloud).radius - EnemySporeHusk.BURST_RADIUS) < 0.01
+		and (bursts[0] as SporeCloud).contains(h.global_position), "killed, it bursts into a %.1f m cloud where it stood" % EnemySporeHusk.BURST_RADIUS)
+	_check((bursts[0] as SporeCloud).contains(_player.global_position), "and a survivor who killed it at arm's length stands in the cloud")
+	await _clear_spores()
+	h.queue_free()
 
-	# Eating.
-	_player.satiety = 40.0
-	var tack := ItemDatabase.make("hardtack", 2)
-	_player.inventory.add(tack)
-	await _ticks(1)
-	_check(_player.use_item(tack) and _player.get_channel_kind() == PlayerController.ChannelKind.EAT, "eating is a short channel")
-	await _seconds(1.35)
-	_check(absf(_player.satiety - 65.0) < 1.0 and _player.inventory.count_of("hardtack") == 1, "hardtack restores 25 food and is used up")
-	_player.satiety = _player.max_satiety
-	_check(not _player.use_item(_player.inventory.find_first("hardtack")), "you can't eat when full")
-	_player.inventory.consume("hardtack", 1)
-
-	# Rest, save, off-switch.
-	SaveGame.save_path = "user://smoke_test_save.json"
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
-	await _ticks(1)
-	_player.warmth = 20.0
-	boot.rest_at_fire()
-	_check(is_equal_approx(_player.warmth, _player.max_warmth), "resting at the fire warms you through")
-	_player.satiety = 33.0
-	var saved: Dictionary = SaveGame.collect(boot)
-	_check(absf(float(saved["player"]["warmth"]) - _player.max_warmth) < 0.01 and absf(float(saved["player"]["satiety"]) - 33.0) < 0.01, "warmth and food are saved")
-	SaveGame.delete()
-	_player.survival_enabled = false
-	_player.warmth = 5.0
-	_player._update_survival(5.0)
-	_check(is_equal_approx(_player.warmth, 5.0), "with survival off nothing drains")
-	_player.warmth = _player.max_warmth
-	_player.satiety = 80.0
+	# The survivor dies mid-claw: it stands down.
+	var h2 := EnemySporeHusk.new()
+	h2.player_ref = _player
+	_main.add_child(h2)
+	h2.global_position = OGRE_YARD
+	await _ticks(2)
+	h2.state = EnemySporeHusk.AIState.CLAW_STARTUP
+	h2._state_timer = 0.5
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(h2.state == EnemySporeHusk.AIState.IDLE and not h2._hitbox._is_swing_active, "the survivor dead, a husk stands down")
+	h2.queue_free()
+	w.cycling = true
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Milestone 18 — shelter crafting & repairs
+# Bestiary: the Unnamed rise again until their name is spoken at their grave.
 # ------------------------------------------------------------------------------
-func _craft_now(recipe_id: String, stash: Lootable) -> String:
-	var reason: String = _player.start_craft(recipe_id, stash)
-	if reason == "":
-		await _seconds(float(Crafting.get_recipe(recipe_id)["time"]) + 0.1)
-	return reason
+## A live Unnamed at OGRE_YARD with its own grave 3 m off; the survivor `offset` from it.
+func _spawn_test_unnamed(offset: Vector3) -> EnemyUnnamed:
+	_reset_player(OGRE_YARD + offset)
+	var grave := ActionPoint.make("Grave of the Unnamed", "Speak a name", "Speaking the name", EnemyUnnamed.NAME_SECONDS, 1.8, Callable())
+	grave.name = "TestGrave"
+	_main.add_child(grave, true)
+	grave.global_position = OGRE_YARD + Vector3(0.0, 0.0, 3.0)
+	var u := EnemyUnnamed.new()
+	u.audio = _player.audio
+	u.player_ref = _player
+	_main.add_child(u)
+	u.global_position = OGRE_YARD
+	u._home_pos = OGRE_YARD
+	u.bind_grave(grave)
+	await _ticks(2)
+	return u
 
-func _test_crafting() -> void:
-	_section("Shelter crafting & repairs")
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	var stash: Lootable = boot._stash
-	var stash_backup: Array[ItemInstance] = stash.items.duplicate()
-	stash.items = [] as Array[ItemInstance]
+func _test_unnamed() -> void:
+	_section("Bestiary: the Unnamed")
 	var rig: IsoCameraRig = _player.camera_rig
 	_player.camera_rig = null
-	var inv: Inventory = _player.inventory
-	var valid: bool = true
-	for r: Dictionary in Crafting.all():
-		for id: String in (r["inputs"] as Dictionary).keys():
-			if not ItemDatabase.all_ids().has(id):
-				valid = false
-		if String(r["output"]) != "" and not ItemDatabase.all_ids().has(String(r["output"])):
-			valid = false
-	_check(Crafting.all().size() == 10 and valid, "ten recipes (M20 added roast game meat), all with real ingredients and outputs")
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyUnnamed)
+	var level_graves: Array = _children_of(func(n: Node) -> bool: return n is ActionPoint and (n as Lootable).display_name == "Grave of the Unnamed")
+	_check(level.size() == 3 and level_graves.size() == 3 and level.all(func(u: EnemyUnnamed) -> bool: return u.grave != null and u.global_position.x > 12.0 and u.global_position.z > 16.0),
+		"three Unnamed in the south-east burial ground, each bound to its own grave")
+	_check((level_graves[0] as Lootable).get_prompt().begins_with("[E] Speak a name"), "a grave's prompt: [E] Speak a name")
 
-	# Only at the fire.
-	_reset_player(OPEN)
-	await _ticks(1)
-	var k := InputEventKey.new()
-	k.keycode = KEY_K
-	k.pressed = true
-	boot._unhandled_input(k)
-	_check(not boot._crafting.is_open(), "[K] away from the fire does nothing")
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	# Cut down, it falls (not dead to the world: walkable, unhittable) and rises whole.
+	var u: EnemyUnnamed = await _spawn_test_unnamed(Vector3(-5.0, 0.0, 0.0))
+	_check(is_equal_approx(u.aggression, 0.5) and is_equal_approx(u.grave_leash(), 14.0), "unnamed temperament: aggression 0.5, strays 14 m from its grave")
+	u._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
 	await _ticks(2)
-	_check(_hud._prompt_label.text.contains("[K] Work at the fire"), "at the fire the prompt offers work")
-	boot._unhandled_input(k)
-	_check(boot._crafting.is_open() and _player.ui_capture, "[K] at the fire opens the work panel")
-	_player.global_position = OPEN
+	_check(u.state == EnemyUnnamed.AIState.FALLEN and u.is_dead() and not u.is_at_rest() and u.collision_layer == 0,
+		"cut down, it falls: down, walkable over, but not at rest")
+	_check(_main.find_children("CorpseLoot", "", true, false).filter(func(n: Node) -> bool: return n.get_parent() == u).is_empty(),
+		"a fallen Unnamed leaves no corpse to search (it is not finished)")
+	u._state_timer = 0.05
+	await _ticks(4)
+	_check(u.state == EnemyUnnamed.AIState.RISING and is_equal_approx(u.health, u.max_health) and u.times_risen == 1, "after its time it rises, whole")
+	_check(u._model.current_animation() == &"LayToIdle", "getting up plays the rise from the ground")
+	await _seconds(EnemyUnnamed.RISE_ANIM_SECONDS + 0.1)
+	_check(not u.is_dead() and u.collision_layer == 4, "and stands, hittable again")
+
+	# Its name spoken at its grave while it lies: it stays down, and the grave's prompt goes.
+	u._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
 	await _ticks(2)
-	_check(not boot._crafting.is_open(), "walking away closes it")
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	var grave: ActionPoint = u.grave
+	_player.global_position = grave.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, 0.05, grave)
 	await _seconds(0.2)
+	_check(u.is_at_rest() and u.grave == null and not is_instance_valid(grave) or (u.is_at_rest() and grave.is_queued_for_deletion()),
+		"naming it at its grave (through the survivor's own channel) lays it to rest; the grave's prompt goes")
+	await _ticks(2)
+	var rest_corpse: Array = u.get_children().filter(func(n: Node) -> bool: return n is Lootable)
+	_check(rest_corpse.size() == 1 and (rest_corpse[0] as Lootable).display_name.ends_with("at rest"), "laid to rest, it leaves a body to search")
+	u._state_timer = 0.0
+	await _seconds(0.3)
+	_check(u.is_at_rest(), "and it does not rise again")
+	u.queue_free()
+	await _ticks(2)
 
-	# Repairs.
-	var sword: ItemInstance = inv.main_hand
-	sword.condition = 30.0
-	_check(_player.start_craft("repair_weapon", stash).begins_with("needs 2×"), "no iron scrap: the repair says what it needs")
-	inv.add(ItemDatabase.make("iron_scrap", 2))
-	_check(await _craft_now("repair_weapon", stash) == "" and absf(sword.condition - 70.0) < 0.01 and inv.count_of("iron_scrap") == 0, "repair weapon: 2 scrap, +40 condition")
-	stash.put(ItemDatabase.make("iron_scrap", 2))
-	sword.condition = 50.0
-	_check(await _craft_now("repair_weapon", stash) == "" and absf(sword.condition - 90.0) < 0.01 and stash.count_of("iron_scrap") == 0, "ingredients can come from the shelter stash")
-	sword.condition = sword.data.max_condition
-	stash.put(ItemDatabase.make("iron_scrap", 2))
-	_check(Crafting.why_not(Crafting.get_recipe("repair_weapon"), _player, stash).contains("good order"), "a weapon in good order can't be repaired")
-	var shield: ItemInstance = inv.off_hand
-	shield.condition = 10.0
-	stash.put(ItemDatabase.make("timber", 1))
-	_check(await _craft_now("repair_shield", stash) == "" and absf(shield.condition - 60.0) < 0.01, "repair shield: timber + scrap, +50")
-	var hood := ItemDatabase.make("padded_hood", 1, 5.0)
-	inv.add(hood)
-	inv.equip(hood)
-	stash.put(ItemDatabase.make("iron_scrap", 1))
-	_check(await _craft_now("repair_armor", stash) == "" and absf(hood.condition - 45.0) < 0.01, "repair armour: the most worn piece, +40")
-	var torch: ItemInstance = inv.find_first("pitch_torch")
-	torch.condition = 10.0
-	stash.put(ItemDatabase.make("timber", 1))
-	_check(await _craft_now("refuel_torch_wood", stash) == "" and absf(torch.condition - 100.0) < 0.01, "pitch & timber: +90 s of torch fuel")
-	stash.put(ItemDatabase.make("lamp_oil", 1))
-	_check(await _craft_now("refuel_torch_oil", stash) == "" and is_equal_approx(torch.condition, torch.data.max_condition), "lamp oil: a full torch")
+	# Named where it stands, unseen: it lies down for good.
+	u = await _spawn_test_unnamed(Vector3(-6.0, 0.0, 0.0))
+	u.grave.on_search_complete(_player)
+	_check(u.is_at_rest(), "named where it stands, it lies down for good")
+	u.queue_free()
+	await _ticks(2)
 
-	# Cooking needs the pot.
-	stash.put(ItemDatabase.make("raw_bear_meat", 1))
-	stash.put(ItemDatabase.make("salt", 1))
-	_check(_player.start_craft("cook_stew", stash).contains("Cooking Pot"), "no pot, no stew")
-	stash.put(ItemDatabase.make("cooking_pot"))
-	_check(await _craft_now("cook_stew", stash) == "" and inv.count_of("marsh_stew") == 1 and stash.count_of("cooking_pot") == 1, "stew cooked in the stash's pot (the pot stays)")
-	_player.warmth = 40.0
-	_player.satiety = 20.0
-	_player.use_item(inv.find_first("marsh_stew"))
-	await _seconds(2.2)
-	_check(absf(_player.satiety - 80.0) < 1.0 and absf(_player.warmth - 75.0) < 1.0, "marsh stew: +60 food and +35 warmth")
-
-	# Cloaks.
-	stash.put(ItemDatabase.make("bear_pelt", 1))
-	stash.put(ItemDatabase.make("clean_rag_bandage", 1))
-	_check(await _craft_now("sew_bear_cloak", stash) == "" and inv.find_first("bear_pelt_cloak") != null, "sew a bear-pelt cloak")
-	var cloak: ItemInstance = inv.find_first("bear_pelt_cloak")
-	inv.equip(cloak)
-	inv.unequip(hood)
-	_check(inv.get_armor(ItemData.ArmorSlot.CLOAK) == cloak and absf(_player.get_insulation() - 0.35) < 0.001, "it goes in the cloak slot and insulates (35%)")
-	_player.current_state = PlayerController.ActionState.MOVE
-	_check(absf(_player.emit_gait_noise() - 3.5 * 0.85 * _player.get_noise_multiplier()) < 0.01, "the fur muffles your footsteps (x0.85)")
+	# It hunts: sees in a cone, grabs, and a blow during the naming cancels it.
+	u = await _spawn_test_unnamed(Vector3(-6.0, 0.0, 0.0))
+	u._facing_dir = Vector3.RIGHT
+	_check(not u.sees_player(), "looking away, it does not see a survivor 6 m behind it")
+	u._facing_dir = Vector3.LEFT
+	_check(u.sees_player(), "facing them, it does")
+	_player.global_position = OGRE_YARD + Vector3(-1.2, 0.0, 0.0)
+	_face(Vector3.RIGHT)
+	await _ticks(2)
+	var hp: float = _player.health
+	u.state = EnemyUnnamed.AIState.GRAB_STARTUP
+	u._state_timer = 0.0
+	await _ticks(4)
+	_check(absf((hp - _player.health) - EnemyUnnamed.GRAB_DAMAGE) < 0.5, "its grab does %.0f" % EnemyUnnamed.GRAB_DAMAGE)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_player.global_position = u.grave.global_position + Vector3(-1.0, 0.0, 0.0)
+	await _ticks(2)
+	_player._start_channel(PlayerController.ChannelKind.SCAVENGE, EnemyUnnamed.NAME_SECONDS, u.grave)
+	_player._on_hurtbox_hit_received(CombatPayload.new(u, u.global_position, Vector3.RIGHT, 5.0, 1.0))
+	await _ticks(2)
+	_check(_player.current_state != PlayerController.ActionState.CHANNEL and not u.is_at_rest(), "a blow during the naming breaks it off")
 	_player.current_state = PlayerController.ActionState.IDLE
 
-	# Interrupted work wastes nothing; the panel's Make button works.
-	inv.add(ItemDatabase.make("iron_scrap", 2))
-	sword.condition = 20.0
-	_player.start_craft("repair_weapon", stash)
-	await _seconds(0.5)
-	Input.action_press("move_up")
+	# Leashed to its grave; stands down when the survivor dies.
+	u.global_position = OGRE_YARD + Vector3(u.grave_leash() + 1.0, 0.0, 0.0)
+	u._memory = 5.0
+	u.state = EnemyUnnamed.AIState.SHAMBLE
 	await _ticks(2)
-	Input.action_release("move_up")
-	await _ticks(1)
-	_check(_player.current_state != PlayerController.ActionState.CHANNEL and inv.count_of("iron_scrap") == 2 and absf(sword.condition - 20.0) < 0.01, "moving interrupts the work and costs nothing")
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
-	await _seconds(0.2)
-	boot._crafting.open()
-	var makes: int = 0
-	for row: Node in boot._crafting._list.get_children():
-		for c: Node in row.get_children():
-			if c is Button:
-				makes += 1
-	_check(makes >= 1, "the panel offers Make for what you can afford (%d)" % makes)
-	_check(boot._crafting.make("repair_weapon") == "" and _player.get_channel_kind() == PlayerController.ChannelKind.CRAFT and not boot._crafting.is_open(), "Make starts the work and closes the panel")
-	await _seconds(3.2)
-	_check(absf(sword.condition - 60.0) < 0.01, "...and the repair lands")
-
-	# Clean up: restore the stash and gear for the Act I test.
-	for i: ItemInstance in [cloak, hood]:
-		if inv.has_item(i):
-			inv.remove(i)
-	for id: String in ["marsh_stew", "iron_scrap"]:
-		inv.consume(id, inv.count_of(id))
-	stash.items = stash_backup
-	stash.contents_changed.emit()
-	sword.condition = 88.0
-	_player.warmth = _player.max_warmth
-	_player.satiety = 80.0
-	_player.camera_rig = rig
-	await _seconds(0.2)
-	_reset_player(OPEN)
-	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 19 — day & night
-# ------------------------------------------------------------------------------
-func _test_day_night() -> void:
-	_section("Day & night")
-	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
-	var weather: WeatherSystem = _children_of(func(n: Node) -> bool: return n is WeatherSystem)[0]
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	var sun: DirectionalLight3D = boot._sun
-	var env: Environment = weather.environment
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_check(not dn.cycle_enabled and is_equal_approx(dn.hour, 8.0) and dn.get_darkness() == 0.0, "(the clock is stopped at 08:00 for the suite)")
-	_check(DayNightCycle.darkness_at_hour(12.0) == 0.0 and DayNightCycle.darkness_at_hour(23.0) == 1.0 and DayNightCycle.darkness_at_hour(2.0) == 1.0, "noon is light, midnight dark")
-	var dusk: float = DayNightCycle.darkness_at_hour(19.0)
-	var dawn: float = DayNightCycle.darkness_at_hour(6.0)
-	_check(dusk > 0.2 and dusk < 0.8 and dawn > 0.2 and dawn < 0.8, "dusk and dawn ease between (%.2f, %.2f)" % [dusk, dawn])
-	_check(DayNightCycle.phase_of(6.0) == DayNightCycle.Phase.DAWN and DayNightCycle.phase_of(12.0) == DayNightCycle.Phase.DAY and DayNightCycle.phase_of(19.0) == DayNightCycle.Phase.DUSK and DayNightCycle.phase_of(1.0) == DayNightCycle.Phase.NIGHT, "dawn, day, dusk and night phases")
-
-	var day_sun: float = sun.light_energy
-	var day_amb: float = env.ambient_light_color.get_luminance()
-	var day_hearing: float = field.hearing_multiplier
-	var phases: Array = []
-	var rec := func(p: DayNightCycle.Phase, _n: String) -> void: phases.append(p)
-	dn.phase_changed.connect(rec)
-	dn.set_hour(23.0)
-	_check(phases == [DayNightCycle.Phase.NIGHT] and dn.is_night() and dn.clock_text() == "23:00", "setting 23:00 brings on the night (one phase change)")
-	dn.phase_changed.disconnect(rec)
-	_check(sun.light_energy < day_sun * 0.3, "the sun gives way to dim moonlight (%.2f -> %.2f)" % [day_sun, sun.light_energy])
-	_check(sun.light_color.b > sun.light_color.r, "moonlight is cold blue")
-	_check(env.ambient_light_color.get_luminance() < day_amb * 0.6, "ambient light darkens at night")
-	_check(field.hearing_multiplier > day_hearing * 1.1, "the still night carries sound further (×%.2f)" % (field.hearing_multiplier / day_hearing))
-	weather.set_weather(WeatherSystem.Weather.SLEET, true)
-	# Relative to that weather's daylight (the absolute light scale changed with the painted art).
-	_check(sun.light_energy < WeatherSystem.profile(WeatherSystem.Weather.SLEET)["sun_energy"] * WeatherSystem.SUN_SCALE * 0.3, "weather changes keep the night dark")
-	weather.set_weather(WeatherSystem.Weather.OVERCAST, true)
-
-	# Cold and sight.
-	_reset_player(OPEN)
-	_equip_now("wooden_targe")
-	await _ticks(2)
-	var cold: float = WeatherSystem.factor(_player, "cold")
-	_check(absf(cold - 1.7) < 0.01, "night cold: warmth drains ×1.7 (%.2f)" % cold)
-	var dark_range: float = _player.get_vision_range()
-	_equip_now("pitch_torch")
-	await _ticks(2)
-	var torch_range: float = _player.get_vision_range()
-	_check(dark_range < _player.vision_range * 0.6 and torch_range > _player.vision_range * 0.8, "without fire you see 55%% as far; a torch keeps 85%% (%.1f / %.1f m)" % [dark_range, torch_range])
-	var ork := _spawn_dummy_ork(OPEN + Vector3(10.0, 0, 0), false, Vector3.LEFT)
-	ork.player_ref = _player
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(10.0, 0, 2.0))
-	await _ticks(1)
-	_check(is_equal_approx(DayNightCycle.sight_factor(ork), 1.0), "an ork sees a torch-bearer as by day")
-	_equip_now("wooden_targe")
-	await _ticks(1)
-	_check(absf(DayNightCycle.sight_factor(ork) - 0.55) < 0.01, "...and an unlit survivor at only 55%")
-	_check(is_equal_approx(DayNightCycle.sight_factor(gob), 1.0), "goblins see in the dark")
-
-	# Crows roost.
-	var crow := _spawn_dummy_crow(OPEN + Vector3(4.0, 0, 0))
-	await _ticks(1)
-	crow._process_ai_state(0.05)
-	_check(crow.is_roosting() and crow.is_perched(), "at night a crow 4 m away roosts and doesn't see you")
-	field.emit_noise(OPEN + Vector3(1.0, 0, 0), 6.0, _player, "footstep")
-	_check(crow.is_perched(), "a footstep doesn't wake it")
-	field.emit_noise(OPEN + Vector3(3.0, 0, 0), 12.0, _player, "clang")
-	_check(not crow.is_perched(), "a clang next to it does")
-
-	# The ghoul is bolder.
-	var ghoul := EnemyGhoul.new()
-	ghoul.position = OPEN + Vector3(-32.0, 0, 0)
-	ghoul.process_mode = Node.PROCESS_MODE_DISABLED
-	ghoul.player_ref = _player
-	_main.add_child(ghoul)
-	await _ticks(1)
-	_player.is_bleeding = true
-	_check(ghoul.smells_blood() and ghoul.get_run_speed() > ghoul.run_speed * 1.1, "at night the ghoul smells blood from 32 m and runs faster")
-	_check(is_equal_approx(DayNightCycle.sight_factor(ghoul), 1.0), "the ghoul sees in the dark")
-	dn.set_hour(12.0)
-	_check(not ghoul.smells_blood() and is_equal_approx(ghoul.get_run_speed(), ghoul.run_speed), "by day: 25 m and its normal pace")
-	_check(not crow.is_roosting() and absf(WeatherSystem.factor(_player, "cold") - 1.0) < 0.001, "by day the crows wake and the cold is ordinary")
-	_check(is_equal_approx(sun.light_energy, day_sun) and is_equal_approx(field.hearing_multiplier, day_hearing), "daylight is restored exactly")
-	_player.is_bleeding = false
-
-	# Sleeping at the fire until dawn.
-	SaveGame.save_path = "user://smoke_test_save.json"
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
-	await _ticks(1)
-	boot._process(0.0)
-	_check(_player.extra_prompt.contains("Rest at the fire"), "by day the fire offers a rest")
-	dn.set_hour(22.0)
-	boot._process(0.0)
-	_check(_player.extra_prompt.contains("Sleep until dawn"), "after dark it offers sleep until dawn")
-	_player.survival_enabled = true
-	_player.satiety = 50.0
-	boot.rest_at_fire()
-	_player.survival_enabled = false
-	_check(is_equal_approx(dn.hour, 6.0) and dn.phase == DayNightCycle.Phase.DAWN, "sleeping at the fire skips to 06:00")
-	_check(absf(_player.satiety - 35.0) < 0.01, "a night's sleep costs 15 food")
-	var saved: Dictionary = SaveGame.collect(boot)
-	_check(is_equal_approx(float(saved["hour"]), 6.0), "the hour is saved")
-	SaveGame.delete()
-	boot._process(0.0)
-	_check(_player.extra_prompt.contains("Rest at the fire"), "(at dawn it's a rest again)")
-
-	dn.set_hour(8.0)
-	_player.satiety = _player.max_satiety
-	for n: Node in [ork, gob, crow, ghoul]:
+	_check(u.state == EnemyUnnamed.AIState.RETURN_HOME, "strayed past its leash, it turns back to its grave")
+	u.global_position = OGRE_YARD
+	u.state = EnemyUnnamed.AIState.GRAB_STARTUP
+	u._state_timer = 0.5
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(u.state in [EnemyUnnamed.AIState.RETURN_HOME, EnemyUnnamed.AIState.IDLE] and not u._hitbox._is_swing_active and u._memory == 0.0,
+		"the survivor dead, it drops its grab and forgets them (state=%s)" % EnemyUnnamed.AIState.keys()[u.state])
+	if is_instance_valid(u.grave):
+		u.grave.queue_free()
+	u.queue_free()
+	for n: Node in _main.find_children("TestGrave*", "", false, false):
 		n.queue_free()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Milestone 20 — Bestiary III: the Bog-Bull, the Skull-Deer, the Crows' Roost
+# Bestiary: the gallery-crawler drops from its ledge, flanks round stone, worries a guard, fears fire.
 # ------------------------------------------------------------------------------
-func _spawn_dummy_bull(pos: Vector3) -> EnemyBogBull:
-	var b := EnemyBogBull.new()
-	b.position = pos
-	b.process_mode = Node.PROCESS_MODE_DISABLED
-	b.player_ref = _player
-	_main.add_child(b)
-	return b
-
-func _spawn_dummy_deer(pos: Vector3) -> EnemySkullDeer:
-	var d := EnemySkullDeer.new()
-	d.position = pos
-	d.process_mode = Node.PROCESS_MODE_DISABLED
+## A live crawler. With `perch_z` it waits on the level gallery's wall at that z; without, it stands at
+## `at` on the ground. Either way it is blind to nothing and fights alone (no coordinator).
+func _spawn_test_crawler(at: Vector3, perch_z: float = INF) -> EnemyGalleryCrawler:
+	var d := EnemyGalleryCrawler.new()
+	d.audio = _player.audio
 	d.player_ref = _player
+	if perch_z != INF:
+		d.set_perch(Vector3(AshenWildsBootstrap.GALLERY_PERCH.x, AshenWildsBootstrap.GALLERY_PERCH.y, perch_z), Vector3.RIGHT)
 	_main.add_child(d)
-	d._facing_dir = Vector3.BACK # toward the survivor, who stands to the south (+Z)
+	if perch_z == INF:
+		d.global_position = at
+		d._home_pos = at
+	await _ticks(2)
 	return d
 
-func _test_bestiary_three() -> void:
-	_section("Bestiary III: Bog-Bull, Skull-Deer & the Crows' Roost")
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	var field: AcousticField = _children_of(func(n: Node) -> bool: return n is AcousticField)[0]
-	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
+func _test_gallery_crawler() -> void:
+	_section("Bestiary: the gallery-crawler")
 	var rig: IsoCameraRig = _player.camera_rig
 	_player.camera_rig = null
-	var B := EnemyBogBull.AIState
-	var world_bulls: Array = _children_of(func(n: Node) -> bool: return n is EnemyBogBull)
-	var world_deer: Array = _children_of(func(n: Node) -> bool: return n is EnemySkullDeer)
-	_check(world_bulls.size() == 1 and world_deer.size() == 2, "a Bog-Bull and two Skull-Deer in the world")
-	_check((world_bulls[0] as Node3D).global_position.distance_to(AshenWildsBootstrap.PASTURE_POS) < 6.0 and world_deer.all(func(d: Node3D) -> bool: return d.global_position.distance_to(AshenWildsBootstrap.GLADE_POS) < 10.0), "the bull is in the Grey Pasture, the deer in the Pale Glade")
-	_check((world_bulls[0] as EnemyBogBull)._pasture_pos.distance_to(AshenWildsBootstrap.PASTURE_POS) < 0.1, "the bull's pasture is recorded where it spawned")
-	_check(boot._all_enemies.slice(18, 27).all(func(e: Node) -> bool: return e is EnemyBogBull or e is EnemySkullDeer or e is EnemyCarrionCrow), "M20 creatures spawn after every older enemy (old saves keep their order)")
-	var noises: Array = []
-	var rec := func(pos: Vector3, _r: float, src: Node3D, kind: String) -> void: noises.append([kind, pos, src])
-	field.noise_emitted.connect(rec)
+	_player.apply_background(SurvivorBackground.default_background())
+	var level: Array = _children_of(func(n: Node) -> bool: return n is EnemyGalleryCrawler)
+	_check(level.size() == 1 and (level[0] as EnemyGalleryCrawler).is_perched() and (level[0] as Node3D).global_position.y > 3.0
+		and (level[0] as Node3D).global_position.x < -23.0, "one crawler waits on the Roofed Gallery's wall, up on its ledge")
+	var names: Array = _main.find_children("*", "", true, false).filter(func(n: Node) -> bool: return n is Lootable).map(func(l: Lootable) -> String: return l.display_name)
+	_check(names.has("Overturned Handcart") and names.has("Wayfarer's Pack"), "the gallery holds a tipped handcart and a dead wayfarer's pack")
 
-	# The bull: alert, telegraph, a locked charge.
-	_reset_player(OPEN)
-	await _ticks(1)
-	var bull := _spawn_dummy_bull(OPEN + Vector3(0, 0, -8.0))
-	var far_bull := _spawn_dummy_bull(OPEN + Vector3(0, 0, -15.0))
-	await _ticks(1)
-	_check(bull.sees_player() and not far_bull.sees_player(), "the bull notices you at 8 m, not at 15 m")
-	bull._process_ai_state(0.05)
-	_check(bull.state == B.ALERT and noises.any(func(n: Array) -> bool: return n[0] == "roar" and n[2] == bull), "seen: it snorts (a roar) and turns to face you")
-	for i in range(14):
-		bull._process_ai_state(0.05)
-	_check(bull.state == B.PAW, "then paws the ground: the telegraph")
-	for i in range(24):
-		bull._process_ai_state(0.05)
-	_check(bull.state == B.CHARGE and bull._charge_dir.dot(Vector3.BACK) > 0.95, "after ~1.1 s it charges straight at where you stood")
-	var locked: Vector3 = bull._charge_dir
-	_reset_player(OPEN + Vector3(5.0, 0, -4.0))
-	await _ticks(1)
-	bull._process_ai_state(0.1)
-	_check(bull._charge_dir.is_equal_approx(locked), "it can't steer mid-charge")
-	_check(bull.is_charging() and not bull.is_staggered(), "a charging bull isn't staggered")
-	_check(bull._hitbox._is_swing_active, "its horns gore only while it charges (hitbox live)")
-	bull._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 1.0, 999.0))
-	_check(bull.state == B.CHARGE, "...and nothing staggers it out of the charge")
-	# Staggered out of the overrun, the horns must stop goring.
-	bull.state = B.OVERRUN
-	bull._state_timer = 0.4
-	bull._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 1.0, 999.0))
-	_check(bull.state == B.STAGGER and not bull._hitbox._is_swing_active, "staggered in the overrun: its hitbox closes (no goring while it reels)")
-	bull.queue_free()
-	far_bull.queue_free()
-
-	# A real charge: trampled in line, safe to the side.
-	_reset_player(OPEN)
-	_player.health = _player.max_health
-	await _ticks(2)
-	var b2 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -7.0))
-	await _ticks(1)
-	b2._facing_dir = Vector3.BACK
-	b2._begin_charge()
-	b2.process_mode = Node.PROCESS_MODE_INHERIT
-	var start_z: float = _player.global_position.z
-	await _seconds(1.0)
-	var lost: float = _player.max_health - _player.health
-	_check(lost >= 30.0, "in its path you're gored for heavy damage (%.0f)" % lost)
-	_check(_player.global_position.z > start_z + 1.0, "...and thrown back along the charge (%.1f m)" % (_player.global_position.z - start_z))
-	b2.queue_free()
-	_reset_player(OPEN + Vector3(3.0, 0, 0))
-	_player.health = _player.max_health
-	await _ticks(2)
-	var b3 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -7.0))
-	await _ticks(1)
-	b3._facing_dir = Vector3.BACK
-	b3._begin_charge()
-	b3.process_mode = Node.PROCESS_MODE_INHERIT
-	await _seconds(1.2)
-	_check(is_equal_approx(_player.health, _player.max_health), "three metres to the side, it thunders past")
-	b3.queue_free()
-
-	# Into a standing stone: stunned.
-	var stone: Vector3 = AshenWildsBootstrap.PASTURE_STONES[0]
-	_reset_player(OPEN)
-	await _ticks(1)
-	var b4 := _spawn_dummy_bull(stone + Vector3(5.0, 0, 0))
-	await _ticks(1)
-	b4._facing_dir = Vector3.LEFT
-	noises.clear()
-	b4._begin_charge()
-	b4.process_mode = Node.PROCESS_MODE_INHERIT
-	await _seconds(1.0)
-	_check(b4.state == B.STUNNED and b4.is_staggered(), "a charge into a standing stone stuns it (it counts as staggered)")
-	var stun_left: float = b4._state_timer
-	b4._on_hurtbox_hit_received(CombatPayload.new(_player, b4.global_position, Vector3.FORWARD, 1.0, 999.0))
-	_check(b4.state == B.STUNNED and b4._state_timer >= stun_left - 0.001, "blows on a stunned bull don't cut its stun short")
-	_check(noises.any(func(n: Array) -> bool: return n[0] == "thud" and n[2] == b4), "the impact is loud")
-	b4.process_mode = Node.PROCESS_MODE_DISABLED
-	var axe_w: WeaponData = ItemDatabase.get_item("woodsmans_broadaxe").weapon
-	var saved_chance: float = axe_w.heavy_lodge_chance
-	axe_w.heavy_lodge_chance = 1.0
-	_equip_now("woodsmans_broadaxe")
-	_reset_player(b4.global_position + Vector3(1.2, 0, 0))
-	await _ticks(1)
-	_make_lodge(b4, false)
-	_check(_player.current_state == PlayerController.ActionState.LODGED, "a heavy blow on the stunned bull can lodge")
-	_player._release_lodged_weapon("")
-	_player.current_state = PlayerController.ActionState.IDLE
-	for l: Node in _lodged_piles():
-		l.queue_free()
-	axe_w.heavy_lodge_chance = saved_chance
-	_equip_now("arming_sword")
-	b4.queue_free()
-
-	# Noise, and its carcass.
-	_reset_player(OPEN)
-	await _ticks(1)
-	var b5 := _spawn_dummy_bull(OPEN + Vector3(0, 0, -12.0))
-	await _ticks(1)
-	b5._facing_dir = Vector3.FORWARD
-	field.emit_noise(OPEN + Vector3(0, 0, -3.0), 9.0, _player, "footstep")
-	_check(b5.state == B.ALERT, "a sprinting footfall 9 m away alerts it even facing away")
-	b5._on_hurtbox_hit_received(CombatPayload.new(_player, b5.global_position, Vector3.FORWARD, 999.0, 1.0))
-	await _ticks(2)
-	var carcass: Lootable = null
-	for c: Node in b5.get_children():
-		if c is Lootable:
-			carcass = c
-	_check(b5.is_dead() and carcass != null and carcass.count_of("raw_game_meat") == 3, "a dead bull gives 3 raw game meat")
-	b5.queue_free()
-
-	# The Skull-Deer.
-	var D := EnemySkullDeer.AIState
-	_equip_now("wooden_targe")
-	_reset_player(OPEN)
-	await _ticks(1)
-	var deer := _spawn_dummy_deer(OPEN + Vector3(0, 0, -10.0))
-	var deer_far := _spawn_dummy_deer(OPEN + Vector3(0, 0, -14.0))
-	await _ticks(1)
-	_check(deer.notices_player() and not deer_far.notices_player(), "a deer notices you at 10 m, not at 14 m")
-	_equip_now("pitch_torch")
-	await _ticks(1)
-	_check(deer_far.notices_player(), "with a lit torch you're seen from 14 m (×1.5)")
-	_equip_now("wooden_targe")
-	await _ticks(1)
-	deer._process_ai_state(0.05)
-	_check(deer.state == D.WARY, "noticed: it raises its head (wary)")
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(6.0, 0, -12.0))
-	gob.state = EnemyGoblinScavenger.AIState.PATROL
-	await _ticks(1)
-	noises.clear()
-	_reset_player(OPEN + Vector3(0, 0, -2.0))
-	await _ticks(1)
-	deer._process_ai_state(0.05)
-	_check(deer.is_fleeing() and noises.any(func(n: Array) -> bool: return n[0] == "bleat"), "keep coming and it bolts with a bleat")
-	_check(deer._flee_dir.dot(Vector3.FORWARD) > 0.9, "...away from you")
-	_check(gob.state == EnemyGoblinScavenger.AIState.INVESTIGATE, "a goblin 6 m off comes to see what spooked it")
-	_check(deer_far.is_fleeing(), "the bleat sets the rest of the herd running")
-	var d3 := _spawn_dummy_deer(OPEN + Vector3(0, 0, -5.0))
-	await _ticks(1)
-	d3._process_ai_state(0.05)
-	d3._process_ai_state(0.05)
-	_check(d3.is_fleeing(), "closer than 6 m it bolts straight from wary")
-	var d4 := _spawn_dummy_deer(OPEN + Vector3(-14.0, 0, 0))
-	await _ticks(1)
-	field.emit_noise(OPEN + Vector3(-6.0, 0, 0), 9.0, _player, "footstep")
-	_check(d4.is_fleeing(), "a sprinting footfall it can hear sends it off")
-
-	# Night: it stares.
-	dn.set_hour(23.0)
-	_reset_player(OPEN)
-	var d5 := _spawn_dummy_deer(OPEN + Vector3(0, 0, -5.0))
-	await _ticks(1)
-	d5._process_ai_state(0.05)
-	d5._process_ai_state(0.05)
-	_check(d5.state == D.STARE, "at night it doesn't run: it stares at you from 5 m")
-	d5._update_visual_telegraph()
-	_check(d5._eye_mat.albedo_color.r > 0.5, "its eye sockets glow in the dark")
-	_reset_player(OPEN + Vector3(0, 0, -2.0))
-	await _ticks(1)
-	d5._process_ai_state(0.05)
-	_check(d5.is_fleeing(), "...until you're within 3.5 m")
-	dn.set_hour(8.0)
-	deer._on_hurtbox_hit_received(CombatPayload.new(_player, deer.global_position, Vector3.FORWARD, 999.0, 1.0))
-	await _ticks(2)
-	var deer_carcass: Lootable = null
-	for c: Node in deer.get_children():
-		if c is Lootable:
-			deer_carcass = c
-	_check(deer_carcass != null and deer_carcass.count_of("raw_game_meat") == 2, "a deer carcass gives 2 raw game meat")
-
-	# Roast it at the fire, no pot needed.
-	var stash: Lootable = boot._stash
-	var stash_backup: Array[ItemInstance] = stash.items.duplicate()
-	stash.items = [] as Array[ItemInstance]
-	var pot: ItemInstance = _player.inventory.find_first("cooking_pot")
-	if pot:
-		_player.inventory.remove(pot)
-	_player.inventory.add(ItemDatabase.make("raw_game_meat", 1))
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
-	await _ticks(1)
-	_check(String(Crafting.get_recipe("roast_game_meat")["tool"]) == "" and await _craft_now("roast_game_meat", stash) == "", "roasting game meat needs no pot")
-	_check(_player.inventory.count_of("roast_game_meat") == 1 and _player.inventory.count_of("raw_game_meat") == 0, "raw game meat becomes Roast Game Meat")
-	_check(ItemDatabase.get_item("roast_game_meat").food_value > ItemDatabase.get_item("raw_game_meat").food_value * 2.5 and ItemDatabase.get_item("roast_game_meat").warmth_value > 0.0, "roast fills you nearly three times as well, and warms")
-	_player.inventory.consume("roast_game_meat", 1)
-	if pot:
-		_player.inventory.add(pot)
-	stash.items = stash_backup
-
-	# The Crows' Roost.
-	var roost: CrowRoost = boot._roost
-	roost.settle() # earlier checks' clangs can carry this far
-	_check(roost.crows.size() == 6 and roost.nest != null and roost.nest.display_name == "Crows' Nest Hoard", "the roost tree holds six crows and a nest hoard")
-	_check(not roost.is_mobbing(), "(the roost is quiet)")
-	var g2 := _spawn_dummy_goblin(AshenWildsBootstrap.ROOST_POS + Vector3(6.0, 0, -7.0))
-	g2.state = EnemyGoblinScavenger.AIState.PATROL
-	_reset_player(roost.nest.global_position + Vector3(0.8, 0, 0))
-	await _ticks(1)
-	noises.clear()
-	field.emit_noise(_player.global_position, _player.rummage_noise_reach, _player, "rummage")
-	_check(roost.crows.all(func(c: EnemyCarrionCrow) -> bool: return not c.is_perched()) and roost.is_mobbing(), "rummaging in the hoard scatters the whole roost: it mobs you")
-	_reset_player(AshenWildsBootstrap.ROOST_POS + Vector3(3.0, 0, -6.0))
-	await _ticks(1)
-	noises.clear()
-	g2.state = EnemyGoblinScavenger.AIState.PATROL
-	_check(roost.mob_caw(), "while mobbing, a caw goes up...")
-	var over: Array = noises.filter(func(n: Array) -> bool: return n[0] == "caw")
-	_check(over.size() == 1 and Vector2((over[0][1] as Vector3).x - _player.global_position.x, (over[0][1] as Vector3).z - _player.global_position.z).length() < 0.1 and over[0][2] is EnemyCarrionCrow, "...right over your head, credited to a crow")
-	_check(g2.state == EnemyGoblinScavenger.AIState.INVESTIGATE and Vector2(g2._last_known_player_pos.x - _player.global_position.x, g2._last_known_player_pos.z - _player.global_position.z).length() < 1.0, "a goblin nearby comes to where the flock is screaming")
-	roost._physics_process(roost.caw_interval + 0.01)
-	_check(noises.filter(func(n: Array) -> bool: return n[0] == "caw").size() >= 2, "it keeps cawing every few seconds")
-	_reset_player(AshenWildsBootstrap.ROOST_POS + Vector3(0, 0, -20.0))
-	await _ticks(1)
-	_check(not roost.mob_caw(), "past 18 m from the tree you've shaken them off")
-	_check(is_equal_approx(roost.mob_time, 18.0), "the mobbing lasts 18 s")
-	roost._physics_process(17.0 - roost.caw_interval - 0.02)
-	_check(roost.is_mobbing(), "...still going at ~17 s")
-	roost._physics_process(1.1)
-	_check(not roost.is_mobbing(), "after 18 s the mobbing stops")
-
-	field.noise_emitted.disconnect(rec)
-	for n: Node in [deer, deer_far, gob, d3, d4, d5, g2]:
-		n.queue_free()
-	_player.camera_rig = rig
-	_reset_player(OPEN)
-	await _ticks(2)
-
-# ------------------------------------------------------------------------------
-# Milestone 21 — Bestiary IV: fungus zombies, the Rot-Beast, the Pallid Crawler
-# ------------------------------------------------------------------------------
-func _spawn_frozen(e: CharacterBody3D, pos: Vector3, facing: Vector3) -> CharacterBody3D:
-	e.position = pos
-	e.process_mode = Node.PROCESS_MODE_DISABLED
-	e.set("player_ref", _player)
-	_main.add_child(e)
-	e.set("_facing_dir", facing.normalized())
-	return e
-
-func _test_bestiary_four() -> void:
-	_section("Bestiary IV: fungus zombies, the Rot-Beast & the Pallid Crawler")
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	var dn: DayNightCycle = _children_of(func(n: Node) -> bool: return n is DayNightCycle)[0]
-	var rig: IsoCameraRig = _player.camera_rig
-	_player.camera_rig = null
-	_check(_children_of(func(n: Node) -> bool: return n is EnemyFungusZombie).size() == 3 and _children_of(func(n: Node) -> bool: return n is EnemyRotBeast).size() == 1 and _children_of(func(n: Node) -> bool: return n is EnemyPallidCrawler).size() == 1, "three fungus zombies, a Rot-Beast and a Pallid Crawler in the world")
-	_check(boot._all_enemies.slice(27).all(func(e: Node) -> bool: return e is EnemyFungusZombie or e is EnemyRotBeast or e is EnemyPallidCrawler), "M21 creatures spawn after every older enemy")
-	_equip_now("wooden_targe")
-
-	# Fungus zombies.
-	var Z := EnemyFungusZombie.AIState
-	_reset_player(OPEN)
-	_player.cure_spores()
-	await _ticks(1)
-	var z := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -8.0), Vector3.BACK) as EnemyFungusZombie
-	var z_far := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -11.0), Vector3.BACK) as EnemyFungusZombie
-	await _ticks(1)
-	_check(z.sees_player() and not z_far.sees_player(), "a zombie sees you at 8 m, not at 11 m")
-	z._evaluate_senses(0.05)
-	_check(z.state == Z.PURSUE, "seen: it shambles after you")
-	z.global_position = OPEN + Vector3(0, 0, -3.0)
-	await _ticks(1)
-	z._process_ai_state(0.05)
-	_check(z.state == Z.SPEW_STARTUP, "from 3 m it rears back to spew (the telegraph)")
-	_check(z.spew() and _player.is_spore_sick(), "the spore cone catches you: spore-sick")
-	_player.cure_spores()
-	z._facing_dir = Vector3.FORWARD
-	_check(not z.spew() and not _player.is_spore_sick(), "facing away, the spew misses")
-	z._facing_dir = Vector3.BACK
-	z.global_position = OPEN + Vector3(0, 0, -1.2)
-	z.state = Z.PURSUE
-	z._memory_timer = 5.0
-	await _ticks(1)
-	z._process_ai_state(0.05)
-	_check(z.state == Z.CLAW_STARTUP, "within reach it claws")
-	z._hitbox.end_swing()
-	z.state = Z.PURSUE
-	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
-	_check(_player.is_spore_sick(), "striking it up close puffs spores in your face")
-	_player.cure_spores()
-	z.global_position = OPEN + Vector3(0, 0, -2.0)
-	await _ticks(1)
-	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
-	_check(not _player.is_spore_sick(), "...not from a spear's length (2 m)")
-	z._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
-	_check(z.is_dead() and _player.is_spore_sick() and not z.burned_clean(), "killed by steel within 2.5 m, it bursts: spore-sick")
-	_player.cure_spores()
-	# Fire.
-	var z2 := _spawn_frozen(EnemyFungusZombie.new(), OPEN + Vector3(0, 0, -1.5), Vector3.BACK) as EnemyFungusZombie
-	_equip_now("pitch_torch")
-	_face(Vector3.FORWARD)
-	await _ticks(1)
-	z2._evaluate_senses(0.05)
-	_check(z2.is_burning(), "a lit torch thrust at it from 1.5 m sets it alight")
-	var hp: float = z2.health
-	z2._process_ai_state(1.0)
-	_check(hp - z2.health > 15.0, "it burns (%.0f a second)" % (hp - z2.health))
-	_player.cure_spores()
-	z2._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
-	_check(z2.is_dead() and z2.burned_clean() and not _player.is_spore_sick(), "killed while burning it burns clean: no spores")
-	_equip_now("wooden_targe")
-
-	# The Rot-Beast.
-	var R := EnemyRotBeast.AIState
-	_reset_player(OPEN)
-	_player.health = _player.max_health
-	_equip_now("padded_hood")
-	var hood: ItemInstance = _player.inventory.armor.get(ItemData.ArmorSlot.HEAD)
-	await _ticks(1)
-	var beast := _spawn_frozen(EnemyRotBeast.new(), OPEN + Vector3(0, 0, -5.0), Vector3.BACK) as EnemyRotBeast
-	await _ticks(1)
-	beast._hunt(_player.global_position)
-	beast._process_ai_state(0.05)
-	_check(beast.state == R.VOMIT_STARTUP, "from 5 m the Rot-Beast rears back to vomit")
-	var hood_before: float = hood.condition
-	var hp_before: float = _player.health
-	_check(beast.vomit(), "the bile line reaches you")
-	_check(_player.health < hp_before - 10.0 and hood.condition < hood_before - 10.0, "it burns (%.0f) and pits your armour (%.0f -> %.0f)" % [hp_before - _player.health, hood_before, hood.condition])
-	var pools: Array = get_nodes_in_group("bile_pool")
-	_check(pools.size() == 1, "and lies on the ground as a pool")
-	var pool: BilePool = pools[0]
-	_check(pool.contains(_player.global_position) and not pool.contains(_player.global_position + Vector3(2.0, 0, 0)), "the pool is a strip along the spew: 2 m to the side is clear")
+	# The ambush: nothing while the survivor keeps clear; under the ledge, a ring where it will land.
+	var d: EnemyGalleryCrawler = await _spawn_test_crawler(Vector3.ZERO, 15.0)
+	_check(is_equal_approx(d.aggression, 0.5) and is_equal_approx(d.memory_seconds(), 7.0) and is_equal_approx(d.lunge_recovery(), EnemyGalleryCrawler.LUNGE_RECOVERY),
+		"crawler temperament: aggression 0.5, keeps after a lost survivor 7 s")
+	_reset_player(Vector3(-17.0, 0.0, 15.0))
 	await _ticks(10)
-	_check(_player.get_hazard_speed_mult() < 0.6, "standing in it slows you (×%.2f)" % _player.get_hazard_speed_mult())
-	var pool_hp: float = _player.health
-	var pool_hood: float = hood.condition
-	var changed: Array = []
-	var on_changed := func() -> void: changed.append(1)
-	_player.inventory.changed.connect(on_changed)
-	await _seconds(1.0)
-	_player.inventory.changed.disconnect(on_changed)
-	_check(pool_hp - _player.health > 2.0 and pool_hood - hood.condition > 2.0, "the pool stings (%.1f/s) and eats your armour (%.1f/s)" % [pool_hp - _player.health, pool_hood - hood.condition])
-	_check(changed.size() <= 3, "...without flooding the pack with updates (%d in a second)" % changed.size())
-	_reset_player(OPEN + Vector3(3.0, 0, 0))
-	await _seconds(0.4)
-	_check(is_equal_approx(_player.get_hazard_speed_mult(), 1.0), "step out and the slow wears off")
-	pool._physics_process(pool.lifetime)
-	await _ticks(1)
-	_check(get_nodes_in_group("bile_pool").filter(func(n: Node) -> bool: return not n.is_queued_for_deletion()).is_empty(), "the pool soaks away after 9 s")
-	beast._vomit_cooldown = 0.0
-	beast._facing_dir = Vector3.BACK
-	_check(not beast.vomit(), "standing 3 m to the side of its line, the spew misses")
+	_check(d.state == EnemyGalleryCrawler.AIState.PERCHED, "beyond the piers the survivor passes unnoticed by the thing on the wall")
+	_reset_player(Vector3(-22.0, 0.0, 15.2))
+	_face(Vector3.RIGHT)
+	var hp: float = _player.health
+	await _ticks(3)
+	_check(d.state == EnemyGalleryCrawler.AIState.TELL and d._drop_ring.visible
+		and d._drop_ring.global_position.distance_to(Vector3(-22.0, 0.05, 15.2)) < 0.3, "passing beneath its ledge, a ring marks where it will come down")
+	await _seconds(EnemyGalleryCrawler.DROP_TELL + EnemyGalleryCrawler.DROP_FLIGHT + 0.15)
+	_check(hp - _player.health > EnemyGalleryCrawler.DROP_DAMAGE * 0.7 and _player.current_state == PlayerController.ActionState.STAGGER,
+		"standing in the ring, it lands on the survivor: %.0f and a stagger" % (hp - _player.health))
+	_check(not d.is_perched() and d.global_position.y < 0.5 and d.state in [EnemyGalleryCrawler.AIState.RECOVERY, EnemyGalleryCrawler.AIState.STALK],
+		"and it is down in the passage now")
+	d.queue_free()
 	_reset_player(OPEN)
-	await _ticks(1)
-	_player.current_state = PlayerController.ActionState.DODGE
-	_player._state_timer = 0.3
-	hp_before = _player.health
-	_check(not beast.vomit() and is_equal_approx(_player.health, hp_before), "a well-timed dodge goes through the spray")
+	await _ticks(2)
+
+	d = await _spawn_test_crawler(Vector3.ZERO, 15.0)
+	_reset_player(Vector3(-22.0, 0.0, 15.2))
+	await _ticks(3)
+	hp = _player.health
+	_player.global_position = Vector3(-21.0, 0.0, 12.6)
+	await _seconds(EnemyGalleryCrawler.DROP_TELL + EnemyGalleryCrawler.DROP_FLIGHT + 0.15)
+	_check(is_equal_approx(_player.health, hp), "stepping back out of the ring, it comes down on nothing")
+	d.queue_free()
+	await _ticks(2)
+
+	# With a pier between them it does not lunge: it moves sideways until the stone is out of the way.
+	d = await _spawn_test_crawler(Vector3(-21.8, 0.0, 20.5))
+	_reset_player(Vector3(-17.8, 0.0, 20.5))
+	_check(not d.line_clear_to_player(), "(setup) a pier stands between it and the survivor")
+	d._facing_dir = Vector3.RIGHT
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryCrawler.AIState.STALK
+	await _seconds(0.3)
+	_check(d.state == EnemyGalleryCrawler.AIState.STALK and absf(d.global_position.z - 20.5) > 0.3, "stone between them, it sidles instead of lunging")
+	await _seconds(1.2)
+	_check(d.line_clear_to_player() or d.state != EnemyGalleryCrawler.AIState.STALK, "until the pier no longer stands between them")
+	d.queue_free()
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# In the open: it lunges and bites (a bleeding bite).
+	var inv: Inventory = _player.inventory
+	_equip_now("arming_sword")
+	var targe: ItemInstance = _equip_now("wooden_targe")
+	d = await _spawn_test_crawler(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(2.4, 0.0, 0.0))
+	_face(Vector3.LEFT)
+	d._facing_dir = Vector3.RIGHT
+	_check(d.sees_player() and d.line_clear_to_player(), "(setup) in the open it sees the survivor, nothing between them")
+	hp = _player.health
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryCrawler.AIState.STALK
+	await _seconds(EnemyGalleryCrawler.LUNGE_STARTUP + EnemyGalleryCrawler.LUNGE_ACTIVE + 0.15)
+	_check(hp - _player.health > EnemyGalleryCrawler.BITE_DAMAGE * 0.7, "in the open it lunges and bites: %.0f" % (hp - _player.health))
+	d.queue_free()
+	_player.is_bleeding = false
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# A bite caught on a shield becomes a worry: held, it bleeds stamina; empty, the shield is gone.
+	d = await _spawn_test_crawler(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(1.6, 0.0, 0.0))
+	_equip_now("arming_sword")
+	targe = _equip_now("wooden_targe")
+	_check(_player.has_ready_shield(), "(setup) the targe is ready")
+	Input.action_press("block")
+	await _ticks(3)
+	_face(Vector3.LEFT)
+	d._facing_dir = Vector3.RIGHT
+	d._memory = 5.0
+	d.state = EnemyGalleryCrawler.AIState.LUNGE_STARTUP
+	d._state_timer = 0.0
+	await _ticks(4)
+	_check(d.state == EnemyGalleryCrawler.AIState.WORRY, "its bite caught on the targe, it clamps on and worries it (state=%s)" % EnemyGalleryCrawler.AIState.keys()[d.state])
+	var stam: float = _player.stamina
+	await _seconds(0.5)
+	_check(stam - _player.stamina > EnemyGalleryCrawler.WORRY_STAMINA_PER_SECOND * 0.3, "holding the guard while it shakes costs stamina (%.0f in 0.5 s)" % (stam - _player.stamina))
+	_player.stamina = 1.0
+	await _ticks(4)
+	var piles: Array = _children_of(func(n: Node) -> bool: return n is Lootable and (n as Lootable).display_name == "Dropped " + targe.data.display_name)
+	_check(inv.off_hand == null and not inv.items.has(targe) and piles.size() == 1, "shaken empty, the targe is wrenched off the survivor's arm and thrown down")
+	_check(d.state == EnemyGalleryCrawler.AIState.RECOVERY and d._worry_victim == null, "and it lets go")
+	Input.action_release("block")
+	for pile: Node in piles:
+		pile.queue_free()
 	_player.current_state = PlayerController.ActionState.IDLE
-	for n: Node in get_nodes_in_group("bile_pool"):
-		n.queue_free()
-	var wall_beast := _spawn_frozen(EnemyRotBeast.new(), Vector3(-1.5, 0, -5.0), Vector3.RIGHT) as EnemyRotBeast
-	_reset_player(Vector3(3.0, 0, -5.0))
-	await _ticks(1)
-	_check(not wall_beast.vomit(), "the watchhouse wall stops the spray")
-	var short_pool: BilePool = get_nodes_in_group("bile_pool").filter(func(n: Node) -> bool: return not n.is_queued_for_deletion())[0]
-	_check(short_pool.length < 3.0, "...and the pool ends at the wall (%.1f m)" % short_pool.length)
-	wall_beast.queue_free()
-	for n: Node in get_nodes_in_group("bile_pool"):
-		n.queue_free()
+	_player.stamina = _player.max_stamina
+	_player.is_exhausted = false
+	await _ticks(2)
+
+	# Struck while it worries, the blow lands hard and breaks its grip.
+	targe = _equip_now("wooden_targe")
+	d._memory = 5.0
+	d._worry_victim = _player
+	d.state = EnemyGalleryCrawler.AIState.WORRY
+	d._state_timer = EnemyGalleryCrawler.WORRY_SECONDS
+	var dhp: float = d.health
+	d._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.LEFT, 10.0, 1.0))
+	await _ticks(2)
+	_check(absf((dhp - d.health) - 10.0 * EnemyGalleryCrawler.WORRY_EXPOSED_MULT) < 0.01 and d.state == EnemyGalleryCrawler.AIState.STAGGER and d._worry_victim == null,
+		"struck while it worries: x%.1f, and it lets go, staggered" % EnemyGalleryCrawler.WORRY_EXPOSED_MULT)
+	d.queue_free()
 	_reset_player(OPEN)
-	await _ticks(1)
-	beast.global_position = OPEN + Vector3(0, 0, -1.6)
-	beast.state = R.PURSUE
-	await _ticks(1)
-	beast._process_ai_state(0.05)
-	_check(beast.state == R.BITE_STARTUP, "close in it bites instead")
-	beast._hitbox.end_swing()
-	hood.condition = hood.data.max_condition
-
-	# The Pallid Crawler.
-	var C := EnemyPallidCrawler.AIState
-	var DARK: Vector3 = OPEN + Vector3(8.0, 0, 2.0) # well away from the shelter fire
-	_reset_player(DARK)
-	_equip_now("wooden_targe")
-	await _ticks(1)
-	var cr := _spawn_frozen(EnemyPallidCrawler.new(), DARK + Vector3(0, 0, -10.0), Vector3.BACK) as EnemyPallidCrawler
 	await _ticks(2)
-	_check(cr.is_buried() and cr.collision_layer == 0, "by day it lies buried")
-	var chp: float = cr.health
-	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 50.0, 1.0))
-	cr._process_ai_state(0.05)
-	_check(is_equal_approx(cr.health, chp) and cr.is_buried(), "a buried crawler can't be hurt, and stays put by day")
-	dn.set_hour(23.0)
-	cr._process_ai_state(0.05)
-	_check(cr.state == C.EMERGE and not cr.is_buried(), "night falls: it digs itself out")
-	cr._process_ai_state(1.1)
-	cr._process_ai_state(0.05)
-	_check(cr.state == C.STALK and cr.velocity.z > 2.0, "and crawls straight at you in the dark, from 10 m")
-	_check(is_equal_approx(DayNightCycle.sight_factor(cr), 1.0), "(it has no eyes for the dark to blind)")
-	cr.global_position = DARK + Vector3(0, 0, -3.5)
-	await _ticks(1)
-	cr._process_ai_state(0.05)
-	_check(cr.state == C.POUNCE_STARTUP, "within 4 m it hisses and gathers to pounce")
+
+	# A lit torch held toward it keeps it off; turned away, it does not.
+	d = await _spawn_test_crawler(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(2.4, 0.0, 0.0))
+	_equip_now("arming_sword")
 	_equip_now("pitch_torch")
-	await _ticks(1)
-	cr._process_ai_state(0.05)
-	_check(cr.state == C.RECOIL, "raise a torch and it recoils from the light")
-	cr.state = C.STALK
-	cr.global_position = DARK + Vector3(0, 0, -6.5) # on its orbit: the light's edge + 1.5 m
-	await _ticks(1)
-	cr._process_ai_state(0.05)
-	var to_p := Vector3(_player.global_position.x - cr.global_position.x, 0, _player.global_position.z - cr.global_position.z).normalized()
-	var v := Vector3(cr.velocity.x, 0, cr.velocity.z)
-	_check(cr.state == C.STALK and v.length() > 1.0 and absf(v.normalized().dot(to_p)) < 0.6, "outside your torchlight it circles, waiting")
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(0, 0, 1.5))
-	_equip_now("wooden_targe")
-	await _ticks(1)
-	_check(cr.is_lit(AshenWildsBootstrap.FIRE_POS + Vector3(3.5, 0, 0)) and not cr.is_lit(AshenWildsBootstrap.FIRE_POS + Vector3(8.0, 0, 0)), "the shelter fire's light keeps it 5.5 m off, torch or no torch")
-	# A real pounce, in the dark.
-	_reset_player(DARK)
-	_player.health = _player.max_health
-	_player.is_bleeding = false
 	await _ticks(2)
-	cr.global_position = DARK + Vector3(0, 0, -3.0)
-	cr._facing_dir = Vector3.BACK
-	cr._visual_root.look_at(cr.global_position + Vector3.BACK, Vector3.UP)
-	cr._begin_pounce()
-	cr.process_mode = Node.PROCESS_MODE_INHERIT
-	await _seconds(0.4)
-	cr.process_mode = Node.PROCESS_MODE_DISABLED
-	_check(_player.health < _player.max_health - 15.0 and _player.is_bleeding, "the pounce rakes you open: %.0f and bleeding" % (_player.max_health - _player.health))
-	_player.is_bleeding = false
-	cr.state = C.STALK
-	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 10.0, 1.0))
-	_check(cr.state == C.RETREAT, "wounded, it slips back into the dark")
-	dn.set_hour(8.0)
-	cr.state = C.STALK
-	cr._process_ai_state(0.05)
-	_check(cr.state == C.BURROW, "at dawn it heads home")
-	cr.global_position = cr._lair_pos
-	cr._process_ai_state(0.05)
-	_check(cr.is_buried(), "and buries itself again")
-	cr._on_hurtbox_hit_received(CombatPayload.new(_player, _player.global_position, Vector3.FORWARD, 999.0, 1.0))
-	_check(not cr.is_dead(), "(still safe underground)")
+	_face(Vector3.LEFT)
+	_check(_player.is_torch_lit() and d.torch_keeps_it_off(), "a lit torch held toward it keeps it off")
+	d._facing_dir = Vector3.RIGHT
+	d._last_known = _player.global_position
+	d._memory = 5.0
+	d.state = EnemyGalleryCrawler.AIState.STALK
+	hp = _player.health
+	await _seconds(1.0)
+	_check(is_equal_approx(_player.health, hp) and d.state in [EnemyGalleryCrawler.AIState.WARY, EnemyGalleryCrawler.AIState.STALK]
+		and d.global_position.distance_to(_player.global_position) > EnemyGalleryCrawler.LUNGE_RANGE,
+		"faced with the flame it will not come in: it circles, out of reach")
+	_face(Vector3.RIGHT)
+	await _ticks(1)
+	_check(not d.torch_keeps_it_off(), "with the torch turned away from it, nothing keeps it off")
+	d.queue_free()
+	_equip_now("wooden_targe")
+	_reset_player(OPEN)
+	await _ticks(2)
 
-	for n: Node in [z, z_far, z2, beast, cr]:
-		n.queue_free()
-	_player.health = _player.max_health
-	_player.cure_spores()
+	# It hears by the troll's table: a sprint carries, standing still does not, stone muffles.
+	d = await _spawn_test_crawler(OGRE_YARD)
+	_reset_player(OGRE_YARD + Vector3(6.0, 0.0, 0.0))
+	_player.current_state = PlayerController.ActionState.SPRINT
+	var reach: float = d.hears_player_at()
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(absf(reach - EnemyQuarryTroll.HEARING["sprint"] * EnemyGalleryCrawler.HEARING_MULT * _player.get_noise_multiplier()) < 0.01 and is_equal_approx(d.hears_player_at(), 0.0),
+		"it hears a sprint at %.1f m and a survivor standing still not at all" % reach)
+	d._facing_dir = Vector3.LEFT
+	d.state = EnemyGalleryCrawler.AIState.IDLE
+	_player.current_state = PlayerController.ActionState.SPRINT
+	d._sense(0.016)
+	_player.current_state = PlayerController.ActionState.IDLE
+	_check(d.state == EnemyGalleryCrawler.AIState.STALK and d._memory > 0.0, "a sprint behind it, unseen, and it turns to the sound")
+
+	# Lost, it goes home and climbs back up to its ledge.
+	d.queue_free()
+	await _ticks(2)
+	d = await _spawn_test_crawler(Vector3.ZERO, 21.0)
+	_reset_player(OPEN)
+	d.global_position = d.foot_pos() + Vector3(0.0, 0.0, 0.0)
+	d._memory = 0.0
+	d.state = EnemyGalleryCrawler.AIState.RETURN_HOME
+	await _ticks(3)
+	_check(d.state == EnemyGalleryCrawler.AIState.CLIMB, "back at the foot of its wall, it climbs")
+	await _seconds(EnemyGalleryCrawler.CLIMB_SECONDS + 0.2)
+	_check(d.state == EnemyGalleryCrawler.AIState.PERCHED and d.global_position.distance_to(d.perch_pos) < 0.1, "and waits on its ledge again")
+
+	# The survivor dead: it drops its lunge and goes home.
+	d.global_position = d.foot_pos() + Vector3(2.0, 0.0, 0.0)
+	d.state = EnemyGalleryCrawler.AIState.LUNGE_STARTUP
+	d._state_timer = 0.5
+	d._memory = 5.0
+	_player.current_state = PlayerController.ActionState.DEAD
+	await _ticks(3)
+	_check(d.state in [EnemyGalleryCrawler.AIState.RETURN_HOME, EnemyGalleryCrawler.AIState.CLIMB] and not d._bite_hitbox._is_swing_active and d._memory == 0.0,
+		"the survivor dead, it drops its lunge and goes home (state=%s)" % EnemyGalleryCrawler.AIState.keys()[d.state])
+	_reset_player(OPEN)
+	await _ticks(2)
+
+	# Killed, it leaves a carcass to search.
+	d.global_position = OGRE_YARD
+	d.state = EnemyGalleryCrawler.AIState.STALK
+	d._hurtbox.receive_attack(CombatPayload.new(_player, _player.global_position, Vector3.RIGHT, 500.0, 1.0))
+	await _ticks(2)
+	var carcass: Array = d.get_children().filter(func(n: Node) -> bool: return n is Lootable)
+	_check(d.is_dead() and d.collision_layer == 0 and carcass.size() == 1 and (carcass[0] as Lootable).display_name.ends_with("carcass"),
+		"killed, it leaves a carcass to search")
+	d.queue_free()
 	_player.camera_rig = rig
 	_reset_player(OPEN)
 	await _ticks(2)
 
 # ------------------------------------------------------------------------------
-# Interim painted art (assets/art_map.json, scripts/visuals/)
+# Bestiary: quicklime. A split sack blinds the gallery-crawler and drives it home; it stings you too.
 # ------------------------------------------------------------------------------
-func _test_painted_art() -> void:
-	_section("Painted art from the reference sheets")
-	var missing: Array = ItemDatabase.all_ids().filter(func(id: String) -> bool: return SpriteArt.icon(id) == null)
-	_check(missing.is_empty(), "every item has a painted icon (missing: %s)" % [missing])
-	var painted := func(n: Node) -> bool: return n.find_children("PaintedSprite", "FacingSprite", true, false).size() > 0
-	_check(painted.call(_player), "the survivor is a painted sprite")
-	for cls: Variant in [EnemyGoblinScavenger, EnemyOrkWarrior, EnemyOgreBrute, EnemyQuarryTroll, EnemyBogBear, EnemyGhoul, EnemyFungusZombie, EnemyRotBeast, EnemyPallidCrawler]:
-		var e: Array = _children_of(func(n: Node) -> bool: return is_instance_of(n, cls))
-		_check(not e.is_empty() and painted.call(e[0]), "%s is a painted sprite" % ((e[0] as Node).get_script().get_global_name() if not e.is_empty() else "(missing)"))
-	var gob := _spawn_dummy_goblin(OPEN + Vector3(5.0, 0, 0))
+func _test_quicklime() -> void:
+	_section("Bestiary: quicklime against the gallery-crawler")
+	var rig: IsoCameraRig = _player.camera_rig
+	_player.camera_rig = null
+	_player.apply_background(SurvivorBackground.default_background())
+	var inv: Inventory = _player.inventory
+	var cart: Array = _main.find_children("*", "", true, false).filter(func(n: Node) -> bool: return n is Lootable and (n as Lootable).display_name == "Overturned Handcart")
+	_check(cart.size() == 1 and (cart[0] as Lootable).items.any(func(i: ItemInstance) -> bool: return i.data.item_id == "quicklime" and i.quantity == 2),
+		"the gallery's tipped handcart still holds two sacks of quicklime")
+	var w: Weather = _children_of(func(n: Node) -> bool: return n is Weather)[0]
+	w.cycling = false
+	w.set_condition(Weather.Condition.ASHFALL, true)
+
+	# No lime, no throw.
+	_reset_player(OPEN)
+	while inv.count_of("quicklime") > 0:
+		inv.consume("quicklime", 1)
+	_check(not _player.start_throw_lime(), "with no quicklime in the pack, [G] does nothing")
+
+	# A throw: a short channel, a sack spent, a cloud ahead.
+	inv.add(ItemDatabase.make("quicklime", 2))
+	_face(Vector3.RIGHT)
 	await _ticks(1)
-	var shown: Array = gob._visual_root.find_children("*", "MeshInstance3D", true, false).filter(func(m: MeshInstance3D) -> bool: return m.visible)
-	_check(not shown.is_empty() and shown.all(func(m: MeshInstance3D) -> bool: return (m.material_override as StandardMaterial3D).shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED), "placeholder meshes are hidden; the gameplay status ring stays")
-	_check(_player._weapon_mesh.visible, "the survivor's weapon is still drawn (swings stay readable)")
-	var gob_sprite: FacingSprite = gob._visual_root.find_child("PaintedSprite", false, false)
-	await process_frame
-	_check(gob_sprite.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and gob_sprite.shaded, "a live creature's sprite stands up and is lit by the torch")
-	gob._on_hurtbox_hit_received(CombatPayload.new(_player, gob.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
-	await process_frame
-	await process_frame
-	_check(gob.is_dead() and gob_sprite.is_fallen() and gob_sprite.billboard == BaseMaterial3D.BILLBOARD_DISABLED and gob_sprite.is_lying_flat(),
-		"a killed creature's sprite lies flat on the ground (a corpse doesn't stand)")
-	# The bear, rot-beast and crawler tip over about Z instead of X; the sprite must still lie flat, not edge-on.
-	var gob_z := _spawn_dummy_goblin(OPEN + Vector3(7.0, 0, 0))
-	gob_z._visual_root.look_at(gob_z.global_position + Vector3(1, 0, -1), Vector3.UP) # across the 45° camera: the edge-on case
-	gob_z._visual_root.rotation_degrees.z = 80.0
-	var z_sprite: FacingSprite = gob_z._visual_root.find_child("PaintedSprite", false, false)
-	await process_frame
-	await process_frame
-	var cam: Camera3D = root.get_viewport().get_camera_3d()
-	var seen: bool = cam == null or absf(z_sprite.global_basis.z.normalized().dot(cam.global_basis.z)) > 0.3
-	_check(z_sprite.is_fallen() and z_sprite.is_lying_flat() and seen, "a body tipped about Z still lies flat and faces the camera (bear, rot-beast, crawler)")
-	gob_z.queue_free()
-	var chest: Lootable = _lootable_named("Watchhouse Supply Chest")
-	_check(chest != null and painted.call(chest.get_parent()), "the supply chest is the painted iron-banded chest")
-	var textured := func(file: String) -> bool:
-		return root.find_children("*", "MeshInstance3D", true, false).any(func(m: MeshInstance3D) -> bool:
-			var mat := m.material_override as ShaderMaterial
-			var tex: Variant = mat.get_shader_parameter("albedo_tex") if mat else null
-			return mat != null and mat.get_shader_parameter("use_texture") == true and tex is Texture2D and (tex as Texture2D).resource_path.ends_with(file))
-	_check(textured.call("ground.png") and textured.call("stone.png"), "the ground and the walls carry painted textures")
-	var fires: Array = root.find_children("PaintedSprite", "FacingSprite", true, false).filter(func(s: FacingSprite) -> bool: return s.texture.resource_path.ends_with("campfire.png"))
-	_check(fires.size() == 1 and not (fires[0] as FacingSprite).shaded, "the shelter hearth is the painted campfire (unshaded: it's the light)")
-	var inv_ui: InventoryUI = _hud.inventory_ui
-	inv_ui.toggle_inventory()
-	await process_frame
-	var icons: Array = inv_ui._inv_list.find_children("*", "TextureRect", true, false).filter(func(t: TextureRect) -> bool: return t.texture != null)
-	_check(icons.size() >= _player.inventory.items.size(), "the pack shows an icon on every row (%d)" % icons.size())
-	inv_ui.toggle_inventory()
-	await process_frame
-	_check(not inv_ui.is_inventory_open(), "(pack closed again)")
-	gob.queue_free()
+	_check(_player.start_throw_lime() and _player.current_state == PlayerController.ActionState.CHANNEL, "[G] splits a sack: a short throw")
+	await _seconds(PlayerController.LIME_THROW_SECONDS + 0.1)
+	var clouds: Array = get_nodes_in_group("lime_cloud")
+	_check(inv.count_of("quicklime") == 1 and clouds.size() == 1, "one sack spent, one cloud of lime")
+	var c: LimeCloud = clouds[0]
+	_check(absf(c.global_position.distance_to(_player.global_position) - PlayerController.LIME_THROW_DISTANCE) < 0.3, "it bursts %.1f m ahead" % c.global_position.distance_to(_player.global_position))
+	_check(is_equal_approx(c._life_total, LimeCloud.SECONDS * float(w.profile()["spores"])), "the weather sets how long it hangs, like spores")
 
-func _lootable_named(label: String) -> Lootable:
-	for n: Node in get_nodes_in_group("lootable"):
-		if n is Lootable and (n as Lootable).display_name == label:
-			return n
-	return null
-
-# ------------------------------------------------------------------------------
-# Milestone 13 — Act I objectives & the shelter
-# ------------------------------------------------------------------------------
-func _test_act_one() -> void:
-	_section("Act I objectives & the shelter")
-	var acts: ActObjectives = _children_of(func(n: Node) -> bool: return n is ActObjectives)[0]
-	var completed_ids: Array = []
-	var act_done: Array = []
-	acts.objective_completed.connect(func(id: String, _t: String) -> void: completed_ids.append(id))
-	acts.act_completed.connect(func() -> void: act_done.append(true))
-	_check(acts.objectives.size() == 5 and acts.objectives.filter(func(o: Dictionary) -> bool: return o["optional"]).size() == 2, "five objectives, two of them optional")
-	acts.evaluate()
-	_check(not acts.is_act_complete() and not acts.completed, "Act I isn't complete at the start")
-	_check(_hud._objectives_label.text.contains("ACT I") and _hud._objectives_label.text.contains("Secure the Wayfarer's Watchhouse"), "the HUD lists the objectives")
-
-	# Earlier checks killed the yard goblin and the Ork Cleaver.
-	_check(not acts.is_done("watchhouse"), "one goblin still holds the watchhouse")
-	for g: EnemyGoblinScavenger in _children_of(func(n: Node) -> bool: return n is EnemyGoblinScavenger and n.patrol_points.size() > 0):
-		if not g.is_dead():
-			g._on_hurtbox_hit_received(CombatPayload.new(_player, g.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
-	await _ticks(2)
-	acts.evaluate()
-	_check(acts.is_done("watchhouse") and completed_ids.has("watchhouse"), "both goblins dead: the watchhouse is secured")
-	for o: EnemyOrkWarrior in _children_of(func(n: Node) -> bool: return n is EnemyOrkWarrior and n.patrol_points.size() > 0):
-		if not o.is_dead():
-			o._on_hurtbox_hit_received(CombatPayload.new(_player, o.global_position + Vector3(1, 0, 0), Vector3.LEFT, 999.0, 1.0))
-	await _ticks(2)
-	acts.evaluate()
-	_check(acts.is_done("causeway"), "both orks dead: the choke point is broken")
-	_check(not acts.completed, "...but the shelter still needs stocking")
-	_check(_hud._objectives_label.text.contains("pot 0/1") and _hud._objectives_label.text.contains("timber 1/4"), "shelter progress is shown (%s)" % _hud._objectives_label.text.get_slice("\n", 2))
-
-	# Store supplies in the shelter stash.
-	var stash: Lootable = null
-	var crate: Lootable = null
-	for l: Lootable in get_nodes_in_group("lootable"):
-		if l.display_name == "Shelter Stash":
-			stash = l
-		elif l.display_name == "Rotted Grain Crate":
-			crate = l
-	_check(stash != null and stash.accepts_deposits and not crate.accepts_deposits, "only the shelter stash takes deposits")
-	var pot := ItemDatabase.make("cooking_pot")
-	var timber := ItemDatabase.make("timber", 3)
-	var salt := ItemDatabase.make("salt", 4)
-	for i: ItemInstance in [pot, timber, salt]:
-		_player.inventory.add(i)
-	_check(not _player.store_in(crate, salt), "you can't stash things in a random crate")
-	_reset_player(stash.global_position + Vector3(0.9, 0, 0.3))
+	# Standing in it chokes the survivor, without a wound, and the HUD says lime.
+	var hp: float = _player.health
+	_player.global_position = c.global_position
 	await _ticks(3)
-	_loot_events.clear()
-	await _tap("interact")
-	await _ticks(2)
-	_check(_hud.inventory_ui.is_loot_open() and _hud.inventory_ui.get_loot_target() == stash, "the stash opens")
-	var has_store: bool = false
-	for row: Node in _hud.inventory_ui._inv_list.get_children():
-		for c: Node in row.get_children():
-			if c is Button and (c as Button).text == "Store":
-				has_store = true
-	_check(has_store, "the pack window offers Store while the stash is open")
-	_check(_player.store_in(stash, pot) and stash.items.has(pot) and not _player.inventory.has_item(pot), "the pot goes into the stash")
-	_player.store_in(stash, timber)
-	acts.evaluate()
-	_check(not acts.is_done("shelter"), "not stocked until the salt is in too")
-	_player.store_in(stash, salt)
-	acts.evaluate()
-	_check(acts.is_done("shelter"), "pot, 4 timber and 4 salt: the shelter is stocked")
-	_check(acts.completed and act_done.size() == 1, "all three main objectives: Act I complete")
-	_check(_hud.is_act_panel_open() and _player.ui_capture, "the Act I card shows and pauses combat input")
-	acts.evaluate()
-	_check(act_done.size() == 1, "the act completes only once")
-	_hud.close_act_complete()
-	_hud.inventory_ui.close_all()
-	await _seconds(0.2)
-	_check(not _hud.is_act_panel_open() and not _player.ui_capture, "closing the card returns control")
+	_check(_player.is_choking() and _player.choke_cause == "LIME" and is_equal_approx(_player.health, hp), "in the lime the survivor chokes (no wound)")
+	_check(_hud._status_label.text.contains("[CHOKING: LIME]"), "the HUD calls it lime (%s)" % _hud._status_label.text)
+	c.queue_free()
 	_reset_player(OPEN)
 	await _ticks(2)
 
-# ------------------------------------------------------------------------------
-# Milestone 14 — save & load (runs last: it frees the world and boots a new one)
-# ------------------------------------------------------------------------------
-func _test_save_load() -> void:
-	_section("Save & load")
-	SaveGame.save_path = "user://smoke_test_save.json"
-	SaveGame.delete()
-	var boot: AshenWildsBootstrap = _main as AshenWildsBootstrap
-	_check(boot._all_enemies.size() == 32, "every enemy tracked for saving (%d: 18 + M20's bull, two deer, six roost crows + M21's three zombies, the Rot-Beast, the crawler)" % boot._all_enemies.size())
-
-	# Build up some state worth saving.
-	_bg("peat_cutter")
-	var inv: Inventory = _player.inventory
-	var mail := ItemDatabase.make("riveted_mail", 1, 101.0)
-	inv.add(mail)
-	inv.equip(mail)
-	inv.add(ItemDatabase.make("throwing_stone", 3))
-	_reset_player(Vector3(-2.0, 0.0, 10.0))
+	# Lime stops spores (canon 16): a spore cloud it touches burns away fast, as under a torch.
+	var spores: SporeCloud = SporeCloud.spawn(_main, OGRE_YARD, 2.4, 20.0)
+	var lime: LimeCloud = LimeCloud.spawn(_main, OGRE_YARD + Vector3(3.0, 0.0, 0.0), 20.0)
+	var spore_life: float = spores.life
+	await _seconds(0.5)
+	_check(is_instance_valid(spores) and spore_life - spores.life > 0.5 * LimeCloud.SPORE_KILL_MULT * 0.8, "a spore cloud the lime touches burns away %.0fx as fast" % LimeCloud.SPORE_KILL_MULT)
+	spores.queue_free()
+	lime.queue_free()
 	await _ticks(2)
-	_player.drop_item(inv.find_first("throwing_stone"))
-	var pile_pos: Vector3 = _player.global_position + _player._aim_direction * 0.7
-	Lootable.spawn_lodged_weapon(_main, Vector3(0.0, 0.0, 12.0), ItemDatabase.make("arming_sword", 1, 42.0), "a goblin")
-	boot._weather.set_weather(WeatherSystem.Weather.SLEET, true)
-	boot._vision.update_now()
-	var seen_cell: Vector3 = _player.global_position + Vector3(3.0, 0, 0)
-	_check(boot._vision.is_explored(seen_cell), "(setup) the ground ahead is explored")
-	var stash_items: int = boot._stash.items.size()
-	# Milestone 21: a crawler killed above ground, a zombie killed by steel.
-	var w_crawler: EnemyPallidCrawler = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyPallidCrawler)[0]
-	w_crawler.state = EnemyPallidCrawler.AIState.STALK
-	w_crawler._set_buried(false)
-	w_crawler._on_hurtbox_hit_received(CombatPayload.new(_player, w_crawler.global_position, Vector3.FORWARD, 999.0, 1.0))
-	var w_zombie: EnemyFungusZombie = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyFungusZombie)[0]
-	w_zombie._on_hurtbox_hit_received(CombatPayload.new(_player, w_zombie.global_position, Vector3.FORWARD, 999.0, 1.0))
-	_check(w_crawler.is_dead() and w_zombie.is_dead(), "(setup) a crawler and a zombie are dead")
 
-	_check(not boot.rest_at_fire() and not SaveGame.exists(), "you can only rest at the shelter fire")
-	_reset_player(AshenWildsBootstrap.FIRE_POS + Vector3(-1.0, 0, 1.2))
+	# Thrown at a wall, it bursts short of the stone.
+	_reset_player(Vector3(-17.5, 0.0, 20.5))
+	_face(Vector3.LEFT)
+	await _ticks(1)
+	var spot: Vector3 = _player.lime_landing_spot()
+	_check(spot.x > -19.4 and spot.distance_to(_player.global_position) < PlayerController.LIME_THROW_DISTANCE - 0.5, "thrown at a pier, the sack bursts short of the stone")
+	_reset_player(OPEN)
 	await _ticks(2)
-	_check(_hud._prompt_label.text.contains("[T] Rest at the fire"), "near the fire the prompt offers rest")
-	_player.health = 40.0
-	_player.is_bleeding = true
-	var saved_pos: Vector3 = _player.global_position
-	_check(boot.rest_at_fire() and SaveGame.exists(), "resting at the fire saves the game")
-	_check(is_equal_approx(_player.health, _player.max_health) and not _player.is_bleeding, "...and heals you")
-	var data: Dictionary = SaveGame.read()
-	_check(data.get("background") == "peat_cutter" and data.has("enemies") and data.has("seen"), "the save holds survivor, enemies and the memory map")
 
-	# Picker offers Continue.
-	var picker := BackgroundPicker.new()
-	picker.can_continue = true
-	var continued: Array = []
-	picker.continue_chosen.connect(func() -> void: continued.append(true))
-	root.add_child(picker)
-	await process_frame
-	var cont_btn: Button = null
-	for b: Node in picker.find_children("*", "Button", true, false):
-		if (b as Button).text.begins_with("Continue"):
-			cont_btn = b
-	_check(cont_btn != null, "the start screen offers Continue when a save exists")
-	picker.continue_game()
-	await process_frame
-	_check(continued.size() == 1 and not paused, "Continue unpauses and asks to load")
-
-	# Throw this world away and boot a fresh one.
-	_main.queue_free()
+	# The crawler in it: blind, it lets go of everything and backs off home; then it climbs.
+	var d: EnemyGalleryCrawler = await _spawn_test_crawler(Vector3.ZERO, 21.0)
+	d.global_position = d.foot_pos() + Vector3(3.0, 0.0, 0.0)
+	_reset_player(d.global_position + Vector3(2.0, 0.0, 0.0))
+	_face(Vector3.LEFT)
+	d._facing_dir = Vector3.RIGHT
+	d._memory = 5.0
+	d._last_known = _player.global_position
+	d.state = EnemyGalleryCrawler.AIState.LUNGE_STARTUP
+	d._state_timer = 0.4
+	await _ticks(1)
+	LimeCloud.spawn(_main, d.global_position)
 	await _ticks(3)
-	_main = (load("res://main.tscn") as PackedScene).instantiate()
-	_main.set("show_background_picker", false)
-	_main.set("weather_cycle_enabled", false)
-	_main.set("day_cycle_enabled", false)
-	_main.set("survival_enabled", false)
-	root.add_child(_main)
-	await _ticks(5)
-	boot = _main as AshenWildsBootstrap
-	_player = boot._player
-	_hud = boot._hud
-	for e: Node3D in boot._all_enemies:
-		e.process_mode = Node.PROCESS_MODE_DISABLED
-	_check(_player.background == null and boot._stash.items.size() < stash_items, "(fresh world before loading)")
-	await boot.load_game()
+	_check(d.state == EnemyGalleryCrawler.AIState.BLINDED and d.is_blinded() and not d.sees_player() and not d._bite_hitbox._is_swing_active and d._memory == 0.0,
+		"in the lime it is blinded: its lunge dropped, the survivor forgotten, it cannot see")
+	var before: float = d.global_position.distance_to(d.foot_pos())
+	await _seconds(1.0)
+	_check(d.global_position.distance_to(d.foot_pos()) < before - 0.8, "blind, it backs off toward its wall")
+	for n: Node in get_nodes_in_group("lime_cloud"):
+		n.queue_free()
+	await _ticks(2)  # a freed cloud lives until the frame ends, and would blind it again
+	# (Out of its sight first: eyes clear and the survivor right there, it would hunt again.)
+	_reset_player(OPEN)
+	d._blind_timer = 0.05
+	await _ticks(6)
+	_check(d.state in [EnemyGalleryCrawler.AIState.RETURN_HOME, EnemyGalleryCrawler.AIState.CLIMB], "its eyes clear, it goes home to climb back up")
+
+	# Up on its ledge, a cloud below does not reach it.
+	d._perch_now()
+	d.blind(4.0)
+	_check(d.state == EnemyGalleryCrawler.AIState.PERCHED and not d.is_blinded(), "up on its ledge, the lime below does not reach it")
+
+	# Struck while blind: a heavy blow staggers it, and it goes back to being blind, not to the hunt.
+	d.global_position = OGRE_YARD
+	d._home_pos = OGRE_YARD + Vector3(-6.0, 0.0, 0.0)
+	d.state = EnemyGalleryCrawler.AIState.STALK
+	d.blind(3.0)
+	d._hurtbox.receive_attack(CombatPayload.new(_player, d.global_position + Vector3(1.0, 0.0, 0.0), Vector3.LEFT, 5.0, 5.0, false, true))
 	await _ticks(2)
-	inv = _player.inventory
-	_check(_player.background != null and _player.background.background_id == "peat_cutter" and is_equal_approx(inv.capacity_kg, 23.0), "loaded: the Peat-Cutter, with Strong Back")
-	_check(_player.global_position.distance_to(saved_pos) < 0.1 and is_equal_approx(_player.health, _player.max_health), "loaded: where you rested, at full health")
-	_check(inv.get_armor(ItemData.ArmorSlot.BODY) != null and absf(inv.get_armor(ItemData.ArmorSlot.BODY).condition - 101.0) < 0.01, "loaded: still wearing the mail, same condition")
-	_check(inv.main_hand != null and inv.main_hand.data.item_id == "woodsmans_broadaxe" and inv.count_of("throwing_stone") == 0, "loaded: pack and main hand match")
-	_check(boot._stash.items.size() == stash_items and boot._stash.count_of("cooking_pot") == 1, "loaded: the stash holds what you stored")
-	var dead: int = boot._all_enemies.filter(func(e: Node3D) -> bool: return e.is_dead()).size()
-	_check(dead == int(data["enemies"].filter(func(e: Dictionary) -> bool: return e["dead"]).size()) and dead >= 4, "loaded: the dead stay dead (%d)" % dead)
-	var l_crawler: EnemyPallidCrawler = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyPallidCrawler)[0]
-	var l_zombie: EnemyFungusZombie = boot._all_enemies.filter(func(e: Node3D) -> bool: return e is EnemyFungusZombie)[0]
-	_check(l_crawler.is_dead() and l_crawler.get_children().any(func(c: Node) -> bool: return c is Lootable), "loaded: a dead Pallid Crawler stays dead (and its husk is there), though crawlers boot buried")
-	_check(l_zombie.is_dead() and not _player.is_spore_sick(), "loaded: a dead zombie stays dead, without a fresh spore burst")
-	var gob: Node3D = boot._all_enemies[0]
-	var corpse_ok: bool = false
-	for c: Node in gob.get_children():
-		if c is Lootable:
-			corpse_ok = (c as Lootable).items.size() == data["enemies"][0]["corpse"]["items"].size()
-	_check(corpse_ok, "loaded: a corpse keeps exactly what was left on it")
-	var piles: Array = get_nodes_in_group("lootable").filter(func(l: Lootable) -> bool: return l.get_meta("save_kind", "") in ["ground", "lodged"])
-	_check(piles.any(func(l: Lootable) -> bool: return l.get_meta("save_kind") == "ground" and l.global_position.distance_to(pile_pos) < 0.2 and l.count_of("throwing_stone") == 3), "loaded: your dropped stones are where you left them")
-	_check(piles.any(func(l: Lootable) -> bool: return l.get_meta("save_kind") == "lodged" and l.display_name.contains("lodged in a goblin")), "loaded: a lodged sword is still stuck")
-	_check(boot._objectives.is_done("watchhouse") and boot._objectives.is_done("shelter") and boot._objectives.completed, "loaded: objectives and Act I completion")
-	_check(not _hud.is_act_panel_open(), "loading a finished act doesn't replay the Act I card")
-	_check(boot._weather.current == WeatherSystem.Weather.SLEET, "loaded: the weather")
-	_check(boot._vision.is_explored(seen_cell), "loaded: the charcoal memory map")
-	SaveGame.delete()
-	_check(not SaveGame.exists(), "(cleanup) test save removed")
+	_check(d.state == EnemyGalleryCrawler.AIState.STAGGER, "a heavy blow staggers it even blind")
+	d._state_timer = 0.0
+	await _ticks(2)
+	_check(d.state == EnemyGalleryCrawler.AIState.BLINDED, "and it goes back to backing off blind")
+	d.queue_free()
+	w.cycling = true
+	_player.camera_rig = rig
+	_reset_player(OPEN)
+# Lore 1: the world bible in the game (item lore, notes, the reading panel, discovery banners)
+# ------------------------------------------------------------------------------
+func _test_lore() -> void:
+	_section("Lore 1: item lore, notes and discovery")
+	# Every item but the notes carries a line of lore from the bible, shown under its description.
+	var missing: Array[String] = []
+	for id: Variant in ItemDatabase.all_ids():
+		var d: ItemData = ItemDatabase.get_item(String(id))
+		if not d.is_note() and d.lore.is_empty():
+			missing.append(String(id))
+	_check(missing.is_empty(), "every item has a line of lore (missing: %s)" % [missing])
+	var sword: ItemData = ItemDatabase.get_item("arming_sword")
+	_check(sword.tooltip().begins_with(sword.description) and sword.tooltip().ends_with(sword.lore),
+		"an item's tooltip keeps what it does and adds where it came from")
+
+	# The notes: one NOTE item each, light, plain ASCII (the browser has no system fonts).
+	_check(LoreTexts.NOTES.size() == 18, "eighteen notes from the bible are in the game")
+	var bad_notes: Array[String] = []
+	for n: Dictionary in LoreTexts.NOTES:
+		var d: ItemData = ItemDatabase.get_item(String(n["id"]))
+		var ascii: bool = true
+		for ch: String in d.note_text + d.display_name:
+			if ch.unicode_at(0) > 127:
+				ascii = false
+		if d == null or not d.is_note() or d.note_text.is_empty() or not ascii or d.weight_kg > 0.05 or d.is_equippable():
+			bad_notes.append(String(n["id"]))
+	_check(bad_notes.is_empty(), "every note is a light, unequippable, readable, plain-ASCII item (bad: %s)" % [bad_notes])
+
+	# A container gets the notes the bible put in it, after its own goods.
+	var probe: Lootable = _main._spawn_container("Shelter Stash", Vector3(40.0, 0.0, 40.0), Vector3(0.9, 0.55, 0.6),
+		Color(0.4, 0.3, 0.2), 0.0, [ItemDatabase.make("timber", 1)])
+	var probe_ids: Array[String] = []
+	for inst: ItemInstance in probe.items:
+		probe_ids.append(inst.data.item_id)
+	_check(probe_ids == ["timber", "note_01", "note_02", "note_21"],
+		"the shelter stash holds its own goods, then its three notes (%s)" % [probe_ids])
+	probe.get_parent().queue_free()
+	var places: Dictionary = {}
+	for n: Dictionary in LoreTexts.NOTES:
+		places[String(n["place"])] = true
+	# Container Lootables sit under their StaticBody3D, so search the whole tree.
+	var containers: Array = _main.find_children("*", "", true, false).filter(func(n: Node) -> bool: return n is Lootable)
+	var labels: Dictionary = {}
+	for l: Lootable in containers:
+		labels[l.display_name] = true
+	var unplaced: Array[String] = []
+	for place: String in places.keys():
+		if place != "ground" and not labels.has(place):
+			unplaced.append(place)
+	_check(unplaced.is_empty(), "every note's place is a container in the level (missing: %s)" % [unplaced])
+	var ground_ok: bool = true
+	for note_id: String in ItemDatabase.note_ids_for("ground"):
+		var spec: Array = AshenWildsBootstrap.NOTE_GROUND_SPOTS[note_id]
+		var found: bool = false
+		for l: Lootable in containers:
+			if l.display_name == String(spec[1]) and l.global_position.distance_to(spec[0]) < 0.1:
+				found = l.items.size() == 1 and l.items[0].data.item_id == note_id
+		ground_ok = ground_ok and found
+	_check(ground_ok, "the three ground notes lie where the bible put them")
+
+	# Reading: from the pack, the reading panel opens, captures combat input, and says so.
+	var ui: InventoryUI = _hud.inventory_ui
+	ui.close_all()
+	var note: ItemInstance = ItemDatabase.make("note_03")
+	_player.inventory.add(note)
+	var read_ids: Array[String] = []
+	var on_read := func(item_id: String) -> void: read_ids.append(item_id)
+	ui.note_read.connect(on_read)
+	ui.toggle_inventory()
+	ui.read_note(note.data)
+	await _ticks(1)
+	_check(ui.is_reading() and ui.get_reading() == note.data and _player.ui_capture,
+		"reading a note opens the reading panel and suspends combat input")
+	_check(ui._read_text.text == note.data.note_text and ui._read_title.text == note.data.display_name.to_upper(),
+		"the reading panel shows the note's title and its whole text")
+	_check(read_ids == ["note_03"], "reading a note is announced once (note_read)")
+	ui.read_note(ItemDatabase.get_item("timber"))
+	_check(ui.get_reading() == note.data, "only notes can be read")
+	ui.close_all()
+	await _seconds(0.2) # the capture is released a moment later, so the closing click is not an attack
+	_check(not ui.is_reading() and not _player.ui_capture, "closing the windows puts the note away")
+	ui.note_read.disconnect(on_read)
+	_player.inventory.remove(note)
+
+	# Discovery: a place is noticed once; its banner waits for the HUD to be free, then shows.
+	var disc := Discovery.new()
+	_main.add_child(disc)
+	disc.bind(_player, _hud)
+	_hud.show_banner("An enemy's warning", Color.WHITE)
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(disc.has_seen("watchhouse") and disc.pending() == 1 and _hud._banner_label.text == "An enemy's warning",
+		"entering the Watchhouse is noticed, and its banner waits behind one already showing")
+	_hud._banner_timer = 0.0
+	await _ticks(2)
+	_check(disc.pending() == 0 and _hud._banner_label.text.begins_with("The Wayfarer's Watchhouse"),
+		"the discovery banner shows once the HUD is free")
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	await _ticks(2)
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(disc.pending() == 0, "a place is announced only the first time")
+	_player.item_taken.emit("cooking_pot", null)
+	_player.item_taken.emit("timber", null)
+	_check(disc.has_seen("took_cooking_pot") and not disc.has_seen("took_timber"),
+		"taking the cooking pot is a discovery; taking timber is not")
+	ui.note_read.emit("note_19")
+	_check(disc.has_seen("warning_book"), "reading a torn page of the warning book is a discovery")
+	disc.queue_free()
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	_hud._banner_timer = 0.0
+	await _ticks(2)
+
+# ------------------------------------------------------------------------------
+# Act I objectives
+# ------------------------------------------------------------------------------
+## A stand-in foe: anything with is_dead() counts for Objectives.
+class FakeFoe:
+	var dead: bool = false
+	func is_dead() -> bool:
+		return dead
+
+func _test_objectives() -> void:
+	_section("Act I objectives")
+	var main_obj: Objectives = _main._objectives
+	_check(main_obj.watchhouse_foes.size() == 2
+		and main_obj.watchhouse_foes.all(func(e: Variant) -> bool: return e is EnemyGoblinScavenger)
+		and main_obj.choke_foes.size() == 2
+		and main_obj.choke_foes.all(func(e: Variant) -> bool: return e is EnemyOrkWarrior),
+		"the act watches the two Watchhouse goblins and the two choke-point orks")
+	# The rest drives a fresh tracker against stand-in foes, so nothing earlier in the suite counts.
+	main_obj.process_mode = Node.PROCESS_MODE_DISABLED
+	var disc := Discovery.new()
+	_main.add_child(disc)
+	disc.bind(_player, _hud)
+	disc.process_mode = Node.PROCESS_MODE_DISABLED # keep its queue to count what was said
+	var house: Array = [FakeFoe.new(), FakeFoe.new()]
+	var choke: Array = [FakeFoe.new(), FakeFoe.new()]
+	var obj := Objectives.new()
+	_main.add_child(obj)
+	obj.bind(_player, _hud, disc, house, choke)
+	var done_ids: Array[String] = []
+	obj.objective_completed.connect(func(id: String) -> void: done_ids.append(id))
+	var acts: Array[int] = [0]
+	obj.act_completed.connect(func() -> void: acts[0] += 1)
+	var text: String = _hud.objectives_text()
+	_check(text.begins_with(Objectives.TITLE) and text.contains("[ ] Take back the Watchhouse")
+		and text.contains("(0/3)"), "the HUD lists the act's four objectives, none done")
+
+	_player.global_position = Vector3(-12.0, 0.0, 8.0)
+	house[0].dead = true
+	await _ticks(2)
+	_check(not obj.is_done("watchhouse"), "one dead goblin does not take back the Watchhouse")
+	house[1].dead = true
+	await _ticks(2)
+	_check(obj.is_done("watchhouse") and done_ids == ["watchhouse"] and disc.pending() == 1,
+		"both dead: the Watchhouse is taken, once, and said")
+
+	# The pot: carried away from the fire it is only carried; at the fire it is set down.
+	var pot: ItemInstance = ItemDatabase.make("cooking_pot")
+	_check(_player.inventory.add(pot), "(the pot fits in the pack)")
+	await _ticks(2)
+	_check(not obj.is_done("pot"), "carrying the pot far from the fire is not bringing it home")
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	await _ticks(2)
+	_check(obj.is_done("pot") and _player.inventory.find_first("cooking_pot") == null,
+		"at the shelter fire the pot is set down: done, and out of the pack")
+	_main._on_objective_completed("pot")
+	var pot_mesh: Node = _main.find_child("PotOnTheFire", false, false)
+	_check(pot_mesh != null, "the pot then sits on the shelter fire")
+	if pot_mesh:
+		pot_mesh.queue_free()
+
+	# The pages: each one carried into the Watchhouse is written back in.
+	for page_id: String in ["note_02", "note_19"]:
+		_player.inventory.add(ItemDatabase.make(page_id))
+	_player.global_position = Vector3(5.0, 0.0, -3.0)
+	await _ticks(2)
+	_check(obj.pages_returned.size() == 2 and not obj.is_done("pages") and _hud.objectives_text().contains("(2/3)")
+		and _player.inventory.find_first("note_02") == null,
+		"two pages carried into the Watchhouse are written in: 2 of 3, out of the pack")
+	_player.inventory.add(ItemDatabase.make("note_20"))
+	await _ticks(2)
+	_check(obj.is_done("pages"), "the third page makes the book whole")
+
+	# The choke point, and with it the act.
+	_check(acts[0] == 0 and not obj.is_act_done(), "three of four is not the act done")
+	choke[0].dead = true
+	choke[1].dead = true
+	await _ticks(2)
+	await _ticks(2)
+	text = _hud.objectives_text()
+	_check(obj.is_done("choke_point") and obj.is_act_done() and acts[0] == 1,
+		"the orks dead: the Causeway is open, and Act I is done, once")
+	_check(not text.contains("[ ]") and text.contains(Objectives.ACT_LINE), "the HUD shows every objective done and the act's close")
+
+	obj.queue_free()
+	disc.queue_free()
+	main_obj.process_mode = Node.PROCESS_MODE_INHERIT
+	main_obj._refresh_hud()
+	_player.global_position = Vector3(-6.5, 0.0, 6.5)
+	_hud._banner_timer = 0.0
+	await _ticks(2)

@@ -300,7 +300,7 @@ func finish_eating() -> void:
 	if _corpse_valid(_corpse):
 		var kept: Array[ItemInstance] = []
 		for inst: ItemInstance in _corpse.items:
-			if inst.data.category in [ItemData.Category.WEAPON, ItemData.Category.ARMOR, ItemData.Category.SHIELD, ItemData.Category.TOOL] or inst.data.item_id in ["iron_scrap", "troll_hide"]:
+			if inst.data.category in [ItemData.Category.WEAPON, ItemData.Category.ARMOUR, ItemData.Category.SHIELD, ItemData.Category.TOOL] or inst.data.item_id in ["iron_scrap", "troll_hide"]:
 				kept.append(inst)
 		_corpse.items = kept
 		_corpse.set_meta("gnawed", true)

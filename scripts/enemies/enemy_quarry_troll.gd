@@ -1,407 +1,522 @@
 class_name EnemyQuarryTroll
 extends CharacterBody3D
-## Milestone 11: the Blind Quarry-Troll. It has no eyes: the vision cone,
-## darkness and walls don't hide you from it, but silence does. It hunts the
-## last noise it heard (charging loud ones), sweeps the spot, and searches.
-## Touch gives you away too. Its hide turns light blows unless it's reeling.
+## THE BLIND QUARRY-TROLL. It has no eyes worth the name; it hunts by sound alone. Stand still and
+## it cannot find you, even at arm's length. Every noise you make (a sprint, a swing, a dodge, a
+## shield taking a blow, a sword clanging off stone, a pack that clatters, mail that clinks) has a
+## radius; inside it, the troll turns and lumbers to where the sound WAS, and brings both fists
+## down on that spot. If you are still there, you take the blow; if you crept away, it pounds
+## empty ground. Hit it and it knows where you are: it thrashes around itself. It hears your
+## companion too, so Edda's cudgel can draw it. Weather, armour, load and background all reach
+## it through the survivor's noise multiplier: the Dead Calm makes it deadly, a cinder-squall
+## makes it deaf, a gutter-kin can walk past it.
 
 signal troll_event_banner(text: String, col: Color)
+signal troll_ground_shockwave(intensity: float)
 
-enum AIState {
-	IDLE,
-	STALK,
-	CHARGE,
-	SEARCH,
-	SWEEP_STARTUP,
-	SWEEP_ACTIVE,
-	RECOVERY,
-	STAGGER,
-	RECOIL,
-	DEAD
+enum AIState { LISTEN, INVESTIGATE, POUND_STARTUP, POUND_ACTIVE, THRASH_STARTUP, THRASH_ACTIVE, RECOVERY, STAGGER, RETURN_HOME, DEAD }
+
+## How far (metres) each thing the survivor does can be heard, before the survivor's noise
+## multiplier (load, weather, background, armour). Standing, blocking still and walking slowly
+## while blocking make no sound it can hear.
+const HEARING: Dictionary = {
+	"sprint": 14.0, "attack": 12.0, "dodge": 9.0, "block_impact": 10.0, "recoil": 16.0,
+	"move": 6.0, "scavenge": 5.0, "channel": 3.0,
 }
+## The companion's noise, before the weather.
+const COMPANION_HEARING_RUN: float = 7.0
+const COMPANION_HEARING_WALK: float = 3.5
+const COMPANION_HEARING_ATTACK: float = 10.0
+## Through stone a noise carries this fraction (the same rule as the survivor's hearing).
+const WALL_MUFFLE: float = 0.55
+
+const POUND_DAMAGE: float = 55.0
+const POUND_POISE: float = 90.0
+const POUND_RADIUS: float = 1.8
+## It pounds when the heard spot is this close.
+const POUND_REACH: float = 2.4
+const POUND_STARTUP_TIME: float = 1.1
+const POUND_ACTIVE_TIME: float = 0.2
+const POUND_RECOVERY: float = 1.4
+const THRASH_DAMAGE: float = 30.0
+const THRASH_POISE: float = 50.0
+const THRASH_RADIUS: float = 2.8
+const THRASH_STARTUP_TIME: float = 0.55
+const THRASH_ACTIVE_TIME: float = 0.25
+const THRASH_RECOVERY: float = 1.0
+const THRASH_COOLDOWN: float = 3.0
+const STAGGER_TIME: float = 1.3
+## Forgets a sound after this long; then walks home if it has strayed.
+const MEMORY_SECONDS: float = 6.0
+const HOME_LEASH: float = 3.0
 
 @export var enemy_name: String = "Blind Quarry-Troll"
 @export var max_health: float = 360.0
-@export var max_poise: float = 110.0
-@export var stalk_speed: float = 2.0
-@export var charge_speed: float = 4.4
-@export var turn_speed: float = 2.2
-## A noise this much louder than its distance (metres of spare reach) makes
-## it charge instead of stalk.
-@export var charge_urgency: float = 4.0
-@export var touch_radius: float = 1.5
-@export var club_reach: float = 2.7
-@export var sweep_arc_degrees: float = 140.0
-## Light blows only deal this fraction unless it's staggered or recovering.
-@export var hide_light_mult: float = 0.35
-@export var search_time: float = 3.2
-@export var wall_recoil_time: float = 1.2
+@export var max_poise: float = 130.0
 
-const LOUD_KINDS: Array[String] = ["clang", "swing", "roar", "slam", "thud", "shield", "cough", "caw", "bleat"]
+@export_group("Temperament")
+## How hungrily it hunts, 0 to 1: how fast it lumbers to a sound (2.2 m/s at 0, 3.2 at 1) and how
+## long it stands listening after a blow (4 s at 0, 1.2 s at 1).
+@export_range(0.0, 1.0) var aggression: float = 0.5
+## Scales the damage of everything it lands (pound, thrash).
+@export var attack_power: float = 1.0
+@export_group("")
 
 var health: float = 360.0
 var poise_damage: float = 0.0
-var state: AIState = AIState.IDLE
+var state: AIState = AIState.LISTEN
 var player_ref: PlayerController
 var audio: ProceduralAudio
 var coordinator: EncounterCoordinator
 
+## Where it last heard something, and how long ago.
+var heard_pos: Vector3 = Vector3.ZERO
+var has_heard: bool = false
+var _heard_age: float = 0.0
+var _home_pos: Vector3 = Vector3.ZERO
 var _state_timer: float = 0.0
+var _thrash_cooldown: float = 0.0
 var _facing_dir: Vector3 = Vector3.FORWARD
 var _knockback_vel: Vector3 = Vector3.ZERO
-var _home_pos: Vector3 = Vector3.ZERO
-var _target_pos: Vector3 = Vector3.ZERO
-var _has_target: bool = false
-var _target_age: float = 99.0
-var _target_urgency: float = 0.0
-var _step_timer: float = 0.0
+var _pound_target: Vector3 = Vector3.ZERO
+var _first_heard: bool = true
 
 var _visual_root: Node3D
-var _club_pivot: Node3D
+var _model: EnemyModel
+## Holds the lump of quarry stone in its right fist.
+var _weapon_arm: Node3D
+var _anim_state: int = -1
 var _status_mat: StandardMaterial3D
-var _hitbox: HitboxComponent
+var _pound_ring: MeshInstance3D
+## The pound lands at a point on the ground, not in front of the troll: its own hitbox, placed
+## in world space at the target when the blow comes down.
+var _pound_hitbox: HitboxComponent
+var _thrash_hitbox: HitboxComponent
 var _hurtbox: HurtboxComponent
 
+
 func _ready() -> void:
-	add_to_group("enemy")
 	health = max_health
 	_home_pos = global_position
-	_build_troll_visuals_and_colliders()
-	AcousticField.listen(self, _on_noise_heard)
+	_build_body()
+
 
 func _physics_process(delta: float) -> void:
-	if player_ref:
-		_visual_root.visible = player_ref.can_see_body(self)
+	_update_visibility()
 	if state == AIState.DEAD:
 		return
 	_knockback_vel = _knockback_vel.move_toward(Vector3.ZERO, 16.0 * delta)
+	_thrash_cooldown = maxf(0.0, _thrash_cooldown - delta)
 	if poise_damage > 0.0:
-		poise_damage = maxf(0.0, poise_damage - 5.0 * delta)
-	_target_age += delta
+		poise_damage = maxf(0.0, poise_damage - 6.0 * delta)
+	if player_ref != null and player_ref.current_state == PlayerController.ActionState.DEAD:
+		_stand_down()
+	else:
+		_listen(delta)
 	_process_ai_state(delta)
+	_report_noises(delta)
 	_update_visual_telegraph()
 	if not is_on_floor():
 		velocity.y -= 24.0 * delta
 	else:
 		velocity.y = -0.1
 	move_and_slide()
-	_step_timer = AcousticField.step_cadence(self, _step_timer, delta, 0.6, 11.0)
+
 
 func is_dead() -> bool:
 	return state == AIState.DEAD
 
+
 func is_staggered() -> bool:
-	return state in [AIState.STAGGER, AIState.RECOIL]
+	return state in [AIState.STAGGER, AIState.RECOVERY]
 
-func get_target() -> Vector3:
-	return _target_pos
 
-func has_target() -> bool:
-	return _has_target
+func lumber_speed() -> float:
+	return lerpf(2.2, 3.2, aggression)
 
-# ------------------------------------------------------------------------------
-# Hearing (its only sense besides touch)
-# ------------------------------------------------------------------------------
-func _on_noise_heard(world_pos: Vector3, reach: float, source: Node3D, kind: String) -> void:
-	if state == AIState.DEAD or source == self or not is_inside_tree():
-		return
-	# Other creatures' footsteps are just the quarry's background patter.
-	if kind == "footstep" and not (source is PlayerController):
-		return
-	if not AcousticField.can_hear(self, world_pos, reach):
-		return
-	var dist: float = Vector2(world_pos.x - global_position.x, world_pos.z - global_position.z).length()
-	var urgency: float = reach - dist
-	# Keep chasing a louder, fresh sound rather than a fainter new one.
-	if _has_target and _target_age < 1.5 and urgency < _target_urgency:
-		return
-	_target_pos = Vector3(world_pos.x, global_position.y, world_pos.z)
-	_has_target = true
-	_target_age = 0.0
-	_target_urgency = urgency
-	if state in [AIState.IDLE, AIState.STALK, AIState.SEARCH, AIState.CHARGE]:
-		var charge: bool = urgency >= charge_urgency or kind in LOUD_KINDS
-		if charge and state != AIState.CHARGE:
+
+func listen_pause() -> float:
+	return lerpf(4.0, 1.2, aggression)
+
+
+## How far the survivor's current action carries, in metres, before walls. 0: silent.
+func player_noise_radius() -> float:
+	return survivor_noise_radius(player_ref)
+
+
+## How far what `p` is doing right now carries (HEARING times their noise multiplier); 0 when
+## silent. Static so other listeners (the gallery-crawler) hear the survivor by the same table.
+static func survivor_noise_radius(p: PlayerController) -> float:
+	if p == null:
+		return 0.0
+	var key: String = ""
+	match p.current_state:
+		PlayerController.ActionState.SPRINT:
+			key = "sprint"
+		PlayerController.ActionState.ATTACK_STARTUP, PlayerController.ActionState.ATTACK_ACTIVE:
+			key = "attack"
+		PlayerController.ActionState.DODGE:
+			key = "dodge"
+		PlayerController.ActionState.BLOCK_IMPACT:
+			key = "block_impact"
+		PlayerController.ActionState.RECOIL:
+			key = "recoil"
+		PlayerController.ActionState.MOVE:
+			key = "move"
+		PlayerController.ActionState.CHANNEL:
+			key = "scavenge" if p.is_scavenging() else "channel"
+	if key == "":
+		return 0.0
+	return float(HEARING[key]) * p.get_noise_multiplier()
+
+
+## How far the companion's current action carries, before walls.
+func companion_noise_radius(c: Companion) -> float:
+	if c == null or not is_instance_valid(c) or c.is_dead() or c.is_downed():
+		return 0.0
+	var weather: float = player_ref.weather_hearing if player_ref != null else 1.0
+	if c.state in [Companion.State.ATTACK_STARTUP, Companion.State.ATTACK_ACTIVE]:
+		return COMPANION_HEARING_ATTACK * weather
+	var speed: float = Vector2(c.velocity.x, c.velocity.z).length()
+	if speed > 4.2:
+		return COMPANION_HEARING_RUN * weather
+	if speed > 0.3:
+		return COMPANION_HEARING_WALK * weather
+	return 0.0
+
+
+## True when a noise at `from` with `radius` reaches the troll (muffled through stone).
+func hears(from: Vector3, radius: float) -> bool:
+	if radius <= 0.0:
+		return false
+	var reach: float = radius
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0.0, 2.0, 0.0), from + Vector3(0.0, 1.0, 0.0), 1)
+	if not get_world_3d().direct_space_state.intersect_ray(q).is_empty():
+		reach *= WALL_MUFFLE
+	return global_position.distance_to(from) <= reach
+
+
+func _listen(delta: float) -> void:
+	_heard_age += delta
+	if _heard_age > MEMORY_SECONDS:
+		has_heard = false
+	# The loudest source relative to its reach wins.
+	var best: Vector3 = Vector3.ZERO
+	var best_ratio: float = INF
+	if player_ref != null:
+		var r: float = player_noise_radius()
+		if hears(player_ref.global_position, r):
+			best = player_ref.global_position
+			best_ratio = global_position.distance_to(best) / r
+	for n: Node in get_parent().get_children():
+		var c := n as Companion
+		if c == null:
+			continue
+		var cr: float = companion_noise_radius(c)
+		if hears(c.global_position, cr):
+			var ratio: float = global_position.distance_to(c.global_position) / cr
+			if ratio < best_ratio:
+				best = c.global_position
+				best_ratio = ratio
+	if best_ratio < INF:
+		heard(best)
+
+
+## Something made a noise at `pos`: remember it, and go there if free to.
+func heard(pos: Vector3) -> void:
+	heard_pos = pos
+	has_heard = true
+	_heard_age = 0.0
+	if state in [AIState.LISTEN, AIState.RETURN_HOME]:
+		state = AIState.INVESTIGATE
+		if _first_heard:
+			_first_heard = false
 			if audio:
 				audio.play_ogre_roar()
-			troll_event_banner.emit("The Quarry-Troll lurches toward the sound!", Color(0.80, 0.70, 0.55))
-		state = AIState.CHARGE if charge or state == AIState.CHARGE else AIState.STALK
+			troll_event_banner.emit("Something huge turns its head toward the sound. It is blind: keep still.", Color(0.80, 0.70, 0.52))
 
-## Touch: anything brushing against it within arm's reach gives itself away.
-func _player_within_touch() -> bool:
-	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
-		return false
-	var d: Vector3 = player_ref.global_position - global_position
-	d.y = 0.0
-	return d.length() <= touch_radius
 
-func _player_within_reach() -> bool:
-	if player_ref == null or player_ref.current_state == PlayerController.ActionState.DEAD:
-		return false
-	var d: Vector3 = player_ref.global_position - global_position
-	d.y = 0.0
-	return d.length() <= club_reach + 0.2
-
-# ------------------------------------------------------------------------------
-# AI
-# ------------------------------------------------------------------------------
 func _process_ai_state(delta: float) -> void:
 	match state:
-		AIState.IDLE:
+		AIState.LISTEN:
+			velocity.x = _knockback_vel.x
+			velocity.z = _knockback_vel.z
+			_state_timer -= delta
+			if _state_timer <= 0.0 and not has_heard and global_position.distance_to(_home_pos) > HOME_LEASH:
+				state = AIState.RETURN_HOME
+
+		AIState.INVESTIGATE:
+			var to_h: Vector3 = heard_pos - global_position
+			to_h.y = 0.0
+			if to_h.length() <= POUND_REACH:
+				_begin_pound(heard_pos)
+				return
+			if not has_heard:
+				state = AIState.LISTEN
+				_state_timer = listen_pause()
+				return
+			_steer(to_h.normalized(), lumber_speed(), delta)
+
+		AIState.RETURN_HOME:
 			var to_home: Vector3 = _home_pos - global_position
 			to_home.y = 0.0
-			if to_home.length() > 1.0:
-				_steer_toward(to_home.normalized(), stalk_speed * 0.6, delta)
-			else:
-				velocity.x = _knockback_vel.x
-				velocity.z = _knockback_vel.z
-			if _player_within_touch():
-				_begin_sweep(player_ref.global_position)
-
-		AIState.STALK, AIState.CHARGE:
-			if _player_within_touch():
-				_begin_sweep(player_ref.global_position)
+			if to_home.length() <= 0.8:
+				state = AIState.LISTEN
+				_state_timer = listen_pause()
 				return
-			var to_t: Vector3 = _target_pos - global_position
-			to_t.y = 0.0
-			if to_t.length() <= 1.6:
-				# Arrived: lash out if something's there, otherwise feel around.
-				if _player_within_reach():
-					_begin_sweep(player_ref.global_position)
-				else:
-					_enter_search()
-				return
-			_steer_toward(to_t.normalized(), charge_speed if state == AIState.CHARGE else stalk_speed, delta)
+			_steer(to_home.normalized(), lumber_speed() * 0.7, delta)
 
-		AIState.SEARCH:
+		AIState.POUND_STARTUP:
 			_state_timer -= delta
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
-			_face_direction(_facing_dir.rotated(Vector3.UP, 1.2 * delta), 10.0, delta)
-			if _player_within_touch():
-				_begin_sweep(player_ref.global_position)
-				return
+			_face_toward(_pound_target, 4.0, delta)
 			if _state_timer <= 0.0:
-				_has_target = false
-				state = AIState.IDLE
+				_enter_pound_active()
 
-		AIState.SWEEP_STARTUP:
+		AIState.POUND_ACTIVE:
 			_state_timer -= delta
-			velocity.x = _knockback_vel.x
-			velocity.z = _knockback_vel.z
-			var to_t: Vector3 = _target_pos - global_position
-			to_t.y = 0.0
-			if to_t.length_squared() > 0.01:
-				_face_direction(to_t.normalized(), turn_speed * 0.5, delta)
+			velocity = Vector3(0.0, velocity.y, 0.0)
 			if _state_timer <= 0.0:
-				_enter_sweep_active()
-
-		AIState.SWEEP_ACTIVE:
-			_state_timer -= delta
-			velocity.x = _facing_dir.x * 3.0
-			velocity.z = _facing_dir.z * 3.0
-			if _state_timer <= 0.0:
-				_hitbox.end_swing()
-				if coordinator:
-					coordinator.release_attack_token(self)
+				_pound_hitbox.end_swing()
+				_pound_ring.visible = false
+				_release_token()
 				state = AIState.RECOVERY
-				_state_timer = 1.2
+				_state_timer = POUND_RECOVERY
 
-		AIState.RECOVERY:
+		AIState.THRASH_STARTUP:
 			_state_timer -= delta
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
 			if _state_timer <= 0.0:
-				_enter_search()
+				_enter_thrash_active()
 
-		AIState.STAGGER, AIState.RECOIL:
+		AIState.THRASH_ACTIVE:
+			_state_timer -= delta
+			velocity = Vector3(0.0, velocity.y, 0.0)
+			if _state_timer <= 0.0:
+				_thrash_hitbox.end_swing()
+				_release_token()
+				state = AIState.RECOVERY
+				_state_timer = THRASH_RECOVERY
+
+		AIState.RECOVERY, AIState.STAGGER:
 			_state_timer -= delta
 			velocity.x = _knockback_vel.x
 			velocity.z = _knockback_vel.z
 			if _state_timer <= 0.0:
-				_enter_search()
+				# A fresh sound sends it straight back in; otherwise it stands and listens.
+				if has_heard and _heard_age < 0.5:
+					state = AIState.INVESTIGATE
+				else:
+					state = AIState.LISTEN
+					_state_timer = listen_pause()
 
-func _enter_search() -> void:
-	state = AIState.SEARCH
-	_state_timer = search_time
 
-func _begin_sweep(at: Vector3) -> void:
+func _begin_pound(target: Vector3) -> void:
 	if coordinator:
 		coordinator.request_attack_token(self, true)
-	_target_pos = Vector3(at.x, global_position.y, at.z)
-	_has_target = true
-	_target_age = 0.0
-	state = AIState.SWEEP_STARTUP
-	_state_timer = 0.85
+	_pound_target = Vector3(target.x, 0.0, target.z)
+	has_heard = false
+	state = AIState.POUND_STARTUP
+	_state_timer = POUND_STARTUP_TIME
+	_pound_ring.global_position = _pound_target + Vector3(0.0, 0.05, 0.0)
+	_pound_ring.visible = true
+	_noise(10.0)
 
-func _enter_sweep_active() -> void:
-	var obstruction: Dictionary = SwingGeometry.sweep_obstruction(self, _facing_dir, sweep_arc_degrees, club_reach, 1.4)
-	if not obstruction.is_empty():
-		_enter_wall_recoil(obstruction)
-		return
-	state = AIState.SWEEP_ACTIVE
-	_state_timer = 0.26
+
+func _enter_pound_active() -> void:
+	state = AIState.POUND_ACTIVE
+	_state_timer = POUND_ACTIVE_TIME
+	_pound_hitbox.global_position = _pound_target + Vector3(0.0, 0.9, 0.0)
+	if audio:
+		audio.play_ogre_ground_slam()
+	troll_ground_shockwave.emit(0.6)
+	_noise(30.0)
+	_pound_hitbox.begin_swing(CombatPayload.new(self, _pound_target + (global_position - _pound_target).normalized() * 0.5,
+		(_pound_target - global_position).normalized(), POUND_DAMAGE * attack_power, POUND_POISE, false, true, 7.0))
+
+
+func _begin_thrash() -> void:
+	if coordinator:
+		coordinator.request_attack_token(self, true)
+	_pound_ring.visible = false
+	_pound_hitbox.end_swing()
+	state = AIState.THRASH_STARTUP
+	_state_timer = THRASH_STARTUP_TIME
+	_thrash_cooldown = THRASH_COOLDOWN
+	_noise(12.0)
+
+
+func _enter_thrash_active() -> void:
+	state = AIState.THRASH_ACTIVE
+	_state_timer = THRASH_ACTIVE_TIME
 	if audio:
 		audio.play_swing()
-	AcousticField.report(self, global_position, 12.0, "swing")
-	_hitbox.begin_swing(CombatPayload.new(self, global_position, _facing_dir, 50.0, 70.0, false, true, 7.5))
+	_noise(16.0)
+	_thrash_hitbox.begin_swing(CombatPayload.new(self, global_position, _facing_dir, THRASH_DAMAGE * attack_power, THRASH_POISE, false, false, 6.0))
 
-func _enter_wall_recoil(hit: Dictionary) -> void:
-	_hitbox.end_swing()
+
+func _release_token() -> void:
 	if coordinator:
 		coordinator.release_attack_token(self)
-	state = AIState.RECOIL
-	_state_timer = wall_recoil_time
-	var normal: Vector3 = SwingGeometry.recoil_normal(hit, _facing_dir)
-	_knockback_vel = normal * 1.6
-	if audio:
-		audio.play_wall_clang()
-	AcousticField.report(self, global_position, 14.0, "clang")
-	SwingGeometry.spawn_sparks(get_parent(), hit.get("position", global_position + _facing_dir * 2.0), normal, 20)
-	troll_event_banner.emit("The Troll's club cracks against the quarry wall — strike now!", Color(0.48, 0.78, 0.92))
 
-func _steer_toward(dir: Vector3, speed: float, delta: float) -> void:
-	_face_direction(dir, turn_speed, delta)
-	# It lumbers the way it faces, so it overshoots when it turns.
-	velocity.x = _facing_dir.x * speed + _knockback_vel.x
-	velocity.z = _facing_dir.z * speed + _knockback_vel.z
 
-func _face_direction(dir: Vector3, turn: float, delta: float) -> void:
-	_facing_dir = _facing_dir.slerp(dir, 1.0 - exp(-turn * delta)).normalized()
+## Drops any blow in progress (hitboxes closed, ring hidden, turn handed back).
+func _abandon_attack() -> void:
+	_pound_hitbox.end_swing()
+	_thrash_hitbox.end_swing()
+	_pound_ring.visible = false
+	_release_token()
+
+
+## The survivor is dead: drop the blow, forget the sound, and stand listening.
+func _stand_down() -> void:
+	if state in [AIState.LISTEN, AIState.RETURN_HOME, AIState.DEAD]:
+		return
+	_abandon_attack()
+	has_heard = false
+	state = AIState.LISTEN
+	_state_timer = listen_pause()
+
+
+func _steer(dir: Vector3, speed: float, delta: float) -> void:
+	_face_toward(global_position + dir, 3.0, delta)
+	velocity.x = dir.x * speed + _knockback_vel.x
+	velocity.z = dir.z * speed + _knockback_vel.z
+
+
+func _face_toward(point: Vector3, turn_speed: float, delta: float) -> void:
+	var dir: Vector3 = point - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		return
+	_facing_dir = _facing_dir.slerp(dir.normalized(), 1.0 - exp(-turn_speed * delta)).normalized()
 	_visual_root.look_at(global_position + _facing_dir, Vector3.UP)
 
-# ------------------------------------------------------------------------------
-# Taking hits
-# ------------------------------------------------------------------------------
+
 func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 	if state == AIState.DEAD:
 		return
-	var reeling: bool = state in [AIState.STAGGER, AIState.RECOIL, AIState.RECOVERY]
-	var mult: float = 1.0 if (payload.is_heavy or reeling) else hide_light_mult
-	health = maxf(0.0, health - payload.physical_damage * mult)
-	poise_damage += payload.poise_damage * mult
-	if mult < 1.0:
-		troll_event_banner.emit("Your blow skids off the Troll's hide", Color(0.72, 0.68, 0.60))
+	health = maxf(0.0, health - payload.physical_damage)
+	poise_damage += payload.poise_damage
+	# A blow tells it exactly where its attacker stands.
+	heard(payload.attacker_origin)
+	var away: Vector3 = global_position - payload.attacker_origin
+	away.y = 0.0
+	if away.length_squared() > 0.01:
+		_knockback_vel = away.normalized() * payload.knockback_force * 0.4
 
 	if health <= 0.0:
-		_hitbox.end_swing()
-		if coordinator:
-			coordinator.release_attack_token(self)
+		_abandon_attack()
 		state = AIState.DEAD
 		collision_layer = 0
 		_hurtbox.set_deferred("monitorable", false)
-		_visual_root.rotation_degrees.x = -85.0
-		_visual_root.position.y = 0.4
-		troll_event_banner.emit("THE BLIND QUARRY-TROLL IS DEAD", Color(0.88, 0.74, 0.36))
-		var corpse := Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_troll_loot(), 4.5)
-		corpse.interact_radius = 2.6
+		_model.play(&"Death01", 0.8)
+		troll_event_banner.emit("THE BLIND QUARRY-TROLL HAS FALLEN", Color(0.88, 0.74, 0.36))
+		var corpse := Lootable.attach_corpse(self, "%s Carcass" % enemy_name, ItemDatabase.roll_troll_loot(), 4.0)
+		corpse.interact_radius = 2.4
 		return
 
 	if poise_damage >= max_poise:
-		_hitbox.end_swing()
-		if coordinator:
-			coordinator.release_attack_token(self)
 		poise_damage = 0.0
+		_abandon_attack()
 		state = AIState.STAGGER
-		_state_timer = 1.3
-		troll_event_banner.emit("Troll Staggered — Strike Now!", Color(0.48, 0.78, 0.92))
+		_state_timer = STAGGER_TIME
+		troll_event_banner.emit("The troll reels. Strike now!", Color(0.48, 0.78, 0.92))
 		return
 
-	# Pain tells it exactly where you are.
-	if state in [AIState.IDLE, AIState.STALK, AIState.CHARGE, AIState.SEARCH]:
-		_begin_sweep(payload.attacker_origin)
+	# Struck from close by, it thrashes round itself (unless already swinging).
+	var near: bool = global_position.distance_to(payload.attacker_origin) <= THRASH_RADIUS + 0.5
+	if near and _thrash_cooldown <= 0.0 and state in [AIState.LISTEN, AIState.INVESTIGATE, AIState.RETURN_HOME, AIState.RECOVERY]:
+		_begin_thrash()
 
-# ------------------------------------------------------------------------------
-# Visuals
-# ------------------------------------------------------------------------------
+
+## Drawn only while the survivor can see it (their vision cone, cut by walls: Perception).
+func _update_visibility() -> void:
+	if player_ref == null or player_ref.perception == null:
+		return
+	player_ref.perception.update_visibility(self, _visual_root, 2.2, state != AIState.DEAD)
+
+
+## What the survivor may hear of it: a heavy, dragging tread, a grunt as a blow starts, the blows.
+func _report_noises(delta: float) -> void:
+	if player_ref == null or player_ref.perception == null:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	player_ref.perception.report_footsteps(self, delta, speed, 1.8, 18.0)
+
+
+func _noise(loudness: float) -> void:
+	if player_ref != null and player_ref.perception != null:
+		player_ref.perception.report_noise(global_position, loudness, self)
+
+
 func _update_visual_telegraph() -> void:
 	match state:
-		AIState.SWEEP_STARTUP:
-			_club_pivot.rotation_degrees = Vector3(-20.0, 100.0, 30.0)
-			_status_mat.albedo_color = Color(0.95, 0.58, 0.15)
-		AIState.SWEEP_ACTIVE:
-			_club_pivot.rotation_degrees = Vector3(30.0, -80.0, 0.0)
+		AIState.POUND_STARTUP, AIState.THRASH_STARTUP:
+			_status_mat.albedo_color = Color(0.98, 0.42, 0.12)
+		AIState.POUND_ACTIVE, AIState.THRASH_ACTIVE:
 			_status_mat.albedo_color = Color(0.95, 0.12, 0.12)
-		AIState.RECOVERY, AIState.STAGGER, AIState.RECOIL:
-			_club_pivot.rotation_degrees = Vector3(55.0, -20.0, 18.0)
-			_status_mat.albedo_color = Color(0.38, 0.75, 0.92)
-		AIState.CHARGE:
-			_club_pivot.rotation_degrees = Vector3(-10.0, 30.0, 0.0)
-			_status_mat.albedo_color = Color(0.86, 0.66, 0.30)
-		AIState.STALK, AIState.SEARCH:
-			_club_pivot.rotation_degrees = Vector3(10.0, 10.0, 0.0)
-			_status_mat.albedo_color = Color(0.66, 0.60, 0.42)
+		AIState.RECOVERY, AIState.STAGGER:
+			_status_mat.albedo_color = Color(0.40, 0.74, 0.92)
+		AIState.INVESTIGATE:
+			_status_mat.albedo_color = Color(0.74, 0.62, 0.34)
 		_:
-			_club_pivot.rotation_degrees = Vector3.ZERO
-			_status_mat.albedo_color = Color(0.36, 0.34, 0.30)
+			_status_mat.albedo_color = Color(0.40, 0.40, 0.44)
+	_update_model_animation()
 
-func _build_troll_visuals_and_colliders() -> void:
+
+func _update_model_animation() -> void:
+	if _model == null or state == AIState.DEAD:
+		return
+	if state != _anim_state:
+		_anim_state = state
+		match state:
+			AIState.POUND_STARTUP:
+				_model.play_strike(&"Sword_Regular_C", _state_timer)
+			AIState.THRASH_STARTUP:
+				_model.play_strike(&"Sword_Regular_A", _state_timer)
+			AIState.STAGGER:
+				_model.play_fitted(&"Hit_Knockback", maxf(_state_timer, 0.4))
+	if state in [AIState.POUND_STARTUP, AIState.POUND_ACTIVE, AIState.THRASH_STARTUP, AIState.THRASH_ACTIVE,
+			AIState.RECOVERY, AIState.STAGGER]:
+		return
+	var speed: float = Vector2(velocity.x, velocity.z).length()
+	if speed < 0.2:
+		_model.play(&"Zombie_Idle")
+	else:
+		_model.play(&"Zombie_Walk_Fwd", clampf(speed / 1.8, 0.6, 1.6))
+
+
+func _build_body() -> void:
 	collision_layer = 4
-	collision_mask = 1 | 2 | 4
-
+	collision_mask = 1 | 2 | 4 | 64  # + layer 7 Props: set dressing blocks bodies, never rays
 	var col := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
 	cap.radius = 0.8
-	cap.height = 2.7
+	cap.height = 2.6
 	col.shape = cap
-	col.position = Vector3(0.0, 1.35, 0.0)
+	col.position = Vector3(0.0, 1.3, 0.0)
 	add_child(col)
 
 	_visual_root = Node3D.new()
 	add_child(_visual_root)
-
-	var hide_mat := StandardMaterial3D.new()
-	hide_mat.albedo_color = Color(0.40, 0.39, 0.36) # quarry-dust grey
-	hide_mat.roughness = 0.96
-
-	var body := MeshInstance3D.new()
-	var b_mesh := CapsuleMesh.new()
-	b_mesh.radius = 0.78
-	b_mesh.height = 2.3
-	body.mesh = b_mesh
-	body.material_override = hide_mat
-	body.position = Vector3(0.0, 1.25, 0.15)
-	body.rotation_degrees.x = 24.0 # hunched
-	_visual_root.add_child(body)
-
-	# A smooth, eyeless head thrust forward, listening.
-	var head := MeshInstance3D.new()
-	var h_mesh := SphereMesh.new()
-	h_mesh.radius = 0.36
-	h_mesh.height = 0.6
-	head.mesh = h_mesh
-	head.material_override = hide_mat
-	head.position = Vector3(0.0, 2.05, -0.55)
-	_visual_root.add_child(head)
-
-	var arm_mat := hide_mat
-	for side: float in [-1.0, 1.0]:
-		var arm := MeshInstance3D.new()
-		var a_mesh := CapsuleMesh.new()
-		a_mesh.radius = 0.22
-		a_mesh.height = 1.7
-		arm.mesh = a_mesh
-		arm.material_override = arm_mat
-		arm.position = Vector3(0.78 * side, 1.0, -0.2)
-		_visual_root.add_child(arm)
-
-	_club_pivot = Node3D.new()
-	_club_pivot.position = Vector3(0.9, 1.3, -0.3)
-	_visual_root.add_child(_club_pivot)
-	var stone_mat := StandardMaterial3D.new()
-	stone_mat.albedo_color = Color(0.30, 0.29, 0.27)
-	stone_mat.roughness = 0.95
-	var club := MeshInstance3D.new()
-	var c_mesh := BoxMesh.new()
-	c_mesh.size = Vector3(0.42, 0.42, 1.9) # a slab of quarry stone
-	club.mesh = c_mesh
-	club.material_override = stone_mat
-	club.position = Vector3(0.0, 0.0, -1.0)
-	_club_pivot.add_child(club)
+	_model = EnemyModel.new("troll")
+	_visual_root.add_child(_model)
+	# A lump of quarry stone in its fist.
+	var stone := MeshInstance3D.new()
+	var s_mesh := BoxMesh.new()
+	s_mesh.size = Vector3(0.42, 0.34, 0.48)
+	stone.mesh = s_mesh
+	stone.material_override = AshenWildsBootstrap.surface_material("dark_stone")
+	stone.position = Vector3(0.0, 0.0, -0.2)
+	_weapon_arm = Node3D.new()
+	_model.right_socket.add_child(_weapon_arm)
+	_weapon_arm.add_child(stone)
 
 	_status_mat = StandardMaterial3D.new()
 	_status_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_status_mat.albedo_color = Color(0.36, 0.34, 0.30)
+	_status_mat.albedo_color = Color(0.40, 0.40, 0.44)
 	var pip := MeshInstance3D.new()
 	var pip_mesh := CylinderMesh.new()
 	pip_mesh.top_radius = 0.9
@@ -412,17 +527,50 @@ func _build_troll_visuals_and_colliders() -> void:
 	pip.position = Vector3(0.0, 0.04, 0.0)
 	_visual_root.add_child(pip)
 
-	_hitbox = HitboxComponent.new()
-	_hitbox.owner_entity = self
-	_hitbox.collision_layer = 0
-	_hitbox.collision_mask = 8
-	var hb_col := CollisionShape3D.new()
-	var hb_box := BoxShape3D.new()
-	hb_box.size = Vector3(2.9, 2.0, 2.7)
-	hb_col.shape = hb_box
-	hb_col.position = Vector3(0.0, 1.0, -1.5)
-	_hitbox.add_child(hb_col)
-	_visual_root.add_child(_hitbox)
+	# The pound's ring sits on the ground at the heard spot, not under the troll.
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_mat.albedo_color = Color(0.88, 0.28, 0.12, 0.42)
+	_pound_ring = MeshInstance3D.new()
+	_pound_ring.name = "PoundRing"
+	var r_mesh := CylinderMesh.new()
+	r_mesh.top_radius = POUND_RADIUS
+	r_mesh.bottom_radius = POUND_RADIUS
+	r_mesh.height = 0.04
+	_pound_ring.mesh = r_mesh
+	_pound_ring.material_override = ring_mat
+	_pound_ring.top_level = true
+	_pound_ring.visible = false
+	add_child(_pound_ring)
+
+	_pound_hitbox = HitboxComponent.new()
+	_pound_hitbox.name = "PoundHitbox"
+	_pound_hitbox.owner_entity = self
+	_pound_hitbox.collision_layer = 0
+	_pound_hitbox.collision_mask = 8  # layer 4: the survivor's (and the companion's) hurtbox
+	_pound_hitbox.top_level = true
+	var pc := CollisionShape3D.new()
+	var ps := CylinderShape3D.new()
+	ps.radius = POUND_RADIUS
+	ps.height = 1.8
+	pc.shape = ps
+	_pound_hitbox.add_child(pc)
+	add_child(_pound_hitbox)
+
+	_thrash_hitbox = HitboxComponent.new()
+	_thrash_hitbox.name = "ThrashHitbox"
+	_thrash_hitbox.owner_entity = self
+	_thrash_hitbox.collision_layer = 0
+	_thrash_hitbox.collision_mask = 8
+	var tc := CollisionShape3D.new()
+	var ts := CylinderShape3D.new()
+	ts.radius = THRASH_RADIUS
+	ts.height = 2.2
+	tc.shape = ts
+	tc.position = Vector3(0.0, 1.1, 0.0)
+	_thrash_hitbox.add_child(tc)
+	add_child(_thrash_hitbox)
 
 	_hurtbox = HurtboxComponent.new()
 	_hurtbox.owner_entity = self
@@ -430,12 +578,10 @@ func _build_troll_visuals_and_colliders() -> void:
 	_hurtbox.collision_mask = 0
 	var hurt_col := CollisionShape3D.new()
 	var hurt_cap := CapsuleShape3D.new()
-	hurt_cap.radius = 0.88
-	hurt_cap.height = 2.7
+	hurt_cap.radius = 0.9
+	hurt_cap.height = 2.6
 	hurt_col.shape = hurt_cap
-	hurt_col.position = Vector3(0.0, 1.35, 0.0)
+	hurt_col.position = Vector3(0.0, 1.3, 0.0)
 	_hurtbox.add_child(hurt_col)
 	add_child(_hurtbox)
 	_hurtbox.hit_received.connect(_on_hurtbox_hit_received)
-	# Interim painted art (assets/art_map.json); falls back to the meshes above.
-	SpriteArt.dress(_visual_root, "quarry_troll")

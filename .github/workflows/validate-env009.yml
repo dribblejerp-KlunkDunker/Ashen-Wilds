@@ -1,0 +1,91 @@
+name: Generate and validate ENV-009
+on:
+  push:
+    branches: [assets/env-001-crate-barrel]
+    paths:
+      - ".github/workflows/validate-env009.yml"
+      - "tools/generate_env009.py"
+      - "tests/test_env009_collisions.gd"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: generate-environment-assets
+  cancel-in-progress: false
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/assets/env-001-crate-barrel'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: assets/env-001-crate-barrel
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Generate ENV-009
+        run: |
+          python -m pip install numpy==1.26.4 scipy==1.13.1 Pillow==12.2.0
+          python tools/generate_env009.py assets/environment/env009
+      - name: Import and test in Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot"
+          curl --fail --location --retry 3 "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q -o "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          engine="$RUNNER_TEMP/godot/Godot_v4.7.2-stable_linux.x86_64"
+          chmod +x "$engine"
+          project="$RUNNER_TEMP/env009-validation"
+          mkdir -p "$project/assets/environment"
+          cp -R assets/environment/env009 "$project/assets/environment/"
+          cp tests/test_env009_collisions.gd "$project/"
+          cat > "$project/project.godot" <<'GODOT'
+          config_version=5
+          [application]
+          config/name="ENV009 validation"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          GODOT
+          timeout 180s "$engine" --headless --path "$project" --editor --import --quit 2>&1 | tee "$RUNNER_TEMP/env009-import.log"
+          timeout 180s "$engine" --headless --path "$project" --script res://test_env009_collisions.gd 2>&1 | tee "$RUNNER_TEMP/env009-physics.log"
+          python - <<'PY'
+          import os, json
+          from pathlib import Path
+          p = Path(os.environ["RUNNER_TEMP"]) / "env009-validation/env009-validation-report.json"
+          r = json.loads(p.read_text())
+          if not r.get("passed") or r.get("scene_pose_cases") != 78 or r.get("box_definitions") != 140:
+              raise SystemExit("ENV-009 Godot validation failed")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(f"## ENV-009 validation passed\n78 scene/pose cases; {r['checks']} assertions.\n")
+              f.write("Scope: imports, box contacts, openings, stair heights and capsule aperture probes; not player-controller traversal or performance.\n")
+          PY
+      - name: Commit only after validation passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          root = Path("assets/environment/env009")
+          files = [str(p) for p in sorted(root.rglob("*")) if p.is_file() and (p.suffix in [".glb", ".tscn", ".png"] or p.name == "manifest.json")]
+          subprocess.run(["git", "add", "-f", "--", *files], check=True)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate Godot-validated ENV-009 masonry assets and collision scenes"
+            git push origin HEAD:refs/heads/assets/env-001-crate-barrel
+          fi
+      - name: Keep validation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: env009-validation-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/env009-import.log
+            ${{ runner.temp }}/env009-physics.log
+            ${{ runner.temp }}/env009-validation/env009-validation-report.json
+          if-no-files-found: warn
+          retention-days: 14

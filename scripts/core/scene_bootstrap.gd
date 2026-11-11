@@ -6,37 +6,18 @@ var _camera_rig: IsoCameraRig
 var _hud: TacticalHUD
 var _audio: ProceduralAudio
 var _coordinator: EncounterCoordinator
-var _acoustics: AcousticField
-var _ripples: AcousticRipples
-var _vision: VisionCone
-var _weather: WeatherSystem
-var _day_night: DayNightCycle
-var _objectives: ActObjectives
-var _crafting: CraftingUI
-var _watch_goblins: Array[Node3D] = []
-var _orks: Array[Node3D] = []
-var _ogre: EnemyOgreBrute
-var _troll: EnemyQuarryTroll
-var _stash: Lootable
-## Every enemy in spawn order (Milestone 14 save identity).
-var _all_enemies: Array[Node3D] = []
-const FIRE_POS := Vector3(-6.5, 0.0, 4.8)
-const REST_RADIUS: float = 2.6
-var _sun: DirectionalLight3D
-## Milestone 9: tests and tools turn the weather cycle off before add_child.
-@export var weather_cycle_enabled: bool = true
-## Milestone 17: tests and tools turn cold & hunger off before add_child.
-@export var survival_enabled: bool = true
-## Milestone 19: tests and tools stop the clock before add_child.
-@export var day_cycle_enabled: bool = true
-## Food a night's sleep at the fire costs.
-const SLEEP_FOOD_COST: float = 15.0
+var _weather: Weather
+var _discovery: Discovery
+var _objectives: Objectives
+## Act I's foes, for the objectives: the Watchhouse goblins and the choke point's orks.
+var _watchhouse_goblins: Array = []
+var _choke_orks: Array = []
+var _companion: Companion
+var _unseen_cue_at: float = 0.0
+var _unseen_banner_at: float = 0.0
 var _shelter_spawn: Vector3 = Vector3(-6.5, 0.0, 6.5)
-## Milestone 7: show the survivor picker on boot. Tests and tools turn this
-## off before adding the scene, which keeps the legacy loadout.
-@export var show_background_picker: bool = true
-
-const WATCHHOUSE_INTERIOR := AABB(Vector3(1.1, 0.0, -6.9), Vector3(7.8, 3.8, 7.8))
+## The shelter fire's ember bed; its glow breathes with the fire's light (FlickerLight).
+var _ember_material: StandardMaterial3D = StandardMaterial3D.new()
 
 func _ready() -> void:
 	_ensure_input_bindings()
@@ -47,124 +28,64 @@ func _ready() -> void:
 	_coordinator = EncounterCoordinator.new()
 	add_child(_coordinator)
 
-	_acoustics = AcousticField.new()
-	add_child(_acoustics)
-
 	var world_env := _build_atmosphere_and_lighting()
 	_camera_rig = IsoCameraRig.new()
 	_camera_rig.bind_world_environment(world_env)
 	add_child(_camera_rig)
 
 	_build_blackfen_test_yard()
+	add_child(SetDressing.new())
 
 	_player = PlayerController.new()
 	_player.position = _shelter_spawn
 	_player.camera_rig = _camera_rig
 	_player.audio = _audio
-	_player.survival_enabled = survival_enabled
 	add_child(_player)
 	_camera_rig.target = _player
 	_camera_rig.global_position = _shelter_spawn
-
-	# Milestone 8: vision cone + memory map, and ripples for unseen noises.
-	_vision = VisionCone.new()
-	_vision.player = _player
-	add_child(_vision)
-	_vision.attach_to_camera(_camera_rig.camera)
-	_ripples = AcousticRipples.new()
-	add_child(_ripples)
-	_ripples.bind(_acoustics, _player)
-
-	# Milestone 9: weather.
-	_weather = WeatherSystem.new()
-	_weather.cycle_enabled = weather_cycle_enabled
-	_weather.player = _player
-	_weather.environment = world_env.environment
-	_weather.sun = _sun
-	_weather.acoustics = _acoustics
-	_weather.register_interior(WATCHHOUSE_INTERIOR)
-	add_child(_weather)
-	_weather.weather_changed.connect(_on_weather_changed)
-	# Milestone 19: day & night.
-	_day_night = DayNightCycle.new()
-	_day_night.cycle_enabled = day_cycle_enabled
-	_day_night.weather = _weather
-	_weather.day_night = _day_night
-	add_child(_day_night)
-	_day_night.phase_changed.connect(_on_phase_changed)
-	_weather.refresh_environment()
+	var ash := AshFall.new()
+	ash.follow = _player
+	add_child(ash)
 
 	_spawn_all_archetype_encounters()
 
 	_spawn_scavenge_containers()
+	_spawn_ground_notes()
+	_spawn_bound_captive()
+	# The cart in the Spore Hollow: a fresh torch, for the one thing the spores fear.
+	_spawn_container("Spore-Choked Cart", Vector3(-22.5, 0.0, -1.5), Vector3(1.4, 0.6, 0.9), Color(0.36, 0.34, 0.26), 3.0,
+		[ItemDatabase.make("pitch_torch", 1), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)])
+	# The Roofed Gallery: a handcart tipped across the passage (cover, as it was on the Roofed Mile),
+	# still holding two of its sacks of lime; and at the dead end the pack of someone it dragged there.
+	_spawn_container("Overturned Handcart", Vector3(-22.2, 0.0, 17.2), Vector3(0.9, 0.6, 1.4), Color(0.36, 0.30, 0.24), 2.0,
+		[ItemDatabase.make("quicklime", 2), ItemDatabase.make("iron_scrap", 1)])
+	_spawn_container("Wayfarer's Pack", Vector3(-22.6, 0.0, 23.6), Vector3(0.6, 0.4, 0.5), Color(0.34, 0.30, 0.24), 2.5,
+		[ItemDatabase.make("lamp_oil", 2), ItemDatabase.make("clean_rag_bandage", 2), ItemDatabase.make("salt", 1)])
 
+	add_child(VisionConeOverlay.new(_player))
+	add_child(Vignette.new())
 	_hud = TacticalHUD.new()
 	add_child(_hud)
 	_hud.bind_player(_player)
-	_build_act_one_objectives()
-	# Milestone 18: crafting & repairs at the shelter fire.
-	_crafting = CraftingUI.new()
-	_hud.add_child(_crafting)
-	_crafting.bind(_player, _stash)
-	_player.ui_force_close.connect(_crafting.close)
-	for n: Node in get_children():
-		if n.is_in_group("enemy"):
-			_all_enemies.append(n)
-	_hud.show_banner("THE BLACKFEN OUTSKIRTS — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
-
-	if show_background_picker and DisplayServer.get_name() == "headless":
-		# Headless boots (CI, the live-boot check) can't click: start as the
-		# first survivor so the world runs unpaused.
-		_on_background_chosen.call_deferred(BackgroundDatabase.all()[0])
-	elif show_background_picker:
-		var picker := BackgroundPicker.new()
-		picker.can_continue = SaveGame.exists()
-		picker.background_chosen.connect(_on_background_chosen)
-		picker.continue_chosen.connect(load_game)
-		add_child(picker)
-
-func _process(_delta: float) -> void:
-	var near: bool = is_near_fire()
-	var rest: String = "Sleep until dawn" if _night_for_sleeping() else "Rest at the fire"
-	_player.extra_prompt = "[T] %s (heal & save)   [K] Work at the fire" % rest if near else ""
-	if not near and _crafting and _crafting.is_open():
-		_crafting.close()
-
-func is_near_fire() -> bool:
-	var d := Vector2(_player.global_position.x - FIRE_POS.x, _player.global_position.z - FIRE_POS.z)
-	return d.length() <= REST_RADIUS
-
-## Milestone 14: resting at the shelter fire heals you, stops bleeding and saves.
-func rest_at_fire() -> bool:
-	if not is_near_fire() or not (_player.current_state in PlayerController.NEUTRAL_STATES):
-		return false
-	_player.health = _player.max_health
-	_player.is_bleeding = false
-	_player.bleed_timer = 0.0
-	_player.cure_spores()
-	_player.warmth = _player.max_warmth
-	# Milestone 19: after dusk, resting means sleeping through to dawn.
-	var slept: bool = _night_for_sleeping()
-	if slept:
-		_day_night.advance_hours(_day_night.hours_until_dawn())
-		if _player.survival_enabled:
-			_player.satiety = maxf(0.0, _player.satiety - SLEEP_FOOD_COST)
-	var ok: bool = SaveGame.write(self)
-	var what: String = "You sleep by the fire until dawn. Wounds bound, the night survived" if slept else "You rest by the fire. Wounds bound"
-	_hud.show_banner("%s — game saved." % what if ok else "You rest, but the game could not be saved.", Color(0.88, 0.74, 0.46))
-	return ok
-
-## Dusk through the small hours: resting becomes sleeping until dawn.
-func _night_for_sleeping() -> bool:
-	return _day_night != null and _day_night.phase in [DayNightCycle.Phase.DUSK, DayNightCycle.Phase.NIGHT]
-
-func load_game() -> void:
-	var ok: bool = await SaveGame.apply(self, SaveGame.read())
-	_hud.show_banner("The fire still burns. Game loaded." if ok else "No saved game found.", Color(0.86, 0.78, 0.60))
-
-func _on_background_chosen(bg: SurvivorBackground) -> void:
-	_player.apply_background(bg)
-	_hud.show_banner("%s — %s, but %s." % [bg.display_name, bg.trait_name, bg.flaw_name.to_lower()], Color(0.86, 0.78, 0.60))
+	_player.perception.heard.connect(_on_unseen_noise_heard)
+	_weather = Weather.new()
+	add_child(_weather)
+	_weather.bind(world_env.environment, find_child("Moon", false, false) as DirectionalLight3D, ash,
+		find_child("ShelterFireLight", true, false) as FlickerLight, _player)
+	_weather.changed.connect(_on_weather_changed)
+	_discovery = Discovery.new()
+	_discovery.name = "Discovery"
+	add_child(_discovery)
+	_discovery.bind(_player, _hud)
+	_objectives = Objectives.new()
+	_objectives.name = "Objectives"
+	add_child(_objectives)
+	_objectives.bind(_player, _hud, _discovery, _watchhouse_goblins, _choke_orks)
+	_objectives.objective_completed.connect(_on_objective_completed)
+	_hud.set_background(_player.background.title)
+	if DisplayServer.get_name() != "headless":
+		_show_background_select()
+	_hud.show_banner("MILESTONE 4 — Search with [E], manage your pack with [Tab].  [F1] Watchhouse  [F2] Ork Choke  [F3] Ogre Lair", Color(0.82, 0.76, 0.65))
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
@@ -180,42 +101,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F3:
 				_player.global_position = Vector3(-11.0, 0.0, -6.5)
 				_hud.show_banner("Teleported: North-West Feeding Ground (Blackfen Ogre)", Color(0.92, 0.42, 0.28))
-			KEY_T:
-				rest_at_fire()
-			KEY_K:
-				if is_near_fire():
-					_crafting.toggle()
-				else:
-					_hud.show_banner("You can only work at the shelter fire", Color(0.72, 0.68, 0.62))
-			KEY_F5:
-				_player.global_position = Vector3(7.8, 0.0, -15.0)
-				_hud.show_banner("Teleported: The Old Quarry (Blind Quarry-Troll) — make no sound", Color(0.78, 0.72, 0.58))
-			KEY_F6:
-				_player.global_position = BARROW_POS + Vector3(6.0, 0.0, -4.0)
-				_hud.show_banner("Teleported: The Drowned Barrow (Ghoul) — don't bleed here", Color(0.70, 0.62, 0.58))
-			KEY_F7:
-				_player.global_position = WALLOW_POS + Vector3(13.0, 0.0, 2.0)
-				_hud.show_banner("Teleported: east of the Bear Wallow — keep a torch lit", Color(0.80, 0.62, 0.42))
-			KEY_F9:
-				_player.global_position = PASTURE_POS + Vector3(9.0, 0.0, 6.0)
-				_hud.show_banner("Teleported: the Grey Pasture (Bog-Bull) — sidestep the charge, or bait it into a stone", Color(0.82, 0.70, 0.52))
-			KEY_F10:
-				_player.global_position = GLADE_POS + Vector3(-12.0, 0.0, 0.0)
-				_hud.show_banner("Teleported: west of the Pale Glade (Skull-Deer) — approach slowly, without fire", Color(0.80, 0.78, 0.70))
-			KEY_F11:
-				_player.global_position = ROOST_POS + Vector3(0.0, 0.0, -9.0)
-				_hud.show_banner("Teleported: the Crows' Roost — the nest hoard is guarded by the whole flock", Color(0.72, 0.70, 0.66))
-			KEY_F12:
-				_player.global_position = BILE_PIT_POS + Vector3(9.0, 0.0, 6.0)
-				_hud.show_banner("Teleported: the Bile Pit (Rot-Beast) — when it rears back, get out of its line", Color(0.70, 0.76, 0.36))
 			KEY_F4:
+				_player.perception.enabled = not _player.perception.enabled
+				_hud.show_banner("Vision cone %s" % ("on" if _player.perception.enabled else "off (dev)"), Color(0.75, 0.75, 0.75))
+			KEY_F5:
 				_weather.advance()
+			KEY_F7:
+				_player.global_position = Vector3(-14.0, 0.0, -2.0)
+				_hud.show_banner("Teleported: the Spore Hollow (Ash-Spore Husks). Fire burns spores.", Color(0.72, 0.74, 0.52))
 			KEY_F8:
-				_day_night.advance_hours(3.0)
-				_hud.show_banner("Time passes: %s %s" % [_day_night.get_phase_name(), _day_night.clock_text()], Color(0.70, 0.72, 0.80))
-			KEY_V:
-				_vision.set_enabled(not _vision.enabled)
-				_hud.show_banner("Vision cone & memory map: %s" % ("ON" if _vision.enabled else "OFF"), Color(0.75, 0.75, 0.75))
+				_player.global_position = Vector3(12.0, 0.0, 15.0)
+				_hud.show_banner("Teleported: the Drowned Graves (the Unnamed). The dead here were never named.", Color(0.66, 0.74, 0.80))
+			KEY_F9:
+				_player.global_position = Vector3(-17.0, 0.0, 16.0)
+				_hud.show_banner("Teleported: the Roofed Gallery (the gallery-crawler). Watch the ledges.", Color(0.86, 0.80, 0.68))
+			KEY_F6:
+				_player.global_position = Vector3(8.0, 0.0, -10.0)
+				_hud.show_banner("Teleported: the Old Quarry (Blind Quarry-Troll). Keep still.", Color(0.80, 0.70, 0.52))
+			KEY_F:
+				if _companion != null and is_instance_valid(_companion) and not _companion.is_dead():
+					_companion.toggle_mode()
+					_hud.show_banner("%s %s" % [_companion.companion_name, "holds here" if _companion.mode == Companion.Mode.HOLD else "follows you"], Color(0.72, 0.76, 0.80))
 			KEY_BRACKETLEFT:
 				_camera_rig.adjust_brightness(-0.1)
 				_hud.show_banner("Brightness Decreased", Color(0.7, 0.7, 0.7))
@@ -243,13 +149,11 @@ func _ensure_input_bindings() -> void:
 	_bind_key("interact", KEY_E)
 	_bind_key("inventory", KEY_TAB)
 	_bind_key("bandage", KEY_B)
+	_bind_key("throw_lime", KEY_G)
 	_bind_key("equip_slot_1", KEY_1)
 	_bind_key("equip_slot_2", KEY_2)
 	_bind_key("equip_slot_3", KEY_3)
 	_bind_key("equip_slot_4", KEY_4)
-	# Milestone 11
-	_bind_key("throw", KEY_G)
-
 
 func _bind_key(action: String, key: Key) -> void:
 	if InputMap.has_action(action):
@@ -267,33 +171,57 @@ func _bind_mouse(action: String, btn: MouseButton) -> void:
 	ev.button_index = btn
 	InputMap.action_add_event(action, ev)
 
+## Night in the Blackfen (look and feel 3): cold moonlight and a desaturated, contrasty grade, so
+## fire and torchlight read as warm pools; low mist along the ground; glow on flames and embers.
+## Everything here works in the browser's Compatibility renderer too, except SSAO (desktop only,
+## and simply off there). The camera rig's brightness setting moves tonemap_exposure on top.
 func _build_atmosphere_and_lighting() -> WorldEnvironment:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.05, 0.05, 0.06)
+	env.background_color = Color(0.035, 0.04, 0.05)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.16, 0.17, 0.19)
-	# Raised from 0.65 with the painted art (tuned with the visual benchmark):
-	# the overcast day reads clearly, and night (a darker blue ambient, weaker
-	# moon) still lands near the target mockup's moonlit look.
-	env.ambient_light_energy = 4.5
+	env.ambient_light_color = Color(0.24, 0.27, 0.32)
+	env.ambient_light_energy = 2.6
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.7
+	env.tonemap_white = 6.0
+	# Distance fog plus a low mist that pools in the first metre above the ground.
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.12, 0.12, 0.13)
+	env.fog_light_color = Color(0.22, 0.25, 0.29)
 	env.fog_density = 0.012
+	env.fog_aerial_perspective = 0.25
+	env.fog_height = 0.6
+	env.fog_height_density = 0.08
+	# Flames, embers and the torch bloom a little; nothing else is bright enough to.
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.02
+	env.glow_hdr_threshold = 1.0
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	# The grade: drained colour, a touch more contrast.
+	env.adjustment_enabled = true
+	env.adjustment_brightness = 1.12
+	env.adjustment_contrast = 1.08
+	env.adjustment_saturation = 0.8
+	# Contact shadows where props meet the ground (desktop renderer only).
+	env.ssao_enabled = true
+	env.ssao_radius = 1.2
+	env.ssao_intensity = 1.2
 
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
 
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52.0, -35.0, 0.0)
-	sun.light_color = Color(0.58, 0.62, 0.68)
-	sun.light_energy = 0.65
-	sun.shadow_enabled = true
-	add_child(sun)
-	_sun = sun
+	# The moon: cold, dim, low enough for long shadows.
+	var moon := DirectionalLight3D.new()
+	moon.name = "Moon"
+	moon.rotation_degrees = Vector3(-48.0, -35.0, 0.0)
+	moon.light_color = Color(0.50, 0.58, 0.76)
+	moon.light_energy = 3.0
+	moon.shadow_enabled = true
+	moon.shadow_blur = 1.5
+	add_child(moon)
 	return world_env
 
 func _build_blackfen_test_yard() -> void:
@@ -305,61 +233,50 @@ func _build_blackfen_test_yard() -> void:
 		Color(0.18, 0.16, 0.14),
 		cutaway_shader,
 		false,
-		false
+		false,
+		"mud"
 	)
 
-	var hearth: StaticBody3D = _create_static_box(
+	_create_static_box(
 		Vector3(-6.5, 0.2, 4.8),
 		Vector3(0.9, 0.4, 0.9),
 		Color(0.25, 0.22, 0.20),
 		cutaway_shader,
 		false,
-		false
+		false,
+		"dark_stone"
 	)
-	# Interim painted campfire over the hearth stone (which stays for collision).
-	var campfire: FacingSprite = SpriteArt.prop("campfire")
-	if campfire:
-		for m: Node in hearth.get_children():
-			if m is MeshInstance3D:
-				(m as MeshInstance3D).visible = false
-		campfire.position = Vector3(0.0, -0.2, 0.0)
-		campfire.shaded = false # it's the light source
-		hearth.add_child(campfire)
-	var fire_light := OmniLight3D.new()
+	_build_fire_bed(Vector3(-6.5, 0.4, 4.8))
+	var fire_light := FlickerLight.new()
+	fire_light.name = "ShelterFireLight"
+	fire_light.ember_material = _ember_material
 	fire_light.position = Vector3(-6.5, 1.1, 4.8)
 	fire_light.light_color = Color(0.96, 0.54, 0.22)
-	fire_light.light_energy = 3.4
+	fire_light.light_energy = 2.4
 	fire_light.omni_range = 9.0
 	fire_light.shadow_enabled = true
 	add_child(fire_light)
-	# Milestone 17: the fire warms anyone within 4 m.
-	var heat := Node3D.new()
-	heat.name = "ShelterFireHeat"
-	heat.position = Vector3(-6.5, 0.0, 4.8)
-	heat.set_meta("heat_radius", 4.0)
-	heat.add_to_group("heat_source")
-	add_child(heat)
 
-	_camera_rig.register_interior_aabb(WATCHHOUSE_INTERIOR)
+	_camera_rig.register_interior_aabb(AABB(Vector3(1.1, 0.0, -6.9), Vector3(7.8, 3.8, 7.8)))
 
 	var stone_col := Color(0.28, 0.27, 0.25)
-	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false)
+	_create_static_box(Vector3(5.0, 1.6, -7.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, false, false, "stone")
 	# East wall faces the camera (rig sits on the +X/+Z side), so it needs the
 	# cutaway too or it hides the eastern half of the watchhouse interior.
-	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(9.0, 1.6, -3.0), Vector3(0.4, 3.2, 8.0), stone_col, cutaway_shader, true, false, "stone")
 
 	# West Foreground Wall with 1.35m doorway at Z = -2.675 (Blocks 1.70m Ogre)
-	_create_static_box(Vector3(1.0, 1.6, -5.175), Vector3(0.4, 3.2, 3.65), stone_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(1.0, 1.6, -0.5), Vector3(0.4, 3.2, 3.0), stone_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(1.0, 2.7, -2.675), Vector3(0.4, 1.0, 1.35), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(1.0, 1.6, -5.175), Vector3(0.4, 3.2, 3.65), stone_col, cutaway_shader, true, false, "stone")
+	_create_static_box(Vector3(1.0, 1.6, -0.5), Vector3(0.4, 3.2, 3.0), stone_col, cutaway_shader, true, false, "stone")
+	_create_static_box(Vector3(1.0, 2.7, -2.675), Vector3(0.4, 1.0, 1.35), stone_col, cutaway_shader, true, false, "stone")
 
-	_create_static_box(Vector3(5.0, 1.6, 1.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(5.0, 1.6, 1.0), Vector3(8.0, 3.2, 0.4), stone_col, cutaway_shader, true, false, "stone")
 
 	# Milestone 5: a 1.7 m-wide entry hall running in from the west doorway.
 	# Sweeping blades clang off these walls; thrusts work.
 	var hall_col := Color(0.25, 0.24, 0.22)
-	_create_static_box(Vector3(2.9, 1.2, -3.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(2.9, 1.2, -1.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(2.9, 1.2, -3.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false, "dark_stone")
+	_create_static_box(Vector3(2.9, 1.2, -1.675), Vector3(3.4, 2.4, 0.3), hall_col, cutaway_shader, true, false, "dark_stone")
 
 	_create_static_box(
 		Vector3(5.0, 3.35, -3.0),
@@ -367,7 +284,8 @@ func _build_blackfen_test_yard() -> void:
 		Color(0.22, 0.18, 0.15),
 		cutaway_shader,
 		true,
-		true
+		true,
+		"planks"
 	)
 	var shadow_proxy := MeshInstance3D.new()
 	var sp_box := BoxMesh.new()
@@ -377,118 +295,83 @@ func _build_blackfen_test_yard() -> void:
 	shadow_proxy.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	add_child(shadow_proxy)
 
-	_create_static_box(Vector3(11.0, 1.4, 5.5), Vector3(4.5, 2.8, 0.6), stone_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false)
+	_create_static_box(Vector3(11.0, 1.4, 5.5), Vector3(4.5, 2.8, 0.6), stone_col, cutaway_shader, false, false, "stone")
+	_create_static_box(Vector3(15.5, 1.4, 9.5), Vector3(0.6, 2.8, 5.0), stone_col, cutaway_shader, true, false, "stone")
 
-	_build_quarry(cutaway_shader)
-	_build_bestiary_landmarks(cutaway_shader)
-	_build_bestiary_three_landmarks(cutaway_shader)
+	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false, "stone")
+	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false, "stone")
+	_build_roofed_gallery(cutaway_shader, stone_col)
 
-	_create_static_box(Vector3(-11.5, 1.5, -14.5), Vector3(1.6, 3.0, 1.6), stone_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(-16.5, 1.2, -10.5), Vector3(1.4, 2.4, 1.4), stone_col, cutaway_shader, false, false)
+## The gallery-crawler's ledge: the top of the gallery's hillside wall, over the middle of the passage.
+const GALLERY_PERCH: Vector3 = Vector3(-24.0, 3.2, 19.0)
 
-## Milestone 15: the Old Gibbet (crows) south-east, the Drowned Barrow
-## (the Ghoul) south-west.
-const GIBBET_POS := Vector3(8.0, 0.0, 15.0)
-const BARROW_POS := Vector3(-19.0, 0.0, 16.0)
-## Milestone 16: the Bear Wallow (west) and rot mounds in the marsh.
-const WALLOW_POS := Vector3(-22.0, 0.0, -1.0)
-const ROT_MOUND_SPOTS: Array[Vector3] = [
-	Vector3(-14.0, 0.0, 19.5), Vector3(-11.0, 0.0, 21.5), Vector3(-23.5, 0.0, 11.0),
-	Vector3(-16.5, 0.0, 9.5), Vector3(-9.5, 0.0, 17.5),
-]
+## The Roofed Gallery, south-west: what is left of an avalanche gallery like the Bell Road's Roofed
+## Mile. The hillside's retaining wall at the back (its top is the crawler's ledge), a row of piers on
+## the open side, and the lintel that once carried the roof. The passage between is 3 m wide.
+func _build_roofed_gallery(shader: Shader, col: Color) -> void:
+	_create_static_box(Vector3(-24.0, 1.6, 19.0), Vector3(1.2, 3.2, 11.0), col, shader, false, false, "dark_stone")
+	# The piers stand between the camera and the passage: cut away, or they hide it.
+	for z: float in [14.5, 17.5, 20.5, 23.5]:
+		_create_static_box(Vector3(-19.8, 1.5, z), Vector3(0.9, 3.0, 0.9), col, shader, true, false, "stone")
+	# Above every ray and every head.
+	_create_static_box(Vector3(-19.8, 3.15, 19.0), Vector3(0.7, 0.3, 9.9), col, shader, true, false, "stone")
 
-func _build_bestiary_landmarks(cutaway_shader: Shader) -> void:
-	var wood := Color(0.24, 0.18, 0.13)
-	_create_static_box(GIBBET_POS + Vector3(0.0, 1.5, 0.0), Vector3(0.3, 3.0, 0.3), wood, cutaway_shader, false, false)
-	_create_static_box(GIBBET_POS + Vector3(0.9, 2.85, 0.0), Vector3(2.0, 0.22, 0.22), wood, cutaway_shader, false, false)
-	var stone := Color(0.30, 0.31, 0.29)
-	for off: Vector3 in [Vector3(-2.6, 0, -1.8), Vector3(2.4, 0, -2.2), Vector3(-2.2, 0, 2.6), Vector3(2.8, 0, 2.0)]:
-		_create_static_box(BARROW_POS + off + Vector3(0.0, 1.0, 0.0), Vector3(0.7, 2.0, 0.5), stone, cutaway_shader, false, false)
-	_create_static_box(BARROW_POS + Vector3(0.0, 0.25, -3.6), Vector3(3.6, 0.5, 1.4), stone, cutaway_shader, false, false)
-	# The Bear Wallow: a muddy hollow ringed by fallen logs.
-	var log_col := Color(0.20, 0.15, 0.10)
-	_create_static_box(WALLOW_POS + Vector3(0.0, 0.3, -3.2), Vector3(4.2, 0.6, 0.6), log_col, cutaway_shader, false, false)
-	_create_static_box(WALLOW_POS + Vector3(-3.0, 0.3, 0.4), Vector3(0.6, 0.6, 3.6), log_col, cutaway_shader, false, false)
-	var mud := MeshInstance3D.new()
-	var mud_mesh := CylinderMesh.new()
-	mud_mesh.top_radius = 3.0
-	mud_mesh.bottom_radius = 3.0
-	mud_mesh.height = 0.02
-	mud.mesh = mud_mesh
-	var mud_mat := StandardMaterial3D.new()
-	mud_mat.albedo_color = Color(0.13, 0.11, 0.08)
-	mud_mat.roughness = 0.35 # wet
-	mud.material_override = mud_mat
-	mud.position = WALLOW_POS + Vector3(0.0, 0.012, 0.0)
-	add_child(mud)
+## The shelter fire's visible fire: a glowing ember bed and three charred logs on the stone ring.
+## Decoration only (no collision; the ring under it is the obstacle). The light stays separate.
+func _build_fire_bed(top: Vector3) -> void:
+	var embers := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.34
+	disc.bottom_radius = 0.38
+	disc.height = 0.05
+	embers.mesh = disc
+	var glow := _ember_material
+	glow.albedo_color = Color(0.25, 0.08, 0.02)
+	glow.emission_enabled = true
+	glow.emission = Color(0.95, 0.28, 0.05)
+	glow.emission_energy_multiplier = 1.4
+	embers.material_override = glow
+	embers.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	embers.position = top + Vector3(0.0, 0.03, 0.0)
+	add_child(embers)
+	var charred := surface_material("planks", Color(0.35, 0.3, 0.27))
+	for i: int in range(3):
+		var log_mesh := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.06
+		cyl.bottom_radius = 0.07
+		cyl.height = 0.75
+		log_mesh.mesh = cyl
+		log_mesh.material_override = charred
+		log_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		log_mesh.position = top + Vector3(0.0, 0.12, 0.0)
+		log_mesh.rotation_degrees = Vector3(72.0, i * 60.0, 0.0)
+		add_child(log_mesh)
 
-## Milestone 20: the Grey Pasture (north, the Bog-Bull) with two standing
-## stones to lure a charge into; the Pale Glade (east, Skull-Deer); the
-## Crows' Roost (a dead tree, far south).
-const PASTURE_POS := Vector3(-3.0, 0.0, -18.0)
-const PASTURE_STONES: Array[Vector3] = [Vector3(-7.0, 0.0, -20.5), Vector3(2.0, 0.0, -15.5)]
-const GLADE_POS := Vector3(20.0, 0.0, 2.0)
-const ROOST_POS := Vector3(-1.0, 0.0, 23.5)
-## Where each roost crow perches, relative to the tree.
-const ROOST_PERCHES: Array[Vector3] = [
-	Vector3(0.9, 3.4, 0.0), Vector3(-0.9, 3.0, 0.2), Vector3(0.2, 4.1, 0.8),
-	Vector3(0.3, 3.7, -0.9), Vector3(-0.6, 4.3, -0.3), Vector3(1.4, 2.6, 0.5),
-]
-var _roost: CrowRoost
+## Photo textures for the level (ambientCG, CC0; art/ambientcg/README.md): albedo with the AO
+## baked in, an OpenGL normal map, repeats per metre and a tint that darkens them for the Blackfen.
+const SURFACES: Dictionary = {
+	"mud": ["res://art/ambientcg/mud_albedo.jpg", "res://art/ambientcg/mud_normal.jpg", 0.32, Color(0.62, 0.58, 0.54)],
+	"stone": ["res://art/ambientcg/stone_albedo.jpg", "res://art/ambientcg/stone_normal.jpg", 0.42, Color(0.58, 0.57, 0.55)],
+	"dark_stone": ["res://art/ambientcg/stone_albedo.jpg", "res://art/ambientcg/stone_normal.jpg", 0.42, Color(0.44, 0.43, 0.42)],
+	"planks": ["res://art/ambientcg/planks_albedo.jpg", "res://art/ambientcg/planks_normal.jpg", 0.55, Color(0.62, 0.55, 0.48)],
+}
 
-func _build_bestiary_three_landmarks(cutaway_shader: Shader) -> void:
-	var stone := Color(0.34, 0.34, 0.31)
-	for p: Vector3 in PASTURE_STONES:
-		_create_static_box(p + Vector3(0.0, 1.2, 0.0), Vector3(1.2, 2.4, 1.2), stone, cutaway_shader, false, false)
-	var birch := Color(0.62, 0.60, 0.55)
-	for off: Vector3 in [Vector3(-4.0, 0, -3.0), Vector3(3.5, 0, -2.5), Vector3(-3.0, 0, 3.5), Vector3(4.0, 0, 3.0)]:
-		_create_static_box(GLADE_POS + off + Vector3(0.0, 0.5, 0.0), Vector3(0.35, 1.0, 0.35), birch, cutaway_shader, false, false)
-	# The dead roost tree: a trunk and a few bare limbs.
-	var dead_wood := Color(0.19, 0.16, 0.13)
-	_create_static_box(ROOST_POS + Vector3(0.0, 2.2, 0.0), Vector3(0.5, 4.4, 0.5), dead_wood, cutaway_shader, false, false)
-	_create_static_box(ROOST_POS + Vector3(0.6, 3.3, 0.1), Vector3(1.4, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
-	_create_static_box(ROOST_POS + Vector3(-0.5, 2.9, 0.1), Vector3(1.1, 0.15, 0.15), dead_wood, cutaway_shader, false, false)
-	_create_static_box(ROOST_POS + Vector3(0.1, 3.9, 0.3), Vector3(0.15, 0.15, 1.4), dead_wood, cutaway_shader, false, false)
-	# Milestone 21: the Bile Pit, a reeking hollow; the Sunken Lane's broken ground.
-	var pit := MeshInstance3D.new()
-	var pit_mesh := CylinderMesh.new()
-	pit_mesh.top_radius = 3.5
-	pit_mesh.bottom_radius = 3.5
-	pit_mesh.height = 0.02
-	pit.mesh = pit_mesh
-	var pit_mat := StandardMaterial3D.new()
-	pit_mat.albedo_color = Color(0.20, 0.21, 0.09)
-	pit_mat.roughness = 0.25 # slick
-	pit.material_override = pit_mat
-	pit.position = BILE_PIT_POS + Vector3(0.0, 0.012, 0.0)
-	add_child(pit)
-	var lane := MeshInstance3D.new()
-	var lane_mesh := CylinderMesh.new()
-	lane_mesh.top_radius = 1.2
-	lane_mesh.bottom_radius = 1.2
-	lane_mesh.height = 0.02
-	lane.mesh = lane_mesh
-	var lane_mat := StandardMaterial3D.new()
-	lane_mat.albedo_color = Color(0.11, 0.10, 0.09) # disturbed earth over the burrow
-	lane.material_override = lane_mat
-	lane.position = CRAWLER_LAIR + Vector3(0.0, 0.012, 0.0)
-	add_child(lane)
-
-## Milestone 11: the Old Quarry, north-east. A walled pit with a 3 m gap on
-## its west side and broken stone blocks inside. The Blind Quarry-Troll's home.
-func _build_quarry(cutaway_shader: Shader) -> void:
-	var q_col := Color(0.33, 0.31, 0.28)
-	# North and west walls face away from the camera; south and east need the cutaway.
-	_create_static_box(Vector3(16.0, 1.3, -21.0), Vector3(12.4, 2.6, 0.6), q_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(10.0, 1.3, -18.85), Vector3(0.6, 2.6, 4.9), q_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(10.0, 1.3, -11.15), Vector3(0.6, 2.6, 4.9), q_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(22.0, 1.3, -15.0), Vector3(0.6, 2.6, 12.4), q_col, cutaway_shader, true, false)
-	_create_static_box(Vector3(16.0, 1.3, -9.0), Vector3(12.4, 2.6, 0.6), q_col, cutaway_shader, true, false)
-	# Cut blocks and rubble.
-	_create_static_box(Vector3(14.0, 0.7, -18.0), Vector3(1.8, 1.4, 1.2), q_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(18.5, 0.9, -12.5), Vector3(1.4, 1.8, 1.4), q_col, cutaway_shader, false, false)
-	_create_static_box(Vector3(19.0, 0.5, -18.6), Vector3(2.2, 1.0, 1.0), q_col, cutaway_shader, false, false)
+## Makes a StandardMaterial3D for a prop (container, pile) from one of SURFACES, projected in
+## object space so it tiles with the prop's size.
+static func surface_material(surface: String, tint: Color = Color.WHITE) -> StandardMaterial3D:
+	var def: Array = SURFACES[surface]
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = load(def[0]) as Texture2D
+	mat.normal_enabled = true
+	mat.normal_texture = load(def[1]) as Texture2D
+	mat.normal_scale = 0.8
+	mat.uv1_triplanar = true
+	mat.uv1_world_triplanar = true
+	mat.uv1_scale = Vector3.ONE * float(def[2]) * 2.0
+	mat.albedo_color = (def[3] as Color) * tint
+	mat.roughness = 0.95
+	return mat
 
 func _create_static_box(
 	pos: Vector3,
@@ -496,8 +379,9 @@ func _create_static_box(
 	col: Color,
 	shader: Shader,
 	enable_cutaway: bool,
-	is_roof: bool
-) -> StaticBody3D:
+	is_roof: bool,
+	surface: String = ""
+) -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
 	body.collision_layer = 32 if is_roof else 1
@@ -520,20 +404,24 @@ func _create_static_box(
 	mat.shader = shader
 	mat.set_shader_parameter("albedo_color", col)
 	mat.set_shader_parameter("enable_foreground_cutaway", enable_cutaway)
-	# Interim painted surfaces: the big ground slab, brownish timber, the rest stone.
-	if not is_roof:
-		var surface: String = "stone"
-		if size.x >= 20.0 and size.z >= 20.0:
-			surface = "ground"
-		elif col.r > col.b + 0.058: # timber is browner than any stone here
-			surface = "wood"
-		SpriteArt.paint_surface(mat, surface)
+	if surface != "":
+		var def: Array = SURFACES[surface]
+		mat.set_shader_parameter("use_texture", true)
+		mat.set_shader_parameter("albedo_tex", load(def[0]))
+		mat.set_shader_parameter("normal_tex", load(def[1]))
+		mat.set_shader_parameter("tex_scale", def[2])
+		mat.set_shader_parameter("tex_tint", def[3])
+		# The photo already carries its own dirt; the procedural grime would double it.
+		mat.set_shader_parameter("grime_strength", 0.12)
 	mesh_inst.material_override = mat
 	body.add_child(mesh_inst)
 
 	if enable_cutaway or is_roof:
 		_camera_rig.register_cutaway_material(mat, is_roof)
-	return body
+
+func _on_enemy_bark(message: String) -> void:
+	if _hud:
+		_hud.show_banner(message, Color(0.86, 0.68, 0.38))
 
 func _spawn_all_archetype_encounters() -> void:
 	var goblin_yard := EnemyGoblinScavenger.new()
@@ -543,8 +431,8 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_yard.coordinator = _coordinator
 	goblin_yard.patrol_points = [Vector3(-1.2, 0.0, -4.5), Vector3(-3.0, 0.0, 0.5)]
 	add_child(goblin_yard)
-	goblin_yard.goblin_alert_sound.connect(_on_goblin_unseen_noise)
-	_watch_goblins.append(goblin_yard)
+	_watchhouse_goblins.append(goblin_yard)
+	goblin_yard.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var goblin_inside := EnemyGoblinScavenger.new()
 	goblin_inside.position = Vector3(5.2, 0.0, -3.2)
@@ -553,8 +441,8 @@ func _spawn_all_archetype_encounters() -> void:
 	goblin_inside.coordinator = _coordinator
 	goblin_inside.patrol_points = [Vector3(6.8, 0.0, -5.2), Vector3(6.8, 0.0, -1.4)]
 	add_child(goblin_inside)
-	goblin_inside.goblin_alert_sound.connect(_on_goblin_unseen_noise)
-	_watch_goblins.append(goblin_inside)
+	_watchhouse_goblins.append(goblin_inside)
+	goblin_inside.goblin_combat_bark.connect(_on_enemy_bark)
 
 	var ork_shield := EnemyOrkWarrior.new()
 	ork_shield.has_shield = true
@@ -564,20 +452,23 @@ func _spawn_all_archetype_encounters() -> void:
 	ork_shield.coordinator = _coordinator
 	ork_shield.patrol_points = [Vector3(11.8, 0.0, 7.5), Vector3(13.5, 0.0, 10.5)]
 	add_child(ork_shield)
-	ork_shield.ork_combat_bark.connect(_on_ork_bark)
-	_orks.append(ork_shield)
+	_choke_orks.append(ork_shield)
+	ork_shield.ork_combat_bark.connect(func(msg: String) -> void:
+		if _hud:
+			_hud.show_banner(msg, Color(0.86, 0.68, 0.38))
+	)
 
 	var ork_cleaver := EnemyOrkWarrior.new()
 	ork_cleaver.has_shield = false
-	ork_cleaver.enemy_name = "Ork Cleaver"
+	# The reckless one: no shield, presses harder, rests less (see EnemyOrkWarrior's temperament).
+	ork_cleaver.aggression = 0.85
 	ork_cleaver.position = Vector3(14.0, 0.0, 9.8)
 	ork_cleaver.player_ref = _player
 	ork_cleaver.audio = _audio
 	ork_cleaver.coordinator = _coordinator
 	ork_cleaver.patrol_points = [Vector3(14.0, 0.0, 11.2), Vector3(12.5, 0.0, 8.8)]
 	add_child(ork_cleaver)
-	ork_cleaver.ork_combat_bark.connect(_on_ork_bark)
-	_orks.append(ork_cleaver)
+	_choke_orks.append(ork_cleaver)
 
 	var ogre := EnemyOgreBrute.new()
 	ogre.position = Vector3(-13.5, 0.0, -11.5)
@@ -585,7 +476,6 @@ func _spawn_all_archetype_encounters() -> void:
 	ogre.audio = _audio
 	ogre.coordinator = _coordinator
 	add_child(ogre)
-	_ogre = ogre
 	ogre.ogre_event_banner.connect(func(txt: String, col: Color) -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
@@ -595,199 +485,115 @@ func _spawn_all_archetype_encounters() -> void:
 			_camera_rig.add_trauma(trauma)
 	)
 
-	# Milestone 15: crows on the gibbet and the Ogre's bone heap; the Ghoul.
-	var perches: Array[Vector3] = [
-		GIBBET_POS + Vector3(0.4, 2.96, 0.0), GIBBET_POS + Vector3(1.5, 2.96, 0.0), GIBBET_POS + Vector3(-0.8, 0.0, 1.0),
-		Vector3(-15.3, 0.45, -13.2), Vector3(-14.6, 0.45, -12.8),
-	]
-	for perch: Vector3 in perches:
-		var crow := EnemyCarrionCrow.new()
-		crow.position = perch
-		crow.rotation_degrees.y = randf_range(0.0, 360.0)
-		crow.player_ref = _player
-		crow.audio = _audio
-		add_child(crow)
-		crow.crow_alarm.connect(_on_crow_alarm)
+	# The Spore Hollow on the west edge: three husks round a cart they died beside.
+	for spot: Vector3 in [Vector3(-19.5, 0.0, -1.0), Vector3(-21.5, 0.0, -3.5), Vector3(-18.5, 0.0, -4.5)]:
+		var husk := EnemySporeHusk.new()
+		husk.position = spot
+		husk.player_ref = _player
+		husk.audio = _audio
+		husk.coordinator = _coordinator
+		add_child(husk)
 
-	var ghoul := EnemyGhoul.new()
-	ghoul.position = BARROW_POS + Vector3(0.0, 0.0, 0.5)
-	ghoul.player_ref = _player
-	ghoul.audio = _audio
-	ghoul.coordinator = _coordinator
-	add_child(ghoul)
-	ghoul.ghoul_event_banner.connect(func(txt: String, col: Color) -> void:
-		if _hud:
-			_hud.show_banner(txt, col)
-	)
-
-	# Milestone 16: the Bog Bear and the rot mounds.
-	var bear := EnemyBogBear.new()
-	bear.position = WALLOW_POS
-	bear.player_ref = _player
-	bear.audio = _audio
-	bear.coordinator = _coordinator
-	add_child(bear)
-	bear.bear_event_banner.connect(func(txt: String, col: Color) -> void:
-		if _hud:
-			_hud.show_banner(txt, col)
-	)
-	for spot: Vector3 in ROT_MOUND_SPOTS:
-		var mound := EnemyRotMound.new()
-		mound.position = spot
-		mound.player_ref = _player
-		mound.audio = _audio
-		add_child(mound)
-		mound.mound_event_banner.connect(func(txt: String, col: Color) -> void:
+	# The drowned burial ground in the south-east corner: three Unnamed, each risen beside its grave.
+	var graves: Array = [[Vector3(15.5, 0.0, 19.0), Vector3(16.8, 0.0, 17.6)], [Vector3(19.0, 0.0, 21.0), Vector3(19.6, 0.0, 19.4)],
+		[Vector3(13.0, 0.0, 22.0), Vector3(14.2, 0.0, 20.8)]]
+	for i: int in range(graves.size()):
+		var grave_pos: Vector3 = graves[i][0]
+		var grave := ActionPoint.make("Grave of the Unnamed", "Speak a name", "Speaking the name", EnemyUnnamed.NAME_SECONDS, 1.8, Callable())
+		grave.name = "UnnamedGrave"
+		grave.position = grave_pos
+		add_child(grave, true)
+		SetDressing.model(grave, "env009/exports/env_ruin_pillars_03_square_stump.glb", Vector3.ZERO, 20.0 + 70.0 * i, 0.55)
+		var unnamed := EnemyUnnamed.new()
+		unnamed.position = graves[i][1]
+		unnamed.player_ref = _player
+		unnamed.audio = _audio
+		unnamed.coordinator = _coordinator
+		add_child(unnamed)
+		unnamed.bind_grave(grave)
+		unnamed.unnamed_event_banner.connect(func(txt: String, col: Color) -> void:
 			if _hud:
 				_hud.show_banner(txt, col)
 		)
 
 	var troll := EnemyQuarryTroll.new()
-	troll.position = Vector3(16.0, 0.0, -15.5)
+	troll.position = Vector3(15.5, 0.0, -14.5)
 	troll.player_ref = _player
 	troll.audio = _audio
 	troll.coordinator = _coordinator
 	add_child(troll)
-	_troll = troll
 	troll.troll_event_banner.connect(func(txt: String, col: Color) -> void:
 		if _hud:
 			_hud.show_banner(txt, col)
 	)
-	# Milestone 20 and 21 spawns come last so older saves keep their spawn order.
-	_spawn_bestiary_three()
-	_spawn_bestiary_four()
+	troll.troll_ground_shockwave.connect(func(trauma: float) -> void:
+		if _camera_rig:
+			_camera_rig.add_trauma(trauma)
+	)
 
-func _spawn_bestiary_three() -> void:
-	var bull := EnemyBogBull.new()
-	bull.position = PASTURE_POS
-	bull.player_ref = _player
-	bull.audio = _audio
-	bull.coordinator = _coordinator
-	add_child(bull)
-	bull.bull_event_banner.connect(_banner)
-	for off: Vector3 in [Vector3(-1.5, 0.0, 0.0), Vector3(1.8, 0.0, 1.5)]:
-		var deer := EnemySkullDeer.new()
-		deer.position = GLADE_POS + off
-		deer.player_ref = _player
-		deer.audio = _audio
-		add_child(deer)
-	_roost = CrowRoost.new()
-	_roost.position = ROOST_POS
-	_roost.player_ref = _player
-	add_child(_roost)
-	_roost.roost_event_banner.connect(_banner)
-	for perch: Vector3 in ROOST_PERCHES:
-		var crow := EnemyCarrionCrow.new()
-		crow.position = ROOST_POS + perch
-		crow.rotation_degrees.y = randf_range(0.0, 360.0)
-		crow.player_ref = _player
-		crow.audio = _audio
-		add_child(crow)
-		crow.crow_alarm.connect(_on_crow_alarm)
-		_roost.add_crow(crow)
-
-## Milestone 21: fungus zombies among the rot mounds, the Rot-Beast in its
-## Bile Pit (north-west), the Pallid Crawler under the Sunken Lane.
-const ZOMBIE_SPOTS: Array[Vector3] = [Vector3(-12.5, 0.0, 15.0), Vector3(-20.5, 0.0, 21.5), Vector3(-7.5, 0.0, 19.0)]
-const BILE_PIT_POS := Vector3(-20.0, 0.0, -19.0)
-const CRAWLER_LAIR := Vector3(-12.0, 0.0, -4.0)
-
-func _spawn_bestiary_four() -> void:
-	for spot: Vector3 in ZOMBIE_SPOTS:
-		var z := EnemyFungusZombie.new()
-		z.position = spot
-		z.player_ref = _player
-		z.audio = _audio
-		z.coordinator = _coordinator
-		add_child(z)
-		z.zombie_event_banner.connect(_banner)
-	var beast := EnemyRotBeast.new()
-	beast.position = BILE_PIT_POS
-	beast.player_ref = _player
-	beast.audio = _audio
-	beast.coordinator = _coordinator
-	add_child(beast)
-	beast.beast_event_banner.connect(_banner)
-	var crawler := EnemyPallidCrawler.new()
-	crawler.position = CRAWLER_LAIR
+	# The Roofed Gallery in the south-west corner: the crawler waits on the wall over the passage.
+	var crawler := EnemyGalleryCrawler.new()
+	crawler.set_perch(GALLERY_PERCH, Vector3(1.0, 0.0, 0.0))
 	crawler.player_ref = _player
 	crawler.audio = _audio
 	crawler.coordinator = _coordinator
 	add_child(crawler)
-	crawler.crawler_event_banner.connect(_banner)
+	crawler.crawler_event_banner.connect(func(txt: String, col: Color) -> void:
+		if _hud:
+			_hud.show_banner(txt, col)
+	)
+	crawler.crawler_landing_shock.connect(func(trauma: float) -> void:
+		if _camera_rig:
+			_camera_rig.add_trauma(trauma)
+	)
 
-func _banner(txt: String, col: Color) -> void:
+## The survivor heard something they cannot see (Perception): a soft cue, and now and then a
+## reminder that the rings on the ground are where the sound came from.
+## The start screen. The world is built and paused behind it; headless runs (the suite, CI) skip
+## it and keep the default background, the Watch Deserter.
+func _show_background_select() -> void:
+	var picker := BackgroundSelect.new()
+	add_child(picker)
+	get_tree().paused = true
+	picker.chosen.connect(func(bg: SurvivorBackground) -> void:
+		_player.apply_background(bg)
+		_hud.set_background(bg.title)
+		get_tree().paused = false
+		picker.queue_free()
+		_hud.show_banner(bg.epigraph, Color(0.86, 0.80, 0.68))
+	)
+
+## The pot comes home: it sits on the shelter fire's bed from now on.
+func _on_objective_completed(id: String) -> void:
+	if id == "pot" and find_child("PotOnTheFire", false, false) == null:
+		var pot := MeshInstance3D.new()
+		pot.name = "PotOnTheFire"
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.22
+		cyl.bottom_radius = 0.18
+		cyl.height = 0.26
+		pot.mesh = cyl
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.10, 0.10, 0.11)
+		mat.metallic = 0.6
+		mat.roughness = 0.55
+		pot.material_override = mat
+		pot.position = Objectives.FIRE_POS + Vector3(0.0, 0.55, 0.0)
+		add_child(pot)
+
+func _on_weather_changed(condition: Weather.Condition, banner: String) -> void:
 	if _hud:
-		_hud.show_banner(txt, col)
+		_hud.set_weather(_weather.condition_name(condition))
+		_hud.show_banner(banner, Color(0.64, 0.70, 0.78))
 
-# ------------------------------------------------------------------------------
-# Milestone 13 — Act I objectives
-# ------------------------------------------------------------------------------
-const SHELTER_NEEDS: Dictionary = {"cooking_pot": 1, "timber": 4, "salt": 4}
-const SHELTER_SHORT_NAMES: Dictionary = {"cooking_pot": "pot", "timber": "timber", "salt": "salt"}
-
-func _build_act_one_objectives() -> void:
-	_objectives = ActObjectives.new()
-	add_child(_objectives)
-	_objectives.add("watchhouse", "Secure the Wayfarer's Watchhouse",
-		func() -> bool: return _all_dead(_watch_goblins),
-		func() -> String: return "goblins %d / %d" % [_dead_count(_watch_goblins), _watch_goblins.size()])
-	_objectives.add("shelter", "Stock the shelter stash",
-		func() -> bool: return _shelter_stocked(),
-		_shelter_progress)
-	_objectives.add("causeway", "Break the Ork choke point",
-		func() -> bool: return _all_dead(_orks),
-		func() -> String: return "orks %d / %d" % [_dead_count(_orks), _orks.size()])
-	_objectives.add("ogre", "Slay the Blackfen Ogre",
-		func() -> bool: return _ogre != null and _ogre.is_dead(), Callable(), true)
-	_objectives.add("troll", "Silence the Quarry-Troll",
-		func() -> bool: return _troll != null and _troll.is_dead(), Callable(), true)
-	_hud.bind_objectives(_objectives)
-
-func _dead_count(group: Array[Node3D]) -> int:
-	return group.filter(func(e: Node3D) -> bool: return not is_instance_valid(e) or e.is_dead()).size()
-
-func _all_dead(group: Array[Node3D]) -> bool:
-	return _dead_count(group) == group.size()
-
-func _shelter_stocked() -> bool:
-	for id: String in SHELTER_NEEDS.keys():
-		if _stash.count_of(id) < int(SHELTER_NEEDS[id]):
-			return false
-	return true
-
-func _shelter_progress() -> String:
-	var parts: Array[String] = []
-	for id: String in SHELTER_NEEDS.keys():
-		parts.append("%s %d/%d" % [SHELTER_SHORT_NAMES[id], mini(_stash.count_of(id), int(SHELTER_NEEDS[id])), int(SHELTER_NEEDS[id])])
-	return " · ".join(parts)
-
-func _on_weather_changed(_w: WeatherSystem.Weather, display_name: String, summary: String) -> void:
-	if _hud:
-		_hud.show_banner("The weather turns: %s — %s" % [display_name.to_upper(), summary], Color(0.72, 0.78, 0.84))
-
-func _on_phase_changed(phase: DayNightCycle.Phase, _display_name: String) -> void:
-	if _hud == null:
-		return
-	match phase:
-		DayNightCycle.Phase.DUSK:
-			_hud.show_banner("Dusk. The light is going; the cold is coming.", Color(0.78, 0.62, 0.46))
-		DayNightCycle.Phase.NIGHT:
-			_hud.show_banner("Night falls. Without fire you see little — and with it, you are seen. Goblins and the ghoul see in the dark.", Color(0.58, 0.64, 0.84))
-		DayNightCycle.Phase.DAWN:
-			_hud.show_banner("Dawn. Grey light returns to the Blackfen.", Color(0.82, 0.76, 0.62))
-
-func _on_crow_alarm(_pos: Vector3) -> void:
-	if _hud:
-		_hud.show_banner("Crows burst up cawing — everything nearby heard that", Color(0.70, 0.68, 0.62))
-
-func _on_ork_bark(msg: String) -> void:
-	if _hud:
-		_hud.show_banner(msg, Color(0.86, 0.68, 0.38))
-
-func _on_goblin_unseen_noise(_pos: Vector3) -> void:
-	if _hud:
-		_hud.show_banner("Scraping footsteps echo from behind the stone wall...", Color(0.75, 0.68, 0.52))
+func _on_unseen_noise_heard(_pos: Vector3, loudness: float) -> void:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now >= _unseen_cue_at and _audio:
+		_unseen_cue_at = now + 1.6
+		_audio.play_unseen_threat_cue()
+	if loudness >= 7.0 and now >= _unseen_banner_at and _hud:
+		_unseen_banner_at = now + 12.0
+		_hud.show_banner("Something moves where you cannot see. The rings are where it is.", Color(0.75, 0.68, 0.52))
 
 # ------------------------------------------------------------------------------
 # Milestone 4 — scavenging containers
@@ -796,46 +602,85 @@ func _spawn_scavenge_containers() -> void:
 	# Your own stash by the shelter fire: already known, opens instantly.
 	var stash := _spawn_container(
 		"Shelter Stash", Vector3(-7.9, 0.0, 7.0), Vector3(0.9, 0.55, 0.6), Color(0.40, 0.29, 0.19), 0.0,
-		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("throwing_stone", 3), ItemDatabase.make("hardtack", 3)]
+		[ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("timber", 1), ItemDatabase.make("padded_coif", 1, 48.0)]
 	)
 	stash.searched = true
-	stash.accepts_deposits = true
-	_stash = stash
 
 	_spawn_container(
 		"Rotted Grain Crate", Vector3(-4.2, 0.0, 2.2), Vector3(0.8, 0.7, 0.7), Color(0.38, 0.29, 0.19), 2.0,
-		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1), ItemDatabase.make("hardtack", 2)]
+		[ItemDatabase.make("timber", 2), ItemDatabase.make("iron_scrap", 1), ItemDatabase.make("leather_greaves", 1, 60.0)]
 	)
 	_spawn_container(
 		"Watchhouse Supply Chest", Vector3(7.4, 0.0, -5.6), Vector3(1.0, 0.6, 0.6), Color(0.36, 0.27, 0.18), 3.0,
-		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2), ItemDatabase.make("quilted_gambeson", 1, 70.0)]
+		[ItemDatabase.make("boar_spear", 1, 72.0), ItemDatabase.make("quilted_gambeson", 1, 95.0), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("salt", 2)]
 	)
 	_spawn_container(
 		"Ork Plunder Pile", Vector3(13.2, 0.0, 12.4), Vector3(1.1, 0.5, 0.9), Color(0.34, 0.28, 0.22), 2.5,
-		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1), ItemDatabase.make("riveted_mail", 1, 110.0)]
+		[ItemDatabase.make("woodsmans_broadaxe", 1, 90.0), ItemDatabase.make("rusted_hauberk", 1, 110.0), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
 	)
 	_spawn_container(
 		"Gnawed Bone Heap", Vector3(-15.0, 0.0, -13.0), Vector3(1.2, 0.45, 1.0), Color(0.46, 0.42, 0.35), 3.5,
-		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("splinted_greaves", 1, 80.0)]
+		[ItemDatabase.make("cooking_pot", 1), ItemDatabase.make("kettle_hat", 1, 70.0), ItemDatabase.make("iron_scrap", 2)]
 	)
-	_spawn_container(
-		"Quarry Rubble Pile", Vector3(12.2, 0.0, -10.4), Vector3(1.0, 0.4, 0.8), Color(0.38, 0.36, 0.33), 2.5,
-		[ItemDatabase.make("throwing_stone", 5), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("clean_rag_bandage", 1)]
-	)
-	# Milestone 20: the crows hoard what glints. Rummaging here is loud enough
-	# for the flock overhead to hear (they react to the ordinary rummage noise).
-	var hoard := _spawn_container(
-		"Crows' Nest Hoard", ROOST_POS + Vector3(0.7, 0.0, 0.6), Vector3(0.7, 0.3, 0.6), Color(0.26, 0.22, 0.17), 3.0,
-		[ItemDatabase.make("iron_scrap", 2), ItemDatabase.make("lamp_oil", 1), ItemDatabase.make("salt", 1), ItemDatabase.make("clean_rag_bandage", 1)]
-	)
-	if _roost:
-		_roost.nest = hoard
 
-## Which painted prop stands in for each container (assets/art_map.json).
-const CONTAINER_ART: Dictionary = {
-	"Shelter Stash": "chest", "Watchhouse Supply Chest": "chest", "Rotted Grain Crate": "crate",
-	"Ork Plunder Pile": "sack", "Crows' Nest Hoard": "sack",
+## Search containers wear the owner's crate and barrel kit (assets/environment/env007), fitted
+## inside their collision box; the bone heap is a pale tangle of twigs. If a model is missing,
+## the textured box stays.
+const CONTAINER_MODELS: Dictionary = {
+	"Shelter Stash": ["env007/exports/env_crate_v12_wide_low.glb", Color.WHITE],
+	"Rotted Grain Crate": ["env007/exports/env_crate_v01_cross_braced.glb", Color(0.85, 0.82, 0.78)],
+	"Watchhouse Supply Chest": ["env007/exports/env_crate_v11_hinged_lid.glb", Color(0.8, 0.78, 0.74)],
+	"Ork Plunder Pile": ["env007/exports/env_crate_v08_open_top.glb", Color(0.75, 0.72, 0.68)],
+	"Gnawed Bone Heap": ["env008/exports/env_ground_11_twigs_dense.glb", Color(1.6, 1.5, 1.3)],
+	"Spore-Choked Cart": ["env007/exports/env_crate_v08_open_top.glb", Color(0.72, 0.76, 0.6)],
+	"Overturned Handcart": ["env007/exports/env_crate_v08_open_top.glb", Color(0.66, 0.62, 0.56)],
+	"Wayfarer's Pack": ["env007/exports/env_crate_v12_wide_low.glb", Color(0.62, 0.56, 0.48)],
 }
+
+## Crates and chests are weathered planks; heaps keep a flat colour.
+func _container_material(label: String, col: Color) -> Material:
+	if label.contains("Heap"):
+		var flat := StandardMaterial3D.new()
+		flat.albedo_color = col
+		flat.roughness = 0.92
+		return flat
+	var tint := Color(0.85, 0.82, 0.78) if label.contains("Chest") else Color.WHITE
+	return surface_material("planks", tint)
+
+## A survivor the Ashbound left tied in the Watchhouse's south-east corner. Cutting them free
+## (an ActionPoint, 2 s) makes them the survivor's companion.
+func _spawn_bound_captive() -> void:
+	var captive := ActionPoint.make("Bound Captive", "Cut free", "Cutting free", 2.0, 1.8, _on_captive_freed)
+	captive.name = "BoundCaptive"
+	captive.position = Vector3(7.8, 0.0, 0.2)
+	add_child(captive)
+	# A hooded figure sitting against the wall, facing into the room.
+	var seat := Node3D.new()
+	seat.name = "Seated"
+	captive.add_child(seat)
+	var body := EnemyModel.new("companion")
+	seat.add_child(body)
+	seat.look_at_from_position(captive.position, captive.position + Vector3(-1.0, 0.0, -1.0), Vector3.UP)
+	body.play(&"Sitting_Idle")
+
+func _on_captive_freed(by: Node3D) -> void:
+	var captive: Node = find_child("BoundCaptive", false, false)
+	if captive == null or _companion != null:
+		return
+	var at: Vector3 = (captive as Node3D).global_position
+	captive.queue_free()
+	_companion = Companion.new()
+	_companion.player_ref = _player
+	_companion.audio = _audio
+	_companion.position = at
+	add_child(_companion)
+	_hud.companion = _companion
+	_companion.downed.connect(func(c: Companion) -> void:
+		_hud.show_banner("%s is down! Lift them with [E] and a clean rag" % c.companion_name, Color(0.92, 0.42, 0.22)))
+	_companion.died.connect(func(c: Companion) -> void:
+		_hud.show_banner("%s is dead." % c.companion_name, Color(0.9, 0.3, 0.25)))
+	if by is PlayerController:
+		_hud.show_banner("%s: \"I owe you. Lead on; I'll keep your back.\"  [F] follow / hold" % _companion.companion_name, Color(0.75, 0.82, 0.68))
 
 func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Color, search_time: float, contents: Array) -> Lootable:
 	var body := StaticBody3D.new()
@@ -855,25 +700,45 @@ func _spawn_container(label: String, ground_pos: Vector3, size: Vector3, col: Co
 	var bmesh := BoxMesh.new()
 	bmesh.size = size
 	mesh.mesh = bmesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = col
-	mat.roughness = 0.92
-	mesh.material_override = mat
+	mesh.material_override = _container_material(label, col)
 	body.add_child(mesh)
-	# Interim painted prop for the container, standing on the ground.
-	var prop: FacingSprite = SpriteArt.prop(CONTAINER_ART.get(label, ""))
-	if prop:
-		mesh.visible = false
-		prop.position = Vector3(0.0, -size.y * 0.5, 0.0)
-		body.add_child(prop)
+	if CONTAINER_MODELS.has(label):
+		var spec: Array = CONTAINER_MODELS[label]
+		var holder := Node3D.new()
+		holder.name = "Model"
+		holder.position = Vector3(0.0, -size.y * 0.5, 0.0)
+		body.add_child(holder)
+		# A flat heap of twigs would vanish if squeezed into the heap's box height; fit it by footprint.
+		var fit := Vector3(size.x, 10.0, size.z) if label.contains("Heap") else size
+		if SetDressing.fitted_model(holder, String(spec[0]), fit, spec[1]) != null:
+			mesh.visible = false
 
 	var loot := Lootable.new()
 	loot.display_name = label
-	loot.set_meta("save_kind", "container")
 	loot.search_duration = search_time
 	loot.position = Vector3(0.0, -size.y * 0.5, 0.0)
 	for inst: Variant in contents:
 		if inst is ItemInstance:
 			loot.items.append(inst)
+	# The notes the world bible put in this container (LoreTexts.NOTES), after its own goods.
+	for note_id: String in ItemDatabase.note_ids_for(label):
+		loot.items.append(ItemDatabase.make(note_id))
 	body.add_child(loot)
 	return loot
+
+## Notes that lie on the ground (LoreTexts.NOTES with place "ground"): where, and what a survivor
+## sees there before picking it up.
+const NOTE_GROUND_SPOTS: Dictionary = {
+	"note_16": [Vector3(14.0, 0.0, -9.6), "A slate wedged in a crack"],
+	"note_18": [Vector3(-11.5, 0.0, -13.3), "A board nailed to the pillar"],
+	"note_25": [Vector3(14.6, 0.0, 8.0), "Paper wedged in the wall"],
+}
+
+func _spawn_ground_notes() -> void:
+	for note_id: String in ItemDatabase.note_ids_for("ground"):
+		if not NOTE_GROUND_SPOTS.has(note_id):
+			push_error("No ground spot for %s" % note_id)
+			continue
+		var spec: Array = NOTE_GROUND_SPOTS[note_id]
+		var pile := Lootable.spawn_ground_pile(self, spec[0], ItemDatabase.make(note_id))
+		pile.display_name = String(spec[1])

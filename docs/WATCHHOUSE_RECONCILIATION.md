@@ -1,3 +1,6 @@
+> **Superseded.** See `docs/reconciliation/decision-register.md`. This note predates main's
+> Godot 4.7.2 upgrade and networked build; its file-by-file guidance no longer applies.
+
 # Watchhouse reconciliation preparation
 
 ## Scope and status

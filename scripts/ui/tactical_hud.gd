@@ -6,27 +6,28 @@ var _health_bar: ColorRect
 var _stamina_bar: ColorRect
 var _poise_bar: ColorRect
 var _weight_bar: ColorRect
-var _warmth_bar: ColorRect
-var _food_bar: ColorRect
 var _status_label: Label
-var _survivor_label: Label
-var _weather_label: Label
-var _armor_label: Label
 var _main_label: Label
 var _off_label: Label
+var _armour_label: Label
+var _ally_row: HBoxContainer
+var _ally_fill: ColorRect
+var _ally_label: Label
+## The survivor's companion, if any; the HUD reads it each frame.
+var companion: Companion
 var _weight_label: Label
+var _weather_label: Label
+var _background_label: Label
 var _banner_label: Label
 var _banner_timer: float = 0.0
+var _stats_panel: PanelContainer
+var _objectives_panel: PanelContainer
+var _objectives_label: Label
 var _prompt_label: Label
 var _channel_panel: PanelContainer
 var _channel_label: Label
 var _channel_fill: ColorRect
 var inventory_ui: InventoryUI
-var _objectives: ActObjectives
-var _objectives_label: Label
-var _objectives_panel: PanelContainer
-var _act_panel: PanelContainer
-var _act_label: Label
 
 const BAR_W: float = 215.0
 
@@ -48,35 +49,48 @@ func _ready() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_theme_stylebox_override("panel", style)
 	root.add_child(panel)
+	_stats_panel = panel
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
 	panel.add_child(vbox)
+	_background_label = _make_label("WATCH DESERTER", 13, Color(0.86, 0.80, 0.68))
+	vbox.add_child(_background_label)
 
 	_health_bar = _create_bar_row(vbox, "VITALITY", Color(0.64, 0.16, 0.16))
 	_stamina_bar = _create_bar_row(vbox, "STAMINA", Color(0.76, 0.58, 0.22))
 	_poise_bar = _create_bar_row(vbox, "POISE", Color(0.46, 0.50, 0.54))
 	_weight_bar = _create_bar_row(vbox, "PACK", Color(0.48, 0.56, 0.40))
-	_warmth_bar = _create_bar_row(vbox, "WARMTH", Color(0.86, 0.52, 0.24))
-	_food_bar = _create_bar_row(vbox, "FOOD", Color(0.62, 0.52, 0.32))
-
-	_survivor_label = _make_label("", 12, Color(0.74, 0.68, 0.54))
-	_survivor_label.visible = false
-	vbox.add_child(_survivor_label)
-	_weather_label = _make_label("", 12, Color(0.62, 0.70, 0.76))
-	vbox.add_child(_weather_label)
 
 	_weight_label = _make_label("", 12, Color(0.66, 0.62, 0.56))
 	vbox.add_child(_weight_label)
+	_weather_label = _make_label("WEATHER  Ashfall", 12, Color(0.60, 0.64, 0.70))
+	vbox.add_child(_weather_label)
 	_main_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
 	vbox.add_child(_main_label)
 	_off_label = _make_label("", 13, Color(0.80, 0.76, 0.68))
 	vbox.add_child(_off_label)
-	_armor_label = _make_label("", 12, Color(0.70, 0.72, 0.74))
-	vbox.add_child(_armor_label)
+	_armour_label = _make_label("WORN  none", 12, Color(0.70, 0.68, 0.62))
+	vbox.add_child(_armour_label)
 
+	_ally_fill = _create_bar_row(vbox, "ALLY", Color(0.46, 0.58, 0.70))
+	_ally_row = _ally_fill.get_parent().get_parent() as HBoxContainer
+	_ally_label = _make_label("", 12, Color(0.70, 0.68, 0.62))
+	_ally_row.add_child(_ally_label)
+	_ally_row.visible = false
 	_status_label = _make_label("STATE: IDLE", 13, Color(0.72, 0.68, 0.62))
 	vbox.add_child(_status_label)
+
+	# The act's objectives, under the stats panel (which grows when an ally joins; _process follows it).
+	_objectives_panel = PanelContainer.new()
+	_objectives_panel.position = Vector2(24, 360)
+	_objectives_panel.custom_minimum_size = Vector2(360, 0)
+	_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_objectives_panel.add_theme_stylebox_override("panel", style)
+	root.add_child(_objectives_panel)
+	_objectives_label = _make_label("", 12, Color(0.76, 0.72, 0.64))
+	_objectives_panel.add_child(_objectives_label)
+	_objectives_panel.visible = false
 
 	var help_panel := PanelContainer.new()
 	help_panel.position = Vector2(24, 905)
@@ -85,10 +99,10 @@ func _ready() -> void:
 	root.add_child(help_panel)
 
 	var help_lbl := _make_label(
-		"ASHEN WILDS — THE BLACKFEN OUTSKIRTS\n" +
+		"ASHEN WILDS — MILESTONE 5: CRAMPED QUARTERS (THE BLACKFEN OUTSKIRTS)\n" +
 		"[WASD] Move   [Shift] Sprint   [Mouse] Aim   [LMB] Light   [Q / Shift+LMB] Heavy   [RMB Hold] Shield   [Space] Step / Let go\n" +
-		"[E] Search / Open   [Tab] Pack   [B] Bandage   [G] Throw Stone   [T] Rest · [K] Craft at Fire   [1] Blade   [2] Polearm   [3] Axe   [4] Shield ⇄ Torch   [R] Respawn\n" +
-		"[F1–F3/F5–F7/F9–F12] Teleport   [F4] Next Weather   [F8] +3 Hours   [V] Vision Cone   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
+		"[E] Search / Open   [Tab] Pack   [B] Bandage   [1] Blade   [2] Polearm   [3] Axe   [4] Shield / Torch   [R] Respawn\n" +
+		"[F1/F2/F3] Teleport Encounters   [Wheel] Zoom   [ [ / ] ] Brightness   [ - / = ] Shake Scale",
 		13, Color(0.68, 0.65, 0.60)
 	)
 	help_panel.add_child(help_lbl)
@@ -131,29 +145,6 @@ func _ready() -> void:
 	ch_bg.add_child(_channel_fill)
 	_channel_panel.visible = false
 
-	# Milestone 13: objectives (left, under the stats) and the act-complete card.
-	_objectives_panel = PanelContainer.new()
-	_objectives_panel.position = Vector2(24, 360)
-	_objectives_panel.custom_minimum_size = Vector2(360, 0)
-	_objectives_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_objectives_panel.add_theme_stylebox_override("panel", style)
-	_objectives_panel.visible = false
-	root.add_child(_objectives_panel)
-	_objectives_label = _make_label("", 13, Color(0.78, 0.74, 0.64))
-	_objectives_panel.add_child(_objectives_label)
-
-	_act_panel = PanelContainer.new()
-	_act_panel.position = Vector2(560, 300)
-	_act_panel.custom_minimum_size = Vector2(800, 0)
-	_act_panel.add_theme_stylebox_override("panel", style)
-	_act_panel.visible = false
-	root.add_child(_act_panel)
-	_act_label = _make_label("", 17, Color(0.90, 0.82, 0.62))
-	_act_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_act_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_act_label.custom_minimum_size = Vector2(760, 0)
-	_act_panel.add_child(_act_label)
-
 	inventory_ui = InventoryUI.new()
 	root.add_child(inventory_ui)
 
@@ -165,49 +156,10 @@ func bind_player(p: PlayerController) -> void:
 	p.loot_opened.connect(inventory_ui.open_loot)
 	p.ui_force_close.connect(inventory_ui.close_all)
 
-func bind_objectives(o: ActObjectives) -> void:
-	_objectives = o
-	_objectives_panel.visible = true
-	o.objective_completed.connect(func(_id: String, title: String) -> void:
-		show_banner("OBJECTIVE COMPLETE — %s" % title, Color(0.86, 0.80, 0.52))
-		_refresh_objectives()
-	)
-	o.act_completed.connect(show_act_complete)
-	_refresh_objectives()
-
-func _refresh_objectives() -> void:
-	if _objectives == null:
-		return
-	_objectives_label.text = "%s\n%s" % [_objectives.act_title, "\n".join(_objectives.summary_lines())]
-
-func is_act_panel_open() -> bool:
-	return _act_panel.visible
-
-func show_act_complete() -> void:
-	var t: int = int(_objectives.elapsed) if _objectives else 0
-	var who: String = _player.background.display_name if _player and _player.background else "The survivor"
-	_act_label.text = "ACT I COMPLETE\n\nThe watchhouse is yours, the shelter has a pot to boil and wood to burn, and the Old Causeway is open.\n%s will see the spring... perhaps.\n\nTime in the Wilds: %d:%02d   ·   Objectives: %d / %d\n\n[Enter] Keep exploring" % [
-		who, t / 60, t % 60, _objectives.done_count() if _objectives else 0, _objectives.objectives.size() if _objectives else 0
-	]
-	_act_panel.visible = true
-	if _player:
-		_player.set_ui_capture(true)
-
-func close_act_complete() -> void:
-	if not _act_panel.visible:
-		return
-	_act_panel.visible = false
-	if _player:
-		_player.set_ui_capture(inventory_ui.is_any_open())
-
-func _unhandled_input(event: InputEvent) -> void:
-	if _act_panel.visible and event is InputEventKey and event.pressed and (event as InputEventKey).keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_ESCAPE]:
-		close_act_complete()
-		get_viewport().set_input_as_handled()
-
 func _process(delta: float) -> void:
-	if _objectives and Engine.get_process_frames() % 30 == 0:
-		_refresh_objectives()
+	if _objectives_panel.visible:
+		_objectives_panel.position.y = _stats_panel.position.y + _stats_panel.size.y + 10.0
+	_update_ally()
 	if _banner_timer > 0.0:
 		_banner_timer = maxf(0.0, _banner_timer - delta)
 		if _banner_timer == 0.0:
@@ -262,20 +214,6 @@ func update_stats(data: Dictionary) -> void:
 		weight, capacity, String(data["load"]).capitalize(), int(data["bandages"])
 	]
 
-	var bg_name: String = String(data.get("background", ""))
-	_survivor_label.visible = bg_name != ""
-	if _survivor_label.visible and _player and _player.background:
-		_survivor_label.text = "%s  ·  %s  ·  %s" % [bg_name.to_upper(), _player.background.trait_name, _player.background.flaw_name]
-
-	var weather: WeatherSystem = WeatherSystem.find(_player) if _player else null
-	_weather_label.visible = weather != null
-	if weather:
-		var sheltered: bool = weather.is_sheltered(_player.global_position)
-		_weather_label.text = "WEATHER  %s%s" % [weather.get_display_name(), "  ·  sheltered" if sheltered else ""]
-		var dn: DayNightCycle = DayNightCycle.find(_player)
-		if dn:
-			_weather_label.text += "     %s  %s" % [dn.get_phase_name().to_upper(), dn.clock_text()]
-
 	_main_label.text = "MAIN  %s" % data["main_label"]
 	_main_label.add_theme_color_override(
 		"font_color", Color(0.90, 0.46, 0.28) if data["main_broken"] else Color(0.80, 0.76, 0.68)
@@ -284,35 +222,19 @@ func update_stats(data: Dictionary) -> void:
 	if not data["off_active"] and String(data["off_label"]) != "— empty —":
 		off_text += "  [stowed]"
 	_off_label.text = off_text
-	var prot: float = float(data.get("armor", 0.0))
-	_armor_label.text = "ARMOR %d%%  %s" % [int(round(prot * 100.0)), String(data.get("armor_label", ""))]
+	_armour_label.text = "WORN  %s" % String(data.get("armour_label", "none"))
 
 	var flags: String = ""
 	if data["exhausted"]:
 		flags += "  [EXHAUSTED: REGEN DELAYED]"
 	if data["bleeding"]:
 		flags += "  [BLEEDING: -HP & SLOW STAMINA]"
+	if data.get("choking", false):
+		flags += "  [CHOKING: %s]" % String(data.get("choke_cause", "SPORES"))
 	if data.get("cramped", false):
 		flags += "  [CRAMPED: SWEEPS WILL CLANG]"
 	if data.get("lodged", false):
 		flags += "  [LODGED: SPACE TO LET GO]"
-	if data.has("warmth"):
-		_warmth_bar.size.x = BAR_W * clampf(float(data["warmth"]) / float(data["max_warmth"]), 0.0, 1.0)
-		_warmth_bar.color = Color(0.40, 0.60, 0.86) if data["freezing"] else (Color(0.62, 0.66, 0.78) if data["chilled"] else Color(0.86, 0.52, 0.24))
-		_food_bar.size.x = BAR_W * clampf(float(data["satiety"]) / float(data["max_satiety"]), 0.0, 1.0)
-		_food_bar.color = Color(0.84, 0.30, 0.20) if data["starving"] else (Color(0.80, 0.62, 0.26) if data["hungry"] else Color(0.62, 0.52, 0.32))
-	if data.get("freezing", false):
-		flags += "  [FREEZING: GET TO A FIRE]"
-	elif data.get("chilled", false):
-		flags += "  [CHILLED]"
-	if data.get("starving", false):
-		flags += "  [STARVING]"
-	elif data.get("hungry", false):
-		flags += "  [HUNGRY]"
-	if data.get("spore_sick", false):
-		flags += "  [SPORE-SICK: SLOW STAMINA, COUGHING]"
-	if data.get("coughing", false):
-		flags += "  [COUGHING: HEARD NEARBY]"
 	_status_label.text = "ACTION: %s%s" % [data["state"], flags]
 
 	_prompt_label.text = String(data["prompt"])
@@ -322,6 +244,41 @@ func update_stats(data: Dictionary) -> void:
 	if _channel_panel.visible:
 		_channel_label.text = ch_label
 		_channel_fill.size.x = 376.0 * float(data["channel_progress"])
+
+func _update_ally() -> void:
+	var have: bool = companion != null and is_instance_valid(companion) and companion.is_inside_tree()
+	_ally_row.visible = have
+	if not have:
+		return
+	_ally_fill.size.x = BAR_W * clampf(companion.health / Companion.MAX_HEALTH, 0.0, 1.0)
+	var note: String
+	if companion.is_dead():
+		note = "dead"
+	elif companion.is_downed():
+		note = "DOWNED, %.0f s: lift with [E] and a rag" % companion.downed_left
+	elif companion.mode == Companion.Mode.HOLD:
+		note = "holding"
+	else:
+		note = "following"
+	_ally_label.text = "  %s  %s" % [companion.companion_name, note]
+
+func set_background(title: String) -> void:
+	_background_label.text = title.to_upper()
+
+func set_weather(condition_name: String) -> void:
+	_weather_label.text = "WEATHER  %s" % condition_name
+
+## The act's objectives: a title line, then one line per objective (Objectives builds them).
+func set_objectives(lines: Array[String]) -> void:
+	_objectives_label.text = "\n".join(lines)
+	_objectives_panel.visible = not lines.is_empty()
+
+func objectives_text() -> String:
+	return _objectives_label.text if _objectives_panel.visible else ""
+
+## True while a banner is still on screen. Discovery waits for it rather than cover a warning.
+func banner_showing() -> bool:
+	return _banner_timer > 0.0
 
 func show_banner(msg: String, col: Color = Color(0.82, 0.76, 0.65)) -> void:
 	_banner_label.text = msg

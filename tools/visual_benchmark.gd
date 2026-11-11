@@ -135,7 +135,7 @@ func _run() -> void:
 	# B2. Light is precious: the shelter fire at night, no torch.
 	_equip("wooden_targe")
 	# Beside the fire, across the view, so the survivor doesn't hide it.
-	_place(AshenWildsBootstrap.FIRE_POS + Vector3(1.3, 0.0, -1.3), Vector3(-1.0, 0.0, 1.0))
+	_place(Objectives.FIRE_POS + Vector3(1.3, 0.0, -1.3), Vector3(-1.0, 0.0, 1.0))
 	await _frames(40)
 	await _pair("b2_shelter_fire_night")
 

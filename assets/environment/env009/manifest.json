@@ -1,0 +1,4720 @@
+{
+  "batch": "ENV-009",
+  "models": 39,
+  "units": "meters",
+  "up": "Y",
+  "atlas_dimensions": [
+    128,
+    128
+  ],
+  "atlas_sha256": "d5c3f21bf1bc7fc82b1a1fde0f5d0a77127598abeb2a87c58d8308d3f7af5d32",
+  "status": "draft; engine validation pending",
+  "assets": [
+    {
+      "id": "env_ruin_walls_01_low_wall",
+      "family": "walls",
+      "style": "low_wall",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_01_low_wall.glb",
+      "scene": "scenes/env_ruin_walls_01_low_wall.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 484,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.1625503519162832
+      ],
+      "bounds_max_m": [
+        0.996,
+        0.592,
+        0.1625503519162832
+      ],
+      "sha256": "a9c11a9372787ed2ff20bce55a19b6b53db45f22cb27700c9d5c9bdc889d1534",
+      "geometry_sha256": "bfaa060c8fd101050a6dbdb3b8e6c913de4970be5e797d4dee20bb768764a060",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_02_half_wall",
+      "family": "walls",
+      "style": "half_wall",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_02_half_wall.glb",
+      "scene": "scenes/env_ruin_walls_02_half_wall.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 968,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16306863347729272
+      ],
+      "bounds_max_m": [
+        0.996,
+        1.1919999999999997,
+        0.16306863347729272
+      ],
+      "sha256": "cc2e41eb1397d9e2e80748289ac36de020933671b7dea575158a85b1904be5e3",
+      "geometry_sha256": "658e79a0f7d9a48e5193965530d6f852fc96d66eb0950290d4900fd7253db688",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0,
+            0.75,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.0,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_03_ragged_tall",
+      "family": "walls",
+      "style": "ragged_tall",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_03_ragged_tall.glb",
+      "scene": "scenes/env_ruin_walls_03_ragged_tall.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1672,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16232902038156677
+      ],
+      "bounds_max_m": [
+        0.996,
+        2.392,
+        0.16232902038156677
+      ],
+      "sha256": "1eba9210cc0d094f2fd27d08faec3156322ca3d0b96d0e3010b591a7d16164a4",
+      "geometry_sha256": "7132b39b759e779655575627f706a3881086f0d5c94c58b368f758e674042b13",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0,
+            0.75,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.0,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            0.0,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.5,
+            1.65,
+            0.0
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run1",
+          "center": [
+            0.625,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run0",
+          "center": [
+            -0.625,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run1",
+          "center": [
+            0.75,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course7Run0",
+          "center": [
+            -0.625,
+            2.25,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_04_stepped_left",
+      "family": "walls",
+      "style": "stepped_left",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_04_stepped_left.glb",
+      "scene": "scenes/env_ruin_walls_04_stepped_left.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1232,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16204977885580044
+      ],
+      "bounds_max_m": [
+        0.996,
+        2.392,
+        0.16204977885580044
+      ],
+      "sha256": "550b20ee69a7b078a8520dbffe7d5abd1cac98ee138337cf3d112ed0a2e8cc17",
+      "geometry_sha256": "9dd851875245225cb8f73802d62344f554b7b4df6c33b1ff3e358ae5aa92faa1",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.125,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            1.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.25,
+            0.75,
+            0.0
+          ],
+          "size": [
+            1.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.375,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            1.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.5,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.625,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run0",
+          "center": [
+            -0.75,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course7Run0",
+          "center": [
+            -0.875,
+            2.25,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_05_stepped_right",
+      "family": "walls",
+      "style": "stepped_right",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_05_stepped_right.glb",
+      "scene": "scenes/env_ruin_walls_05_stepped_right.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1232,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.1627271298348522
+      ],
+      "bounds_max_m": [
+        0.996,
+        2.392,
+        0.1627271298348522
+      ],
+      "sha256": "9854bd42262052be854dd90199030cb35caa2483e4536937476d1ce91b34d645",
+      "geometry_sha256": "dacaf5310653de0f16fb39f76746d9b607153e0a06dd9a4967c5e324fe6fc3a7",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.125,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            1.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.25,
+            0.75,
+            0.0
+          ],
+          "size": [
+            1.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.375,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            1.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            0.5,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            0.625,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run0",
+          "center": [
+            0.75,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course7Run0",
+          "center": [
+            0.875,
+            2.25,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_06_open_breach",
+      "family": "walls",
+      "style": "open_breach",
+      "role": "breach",
+      "file": "exports/env_ruin_walls_06_open_breach.glb",
+      "scene": "scenes/env_ruin_walls_06_open_breach.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1056,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16220916345249783
+      ],
+      "bounds_max_m": [
+        0.996,
+        1.7919999999999998,
+        0.16220916345249783
+      ],
+      "sha256": "d02a7a769a211a31d63009fb80183d7cbed09be6bbbb052095c863b32585d5cf",
+      "geometry_sha256": "fbd0a2cb1e77559ddcb6fbf87d358e3ccef4f0bde8405f6bce81e5099a99b4bf",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3,
+        "clear_breach": {
+          "x_min": -0.5,
+          "x_max": 0.5,
+          "no_overhead_lintel": true
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            -0.75,
+            0.15,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course0Run1",
+          "center": [
+            0.75,
+            0.15,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.75,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run1",
+          "center": [
+            0.75,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.75,
+            0.75,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run1",
+          "center": [
+            0.75,
+            0.75,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run1",
+          "center": [
+            0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.75,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run1",
+          "center": [
+            0.75,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.875,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run1",
+          "center": [
+            0.875,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_07_window_remnant",
+      "family": "walls",
+      "style": "window_remnant",
+      "role": "window",
+      "file": "exports/env_ruin_walls_07_window_remnant.glb",
+      "scene": "scenes/env_ruin_walls_07_window_remnant.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1364,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16318837815420006
+      ],
+      "bounds_max_m": [
+        0.996,
+        2.0919999999999996,
+        0.16318837815420006
+      ],
+      "sha256": "eab3d3533c2597bc94b39dbf89d030ad294d51cca5155a043ffd2e00a6f6060c",
+      "geometry_sha256": "eb03ad891d43dfb645208734434034f743ed4d703a1f7f93ac93dc17236ca402",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3,
+        "window_opening": {
+          "x_min": -0.5,
+          "x_max": 0.5,
+          "y_min": 0.9,
+          "y_max": 1.8,
+          "not_walkable_doorway": true
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0,
+            0.75,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run1",
+          "center": [
+            0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.75,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run1",
+          "center": [
+            0.75,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.75,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run1",
+          "center": [
+            0.75,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run0",
+          "center": [
+            0.0,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_08_short_return",
+      "family": "walls",
+      "style": "short_return",
+      "role": "corner",
+      "file": "exports/env_ruin_walls_08_short_return.glb",
+      "scene": "scenes/env_ruin_walls_08_short_return.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1364,
+      "bounds_min_m": [
+        -0.9994697003571409,
+        0.0,
+        -0.5795180415556365
+      ],
+      "bounds_max_m": [
+        0.9994697003571409,
+        1.1919999999999997,
+        0.5795180415556365
+      ],
+      "sha256": "d62895c67e719383840584a479761e1c74e9ab02b02ac1f88c9d308b93c92afe",
+      "geometry_sha256": "9de9b7715b74517a1a868bcbef954b3b4fb389a711102398977b5214be27a360",
+      "reference_offset_m": [
+        0.0034697003571408924,
+        -0.0,
+        -0.41648195844436353
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0034697003571408924,
+            0.15,
+            -0.41648195844436353
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0034697003571408924,
+            0.44999999999999996,
+            -0.41648195844436353
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0034697003571408924,
+            0.75,
+            -0.41648195844436353
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.0034697003571408924,
+            1.0499999999999998,
+            -0.41648195844436353
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course0Run0",
+          "center": [
+            -0.8365302996428591,
+            0.15,
+            0.08351804155563647
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.8365302996428591,
+            0.44999999999999996,
+            0.08351804155563647
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.8365302996428591,
+            0.75,
+            0.08351804155563647
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_09_corner_ruin",
+      "family": "walls",
+      "style": "corner_ruin",
+      "role": "corner",
+      "file": "exports/env_ruin_walls_09_corner_ruin.glb",
+      "scene": "scenes/env_ruin_walls_09_corner_ruin.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 2464,
+      "bounds_min_m": [
+        -0.9993737864305761,
+        0.0,
+        -1.0795439604361705
+      ],
+      "bounds_max_m": [
+        0.9993737864305761,
+        1.7919999999999998,
+        1.0795439604361705
+      ],
+      "sha256": "342ebaff863ac272cce83ea6c9dd41f715f8f8690b596286065475c63f95b426",
+      "geometry_sha256": "1004a0a34841979c26626fbcd3ab5f7c000e056fc0c8283137beb2c65b40866a",
+      "reference_offset_m": [
+        0.0033737864305760645,
+        -0.0,
+        -0.9164560395638295
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0033737864305760645,
+            0.15,
+            -0.9164560395638295
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0033737864305760645,
+            0.44999999999999996,
+            -0.9164560395638295
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0033737864305760645,
+            0.75,
+            -0.9164560395638295
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.0033737864305760645,
+            1.0499999999999998,
+            -0.9164560395638295
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.6216262135694239,
+            1.3499999999999999,
+            -0.9164560395638295
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run1",
+          "center": [
+            0.7533737864305761,
+            1.3499999999999999,
+            -0.9164560395638295
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.8716262135694239,
+            1.65,
+            -0.9164560395638295
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run1",
+          "center": [
+            0.8783737864305761,
+            1.65,
+            -0.9164560395638295
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course0Run0",
+          "center": [
+            -0.8366262135694239,
+            0.15,
+            0.08354396043617052
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.8366262135694239,
+            0.44999999999999996,
+            0.08354396043617052
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.8366262135694239,
+            0.75,
+            0.08354396043617052
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.8366262135694239,
+            1.0499999999999998,
+            -0.16645603956382948
+          ],
+          "size": [
+            1.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.8366262135694239,
+            1.3499999999999999,
+            -0.4164560395638295
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.8366262135694239,
+            1.65,
+            -0.6664560395638295
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_10_buttressed",
+      "family": "walls",
+      "style": "buttressed",
+      "role": "buttress",
+      "file": "exports/env_ruin_walls_10_buttressed.glb",
+      "scene": "scenes/env_ruin_walls_10_buttressed.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1584,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.41152152003525233
+      ],
+      "bounds_max_m": [
+        0.996,
+        1.7919999999999998,
+        0.41152152003525233
+      ],
+      "sha256": "0566f88c378ddd51d55038714d9c69c3c05d9fd1e412bb3083197ee62473d60a",
+      "geometry_sha256": "a7733b6ad7c65a7ee34571ae57dc867e3a34331548d650964a89af01da8fe287",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        0.24847847996474767
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            0.0,
+            0.44999999999999996,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            0.0,
+            0.75,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            0.0,
+            1.0499999999999998,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            0.0,
+            1.3499999999999999,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            0.0,
+            1.65,
+            0.24847847996474767
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Buttress",
+          "center": [
+            -0.65,
+            0.75,
+            -0.011521520035252336
+          ],
+          "size": [
+            0.6500000000000001,
+            1.5,
+            0.8
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_11_collapsed_end",
+      "family": "walls",
+      "style": "collapsed_end",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_11_collapsed_end.glb",
+      "scene": "scenes/env_ruin_walls_11_collapsed_end.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 924,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16297195744682466
+      ],
+      "bounds_max_m": [
+        0.996,
+        1.7919999999999998,
+        0.16297195744682466
+      ],
+      "sha256": "70e49c3ef450b96e328945a581487cc523d68209f61928152994b91e964eb590",
+      "geometry_sha256": "76ed701f0e74e8401f2b20f045a25f4f7b15e76269818ea3869b3b52856e7eb3",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.25,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            1.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.375,
+            0.75,
+            0.0
+          ],
+          "size": [
+            1.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.5,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            1.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.625,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.75,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.75,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_12_ground_course",
+      "family": "walls",
+      "style": "ground_course",
+      "role": "fragment",
+      "file": "exports/env_ruin_walls_12_ground_course.glb",
+      "scene": "scenes/env_ruin_walls_12_ground_course.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 220,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.16259528212686664
+      ],
+      "bounds_max_m": [
+        0.996,
+        0.292,
+        0.16259528212686664
+      ],
+      "sha256": "9f178e60beab4c1d7a81b71bba852a51493647f153b93f08bc49323f82f71625",
+      "geometry_sha256": "9bfd47a8ff0960c64abdb9de3493576c733954ef123fbf63b07e7b416ac73f9a",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            2.0,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_walls_13_jagged_breach",
+      "family": "walls",
+      "style": "jagged_breach",
+      "role": "breach",
+      "file": "exports/env_ruin_walls_13_jagged_breach.glb",
+      "scene": "scenes/env_ruin_walls_13_jagged_breach.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 968,
+      "bounds_min_m": [
+        -0.996,
+        0.0,
+        -0.1631795365198262
+      ],
+      "bounds_max_m": [
+        0.996,
+        2.0919999999999996,
+        0.1631795365198262
+      ],
+      "sha256": "5016b08bee29b59f5d1fba883a2a7365ec86f2d1a0799f4af5ef849057273159",
+      "geometry_sha256": "6c696f5ae6743b0a5a79af6ca5010e5f02ca856496ec93cbe65769dddcfdb024",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "nominal_main_width_m": 2.0,
+        "course_height_m": 0.3,
+        "clear_breach": {
+          "x_min": -0.5,
+          "x_max": 0.5,
+          "no_overhead_lintel": true
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Course0Run0",
+          "center": [
+            -0.75,
+            0.15,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course0Run1",
+          "center": [
+            0.75,
+            0.15,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run0",
+          "center": [
+            -0.75,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course1Run1",
+          "center": [
+            0.75,
+            0.44999999999999996,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run0",
+          "center": [
+            -0.75,
+            0.75,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course2Run1",
+          "center": [
+            0.75,
+            0.75,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run0",
+          "center": [
+            -0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course3Run1",
+          "center": [
+            0.75,
+            1.0499999999999998,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run0",
+          "center": [
+            -0.75,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course4Run1",
+          "center": [
+            0.875,
+            1.3499999999999999,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course5Run0",
+          "center": [
+            -0.75,
+            1.65,
+            0.0
+          ],
+          "size": [
+            0.5,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Course6Run0",
+          "center": [
+            -0.875,
+            1.9499999999999997,
+            0.0
+          ],
+          "size": [
+            0.25,
+            0.3,
+            0.3296
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_01_square_tall",
+      "family": "pillars",
+      "style": "square_tall",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_01_square_tall.glb",
+      "scene": "scenes/env_ruin_pillars_01_square_tall.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 352,
+      "bounds_min_m": [
+        -0.31,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.31,
+        2.3969999999999994,
+        0.3
+      ],
+      "sha256": "3dbae02b65225d4e0dd4dbb37bb11d789fd99517ce3286d02057dc2baa0d6a17",
+      "geometry_sha256": "69aea4bcf6af4f2e44c2a53f058b4d6853e59d3aae0d4906eb6336e5663ca493",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            1.1984999999999997,
+            0.0
+          ],
+          "size": [
+            0.62,
+            2.3969999999999994,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_02_square_half",
+      "family": "pillars",
+      "style": "square_half",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_02_square_half.glb",
+      "scene": "scenes/env_ruin_pillars_02_square_half.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 176,
+      "bounds_min_m": [
+        -0.31,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.31,
+        1.1969999999999998,
+        0.3
+      ],
+      "sha256": "f77ddfe7537872b4f9be7e889d0d5f3bfb513f0919b0ff54ad7d42935eff395e",
+      "geometry_sha256": "032402092bc0ae73a72586cda65c3595f05036295fd9c16c6750632923e9d165",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.5984999999999999,
+            0.0
+          ],
+          "size": [
+            0.62,
+            1.1969999999999998,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_03_square_stump",
+      "family": "pillars",
+      "style": "square_stump",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_03_square_stump.glb",
+      "scene": "scenes/env_ruin_pillars_03_square_stump.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 88,
+      "bounds_min_m": [
+        -0.31,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.31,
+        0.437,
+        0.3
+      ],
+      "sha256": "a347d1367f0dce1aa96c12f5a7f19a6a38b6d6b246d35312549f36660b977922",
+      "geometry_sha256": "38132030c0457b5f92b773795dff554fe175e65f42bb7b18165b0356cfec80a5",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.2185,
+            0.0
+          ],
+          "size": [
+            0.62,
+            0.437,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_04_chipped_cap",
+      "family": "pillars",
+      "style": "chipped_cap",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_04_chipped_cap.glb",
+      "scene": "scenes/env_ruin_pillars_04_chipped_cap.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 308,
+      "bounds_min_m": [
+        -0.35987215214097384,
+        0.0,
+        -0.3320887910846656
+      ],
+      "bounds_max_m": [
+        0.35987215214097384,
+        1.9200000000000002,
+        0.3320887910846656
+      ],
+      "sha256": "598fa26f035c6d30983894c9ec9addd139e49d5cfd74ba177b1078c1dc4c0ad7",
+      "geometry_sha256": "7e4362a8af5892354704f8bf6b39d239213c3eb1689be6b52ab59a3898c99166",
+      "reference_offset_m": [
+        -0.00013071415168491862,
+        -0.0,
+        9.581008460488039e-05
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.9600000000000001,
+            0.0
+          ],
+          "size": [
+            0.7197443042819477,
+            1.9200000000000002,
+            0.6641775821693312
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_05_stepped_base",
+      "family": "pillars",
+      "style": "stepped_base",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_05_stepped_base.glb",
+      "scene": "scenes/env_ruin_pillars_05_stepped_base.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 264,
+      "bounds_min_m": [
+        -0.425,
+        0.0,
+        -0.4
+      ],
+      "bounds_max_m": [
+        0.425,
+        1.5970000000000002,
+        0.4
+      ],
+      "sha256": "ac0ff120af0067506c9f1fddc604007a686b4c5dbef15fbffcf0d9b75fe05caf",
+      "geometry_sha256": "34b9fa6c2b7b04629c66a1211d9694c546545450668a7879dd875a71c6545560",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.7985000000000001,
+            0.0
+          ],
+          "size": [
+            0.85,
+            1.5970000000000002,
+            0.8
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_06_octagonal",
+      "family": "pillars",
+      "style": "octagonal",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_06_octagonal.glb",
+      "scene": "scenes/env_ruin_pillars_06_octagonal.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 80,
+      "bounds_min_m": [
+        -0.325,
+        0.0,
+        -0.325
+      ],
+      "bounds_max_m": [
+        0.325,
+        2.3000000000000003,
+        0.325
+      ],
+      "sha256": "e86515aed7e3effc9ba30fa9803598fefbfe99bd2abf2cdc5d56610177eaee3a",
+      "geometry_sha256": "3c5208ee954132269ad9e0efd3c0e7cef2d1c6f0cf0a3ae78f98d4fe3ea28f1c",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            1.1500000000000001,
+            0.0
+          ],
+          "size": [
+            0.65,
+            2.3000000000000003,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_07_round_broken",
+      "family": "pillars",
+      "style": "round_broken",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_07_round_broken.glb",
+      "scene": "scenes/env_ruin_pillars_07_round_broken.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 104,
+      "bounds_min_m": [
+        -0.325,
+        0.0,
+        -0.325
+      ],
+      "bounds_max_m": [
+        0.325,
+        1.65,
+        0.325
+      ],
+      "sha256": "0a4fd0eb46dfd2de31b32bf8bc35edcb5bc6f1ef8726a66cb68af012234fbcf6",
+      "geometry_sha256": "25fc57096186f854db5c36c5f64bbb2fee8ad3974179a0d4ba3011419c63b22e",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.825,
+            0.0
+          ],
+          "size": [
+            0.65,
+            1.65,
+            0.65
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_08_split_square",
+      "family": "pillars",
+      "style": "split_square",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_08_split_square.glb",
+      "scene": "scenes/env_ruin_pillars_08_split_square.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 572,
+      "bounds_min_m": [
+        -0.31,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.31,
+        1.9969999999999999,
+        0.3
+      ],
+      "sha256": "029c50912cab3dad893ed8d8b72faf1941c14c0aec446fe10ec9566d472f76aa",
+      "geometry_sha256": "6daf701a1f1a4bd347c0184a21c257cc3fbb668195b3526498890285b2bad3ed",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": true
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.9984999999999999,
+            0.0
+          ],
+          "size": [
+            0.62,
+            1.9969999999999999,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_09_leaning_remnant",
+      "family": "pillars",
+      "style": "leaning_remnant",
+      "role": "leaning",
+      "file": "exports/env_ruin_pillars_09_leaning_remnant.glb",
+      "scene": "scenes/env_ruin_pillars_09_leaning_remnant.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 264,
+      "bounds_min_m": [
+        -0.3955546243651875,
+        0.0,
+        -0.3
+      ],
+      "bounds_max_m": [
+        0.3955546243651875,
+        1.7026162196063925,
+        0.3
+      ],
+      "sha256": "4350c36c215933575e348852e16bd6dc61a67076685a3a895266ab94401ce41b",
+      "geometry_sha256": "e5d49ead9ce1dfadadb56c33c6d3b1598ef38f3fee871cb13c3144a99e4a2e31",
+      "reference_offset_m": [
+        0.0937836387518362,
+        0.05322990207958502,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            0.8513081098031963,
+            0.0
+          ],
+          "size": [
+            0.791109248730375,
+            1.7026162196063925,
+            0.6
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_10_fallen_column",
+      "family": "pillars",
+      "style": "fallen_column",
+      "role": "fallen",
+      "file": "exports/env_ruin_pillars_10_fallen_column.glb",
+      "scene": "scenes/env_ruin_pillars_10_fallen_column.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 220,
+      "bounds_min_m": [
+        -0.9975431459094015,
+        0.0,
+        -0.24939703179492068
+      ],
+      "bounds_max_m": [
+        0.9975431459094015,
+        0.42500000000000004,
+        0.24939703179492068
+      ],
+      "sha256": "554267d94bf8a122c5f2c3d324bf3a8d9f2a94c297ee9d1395bd8d86936e52eb",
+      "geometry_sha256": "0c8ec3f2db29dc408c8918c3f529625f119a6442a03d5ee395ad0fd186a43271",
+      "reference_offset_m": [
+        0.047456854090598466,
+        -0.0,
+        -0.0031331667295560472
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "Segment0",
+          "center": [
+            -0.8025431459094015,
+            0.2,
+            -0.0031331667295560472
+          ],
+          "size": [
+            0.3899999999999999,
+            0.4,
+            0.43
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment1",
+          "center": [
+            -0.4025437459033126,
+            0.22500000000000003,
+            0.026289349961302347
+          ],
+          "size": [
+            0.40173972753275655,
+            0.4,
+            0.44035423359538517
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment2",
+          "center": [
+            -0.002563049027287878,
+            0.2,
+            0.028715184562634444
+          ],
+          "size": [
+            0.40244115329098384,
+            0.4,
+            0.44136369446457246
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment3",
+          "center": [
+            0.39746189980691976,
+            0.22500000000000003,
+            0.0018112382601477434
+          ],
+          "size": [
+            0.3919737277639576,
+            0.4,
+            0.4317583652434034
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment4",
+          "center": [
+            0.7973751974470571,
+            0.2,
+            -0.029701298868764686
+          ],
+          "size": [
+            0.40033589692468874,
+            0.4,
+            0.439391465852312
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_11_segmented_fallen",
+      "family": "pillars",
+      "style": "segmented_fallen",
+      "role": "fallen",
+      "file": "exports/env_ruin_pillars_11_segmented_fallen.glb",
+      "scene": "scenes/env_ruin_pillars_11_segmented_fallen.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 176,
+      "bounds_min_m": [
+        -0.7954888457420127,
+        0.0,
+        -0.233737673163061
+      ],
+      "bounds_max_m": [
+        0.7954888457420127,
+        0.42500000000000004,
+        0.233737673163061
+      ],
+      "sha256": "340a82bca84d619f2e8fa360d4460b1e6ebdf4557befb9382c49eb3da505bb3b",
+      "geometry_sha256": "98a639e7adbe33744d6cf8aa495ff440ac85136ae9401159bc38003920bd2f8f",
+      "reference_offset_m": [
+        0.2495111542579872,
+        -0.0,
+        -0.018737673163061005
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "Segment0",
+          "center": [
+            -0.6004888457420128,
+            0.2,
+            -0.018737673163061005
+          ],
+          "size": [
+            0.3899999999999999,
+            0.4,
+            0.43
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment1",
+          "center": [
+            -0.20038549975142222,
+            0.22500000000000003,
+            0.010752979515200808
+          ],
+          "size": [
+            0.40142681732818264,
+            0.4,
+            0.4402026696609897
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment2",
+          "center": [
+            0.19951652283823879,
+            0.2,
+            0.013095640523462085
+          ],
+          "size": [
+            0.40268458119716055,
+            0.4,
+            0.44128406527919783
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Segment3",
+          "center": [
+            0.5995102195287979,
+            0.22500000000000003,
+            -0.01378781183447389
+          ],
+          "size": [
+            0.39195725242642965,
+            0.4,
+            0.43177554947546315
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_12_gatepost_left",
+      "family": "pillars",
+      "style": "gatepost_left",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_12_gatepost_left.glb",
+      "scene": "scenes/env_ruin_pillars_12_gatepost_left.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 440,
+      "bounds_min_m": [
+        -0.35,
+        0.0,
+        -0.31
+      ],
+      "bounds_max_m": [
+        0.35,
+        2.52,
+        0.31
+      ],
+      "sha256": "f7bd1af54451322ad897fd894f942fd5731219304bbd9f53b1628051f21939e0",
+      "geometry_sha256": "63b9f0d1c03588a7505877366f44f10017b77ac695ebe4f7b966d9431fdfa78d",
+      "reference_offset_m": [
+        0.009999999999999981,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            1.26,
+            0.0
+          ],
+          "size": [
+            0.7,
+            2.52,
+            0.62
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_pillars_13_gatepost_right",
+      "family": "pillars",
+      "style": "gatepost_right",
+      "role": "upright",
+      "file": "exports/env_ruin_pillars_13_gatepost_right.glb",
+      "scene": "scenes/env_ruin_pillars_13_gatepost_right.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 440,
+      "bounds_min_m": [
+        -0.35,
+        0.0,
+        -0.31
+      ],
+      "bounds_max_m": [
+        0.35,
+        2.52,
+        0.31
+      ],
+      "sha256": "7816aba27ad1e0f6cb32a9c0bf8fc101c2cce096e110b0979c1be5a2a8d5b0e8",
+      "geometry_sha256": "2473a2a64cbc5d7c09c9e80b9eae620a6e2cabe89b1c4cee3215ca5da4df9c21",
+      "reference_offset_m": [
+        -0.009999999999999981,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "decorative_cracks_not_enterable": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PillarProxy",
+          "center": [
+            0.0,
+            1.26,
+            0.0
+          ],
+          "size": [
+            0.7,
+            2.52,
+            0.62
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_01_paving_narrow",
+      "family": "surfaces",
+      "style": "paving_narrow",
+      "role": "paving",
+      "file": "exports/env_ruin_surfaces_01_paving_narrow.glb",
+      "scene": "scenes/env_ruin_surfaces_01_paving_narrow.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 660,
+      "bounds_min_m": [
+        -0.443,
+        0.0,
+        -0.9930000000000001
+      ],
+      "bounds_max_m": [
+        0.443,
+        0.105,
+        0.9930000000000001
+      ],
+      "sha256": "20fdd3f3c183cf4b6aed654c56fc1527c57f93a8a094543a12ead577c28088e9",
+      "geometry_sha256": "400bde68bd7960c81a1591b9b93be2f62e4b77f67c917dc44bc910c64eb473ca",
+      "reference_offset_m": [
+        5.551115123125783e-17,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.11,
+        "missing_tile_holes_simplified": false,
+        "L_shaped_footprint": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PavingProxy",
+          "center": [
+            5.551115123125783e-17,
+            0.055,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.11,
+            2.0
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_02_paving_wide",
+      "family": "surfaces",
+      "style": "paving_wide",
+      "role": "paving",
+      "file": "exports/env_ruin_surfaces_02_paving_wide.glb",
+      "scene": "scenes/env_ruin_surfaces_02_paving_wide.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1100,
+      "bounds_min_m": [
+        -0.8929999999999999,
+        0.0,
+        -0.9930000000000001
+      ],
+      "bounds_max_m": [
+        0.8929999999999999,
+        0.105,
+        0.9930000000000001
+      ],
+      "sha256": "a0e836c2a21a4115fac6a082ebea6b5a48fd3e241e5dc81b825f3f303d1a907c",
+      "geometry_sha256": "d8bf46e5fc2fc3ba1139d53281262381e06017f344246a20d10fd804352e17fc",
+      "reference_offset_m": [
+        1.1102230246251565e-16,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.11,
+        "missing_tile_holes_simplified": false,
+        "L_shaped_footprint": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PavingProxy",
+          "center": [
+            1.1102230246251565e-16,
+            0.055,
+            0.0
+          ],
+          "size": [
+            1.8,
+            0.11,
+            2.0
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_03_paving_broken",
+      "family": "surfaces",
+      "style": "paving_broken",
+      "role": "paving",
+      "file": "exports/env_ruin_surfaces_03_paving_broken.glb",
+      "scene": "scenes/env_ruin_surfaces_03_paving_broken.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 924,
+      "bounds_min_m": [
+        -0.8929999999999999,
+        0.0,
+        -0.9930000000000001
+      ],
+      "bounds_max_m": [
+        0.8929999999999999,
+        0.105,
+        0.9930000000000001
+      ],
+      "sha256": "e2ec44adc3a9c62b3dbbdc8a8809854994bf2750995ba4bc043a256c471d10bc",
+      "geometry_sha256": "b249c1b0b71a1c15edc1ef45ff779a39520a2947a2ef238ae8d47b3049532e83",
+      "reference_offset_m": [
+        1.1102230246251565e-16,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.11,
+        "missing_tile_holes_simplified": true,
+        "L_shaped_footprint": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PavingProxy",
+          "center": [
+            1.1102230246251565e-16,
+            0.055,
+            0.0
+          ],
+          "size": [
+            1.8,
+            0.11,
+            2.0
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_04_courtyard_corner",
+      "family": "surfaces",
+      "style": "courtyard_corner",
+      "role": "paving",
+      "file": "exports/env_ruin_surfaces_04_courtyard_corner.glb",
+      "scene": "scenes/env_ruin_surfaces_04_courtyard_corner.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 704,
+      "bounds_min_m": [
+        -0.8929999999999999,
+        0.0,
+        -0.9930000000000001
+      ],
+      "bounds_max_m": [
+        0.8929999999999999,
+        0.105,
+        0.9930000000000001
+      ],
+      "sha256": "7aaf4fa48b459df44ed808e9683f6cfa18ac406a1058749e42d9d1f6b6e2195b",
+      "geometry_sha256": "d09c53326b4135ca8086b213a75323128957f6cdf81e2c0c775d1c478a59dc5e",
+      "reference_offset_m": [
+        1.1102230246251565e-16,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.11,
+        "missing_tile_holes_simplified": false,
+        "L_shaped_footprint": true
+      },
+      "collision_boxes": [
+        {
+          "name": "PavingLegX",
+          "center": [
+            1.1102230246251565e-16,
+            0.055,
+            -0.6
+          ],
+          "size": [
+            1.8,
+            0.11,
+            0.8
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "PavingLegZ",
+          "center": [
+            -0.5399999999999999,
+            0.055,
+            0.4
+          ],
+          "size": [
+            0.72,
+            0.11,
+            1.2
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_05_worn_threshold",
+      "family": "surfaces",
+      "style": "worn_threshold",
+      "role": "threshold",
+      "file": "exports/env_ruin_surfaces_05_worn_threshold.glb",
+      "scene": "scenes/env_ruin_surfaces_05_worn_threshold.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 44,
+      "bounds_min_m": [
+        -0.475,
+        0.0,
+        -0.2
+      ],
+      "bounds_max_m": [
+        0.475,
+        0.15,
+        0.2
+      ],
+      "sha256": "fd4fe3f5df89e3cb885d98a9b1726a1fe620000180ad2ca6dbcc5426183a727c",
+      "geometry_sha256": "e19388cc133ef625f1c3698dd45534487ee0751bd4bc284ee4444298eafaae37",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.15,
+        "decorative_crack_simplified": false
+      },
+      "collision_boxes": [
+        {
+          "name": "Threshold",
+          "center": [
+            0.0,
+            0.075,
+            0.0
+          ],
+          "size": [
+            0.95,
+            0.15,
+            0.4
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_06_broad_threshold",
+      "family": "surfaces",
+      "style": "broad_threshold",
+      "role": "threshold",
+      "file": "exports/env_ruin_surfaces_06_broad_threshold.glb",
+      "scene": "scenes/env_ruin_surfaces_06_broad_threshold.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 44,
+      "bounds_min_m": [
+        -0.7,
+        0.0,
+        -0.25
+      ],
+      "bounds_max_m": [
+        0.7,
+        0.15,
+        0.25
+      ],
+      "sha256": "1c588c80c3f1bc46ca50c955cf0c97c3ef3c7bc1703423ac2e46e4f41fffb5d4",
+      "geometry_sha256": "a290698c57d020770ed7de7eb9a99ee1fe4fd9afb2dc81448feace2052a79c44",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.15,
+        "decorative_crack_simplified": false
+      },
+      "collision_boxes": [
+        {
+          "name": "Threshold",
+          "center": [
+            0.0,
+            0.075,
+            0.0
+          ],
+          "size": [
+            1.4,
+            0.15,
+            0.5
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_07_split_threshold",
+      "family": "surfaces",
+      "style": "split_threshold",
+      "role": "threshold",
+      "file": "exports/env_ruin_surfaces_07_split_threshold.glb",
+      "scene": "scenes/env_ruin_surfaces_07_split_threshold.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 88,
+      "bounds_min_m": [
+        -0.5925,
+        0.0,
+        -0.25
+      ],
+      "bounds_max_m": [
+        0.5925,
+        0.15,
+        0.25
+      ],
+      "sha256": "809d17ec61f11d5492181d081d15ac46477de579551cbbf4639b60c9b63c97d6",
+      "geometry_sha256": "01219dff1334a3173983885a0fed23039386294316dd779a661dc81de33cb173",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.15,
+        "decorative_crack_simplified": true
+      },
+      "collision_boxes": [
+        {
+          "name": "Threshold",
+          "center": [
+            0.0,
+            0.075,
+            0.0
+          ],
+          "size": [
+            1.2,
+            0.15,
+            0.5
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_08_low_step",
+      "family": "surfaces",
+      "style": "low_step",
+      "role": "stairs",
+      "file": "exports/env_ruin_surfaces_08_low_step.glb",
+      "scene": "scenes/env_ruin_surfaces_08_low_step.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 44,
+      "bounds_min_m": [
+        -0.596,
+        0.0,
+        -0.166
+      ],
+      "bounds_max_m": [
+        0.596,
+        0.15,
+        0.166
+      ],
+      "sha256": "5495b6a04d48a32ece1af3a0b173cbde4990201c10f50f71cf1149d5b9d72fb6",
+      "geometry_sha256": "db9b7e864a3859d3d5a235c5510ef9c3aa2a44e5b0b60f1210df3e1d8e4e9428",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "tread_count": 1,
+        "rise_m": 0.15,
+        "run_m": 0.34,
+        "ascending_local_direction": "+Z",
+        "player_step_behavior_not_tested": true
+      },
+      "collision_boxes": [
+        {
+          "name": "Tread0",
+          "center": [
+            0.0,
+            0.075,
+            0.0
+          ],
+          "size": [
+            1.2,
+            0.15,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_09_two_steps",
+      "family": "surfaces",
+      "style": "two_steps",
+      "role": "stairs",
+      "file": "exports/env_ruin_surfaces_09_two_steps.glb",
+      "scene": "scenes/env_ruin_surfaces_09_two_steps.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 88,
+      "bounds_min_m": [
+        -0.596,
+        0.0,
+        -0.33599999999999997
+      ],
+      "bounds_max_m": [
+        0.596,
+        0.3,
+        0.33599999999999997
+      ],
+      "sha256": "8670b7d369476d4a9989fa1c07880a42d83c654aa253f4c7b7106482daeeaf30",
+      "geometry_sha256": "6ffaf27119487de220164350c5e9db8bca43ae2b4f27ff1fd90acc2b57c85afe",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        2.7755575615628914e-17
+      ],
+      "placement": {
+        "tread_count": 2,
+        "rise_m": 0.15,
+        "run_m": 0.34,
+        "ascending_local_direction": "+Z",
+        "player_step_behavior_not_tested": true
+      },
+      "collision_boxes": [
+        {
+          "name": "Tread0",
+          "center": [
+            0.0,
+            0.075,
+            -0.16999999999999998
+          ],
+          "size": [
+            1.2,
+            0.15,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Tread1",
+          "center": [
+            0.0,
+            0.15,
+            0.17
+          ],
+          "size": [
+            1.2,
+            0.3,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_10_three_steps",
+      "family": "surfaces",
+      "style": "three_steps",
+      "role": "stairs",
+      "file": "exports/env_ruin_surfaces_10_three_steps.glb",
+      "scene": "scenes/env_ruin_surfaces_10_three_steps.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 132,
+      "bounds_min_m": [
+        -0.596,
+        0.0,
+        -0.506
+      ],
+      "bounds_max_m": [
+        0.596,
+        0.44999999999999996,
+        0.506
+      ],
+      "sha256": "23fd76c220ac567854e8b8626ec16dd71afc5e6cfe848795d661c4d52365d7d5",
+      "geometry_sha256": "0b1507071142ec29b192fbcc6114b194b52c4ae69a2ae9786d8f41908368ff5e",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -5.551115123125783e-17
+      ],
+      "placement": {
+        "tread_count": 3,
+        "rise_m": 0.15,
+        "run_m": 0.34,
+        "ascending_local_direction": "+Z",
+        "player_step_behavior_not_tested": true
+      },
+      "collision_boxes": [
+        {
+          "name": "Tread0",
+          "center": [
+            0.0,
+            0.075,
+            -0.34
+          ],
+          "size": [
+            1.2,
+            0.15,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Tread1",
+          "center": [
+            0.0,
+            0.15,
+            -5.551115123125783e-17
+          ],
+          "size": [
+            1.2,
+            0.3,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Tread2",
+          "center": [
+            0.0,
+            0.22499999999999998,
+            0.34
+          ],
+          "size": [
+            1.2,
+            0.44999999999999996,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_11_damaged_steps",
+      "family": "surfaces",
+      "style": "damaged_steps",
+      "role": "stairs",
+      "file": "exports/env_ruin_surfaces_11_damaged_steps.glb",
+      "scene": "scenes/env_ruin_surfaces_11_damaged_steps.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 132,
+      "bounds_min_m": [
+        -0.596,
+        0.0,
+        -0.506
+      ],
+      "bounds_max_m": [
+        0.596,
+        0.44999999999999996,
+        0.506
+      ],
+      "sha256": "01d1b15ce1fd5d0812a8c627d763c233b212ee4f4657dd19611b64993536bbc2",
+      "geometry_sha256": "581134554d330fe1a7b82186bf262d875672c205d71b45c082645f60a3810568",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -5.551115123125783e-17
+      ],
+      "placement": {
+        "tread_count": 3,
+        "rise_m": 0.15,
+        "run_m": 0.34,
+        "ascending_local_direction": "+Z",
+        "player_step_behavior_not_tested": true
+      },
+      "collision_boxes": [
+        {
+          "name": "Tread0",
+          "center": [
+            0.0,
+            0.075,
+            -0.34
+          ],
+          "size": [
+            1.2,
+            0.15,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Tread1",
+          "center": [
+            0.0,
+            0.15,
+            -5.551115123125783e-17
+          ],
+          "size": [
+            1.2,
+            0.3,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "name": "Tread2",
+          "center": [
+            0.07,
+            0.22499999999999998,
+            0.34
+          ],
+          "size": [
+            1.04,
+            0.44999999999999996,
+            0.34
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_12_cobbled_strip",
+      "family": "surfaces",
+      "style": "cobbled_strip",
+      "role": "paving",
+      "file": "exports/env_ruin_surfaces_12_cobbled_strip.glb",
+      "scene": "scenes/env_ruin_surfaces_12_cobbled_strip.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 1056,
+      "bounds_min_m": [
+        -0.443,
+        0.0,
+        -0.993
+      ],
+      "bounds_max_m": [
+        0.443,
+        0.1085642399652124,
+        0.993
+      ],
+      "sha256": "6cc86164eccf8b5330608b57f8d182002bcd06cd4ac24e31ca7131f99b81786b",
+      "geometry_sha256": "ba4ab46f17885b1718a12b5318ece4dfe2abb75547c6a9f60469d969581a7f72",
+      "reference_offset_m": [
+        5.551115123125783e-17,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.11,
+        "missing_tile_holes_simplified": false,
+        "L_shaped_footprint": false
+      },
+      "collision_boxes": [
+        {
+          "name": "PavingProxy",
+          "center": [
+            5.551115123125783e-17,
+            0.055,
+            0.0
+          ],
+          "size": [
+            0.9,
+            0.11,
+            2.0
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    },
+    {
+      "id": "env_ruin_surfaces_13_raised_plinth",
+      "family": "surfaces",
+      "style": "raised_plinth",
+      "role": "plinth",
+      "file": "exports/env_ruin_surfaces_13_raised_plinth.glb",
+      "scene": "scenes/env_ruin_surfaces_13_raised_plinth.tscn",
+      "origin": "ground-centered footprint",
+      "triangles": 88,
+      "bounds_min_m": [
+        -0.75,
+        0.0,
+        -0.55
+      ],
+      "bounds_max_m": [
+        0.75,
+        0.3,
+        0.55
+      ],
+      "sha256": "4778bcea5c118e7967e683679d1d3c7978f393d95decc978f966c74e6f3aceb1",
+      "geometry_sha256": "243895cc9fbae03e39c26b95883447c876c2f457aa96126ce1e209be5ef9d8b7",
+      "reference_offset_m": [
+        -0.0,
+        -0.0,
+        -0.0
+      ],
+      "placement": {
+        "surface_height_m": 0.3
+      },
+      "collision_boxes": [
+        {
+          "name": "Plinth",
+          "center": [
+            0.0,
+            0.15,
+            0.0
+          ],
+          "size": [
+            1.5,
+            0.3,
+            1.1
+          ],
+          "basis": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "engine_validated": false
+    }
+  ]
+}

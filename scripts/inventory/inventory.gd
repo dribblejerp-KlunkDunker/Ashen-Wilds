@@ -15,8 +15,8 @@ var hard_limit_ratio: float = 1.5
 var items: Array[ItemInstance] = []
 var main_hand: ItemInstance = null
 var off_hand: ItemInstance = null
-## Milestone 12: ItemData.ArmorSlot -> ItemInstance.
-var armor: Dictionary = {}
+## Worn armour by ItemData.ArmourSlot; worn pieces stay in `items` like everything else.
+var armour: Dictionary = {}
 
 func total_weight() -> float:
 	var w: float = 0.0
@@ -38,8 +38,15 @@ func get_load() -> Load:
 func hard_limit_kg() -> float:
 	return capacity_kg * hard_limit_ratio
 
+## Wearable armour slots, in display order.
+const ARMOUR_SLOTS: Array[int] = [ItemData.ArmourSlot.HEAD, ItemData.ArmourSlot.BODY, ItemData.ArmourSlot.LEGS]
+
+## A stack the inventory can hold: a definition and at least one unit.
+static func is_valid_stack(inst: ItemInstance) -> bool:
+	return inst != null and inst.data != null and inst.quantity > 0
+
 func can_carry(inst: ItemInstance) -> bool:
-	if inst == null or inst.data == null or inst.quantity <= 0:
+	if not is_valid_stack(inst):
 		return false
 	return total_weight() + inst.total_weight() <= hard_limit_kg() + 0.0001
 
@@ -87,7 +94,8 @@ func remove(inst: ItemInstance, quantity: int = -1) -> ItemInstance:
 		main_hand = null
 	if off_hand == inst:
 		off_hand = null
-	_drop_armor_ref(inst)
+	if armour.values().has(inst):
+		armour.erase(inst.data.armour_slot)
 	changed.emit()
 	return inst
 
@@ -116,7 +124,8 @@ func consume(item_id: String, quantity: int = 1) -> bool:
 				main_hand = null
 			if off_hand == inst:
 				off_hand = null
-			_drop_armor_ref(inst)
+			if armour.values().has(inst):
+				armour.erase(inst.data.armour_slot)
 	changed.emit()
 	return true
 
@@ -152,35 +161,76 @@ func find_weapon_of_class(weapon_class: ItemData.WeaponClass) -> ItemInstance:
 	return fallback
 
 func is_equipped(inst: ItemInstance) -> bool:
-	return inst != null and (inst == main_hand or inst == off_hand or armor.values().has(inst))
+	return inst != null and (inst == main_hand or inst == off_hand or armour.values().has(inst))
 
-func get_armor(slot: ItemData.ArmorSlot) -> ItemInstance:
-	return armor.get(slot, null) as ItemInstance
 
-func armor_pieces() -> Array[ItemInstance]:
+func armour_in(slot: ItemData.ArmourSlot) -> ItemInstance:
+	return armour.get(slot, null)
+
+
+func worn_armour() -> Array[ItemInstance]:
 	var out: Array[ItemInstance] = []
-	for slot: int in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
-		if armor.has(slot):
-			out.append(armor[slot])
+	for slot: int in ARMOUR_SLOTS:
+		var inst: ItemInstance = armour.get(slot, null)
+		if inst != null:
+			out.append(inst)
 	return out
 
-func _drop_armor_ref(inst: ItemInstance) -> void:
-	for slot: Variant in armor.keys():
-		if armor[slot] == inst:
-			armor.erase(slot)
+
+## Flat damage every blow loses to the armour. A broken piece still turns half its share.
+func total_protection() -> float:
+	var p: float = 0.0
+	for inst: ItemInstance in worn_armour():
+		p += inst.data.protection * (0.5 if inst.is_broken() else 1.0)
+	return p
+
+
+## Poise added by unbroken armour.
+func armour_poise_bonus() -> float:
+	var p: float = 0.0
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken():
+			p += inst.data.poise_bonus
+	return p
+
+
+## Chance a bleeding blow is turned: the pieces' chances combined.
+func bleed_resist() -> float:
+	var pass_through: float = 1.0
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken():
+			pass_through *= 1.0 - inst.data.bleed_resist
+	return 1.0 - pass_through
+
+
+## Mail clinks: how much louder the survivor is for what they wear.
+func armour_noise_mult() -> float:
+	var m: float = 1.0
+	for inst: ItemInstance in worn_armour():
+		m *= inst.data.noise_mult
+	return m
+
+
+## Every worn piece takes `amount` condition from a blow; returns the pieces that broke on it.
+func wear_armour(amount: float) -> Array[ItemInstance]:
+	var broke: Array[ItemInstance] = []
+	for inst: ItemInstance in worn_armour():
+		if not inst.is_broken() and inst.wear(amount):
+			broke.append(inst)
+	return broke
 
 func equip(inst: ItemInstance) -> bool:
-	if inst == null or inst.data == null or inst.quantity <= 0 or not items.has(inst):
+	if not is_valid_stack(inst) or not items.has(inst):
 		return false
 	match inst.data.category:
 		ItemData.Category.WEAPON:
 			main_hand = inst
 		ItemData.Category.SHIELD, ItemData.Category.TORCH:
 			off_hand = inst
-		ItemData.Category.ARMOR:
-			if inst.data.armor_slot not in [ItemData.ArmorSlot.HEAD, ItemData.ArmorSlot.BODY, ItemData.ArmorSlot.LEGS, ItemData.ArmorSlot.CLOAK]:
+		ItemData.Category.ARMOUR:
+			if not ARMOUR_SLOTS.has(int(inst.data.armour_slot)):
 				return false
-			armor[inst.data.armor_slot] = inst
+			armour[inst.data.armour_slot] = inst
 		_:
 			return false
 	changed.emit()
@@ -191,18 +241,10 @@ func unequip(inst: ItemInstance) -> void:
 		main_hand = null
 	elif inst == off_hand:
 		off_hand = null
-	elif armor.values().has(inst):
-		_drop_armor_ref(inst)
+	elif armour.values().has(inst):
+		armour.erase(inst.data.armour_slot)
 	else:
 		return
-	changed.emit()
-
-## Empties the pack and both slots (used when a survivor background is applied).
-func clear() -> void:
-	items.clear()
-	main_hand = null
-	off_hand = null
-	armor.clear()
 	changed.emit()
 
 func notify_changed() -> void:

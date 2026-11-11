@@ -313,7 +313,7 @@ func _on_hurtbox_hit_received(payload: CombatPayload) -> void:
 		_visual_root.rotation_degrees.z = 160.0 # on its back, limbs curled
 		_visual_root.position.y = 0.3
 		_status_pip.visible = false
-		Lootable.attach_corpse(self, "%s Husk" % enemy_name, ItemDatabase.roll_crawler_loot(), 2.5)
+		Lootable.attach_corpse(self, "%s Husk" % enemy_name, ItemDatabase.roll_pallid_crawler_loot(), 2.5)
 		return
 	poise_damage += payload.poise_damage
 	_hitbox.end_swing()

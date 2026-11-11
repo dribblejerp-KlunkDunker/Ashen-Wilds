@@ -10,7 +10,7 @@ extends Node3D
 ## screenshots. Milestone 19: the DayNightCycle (if any) darkens the light
 ## and folds the night into "sight", "cold" and hearing.
 
-signal weather_changed(weather: Weather, display_name: String, summary: String)
+signal weather_changed(weather: WeatherSystem.Weather, display_name: String, summary: String)
 
 enum Weather { OVERCAST, ASHFALL, MIASMA, SLEET, CINDER_SQUALL, HOARFROST, DEAD_CALM }
 enum Precip { NONE, ASH, SLEET, EMBERS, FROST }
@@ -28,7 +28,7 @@ const PRECIP_BOX := Vector3(22.0, 9.0, 22.0)
 @export var gust_interval_max: float = 9.0
 @export var gust_strength: float = 5.5
 
-var current: Weather = Weather.OVERCAST
+var current: WeatherSystem.Weather = WeatherSystem.Weather.OVERCAST
 var player: PlayerController
 var environment: Environment
 var sun: DirectionalLight3D
@@ -77,7 +77,7 @@ func _ready() -> void:
 # ------------------------------------------------------------------------------
 # Profiles
 # ------------------------------------------------------------------------------
-static func profile(w: Weather) -> Dictionary:
+static func profile(w: WeatherSystem.Weather) -> Dictionary:
 	if _profiles.is_empty():
 		_build_profiles()
 	return _profiles[w]
@@ -107,33 +107,33 @@ static func _p(display: String, summary: String, values: Dictionary) -> Dictiona
 	return d
 
 static func _build_profiles() -> void:
-	_profiles[Weather.OVERCAST] = _p("Overcast", "Grey skies. Nothing in the air but ash-stink.", {})
-	_profiles[Weather.ASHFALL] = _p("Ashfall", "Ash muffles sound and swallows the horizon. Sight −25%, hearing ×0.8.", {
+	_profiles[WeatherSystem.Weather.OVERCAST] = _p("Overcast", "Grey skies. Nothing in the air but ash-stink.", {})
+	_profiles[WeatherSystem.Weather.ASHFALL] = _p("Ashfall", "Ash muffles sound and swallows the horizon. Sight −25%, hearing ×0.8.", {
 		"sight": 0.75, "hearing": 0.8, "precip": Precip.ASH,
 		"fog_color": Color(0.17, 0.16, 0.15), "fog_density": 0.035,
 		"ambient_color": Color(0.17, 0.16, 0.15), "sun_energy": 0.45,
 	})
-	_profiles[Weather.MIASMA] = _p("Miasma Fog", "Bog-rot fog. Sight halved; every breath tires you (stamina regen −25%).", {
+	_profiles[WeatherSystem.Weather.MIASMA] = _p("Miasma Fog", "Bog-rot fog. Sight halved; every breath tires you (stamina regen −25%).", {
 		"sight": 0.5, "stamina_regen": 0.75, "cold": 1.1,
 		"fog_color": Color(0.10, 0.14, 0.08), "fog_density": 0.075,
 		"ambient_color": Color(0.13, 0.17, 0.12), "sun_color": Color(0.50, 0.60, 0.42), "sun_energy": 0.35,
 	})
-	_profiles[Weather.SLEET] = _p("Sleet", "Sleet hiss masks noise (×0.7). Torches burn 2× faster; slick footing: sprint −10%, dodges +4 stamina.", {
+	_profiles[WeatherSystem.Weather.SLEET] = _p("Sleet", "Sleet hiss masks noise (×0.7). Torches burn 2× faster; slick footing: sprint −10%, dodges +4 stamina.", {
 		"sight": 0.85, "hearing": 0.7, "torch_burn": 2.0, "sprint": 0.9, "dodge_extra": 4.0, "precip": Precip.SLEET, "cold": 2.2,
 		"fog_color": Color(0.12, 0.13, 0.155), "fog_density": 0.026,
 		"ambient_color": Color(0.14, 0.16, 0.19), "sun_energy": 0.45,
 	})
-	_profiles[Weather.CINDER_SQUALL] = _p("Cinder-Squall", "Wind roar drowns sound (×0.6). Torches flare (+30% light). Ember gusts shove you about outdoors.", {
+	_profiles[WeatherSystem.Weather.CINDER_SQUALL] = _p("Cinder-Squall", "Wind roar drowns sound (×0.6). Torches flare (+30% light). Ember gusts shove you about outdoors.", {
 		"sight": 0.9, "hearing": 0.6, "torch_light": 1.3, "gusts": 1.0, "precip": Precip.EMBERS, "cold": 0.6,
 		"fog_color": Color(0.22, 0.11, 0.05), "fog_density": 0.02,
 		"ambient_color": Color(0.22, 0.14, 0.10), "sun_color": Color(0.85, 0.48, 0.28), "sun_energy": 0.55,
 	})
-	_profiles[Weather.HOARFROST] = _p("Hoarfrost", "Crisp air: sight +15%, and sound carries (×1.25). Torches burn low (−20% light). Ice underfoot: you slide.", {
+	_profiles[WeatherSystem.Weather.HOARFROST] = _p("Hoarfrost", "Crisp air: sight +15%, and sound carries (×1.25). Torches burn low (−20% light). Ice underfoot: you slide.", {
 		"sight": 1.15, "hearing": 1.25, "torch_light": 0.8, "traction": 0.22, "precip": Precip.FROST, "cold": 2.8,
 		"fog_color": Color(0.15, 0.17, 0.21), "fog_density": 0.007,
 		"ambient_color": Color(0.17, 0.19, 0.24), "sun_color": Color(0.68, 0.76, 0.88), "sun_energy": 0.8,
 	})
-	_profiles[Weather.DEAD_CALM] = _p("Dead Calm", "No wind at all. Every sound carries (×1.6). Torches burn steady and slow (×0.8).", {
+	_profiles[WeatherSystem.Weather.DEAD_CALM] = _p("Dead Calm", "No wind at all. Every sound carries (×1.6). Torches burn steady and slow (×0.8).", {
 		"hearing": 1.6, "torch_burn": 0.8, "cold": 1.2,
 		"fog_color": Color(0.09, 0.09, 0.095), "fog_density": 0.016,
 		"ambient_color": Color(0.14, 0.14, 0.15), "sun_energy": 0.55,
@@ -195,7 +195,7 @@ func is_transitioning() -> bool:
 # ------------------------------------------------------------------------------
 # Changing weather
 # ------------------------------------------------------------------------------
-func set_weather(w: Weather, instant: bool = false) -> void:
+func set_weather(w: WeatherSystem.Weather, instant: bool = false) -> void:
 	# Start the new blend from wherever the old one had got to.
 	var snapshot: Dictionary = {}
 	for k: String in _to.keys():
@@ -218,7 +218,7 @@ func set_weather(w: Weather, instant: bool = false) -> void:
 
 ## Moves to the next weather in the list (F4).
 func advance(instant: bool = false) -> void:
-	set_weather(((int(current) + 1) % Weather.size()) as Weather, instant)
+	set_weather(((int(current) + 1) % WeatherSystem.Weather.size()) as WeatherSystem.Weather, instant)
 
 func _physics_process(delta: float) -> void:
 	if _blend < 1.0:
@@ -227,10 +227,10 @@ func _physics_process(delta: float) -> void:
 	if cycle_enabled:
 		_time_left -= delta
 		if _time_left <= 0.0:
-			var next: int = randi_range(0, Weather.size() - 2)
+			var next: int = randi_range(0, WeatherSystem.Weather.size() - 2)
 			if next >= int(current):
 				next += 1
-			set_weather(next as Weather)
+			set_weather(next as WeatherSystem.Weather)
 	_update_gusts(delta)
 
 ## Applies the blended weather, darkened by the hour, to the world.

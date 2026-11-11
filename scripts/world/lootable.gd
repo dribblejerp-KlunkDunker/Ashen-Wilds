@@ -22,6 +22,11 @@ var searched: bool = false
 func _ready() -> void:
 	add_to_group("lootable")
 
+## Called when the survivor's timed action on this finishes. Return true to have handled it
+## (no loot window): ActionPoint does; a plain search doesn't.
+func on_search_complete(_by: Node3D) -> bool:
+	return false
+
 func get_prompt() -> String:
 	if not searched:
 		return "[E] %s %s (%.1fs)" % [search_verb, display_name, search_duration]
