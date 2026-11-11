@@ -1,0 +1,64 @@
+Auto-merging .gitignore
+CONFLICT (content): Merge conflict in .gitignore
+Auto-merging CLAUDE.md
+CONFLICT (content): Merge conflict in CLAUDE.md
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+Auto-merging docs/ROADMAP.md
+CONFLICT (add/add): Merge conflict in docs/ROADMAP.md
+warning: Cannot merge binary files: docs/screenshots/01_shelter_start.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/01_shelter_start.png
+CONFLICT (content): Merge conflict in docs/screenshots/01_shelter_start.png
+warning: Cannot merge binary files: docs/screenshots/02_watchhouse_torchlight.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/02_watchhouse_torchlight.png
+CONFLICT (content): Merge conflict in docs/screenshots/02_watchhouse_torchlight.png
+warning: Cannot merge binary files: docs/screenshots/03_searching_chest.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/03_searching_chest.png
+CONFLICT (content): Merge conflict in docs/screenshots/03_searching_chest.png
+warning: Cannot merge binary files: docs/screenshots/04_pack_and_loot.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/04_pack_and_loot.png
+CONFLICT (content): Merge conflict in docs/screenshots/04_pack_and_loot.png
+warning: Cannot merge binary files: docs/screenshots/05_ork_choke_spear.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/05_ork_choke_spear.png
+CONFLICT (content): Merge conflict in docs/screenshots/05_ork_choke_spear.png
+warning: Cannot merge binary files: docs/screenshots/06_ogre_lair.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/06_ogre_lair.png
+CONFLICT (content): Merge conflict in docs/screenshots/06_ogre_lair.png
+warning: Cannot merge binary files: docs/screenshots/07_entry_hall_clang.png (HEAD vs. 9e649bf076f1d081de55a433b696c7fb824bd272)
+Auto-merging docs/screenshots/07_entry_hall_clang.png
+CONFLICT (content): Merge conflict in docs/screenshots/07_entry_hall_clang.png
+Auto-merging scripts/combat/wall_deflection.gd
+CONFLICT (add/add): Merge conflict in scripts/combat/wall_deflection.gd
+Auto-merging scripts/core/procedural_audio.gd
+Auto-merging scripts/core/scene_bootstrap.gd
+CONFLICT (content): Merge conflict in scripts/core/scene_bootstrap.gd
+Auto-merging scripts/data/item_data.gd
+CONFLICT (content): Merge conflict in scripts/data/item_data.gd
+Auto-merging scripts/data/item_database.gd
+CONFLICT (content): Merge conflict in scripts/data/item_database.gd
+Auto-merging scripts/data/survivor_background.gd
+CONFLICT (add/add): Merge conflict in scripts/data/survivor_background.gd
+Auto-merging scripts/enemies/enemy_goblin_scavenger.gd
+CONFLICT (content): Merge conflict in scripts/enemies/enemy_goblin_scavenger.gd
+Auto-merging scripts/enemies/enemy_ogre_brute.gd
+CONFLICT (content): Merge conflict in scripts/enemies/enemy_ogre_brute.gd
+Auto-merging scripts/enemies/enemy_ork_warrior.gd
+CONFLICT (content): Merge conflict in scripts/enemies/enemy_ork_warrior.gd
+Auto-merging scripts/enemies/enemy_quarry_troll.gd
+CONFLICT (add/add): Merge conflict in scripts/enemies/enemy_quarry_troll.gd
+Auto-merging scripts/inventory/inventory.gd
+CONFLICT (content): Merge conflict in scripts/inventory/inventory.gd
+Auto-merging scripts/player/player_controller.gd
+CONFLICT (content): Merge conflict in scripts/player/player_controller.gd
+Auto-merging scripts/ui/inventory_ui.gd
+CONFLICT (content): Merge conflict in scripts/ui/inventory_ui.gd
+Auto-merging scripts/ui/tactical_hud.gd
+CONFLICT (content): Merge conflict in scripts/ui/tactical_hud.gd
+Auto-merging scripts/world/lootable.gd
+Auto-merging shaders/foreground_cutaway.gdshader
+CONFLICT (content): Merge conflict in shaders/foreground_cutaway.gdshader
+Auto-merging tests/smoke_test.gd
+CONFLICT (content): Merge conflict in tests/smoke_test.gd
+Auto-merging tools/capture_screenshots.gd
+CONFLICT (content): Merge conflict in tools/capture_screenshots.gd
+Automatic merge failed; fix conflicts and then commit the result.

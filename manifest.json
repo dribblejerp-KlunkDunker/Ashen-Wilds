@@ -1,0 +1,508 @@
+{
+  "integration_sha": "b24a3fe2de4f4a46fe7d819aa06cdd1e49553b0b",
+  "main_sha": "9e649bf076f1d081de55a433b696c7fb824bd272",
+  "merge_bases": [
+    "d35d506036e2269bd4dc6aa49eed18eeb5caa902"
+  ],
+  "merge_exit": 1,
+  "conflict_paths": [
+    ".gitignore",
+    "CLAUDE.md",
+    "README.md",
+    "docs/ROADMAP.md",
+    "docs/screenshots/01_shelter_start.png",
+    "docs/screenshots/02_watchhouse_torchlight.png",
+    "docs/screenshots/03_searching_chest.png",
+    "docs/screenshots/04_pack_and_loot.png",
+    "docs/screenshots/05_ork_choke_spear.png",
+    "docs/screenshots/06_ogre_lair.png",
+    "docs/screenshots/07_entry_hall_clang.png",
+    "scripts/combat/wall_deflection.gd",
+    "scripts/core/scene_bootstrap.gd",
+    "scripts/data/item_data.gd",
+    "scripts/data/item_database.gd",
+    "scripts/data/survivor_background.gd",
+    "scripts/enemies/enemy_goblin_scavenger.gd",
+    "scripts/enemies/enemy_ogre_brute.gd",
+    "scripts/enemies/enemy_ork_warrior.gd",
+    "scripts/enemies/enemy_quarry_troll.gd",
+    "scripts/inventory/inventory.gd",
+    "scripts/player/player_controller.gd",
+    "scripts/ui/inventory_ui.gd",
+    "scripts/ui/tactical_hud.gd",
+    "shaders/foreground_cutaway.gdshader",
+    "tests/smoke_test.gd",
+    "tools/capture_screenshots.gd"
+  ],
+  "index_stages": [
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "git_object": "05d6e245c77ea606f718b153d98c2c64ea197f27",
+      "stage": 1
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "git_object": "54e9028eeffb23afe09fe97252483e284b967b6d",
+      "stage": 2
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "git_object": "279a6d42f25bd05a882ebf4e9eb812e7563892aa",
+      "stage": 3
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "git_object": "1f131bd9d73b1f3c1705b52f6f9df791fdaf0ceb",
+      "stage": 1
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "git_object": "5009bb87ec4a5dd794b419090805675b3c5551ba",
+      "stage": 2
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "git_object": "79e1bdae3012d5cb9416aa0576f91552c42fed77",
+      "stage": 3
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "git_object": "eb8471caff1089921bc3c0460a5830482388402b",
+      "stage": 1
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "git_object": "212fb74d9b90450a7239a2732a41d4a1acc503da",
+      "stage": 2
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "git_object": "02d66d4967d5db0c4a71b6008e696e9cb8242c9d",
+      "stage": 3
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "mode": "100644",
+      "git_object": "6e03ec4360c4a893db884f4b952fde8e88056b32",
+      "stage": 2
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "mode": "100644",
+      "git_object": "54789b1307222085913e31f3a74e6c3e6a1fa259",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/01_shelter_start.png",
+      "mode": "100644",
+      "git_object": "33bedc58ce148030f3ddc3fbd5380912b9665627",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/01_shelter_start.png",
+      "mode": "100644",
+      "git_object": "4efa67affee342056377ddd871a954dc87ba561d",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/01_shelter_start.png",
+      "mode": "100644",
+      "git_object": "3ca2212afb8d0ec7ab8c40834c365ed69b64d94b",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/02_watchhouse_torchlight.png",
+      "mode": "100644",
+      "git_object": "762352d16aefb996b964182f6432df52415b8cef",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/02_watchhouse_torchlight.png",
+      "mode": "100644",
+      "git_object": "82921569d046b79a4ed8faf5dd4a85845ed9b264",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/02_watchhouse_torchlight.png",
+      "mode": "100644",
+      "git_object": "9466730417dff7b98b389a19def65330d9db6098",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/03_searching_chest.png",
+      "mode": "100644",
+      "git_object": "b0669738f604eddfd66b922d2339cc2897526c85",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/03_searching_chest.png",
+      "mode": "100644",
+      "git_object": "7adb5b34f46e64f6513b1d2b29b3d3e087475f84",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/03_searching_chest.png",
+      "mode": "100644",
+      "git_object": "76a5e754a9eb095154224d8da59798868edfdad1",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/04_pack_and_loot.png",
+      "mode": "100644",
+      "git_object": "b9b4ccbbde58da6ee9bb5a82d861914e278e3d49",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/04_pack_and_loot.png",
+      "mode": "100644",
+      "git_object": "799507d7001f192f5a2702cbbf1639c96e38242c",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/04_pack_and_loot.png",
+      "mode": "100644",
+      "git_object": "658ec4ede48f3edc2732e369017c5c1a8c7711aa",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/05_ork_choke_spear.png",
+      "mode": "100644",
+      "git_object": "52a1cfe21fe57ea9da91412d4fbac9992c5e8d5a",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/05_ork_choke_spear.png",
+      "mode": "100644",
+      "git_object": "17645ed56581bd6b04529cabb104045781aa3255",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/05_ork_choke_spear.png",
+      "mode": "100644",
+      "git_object": "71c83d62e1b7fa92d43dddd961800d33261291b4",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/06_ogre_lair.png",
+      "mode": "100644",
+      "git_object": "83485a53cd74751d6d8b7ec65832d09e886fec02",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/06_ogre_lair.png",
+      "mode": "100644",
+      "git_object": "cc1dce248059e8489fd3d780474b907af2ff1dab",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/06_ogre_lair.png",
+      "mode": "100644",
+      "git_object": "90ccc8e8d515ec3026d6da4e3d2b4d628c08d736",
+      "stage": 3
+    },
+    {
+      "path": "docs/screenshots/07_entry_hall_clang.png",
+      "mode": "100644",
+      "git_object": "585a0cff467ee17dd53320741aebd50474057d20",
+      "stage": 1
+    },
+    {
+      "path": "docs/screenshots/07_entry_hall_clang.png",
+      "mode": "100644",
+      "git_object": "2dd8a84fe6523f94e9606f2f5561b5e1eef42f1d",
+      "stage": 2
+    },
+    {
+      "path": "docs/screenshots/07_entry_hall_clang.png",
+      "mode": "100644",
+      "git_object": "c08897cec65c132e0e492739882951c44acaed02",
+      "stage": 3
+    },
+    {
+      "path": "scripts/combat/wall_deflection.gd",
+      "mode": "100644",
+      "git_object": "b055b6478f4750ff6fd2ec697b84ac758b2ee40a",
+      "stage": 2
+    },
+    {
+      "path": "scripts/combat/wall_deflection.gd",
+      "mode": "100644",
+      "git_object": "7c675fec9ff2b91d5086921c679fa6468dd15473",
+      "stage": 3
+    },
+    {
+      "path": "scripts/core/scene_bootstrap.gd",
+      "mode": "100644",
+      "git_object": "4a98eb4688deeb3757abd6010140476c1ede016b",
+      "stage": 1
+    },
+    {
+      "path": "scripts/core/scene_bootstrap.gd",
+      "mode": "100644",
+      "git_object": "c2a01ed5ce3c390ed8ef34b1f25d92edc02c6933",
+      "stage": 2
+    },
+    {
+      "path": "scripts/core/scene_bootstrap.gd",
+      "mode": "100644",
+      "git_object": "e5708a0439ad678abf0038c441577f519346dbde",
+      "stage": 3
+    },
+    {
+      "path": "scripts/data/item_data.gd",
+      "mode": "100644",
+      "git_object": "a75d2185444d085c3740dea2380c77ca21f121e0",
+      "stage": 1
+    },
+    {
+      "path": "scripts/data/item_data.gd",
+      "mode": "100644",
+      "git_object": "891f19396854103a1c200ca75c0aaf2f983f7366",
+      "stage": 2
+    },
+    {
+      "path": "scripts/data/item_data.gd",
+      "mode": "100644",
+      "git_object": "1bba06b34143fdd6d60d7212ba5b42613a505d62",
+      "stage": 3
+    },
+    {
+      "path": "scripts/data/item_database.gd",
+      "mode": "100644",
+      "git_object": "c7b7fae3540b2324f02572349a1a0d312ed8abb2",
+      "stage": 1
+    },
+    {
+      "path": "scripts/data/item_database.gd",
+      "mode": "100644",
+      "git_object": "14ebdd22acc006127d5f517186075fa741f21e39",
+      "stage": 2
+    },
+    {
+      "path": "scripts/data/item_database.gd",
+      "mode": "100644",
+      "git_object": "6a60734f3dfcdf02fe095adba4addeca7868fb81",
+      "stage": 3
+    },
+    {
+      "path": "scripts/data/survivor_background.gd",
+      "mode": "100644",
+      "git_object": "2bba4eacacf7ffe4cbdb76a2c3724548dab0b5a7",
+      "stage": 2
+    },
+    {
+      "path": "scripts/data/survivor_background.gd",
+      "mode": "100644",
+      "git_object": "73bf1d7b109260afca817a75d7346e6bf4f1b519",
+      "stage": 3
+    },
+    {
+      "path": "scripts/enemies/enemy_goblin_scavenger.gd",
+      "mode": "100644",
+      "git_object": "db64b715becc0363d9ce1e60379616141aef67d1",
+      "stage": 1
+    },
+    {
+      "path": "scripts/enemies/enemy_goblin_scavenger.gd",
+      "mode": "100644",
+      "git_object": "a82e21f31ddae2b733e3b103434565f9044f2f13",
+      "stage": 2
+    },
+    {
+      "path": "scripts/enemies/enemy_goblin_scavenger.gd",
+      "mode": "100644",
+      "git_object": "d6b8ba874a0b2e026028b4e7a374aa419d19112b",
+      "stage": 3
+    },
+    {
+      "path": "scripts/enemies/enemy_ogre_brute.gd",
+      "mode": "100644",
+      "git_object": "40c048fec138a93bb61a289c30fbd75c1f4c85c3",
+      "stage": 1
+    },
+    {
+      "path": "scripts/enemies/enemy_ogre_brute.gd",
+      "mode": "100644",
+      "git_object": "6f2c9450e18eecfdde807220a8f021aa9f1189db",
+      "stage": 2
+    },
+    {
+      "path": "scripts/enemies/enemy_ogre_brute.gd",
+      "mode": "100644",
+      "git_object": "fa839ae3955ca706232e34d8eac6050ccb3fb56a",
+      "stage": 3
+    },
+    {
+      "path": "scripts/enemies/enemy_ork_warrior.gd",
+      "mode": "100644",
+      "git_object": "e725e6882339442d5044e09bb2aa751bbd6646d5",
+      "stage": 1
+    },
+    {
+      "path": "scripts/enemies/enemy_ork_warrior.gd",
+      "mode": "100644",
+      "git_object": "1643fc4010a3c082948735c4040e6a7a37562ebd",
+      "stage": 2
+    },
+    {
+      "path": "scripts/enemies/enemy_ork_warrior.gd",
+      "mode": "100644",
+      "git_object": "59c87e0caa67434d1927c90b1355a544a8836afa",
+      "stage": 3
+    },
+    {
+      "path": "scripts/enemies/enemy_quarry_troll.gd",
+      "mode": "100644",
+      "git_object": "c5d953fdf7e96fd2a391a67547b078336049de43",
+      "stage": 2
+    },
+    {
+      "path": "scripts/enemies/enemy_quarry_troll.gd",
+      "mode": "100644",
+      "git_object": "10421ca873d880ca16034e571ecf5ff2cc538900",
+      "stage": 3
+    },
+    {
+      "path": "scripts/inventory/inventory.gd",
+      "mode": "100644",
+      "git_object": "530085b8091608cab7b8ca31c09d1264c66a088d",
+      "stage": 1
+    },
+    {
+      "path": "scripts/inventory/inventory.gd",
+      "mode": "100644",
+      "git_object": "027be6ca26df79945e17ba94c7f7fbb59416e22d",
+      "stage": 2
+    },
+    {
+      "path": "scripts/inventory/inventory.gd",
+      "mode": "100644",
+      "git_object": "11bc53590b74d2193c1441172cd8d34e8c09c994",
+      "stage": 3
+    },
+    {
+      "path": "scripts/player/player_controller.gd",
+      "mode": "100644",
+      "git_object": "5aba1734368e5cf35ed2bd807a047531c434fa72",
+      "stage": 1
+    },
+    {
+      "path": "scripts/player/player_controller.gd",
+      "mode": "100644",
+      "git_object": "9fcd337216dfd97a3ebba359612b3e61ffc2a92a",
+      "stage": 2
+    },
+    {
+      "path": "scripts/player/player_controller.gd",
+      "mode": "100644",
+      "git_object": "f8729c47e2a4e479a5424fa67aed3bdd3c76f652",
+      "stage": 3
+    },
+    {
+      "path": "scripts/ui/inventory_ui.gd",
+      "mode": "100644",
+      "git_object": "df40378c811febb760389de0166e915fee5db470",
+      "stage": 1
+    },
+    {
+      "path": "scripts/ui/inventory_ui.gd",
+      "mode": "100644",
+      "git_object": "720112f0a40ba06ec45abf283206c05f7296788f",
+      "stage": 2
+    },
+    {
+      "path": "scripts/ui/inventory_ui.gd",
+      "mode": "100644",
+      "git_object": "4f879834776f0fecc1a32b419e94405e72ed36ad",
+      "stage": 3
+    },
+    {
+      "path": "scripts/ui/tactical_hud.gd",
+      "mode": "100644",
+      "git_object": "dfb15d0f031592487e2d3c33babdef285760b9d0",
+      "stage": 1
+    },
+    {
+      "path": "scripts/ui/tactical_hud.gd",
+      "mode": "100644",
+      "git_object": "0dc1d8375b113c63a7c4248a2317ff1cb0972aea",
+      "stage": 2
+    },
+    {
+      "path": "scripts/ui/tactical_hud.gd",
+      "mode": "100644",
+      "git_object": "67900f0925697629f4574688091f1b9b77b0e762",
+      "stage": 3
+    },
+    {
+      "path": "shaders/foreground_cutaway.gdshader",
+      "mode": "100644",
+      "git_object": "2d3e9d102419c0b17d299adbaf79a35148a7cec9",
+      "stage": 1
+    },
+    {
+      "path": "shaders/foreground_cutaway.gdshader",
+      "mode": "100644",
+      "git_object": "a85dab0103bbd874a8c5402279ab8b4d49c96749",
+      "stage": 2
+    },
+    {
+      "path": "shaders/foreground_cutaway.gdshader",
+      "mode": "100644",
+      "git_object": "9871552f5c0885dab0e24d1584c3c55907c967b4",
+      "stage": 3
+    },
+    {
+      "path": "tests/smoke_test.gd",
+      "mode": "100644",
+      "git_object": "e3f3eda07c6e520d070f42ec438cf59ba1b50564",
+      "stage": 1
+    },
+    {
+      "path": "tests/smoke_test.gd",
+      "mode": "100644",
+      "git_object": "f8115243a2f0d5f671179deb73f07db059f87cf8",
+      "stage": 2
+    },
+    {
+      "path": "tests/smoke_test.gd",
+      "mode": "100644",
+      "git_object": "efc5a142b05f9807723695904d44a9ef1da77204",
+      "stage": 3
+    },
+    {
+      "path": "tools/capture_screenshots.gd",
+      "mode": "100644",
+      "git_object": "f30a34eb66114f47f7e68d146979757a3d7b9cf8",
+      "stage": 1
+    },
+    {
+      "path": "tools/capture_screenshots.gd",
+      "mode": "100644",
+      "git_object": "3b1acce0a26a9a6d133a83ab1a3df981f9548053",
+      "stage": 2
+    },
+    {
+      "path": "tools/capture_screenshots.gd",
+      "mode": "100644",
+      "git_object": "531e9e8fcf9676b9110befd7bfe6835cc99f2eba",
+      "stage": 3
+    }
+  ],
+  "stage_meanings": {
+    "1": "base",
+    "2": "integration",
+    "3": "main"
+  },
+  "resolved": false,
+  "godot_tested": false
+}
