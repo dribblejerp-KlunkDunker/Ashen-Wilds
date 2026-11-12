@@ -1,5 +1,7 @@
 # The Silt Readers and the Drowned Measures
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** This file's rulings that a shift is not a magical relocation and that there is no magical weight detection stand under O4: small workings exist, and neither of those is one. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Prepared 2026-11-09. Proposed lore, not implemented gameplay or finalized canon. Additive expansion of quarry-recreated/README.md and rooks-stair-quarry-supplement.md. Consolidates the preceding conversation's faction and region draft, then develops forecasts, landmarks and traveler rules. Not a verbatim transcript. No existing files, maps, assets, saves or checkpoints are replaced.
 
 ## Scope and regional premise

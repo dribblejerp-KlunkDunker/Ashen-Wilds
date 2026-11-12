@@ -1,5 +1,7 @@
 # The Kingdom and the Breaking
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** The world beyond Orlen, what became of the fleet's ships in the south, and small magic (including marks cut into slag-iron) are in `the-round-and-the-long-account.md`. Nothing here is contradicted: in the Blackfen, nobody knows where the fleet went. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: Proposed** (Godot addition, 2026-11-05). Nothing here is canon until the owner says so.
 It follows `CANON.md` on every hard fact, and the **owner's rule of 2026-11-05: only humans are
 people.** Goblins, orks, ogres, trolls and every other creature are animals or monsters (some of

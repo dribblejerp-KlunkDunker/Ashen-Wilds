@@ -1,6 +1,6 @@
 # The Round and The Long Account: the wider world and a co-op game in it
 
-**Status: PROPOSED** (2026-11-11), like everything in `docs/worldbuilding/`. The twelve decisions listed at the end (D1 to D12) were approved by the owner on 2026-11-11 and are recorded as O3 and O4 in `CANON.md`. Everything else here is proposed. Nothing in this file is implemented.
+**Status: PROPOSED** (2026-11-11), like everything in `docs/worldbuilding/`. The thirteen decisions listed at the end (D1 to D13) were approved by the owner on 2026-11-11 and are recorded as O3, O4 and O5 in `CANON.md`. Everything else here is proposed. Of the game, only a look test is built.
 
 **Summary.** Orlen is one dead quarter of a much larger world, and that world has spent thirty years going hungry under a dimmed sun. Part One sets out that world. Part Two designs **The Long Account**: a co-op game for one to four players that crosses it, drawn like the updated Shattered Octave and as grim as Ashen Wilds.
 
@@ -379,7 +379,7 @@ One to four players are a small carrying company. In the thaw of S.31 they take 
 | A session | 60 to 120 minutes: one landing and its hearth |
 | The whole | One in-world year. Roughly 25 to 35 hours, untested. |
 | Camera | First person, as in the Shattered Octave build |
-| Relation to Ashen Wilds | Same world, the year after. A separate game that reuses its systems. It needs nothing from Acts II and III. |
+| Relation to Ashen Wilds | Same world, the year after. It replaces the isometric Ashen Wilds game in the repository (D13), and all the lore is kept. It needs nothing from Acts II and III. |
 
 ### Pillars
 
@@ -532,7 +532,7 @@ Combat is Ashen Wilds' commitment melee, unchanged in its rules: startup, active
 
 - **Formation is the depth.** In a passage 1.7 m wide two people cannot both swing. The shield goes first, the spear thrusts past it (thrusts never clang), the light comes third, and the load comes last.
 - **Mind your swing.** A sweeping stroke that touches a partner staggers them. It does not wound. This is a proposal, to be tuned in play.
-- **Ranged stays thrown.** Stones and quicklime, as in the build. Anything more is the owner's decision.
+- **Ranged stays thrown.** Stones and quicklime, as in the old build. Anything more is the owner's decision.
 - **Numbers do not make beasts tougher.** Four players face the same ork pack as two. What four players add is four mouths, four sets of lungs and a louder company.
 
 ### Enemies
@@ -558,7 +558,7 @@ Combat is Ashen Wilds' commitment melee, unchanged in its rules: startup, active
 
 ### Weather
 
-The six weathers of the Godot build apply wherever ash falls. Five more are proposed for the places it does not.
+The six weathers of the fen apply wherever ash falls. Five more are proposed for the places it does not.
 
 | Weather | Where | What it does |
 | --- | --- | --- |
@@ -570,38 +570,35 @@ The six weathers of the Godot build apply wherever ash falls. Five more are prop
 
 ### Multiplayer model
 
-The model is the one `docs/PRODUCTION.md` already points at: small, cooperative, with the server owning every shared outcome.
+The model is the one the retired isometric build was heading for: small, cooperative, with the server owning every shared outcome.
 
-- **Friends-scale.** One to four, matching decision P5's direction. Two is the first test, as it is now.
+- **Friends-scale.** One to four. Two is the first test.
 - **Server-owned.** Clients send intent. The server owns health, hits, loot, the Account and the Chart.
-- **Hosting.** A listen server first, as in P4's temporary answer. The dedicated server role already exists for later.
-- **Saving.** The company (roster, Account, book, Chart) is one versioned file on the server, on the `NetSave` pattern from P7.
+- **Hosting.** One player's game is the server at first. A dedicated server comes later.
+- **Saving.** The company (roster, Account, book, Chart) is one versioned file on the server.
 - **Joining and leaving.** Players come and go at any hearth. If one leaves during a landing, their person becomes a companion on *hold*.
 - **Absent players.** Their people stay aboard. They eat. They do not sicken or die while their player is away.
 - **No voting, no kicking, no versus.** Disagreement is handled by the word, the surety and the Reckoner.
 
-### What carries over from the Godot build
+### What carries over from the isometric game
 
-Most of the hard rules already exist in `scripts/`. Combat, enemies and loot are still single-player there, and their move to the networked mode is roadmap items 1.2 and 1.3. Beyond that port, the new game needs four large pieces of new work.
+The isometric Ashen Wilds game is retired, and this game takes its place in the repository (D13). Its code is kept on the branch `archive/isometric-prototype` and nowhere on `main`.
 
-| Already built | Where | Reused as |
-| --- | --- | --- |
-| Commitment melee, wall deflection, lodging | `combat/`, `player/` | Combat, unchanged in rules |
-| Hearing ripples and the vision cone | `world/acoustic_ripple.gd`, `player/perception.gd` | Noise, per player. First person replaces the cone overlay. |
-| Carry weight, durability, timed searching | `inventory/`, `world/lootable.gd` | The base of two-person loads |
-| Six weathers, spore and lime clouds | `world/weather.gd`, `world/spore_cloud.gd`, `world/lime_cloud.gd` | The northern weathers |
-| Companion follow and hold | `world/companion.gd` | Solo play, and people whose player has left |
-| Server-owned courtyard, protocol, saves | `net/` | The whole multiplayer base |
-| Lore text pipeline | `data/lore_texts.gd` | The book and the Account's wording |
+**Its rules carry over as design.** Commitment melee, the hearing table, carry weight, the six weathers, spores and lime, the naming of the Unnamed and the eight backgrounds are all set down in this file and in the lore. They are rebuilt for first person, not ported.
 
-**New work, largest first:**
+**Its code is reference only.** The old build's combat, perception, weather, companion and network scripts are worth reading before each system is rebuilt. None of them runs in the new game.
 
-1. **First person, and painted people.** A first-person controller with two hands on screen, in place of the isometric rig. Painted figures with facings and walk cycles, lit by the scene. The owner's IDTech3-NextGen-Forge sandbox is already first-person in Godot and may supply the controller.
-2. **The Chart.** A second mode of play, with its own save state and event scenes.
-3. **Two-person carrying over the network.** Two bodies joined by a load, with the server deciding who is dragging whom.
-4. **The Account and people who talk.** Dialogue with choices, the word, surety, and human enemies with morale.
+**What exists today.** The repository holds a look test of the prologue's ledge: a 320 by 150 first-person view shown at four times its size, a painted sky, the broken highland and the Slagcrown as real geometry, one painted person, two hands and the ledger panel. It has no gameplay.
 
-The pinned engine (Godot 4.7.2-stable, Forward+) can do the look. Nothing here asks for an engine change.
+**The work ahead, in order:**
+
+1. **The first-person body.** Walking with collision, the two hands as real objects, the lantern and cold light as things held.
+2. **Painted people.** Facings, walk cycles and the first animated figure. The placeholder is a single still cut from the key painting.
+3. **Melee, noise and load in first person**, rebuilt from the old rules.
+4. **The network layer**, server-owned from the start, for two players first.
+5. **The Chart, the Account and people who talk.**
+
+The engine stays Godot 4.7.2-stable, Forward+.
 
 ### The feeling: the key art
 
@@ -848,6 +845,8 @@ These are the rules that keep the tone, and every scene should pass all eight.
 
 ### First playable
 
+**Order of work.** The prologue's ledge comes first, because the look test already stands there: make it walkable, then put Marget's bothy and the carry under it. The stove lift below is the first two-player test after that.
+
 The smallest build that proves the idea is the Wexhaven stove lift, for two players.
 
 - One scene: the inlet, the drowned *Constance*, the quay above.
@@ -874,6 +873,7 @@ If painted people read well by one lantern in first person, the look works. If t
 | D10 | Whether the quays are right that the cough is catching | Left open on purpose |
 | D11 | An opening on the highland edge | Yes: the prologue on the ledge, with the key painting's view |
 | D12 | Small magic in the canon | Yes: minor workings of varying uses and powers, and marks on weapons. Recorded as O4. Prophecy stays out. |
+| D13 | Retire the isometric game | Yes: this game replaces it in the repository. Only the lore is kept, brought in line with this file. The old code stays on an archive branch. Recorded as O5. |
 
 ### New names
 

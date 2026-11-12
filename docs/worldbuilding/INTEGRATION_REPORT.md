@@ -1,5 +1,7 @@
 # Browser-to-Godot lore integration
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** The Godot game this report integrated lore into is retired (O5). The report is kept as a record of where the imported files came from. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Date: 2026-11-09
 Status: partial; review branch only. Not a completed merge or gameplay implementation.
 

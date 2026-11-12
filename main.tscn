@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://ashenwildsmain"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/core/scene_bootstrap.gd" id="1_boot"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 
-[node name="BlackfenTestYard" type="Node3D"]
-script = ExtResource("1_boot")
+[node name="Main" type="Node"]
+script = ExtResource("1")

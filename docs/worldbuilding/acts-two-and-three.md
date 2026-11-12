@@ -1,5 +1,7 @@
 # Acts II and III: the Bell Road and the Citadels
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** The isometric game this story was written for is retired. The story stands as lore: what may have happened in the winter of S.30. Its "Needs:" lines and hearing figures are notes for the retired build. The Long Account opens at the thaw that ends this story and assumes none of its choices or endings. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: PROPOSED** (Godot addition, 2026-11-05). Nothing here is implemented, and nothing here is canon until the owner says so. Precedence is the one in `CANON.md`, with the owner's rule O1 above everything in this folder.
 
 **Summary.** The whole game runs through one winter, S.30, and ends at the thaw. In Act I the survivor makes one roof hold. In Act II that roof turns out to be only as good as the road it stands on. The road the survivor opened fills up with people who left thirty years ago and now want their claims back, while the north empties of animals and people running south. In Act III the survivor walks up the Bell Road to the Highland Citadels, where everything first went wrong, and finds a place that answers nothing. There are four endings: seal the Vaults, burn them, leave them alone, or go south. None of them saves the world, and each one decides who pays for the winter.

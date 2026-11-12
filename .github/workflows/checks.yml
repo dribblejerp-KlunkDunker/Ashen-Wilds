@@ -1,9 +1,5 @@
-# The same checks CLAUDE.md documents, on every push and pull request (appendix §90):
-# import, compile-check every script, the single-player regression suite, the environment kit's
-# collision suites, and the networked
-# courtyard's loopback test (a headless server and driven clients as separate processes).
-# Exports are not built here: the export templates are a 1 GB download per run; use
-# tools/export_builds.sh locally until that is cached.
+# Compile-check every script and boot the game headless on every push and pull request.
+# There is no regression suite yet: the game is a look test. Add one with the first gameplay.
 name: checks
 on:
   push:
@@ -11,7 +7,7 @@ on:
 jobs:
   godot:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Cache Godot 4.7.2-stable
@@ -27,29 +23,17 @@ jobs:
             unzip -o godot.zip && rm godot.zip
           fi
           ~/godot/Godot_v4.7.2-stable_linux.x86_64 --version
-      - name: Import and compile-check
+      - name: Compile-check
         run: |
-          set -o pipefail
           export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
           $GODOT --headless --path . --import >/dev/null 2>&1 || true
           fail=0
-          for f in $(find scripts tests tools -name "*.gd" | sort); do
+          for f in $(find scripts -name "*.gd" | sort); do
             out=$($GODOT --headless --path . --check-only --script "res://$f" 2>&1 | grep -E "ERROR|WARNING" || true)
             if [ -n "$out" ]; then echo "--- $f"; echo "$out"; fail=1; fi
           done
           test "$fail" = 0
-      - name: Single-player regression suite
+      - name: Headless boot
         run: |
-          set -o pipefail
-          ~/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path . --script res://tests/smoke_test.gd 2>&1 | grep -E "FAIL|passed|SCRIPT ERROR"
-      - name: Environment kit collision suites (assets/environment)
-        run: |
-          set -o pipefail
-          G=~/godot/Godot_v4.7.2-stable_linux.x86_64
-          for t in tests/test_env006_collisions.gd tests/test_env007_collisions.gd tests/test_env008_collisions.gd tests/test_env009_collisions.gd; do
-            $G --headless --path . --script "res://$t" 2>&1 | grep -E "VALIDATION|FAIL"
-          done
-      - name: Networked courtyard loopback test
-        run: |
-          export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
-          python3 tools/net_spike.py
+          out=$(~/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path . --quit-after 120 2>&1 | grep -E "SCRIPT ERROR|Parse Error|Failed to load" || true)
+          if [ -n "$out" ]; then echo "$out"; exit 1; fi

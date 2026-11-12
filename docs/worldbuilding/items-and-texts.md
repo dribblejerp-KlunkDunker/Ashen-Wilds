@@ -1,5 +1,7 @@
 # Items and texts: what the Blackfen carries and writes
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** The item database, loot tables and generator this file points at belong to the retired isometric game and are on the branch `archive/isometric-prototype`. The lore, prices, material culture and texts stand. Slag-iron blades can also carry marks (O4). See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: PROPOSED** (Godot addition, 2026-11-05). Nothing here changes a mechanic; every weight,
 stat and loot table is as `scripts/data/item_database.gd` and `scripts/core/scene_bootstrap.gd`
 ship it. The proposed descriptions, texts and new items are for the owner to accept, cut or rewrite.

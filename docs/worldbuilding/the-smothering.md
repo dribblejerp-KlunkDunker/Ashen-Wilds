@@ -1,5 +1,7 @@
 # The Smothering: ash, spores and the six weathers
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** Every number here is the retired isometric build's and is reference, not a rule. The ash, the spores and the six weathers stand as lore and carry into The Long Account, which proposes five more weathers for the lands where ash does not fall. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: PROPOSED** (Godot addition, 2026-11-05). Written for this repository under `CANON.md`, whose
 facts and tone rules bind it. Nothing here is canon until the owner says so. Where this file gives
 a number for a weather, a spore cloud or a husk, the number is the shipped Godot build's
