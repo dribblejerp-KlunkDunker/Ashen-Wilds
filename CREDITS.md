@@ -5,8 +5,8 @@ source or a licence, this file says **unverified** and does not guess.
 
 ## The engine
 
-Every file in `js/` except `js/fork0.js` and `js/ledge1.js`, and `css/`, `schemas/`, `locales/`,
-`sw.js`, `tools/pwa/precache.js`, `assets/icons/` and the layout of `index.html`, were copied on
+The code in `js/` other than `js/fork0.js`, `js/art2.js` and `js/ledge1.js`, and `css/`, `schemas/`,
+`locales/`, `sw.js`, `tools/pwa/precache.js` and the layout of `index.html`, were copied on
 2026-11-11 from *Echoes of the Shattered Octave*
 (`github.com/dribblejerp-KlunkDunker/echoes-of-the-shattered-octave`, branch `phase-75-pixel-folk`,
 commit `f2b3990`). Same owner as this repository. That repository declares no open licence
@@ -14,24 +14,22 @@ commit `f2b3990`). Same owner as this repository. That repository declares no op
 
 Its code was written with AI assistance (its own credits record commits by Claude and Codebuff).
 
-## Art that came with the engine
+**None of its pictures are here.** Its embedded textures, sprites and hands (`js/assets.js`), its
+creation faces, its prop renders and its app icons were removed in Phase 2 at the owner's ruling.
+Some of the engine's own code still draws things procedurally (frames, roofs, ceilings, weather);
+that is code, and it stays.
 
-| Files | What | Origin |
-| --- | --- | --- |
-| `js/assets.js` | Wall and floor textures, sprites (including the two used here for the carter and Marget Sayle), the hands and weapons | **Unverified** in the Octave's own credits |
-| `img/face_1.jpg` to `img/face_6.jpg` | Faces for the engine's creation screen (not shown in this game) | **Unverified** in the Octave's own credits |
-| `img/pixel3d/` | Props turned to five-view pixel sprites | Rendered from the Octave's own sprites with Blender (a build tool; nothing of Blender ships), per its credits |
-| `assets/icons/` | App icons | The Octave's; origin **unverified** |
+## Art
 
-## Art made for this game
-
-All of it is made by code in this repository. The image files below are pictures of the running game, or cuts of the engine's sprites.
+Every picture in this repository is made by code in this repository.
 
 | Files | What | Made by |
 | --- | --- | --- |
-| `js/ledge1.js` | Nine 64 x 64 tiles, two glowing sprites, the land, the Slagcrown, the coal sun, the ash | Painted and built in code |
+| `js/art2.js` | Eight tiles, the carter, Marget Sayle, the hearth, the bed, the table, the hand and blade, the game's mark | Painted in code |
+| `js/ledge1.js` | Nine tiles, two glowing sprites, the land, the Slagcrown, the coal sun, the ash | Painted and built in code |
+| `assets/icons/` | App icons | Written by `tools/icons.js` from the mark in `js/art2.js` |
 | `img/title.png` | The title picture | A still of the game itself, written by `tools/shots.js` |
-| `img/p_la_carter.jpg`, `img/p_la_marget.jpg` | Dialogue portraits | Cut by `tools/portraits.js` from the engine's two sprites above, so they share those sprites' origin |
+| `img/p_la_carter.jpg`, `img/p_la_marget.jpg` | Dialogue portraits | Cut by `tools/portraits.js` from the two paintings in `js/art2.js` |
 | `docs/screenshots/` | Stills | Written by `tools/shots.js` |
 
 The owner's key painting and reference images guided the look. They are not stored here.

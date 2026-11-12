@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Makes the 96x96 dialogue portraits (img/p_<id>.jpg) for this game's people from the sprite each one wears,
-// by running the game and cropping the painting's head and shoulders. Placeholder art until they are painted.
+// by running the game and cropping the painting's head and shoulders (the paintings are made in js/art2.js).
 //   node tools/portraits.js            (needs Playwright's Chromium; set PLAYWRIGHT_MODULE if it lives elsewhere)
 'use strict';
 const fs = require('fs'), path = require('path'), http = require('http');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const ROOT = path.join(__dirname, '..');
-const WHO = { la_carter: 'townsman', la_marget: 'townswoman' };
+const WHO = { la_carter: 'la_carter', la_marget: 'la_marget' };
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 const srv = http.createServer((q, r) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { r.writeHead(404); r.end(); } else { r.writeHead(200, { 'content-type': mime[path.extname(p)] || 'application/octet-stream' }); r.end(d); } }); });
 (async () => {

@@ -270,7 +270,7 @@ const LEDGE1 = (() => {
     }
     for (const [dx, dy] of [[0, 0], [-3, 2], [3, -2], [1, 4], [-2, -3], [4, 2]]) m.deco('la_caps', HOLLOW.x + dx + 0.5, HOLLOW.y + dy + 0.5, { solid: false, scale: 1, glow: 1, lightCol: [14, 74, 64], label: TX.bloom });
     // what you look at from the ledge
-    m.deco('sign', 78.6, 48.5, { solid: false, scale: 0.01, label: TX.view });
+    m.deco('la_mark', 78.6, 48.5, { solid: false, scale: 1, label: TX.view });
     // the carter, at the lip
     m.npc('la_carter', 79.9, 46.2, { name: TX.carter, wander: false, dir: Math.PI });
     m.baseCount = m.entities.length;
@@ -281,9 +281,9 @@ const LEDGE1 = (() => {
     m._la = true; m.safe = true;
     m.border('t_house_la_drystone');
     m.set(3, 5, DOOR({ portal: { map: LEDGE, x: 83.5, y: 30.6, dir: Math.PI / 2 }, label: TX.doorOut }));
-    m.deco('hearth', 3.5, 1.4, { solid: true, radius: 0.4, glow: 1, label: TX.hearth });
-    m.deco('bed', 5.4, 2.4, { solid: true, label: TX.bed });
-    m.deco('table', 1.6, 3.2, { solid: true, radius: 0.3, label: TX.table });
+    m.deco('la_hearth', 3.5, 1.4, { solid: true, radius: 0.45, scale: 1, glow: 1, lightCol: [150, 66, 18], label: TX.hearth });
+    m.deco('la_bed', 5.3, 2.5, { solid: true, radius: 0.45, scale: 1, label: TX.bed });
+    m.deco('la_table', 1.6, 3.3, { solid: true, radius: 0.35, scale: 1, label: TX.table });
     m.npc('la_marget', 2.6, 1.9, { name: TX.marget, wander: false });
     m.baseCount = m.entities.length;
     return m;
@@ -327,7 +327,7 @@ const LEDGE1 = (() => {
     if (typeof TOPICS !== 'undefined' && typeof TOPIC_KEYS !== 'undefined') { for (const k of Object.keys(TOPICS)) delete TOPICS[k]; Object.assign(TOPICS, TOPICS_LA); TOPIC_KEYS.length = 0; TOPIC_KEYS.push(...Object.keys(TOPICS)); }
     if (typeof PLACES !== 'undefined') for (const k of Object.keys(PLACES)) delete PLACES[k];
     NPCS.la_carter = {
-      name: TX.carter, sprite: 'townsman', portrait: 'la_carter', tier: 'low', scale: 1,
+      name: TX.carter, sprite: 'la_carter', portrait: 'la_carter', tier: 'low', scale: 1,
       greet: { polite: 'There it is, then.', normal: 'There it is.', blunt: 'I can see it. You need not point.' },
       topics: {
         'The Slagcrown': 'My father hauled plate out of there before I was born. He said the spoil heaps stood round the pitheads like a crown. He did not say it burned.',
@@ -336,7 +336,7 @@ const LEDGE1 = (() => {
       },
     };
     NPCS.la_marget = {
-      name: TX.marget, sprite: 'townswoman', portrait: 'la_marget', tier: 'low', scale: 0.95,
+      name: TX.marget, sprite: 'la_marget', portrait: 'la_marget', tier: 'low', scale: 0.95,
       greet: { polite: 'You came up the Bell Road. In the thaw. Sit down before you fall down.', normal: 'Shut the door. The fire is not for the hill.', blunt: 'Say what you want and say it quietly.' },
       topics: {
         'Gytha Marrin': 'The Receipt-Wife. Still counting. Tell her I am not a receipt.',

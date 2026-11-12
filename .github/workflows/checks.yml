@@ -27,8 +27,12 @@ jobs:
         run: node test/fork0.test.js --no-browser
       - name: Phase 1, the ledge (no browser)
         run: node test/ledge1.test.js --no-browser
-      - name: The offline list is current
-        run: node tools/pwa/precache.js --check
+      - name: Phase 2, our own art (no browser)
+        run: node test/art2.test.js --no-browser
+      - name: The offline list and the icons are current
+        run: |
+          node tools/pwa/precache.js --check
+          node tools/icons.js --check
 
   browser:
     name: Played in a headless browser
@@ -50,3 +54,5 @@ jobs:
         run: node test/fork0.test.js
       - name: Phase 1, the ledge
         run: node test/ledge1.test.js
+      - name: Phase 2, our own art
+        run: node test/art2.test.js

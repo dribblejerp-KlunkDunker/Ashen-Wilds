@@ -1,7 +1,8 @@
 # Roadmap - The Long Account
 
 One phase is one feature, one file `js/<feature><phase>.js`, one test file, one entry here and one
-pull request. The owners merge. Anything invented is marked **[PROPOSED]** and listed for a ruling.
+pull request. The owner merges. Anything invented is marked **[PROPOSED]** and listed for a ruling.
+The owner alone rules on canon (ruled 2026-11-11).
 
 The story folder is `docs/worldbuilding/`. `CANON.md` there is the rule sheet.
 
@@ -24,7 +25,7 @@ decisions D1 to D14; the answers are in `docs/worldbuilding/the-round-and-the-lo
 `js/fork0.js` · `test/fork0.test.js`
 
 The engine of *Echoes of the Shattered Octave* (commit `f2b3990`, branch `phase-75-pixel-folk`),
-copied in with 93 story and content scripts left behind. 85 scripts remain. `fork0.js` holds 39
+copied in with 93 story and content scripts left behind. `fork0.js` holds 39
 do-nothing stand-ins for story hooks the engine still calls. The page, the install manifest and the
 title screen name this game. The offline file list is rebuilt for it.
 
@@ -37,14 +38,13 @@ noted, but all of it ships:
 - `js/game.js`: its creation screens (skipped), quest and law logic, logbook wording.
 - The panel: CHAR, INV, SONG, LOG, MAP, REST, NAMES, HELP, MURMUR, SAVE, WEAPON, and money in "sov."
   **Seen on screen.**
-- The hands and the sword. **Seen on screen.**
-- The paintings used for the carter and Marget Sayle (`townsman`, `townswoman` in `js/assets.js`).
-  **Seen on screen.**
 - `js/dread.js`: its dread value and stalker, written for that game's songs. Off by default.
-- The app icons in `assets/icons/`.
 - The classic raycaster draws the ledge but not the coal sun, the ash or the burning ground.
-- The engine asks for about twenty of the Octave's pictures and music files that are not here. The
+- The engine asks for about ten of the Octave's pictures and music files that are not here. The
   requests fail quietly. There is no music.
+- Options > Full credits still shows the Octave's own credits table (`js/voices.js`). It is wrong
+  for this game.
+- **All of the Octave's pictures left in Phase 2.** What remains of it is code and wording.
 - Co-op joins two players. The design wants up to four (D7).
 
 ## Phase 1 - the ledge
@@ -124,36 +124,88 @@ find; each was searched for in `docs/worldbuilding/` first.
 | P19 | The traveller is called "The deserter" until creation exists | From the default pair |
 | P20 | The weekday is shown as "The thaw" | Stands in until the calendar of *Calendars* is built |
 
-## Decisions I need
+## Phase 2 - our own art
 
-1. **The second director.** The brief names two people. I know one. Who is the other, and do both
-   rule on canon?
-2. **`story/` or `docs/worldbuilding/`?** The brief asks for a `story/` folder. The world bible is
-   already at `docs/worldbuilding/` with many links into it. I have treated that as the story
-   folder. Say so if you want it moved.
-3. **The Octave's art in a public repository.** The engine carries that game's sprites, hands,
-   faces and textures (`js/assets.js`, `img/face_*.jpg`, `img/pixel3d/`). The Octave's own credits
-   list their origin as unverified. This repository is public. Keep them until replaced, or strip
-   what the ledge does not use now?
-4. **P17:** does the coal sun move?
-5. **The opening view.** The design says no prompt appears until every player has looked at the
+`js/art2.js` · `test/art2.test.js` · `tools/icons.js`, `tools/png.js`
+
+The Octave's pictures are out. `js/assets.js`, which held 2.4 MB of them, is an empty table. What
+the game draws is made in code:
+
+- Eight tiles the engine itself falls back on: stone, flagstones, planks, turf, a plank door,
+  cobbles, dead grass, black water. The engine's nineteen tile names point at these.
+- The carter and Marget Sayle: one front-view painting each, 160 high. The engine's rig measures
+  both by itself: the carter with arms and legs that move, Marget as one piece in her gown.
+- A banked peat fire in a kerb of stones, a box bed, a board on two stones.
+- The deserter's right hand and blade.
+- The app icons and the tab icon: the coal sun.
+- The two dialogue portraits, cut from the new paintings.
+
+**Engine files changed** (the rule is to wrap, not edit; these three could not be wrapped):
+`js/assets.js` emptied; `js/painted-manifest.js` emptied (it listed the Octave's painted files);
+`js/pixel3d.js` removed (it fetched the Octave's prop renders). `img/pixel3d/` and
+`img/face_*.jpg` are deleted.
+
+**Checked by the tests:** no embedded picture and no picture file that is not this game's; every
+tile and figure the right size, dark, small-palette and the same every time; the rig takes both
+people; the fist lies where the engine colours a hand; only the fire glows, and only in fire
+colours; in a browser, the carter stands, walks and talks as different pictures, and the fire
+lights the room.
+
+**Not done in this phase:**
+
+- The paintings are a first pass. They are plain. Whether they are good enough is yours to say.
+- One hand only: the right, with the blade. No lantern in the left yet. The engine's other ten
+  held-weapon pictures are gone and nothing replaces them; only the sword is carried.
+- A second player is drawn as the carter, whoever they are. Co-op was not run.
+- The carter has no spear and no shield (the design gives him both).
+- Seen from behind, a figure is the engine's guess from the front painting.
+- The classic renderer shows the people as flat cards.
+
+### [PROPOSED] in Phase 2, for a ruling
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P21 | The carter wears a leather coif, a short green-grey mantle, an undyed wool jerkin laced down the front and belted, trousers bound below the knee, boots | The bible gives him no dress |
+| P22 | Marget Sayle wears a linen headcloth tied under the chin, a heavy shawl crossed on the chest, a dark wool gown to the ankle and an apron; grey hair; hands held together | The bible gives her age (sixty-two), not her dress |
+| P23 | The bothy's fire is an open hearth on the floor in a kerb of stones, with no chimney | Follows the door's own line, "smoke at the hole in the roof" |
+| P24 | The glim mark on the deserter's blade is a small sign near the guard: a cross over a stem, pale blue | The design says the blade is glim-marked; the sign's shape is mine |
+| P25 | The game's mark is the coal sun: a black disc in a burning ring over a red horizon | Used for the app icons and the tab |
+| P26 | The engine's tile names for marble, brass, hedge, moss and the like all draw as this world's stone, grass or water | Nothing on the ledge uses them |
+
+## Rulings (2026-11-11)
+
+| Asked | Ruled |
+| --- | --- |
+| Which build stands | This one: the Octave's engine, copied. |
+| Who rules on canon | The owner alone. |
+| `story/` or `docs/worldbuilding/` | The world bible stays where it is. |
+| The Octave's art | It leaves now. Done in Phase 2. |
+| Where it is saved and published | The Ashen-Wilds repository only. The Shattered Octave's repository is read, never written. |
+
+## Decisions I still need
+
+1. **P17:** does the coal sun move across the sky, or hang where it is?
+2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-6. **Publishing.** The Octave is played from GitHub Pages. Should this be? Nothing here turns Pages
-   on.
+3. **One setting only you can change.** The site publishes from `main` by
+   `.github/workflows/pages.yml`, but GitHub will refuse until the repository's Settings > Pages >
+   Build and deployment > Source is set to "GitHub Actions". I am not able to change that setting.
+4. **The pictures are still in this branch's history.** Phase 2 removes them from the files. They
+   remain in the earlier commit on the branch. "Squash and merge" keeps them out of `main`. If you
+   want them gone from the branch too, say so and I will rewrite it.
 
 ## Next phases, in order
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
-| 2 | Something that hunts by sound on the ledge. Which animal is yours to choose: the bestiary gives the walking bloom for the hollow | "one thing that hunts by sound" |
-| 3 | The safe room made real: a door that holds, light, and what the hunter does at it | "one safe room" |
-| 4 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
-| 5 | This game's own carter and Marget Sayle, painted in code and rigged | "one person who walks and talks" |
+| 3 | Something that hunts by sound on the ledge. Which animal is yours to choose: the bestiary gives the walking bloom for the hollow | "one thing that hunts by sound" |
+| 4 | The safe room made real: a door that holds, light, and what the hunter does at it | "one safe room" |
+| 5 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 6 | The highland edge's building style honoured by the planner (P16) | "every region builds differently" |
-| 7 | The lantern as the one light, with a supply, and what it draws | "one light with a limited supply" |
+| 7 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
 | 8 | Dread as a value that changes the picture, tuned for this world | section 3 |
-| 9 | This game's hands, panel words and creation | |
+| 9 | This game's panel words, credits and creation | |
 | 10 | Death and succession | "death means something" |
 | 11 | Four players | D7 |
 
-The order is a proposal. Phases 2 to 4 finish the brief's vertical slice.
+The order is a proposal. Phases 3 to 5 finish the brief's vertical slice.

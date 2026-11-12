@@ -14,14 +14,20 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`).
 
-## The owners' rules
+## The owner's rules
 
-- **Their word is canon.** The story folder is `docs/worldbuilding/`. Before inventing any name,
+- **The owner's word is canon, and the owner alone rules on it.** The story folder is
+  `docs/worldbuilding/` and stays there. Before inventing any name,
   date, custom or fact, search it. Mark anything invented `[PROPOSED]` in `ROADMAP.md` and list it for
   a ruling. Never contradict a written line.
 - **Numbered phases.** One phase is one feature, one file `js/<feature><phase>.js`, one test file
   `test/<feature><phase>.test.js`, one entry in `ROADMAP.md` and one pull request.
-- **They merge; you never do.** Never force-push `main`. Never delete `archive/isometric-prototype`.
+- **The owner merges; you never do.** Never force-push `main`. Never delete `archive/isometric-prototype`.
+- **Save and publish to this repository only** (`dribblejerp-KlunkDunker/Ashen-Wilds`). The
+  Shattered Octave's repository is read, never written. Check `git remote -v` before any push.
+- **No picture that this repository did not make.** The Octave's art was removed in Phase 2 and
+  must not come back: no copied sprite, texture, portrait or icon, and nothing embedded as base64.
+  `test/art2.test.js` fails if any appears.
 - **Show pictures.** After every visible change, render stills, look at them yourself, and send them.
   If they say they cannot see the difference, believe them and change approach.
 - **Write plainly.** Report what changed, what you invented, what is not done, and what needs
@@ -33,10 +39,13 @@ Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`l
 
     node test/fork0.test.js --no-browser              # no browser needed
     node test/ledge1.test.js --no-browser
+    node test/art2.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
+    node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
     NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
     NODE_PATH=$(npm root -g) node test/ledge1.test.js
+    NODE_PATH=$(npm root -g) node test/art2.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
@@ -62,8 +71,10 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/eaves78.js         roofs, gables, windows, by a per-map style table (EAVES78.STYLES)
     js/pixelfolk75.js, js/paintfolk76.js   painted people, rigged and walked
     js/net19.js ...       two-player co-op: one hosts, one joins with a six-letter code
+    js/assets.js          an empty table: the engine's embedded pictures are gone
     js/fork0.js           Phase 0: stand-ins for removed story hooks
-    js/ledge1.js          Phase 1: everything that is this game's
+    js/art2.js            Phase 2: every tile, person, thing and hand the engine itself needs, painted in code
+    js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
 
 Useful facts, all checked in this repository:
 
@@ -80,6 +91,12 @@ Useful facts, all checked in this repository:
 - `window.advanceTime(ms)` steps the game without a clock. `R3D.readPixels()` reads the frame. Stop
   `performance.now` and render twice before hashing a frame; then it is the same every time.
 - Options rows are added by wrapping `renderAccessibilityMenu`; switches live on `GFX`.
+- A person is one front-view painting 160 pixels high. `PAINTFOLK.autorig(sprite)` measures a rig
+  from it: arms move only if they hang clear of the body from 30% to 44% of the height; legs move
+  only if they stand apart from 60% down. Do not make a painting 53, 60 or 66 wide: the engine would
+  lay one of its old hand-made rigs on it.
+- The held weapon is `Engine.images.fp_sword`, 99 x 190, drawn at half size at the view's right.
+  The arm must leave through the bottom edge of the picture, or a cut edge shows.
 
 ## Rules for new work
 

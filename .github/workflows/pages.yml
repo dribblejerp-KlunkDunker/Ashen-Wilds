@@ -1,0 +1,56 @@
+name: Publish
+
+# Publishes the playable game (not the world bible, the tests or the stills) to GitHub Pages on every push to main,
+# or by hand. It publishes this repository, Ashen-Wilds, and nothing else.
+# One setting only the owner can change: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# Until that is set, this workflow fails and nothing is published.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Stage the site
+    if: github.repository == 'dribblejerp-KlunkDunker/Ashen-Wilds'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+      # nothing is published that the checks would refuse
+      - name: The no-browser checks
+        run: |
+          node test/fork0.test.js --no-browser
+          node test/ledge1.test.js --no-browser
+          node test/art2.test.js --no-browser
+      # derive the offline file list from index.html, then copy exactly the served files
+      - name: Write the offline list and stage the site
+        run: node tools/pwa/precache.js --stage _site
+      - uses: actions/configure-pages@v6.0.0
+      - uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5.0.1
