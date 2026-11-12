@@ -21,6 +21,7 @@ game, the acts, and texts the game can show.
 |---|---|---|
 | **O1** | **Only humans are people. Everything else is an animal, a lizard, a fish or a monster.** Goblins, orks, ogres, trolls and every other creature have no language, names, culture, faith, bargains or society. They can be cunning, can use stolen tools and weapons and can hunt in packs, but they are beasts. Every companion, faction, quest-giver and playable background is human. | 2026-11-05 |
 | **O2** | **The names the Godot additions invented are kept**: the Kingdom of Orlen, Wexhaven, slag-iron, the five Highland Citadels (the Slagcrown, Greystair, Dunmarrow, Hob's Height, Kell Tor), the Slag-Lords, the Black Seam, Slag-Lord Cerrin Vane, the Breaking and S-dating, the Flight South, King Aldric IV, the Causeway Watch. | 2026-11-05 |
+| **O3** | **The ten wider-world decisions, D1 to D10 in `the-round-and-the-long-account.md`, are approved.** The follow-up game is titled The Long Account. Its look is first person, low-resolution 3D with painted people. The royal fleet is found in pieces in the south and the King is never proven; fact 8 stays true as what the Blackfen knows. There is a second wall, at the White Deeps, which adds evidence and settles nothing. Marget Sayle (one of the four who came back from the survey), Edith Brode (Ancel Brode's granddaughter) and Prior Lambert Strand (Abbot Hamon Strand's nephew) exist. The Collectors are agents of the Exchange at Port Sable, and the priests claiming southern appointment are sent from Vauclere. The game is for up to four players. People are drawn and beasts are modelled. Microphones as noise in a Dead Calm are optional and off by default. Whether the cough is catching is left open. Everything else in that file stays proposed. | 2026-11-11 |
 
 The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
 
@@ -194,3 +195,5 @@ gallery-crawler, the warning book.
 Dunmarrow, Hob's Height, Kell Tor · Slag-Lords · the Black Seam · Cerrin Vane · the Breaking ·
 S-dating · the Flight South · Aldric IV · the Causeway Watch · walking blooms. Files written for
 this repository list their own new names at the end.
+
+**Wider world (O3):** see the *New names* list at the end of `the-round-and-the-long-account.md`.
