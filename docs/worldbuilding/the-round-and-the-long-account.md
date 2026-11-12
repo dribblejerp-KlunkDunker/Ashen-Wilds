@@ -588,17 +588,19 @@ The isometric Ashen Wilds game is retired, and this game takes its place in the 
 
 **Its code is reference only.** The old build's combat, perception, weather, companion and network scripts are worth reading before each system is rebuilt. None of them runs in the new game.
 
-**What exists today.** The game runs in a web browser on the engine of *Echoes of the Shattered Octave*, copied into this repository with that game's story taken out (D14). Two places exist: the prologue's ledge on Orlen's highland edge, and Marget Sayle's bothy under it. The ledge can be walked, the Slagcrown stands under the coal sun, the carter and Marget Sayle can be spoken to, and the bothy is marked as the safe room. Nothing hunts yet. `ROADMAP.md` lists each phase, what in the build is still the Octave's, and what was invented and waits for a ruling.
+**What exists today.** The game runs in a web browser on the engine of *Echoes of the Shattered Octave*, copied into the Ashen-Wilds repository with that game's story and all of its pictures taken out (D14). Three phases are built: the fork, the ledge, and the game's own art. Two places exist: the prologue's ledge on Orlen's highland edge, and Marget Sayle's bothy under it. The ledge can be walked, the Slagcrown stands under the coal sun, and the carter and Marget Sayle are painted in code and can be spoken to. Nothing hunts yet. `ROADMAP.md` lists each phase, what in the build is still the Octave's wording, and what was invented and waits for a ruling.
 
 **The work ahead, in order.** Each is one numbered phase and one pull request.
 
-1. **Something that hunts by sound**, on the ledge, with the engine's noise value driving it.
-2. **The six weathers**, beginning with Sleet (the engine's rain) and Ashfall, stopped by roofs.
-3. **This game's own people, hands and panel.** The carter and Marget Sayle are the Octave's paintings today. The panel's words (songs, sovereigns) are the Octave's.
-4. **The company:** backgrounds, the roster, death and succession.
-5. **Load and the two-person carry**, then the Wexhaven stove lift for two players.
-6. **Four players.** The engine joins two today.
-7. **The Chart, the Account and the word.**
+1. **Something that hunts by sound** on the ledge.
+2. **The safe room made real:** a door that holds, and what the hunter does at it.
+3. **Sleet and Ashfall**, stopped by the bothy's roof.
+4. **The highland edge's own way of building**, honoured by the roof planner.
+5. **The lantern as the one light**, in the left hand, with a supply.
+6. **Dread as a value that changes the picture.**
+7. **This game's panel words, credits and creation.**
+8. **Death and succession.**
+9. **Co-op.** The engine joins two players today. Four comes after the slice (D16).
 
 The engine is plain JavaScript in the browser, with no framework and no build step. The Godot look test that stood here on 2026-11-11 is in the repository's history.
 
@@ -876,7 +878,11 @@ If painted people read well by one lantern in first person, the look works. If t
 | D11 | An opening on the highland edge | Yes: the prologue on the ledge, with the key painting's view |
 | D12 | Small magic in the canon | Yes: minor workings of varying uses and powers, and marks on weapons. Recorded as O4. Prophecy stays out. |
 | D13 | Retire the isometric game | Yes: this game replaces it in the repository. Only the lore is kept, brought in line with this file. The old code stays on an archive branch. Recorded as O5. |
-| D14 | The engine | The browser stack: plain JavaScript, no build step, the Shattered Octave's engine copied in and re-skinned. One player hosts and friends join with a code. The Godot look test is dropped. |
+| D14 | The engine | The browser: plain JavaScript, no build step. The Shattered Octave's engine is copied in and re-skinned. None of that game's story or pictures is kept, and all art is made in code. One player hosts and friends join with a code. Godot is dropped. |
+| D15 | Who directs | One director: the owner, who alone rules on canon. The brief was written for two. |
+| D16 | When co-op is built | After the first single-player slice. The game is still for up to four (D7). |
+
+**Open for the owner's ruling.** D8 says people are drawn and beasts are modelled. The build brief says each person and each creature is one painted front-view picture. The two cannot both hold. Until the owner rules, D8 stands as written and no beast is built.
 
 ### New names
 

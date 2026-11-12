@@ -177,20 +177,25 @@ lights the room.
 | Asked | Ruled |
 | --- | --- |
 | Which build stands | This one: the Octave's engine, copied. |
-| Who rules on canon | The owner alone. |
+| Who rules on canon | The owner alone (D15). |
+| When co-op is built | After the first single-player slice (D16). |
 | `story/` or `docs/worldbuilding/` | The world bible stays where it is. |
 | The Octave's art | It leaves now. Done in Phase 2. |
 | Where it is saved and published | The Ashen-Wilds repository only. The Shattered Octave's repository is read, never written. |
 
 ## Decisions I still need
 
-1. **P17:** does the coal sun move across the sky, or hang where it is?
-2. **The opening view.** The design says no prompt appears until every player has looked at the
+1. **Beasts: modelled or painted?** D8 says people are drawn and beasts are modelled. The build
+   brief says each creature is one painted front-view picture, and the engine draws creatures that
+   way. The two cannot both hold. This must be ruled before Phase 3, because the thing that hunts is
+   a beast.
+2. **P17:** does the coal sun move across the sky, or hang where it is?
+3. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-3. **One setting only you can change.** The site publishes from `main` by
+4. **One setting only you can change.** The site publishes from `main` by
    `.github/workflows/pages.yml`, but GitHub will refuse until the repository's Settings > Pages >
    Build and deployment > Source is set to "GitHub Actions". I am not able to change that setting.
-4. **The pictures are still in this branch's history.** Phase 2 removes them from the files. They
+5. **The pictures are still in this branch's history.** Phase 2 removes them from the files. They
    remain in the earlier commit on the branch. "Squash and merge" keeps them out of `main`. If you
    want them gone from the branch too, say so and I will rewrite it.
 
