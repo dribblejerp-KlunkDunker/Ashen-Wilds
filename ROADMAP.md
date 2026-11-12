@@ -204,7 +204,7 @@ coal, the switch puts the fixed sun back, and indoors nothing changes.
 not yet change the sun's face (a clear noon in Sleet is still clear). The classic renderer shows none
 of it. Day length is the engine's: a day passes in thirty-six minutes.
 
-### [PROPOSED] in Phase 3, for a ruling
+### Proposed in Phase 3: **approved 2026-11-12 (O8)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -215,24 +215,32 @@ of it. Day length is the engine's: a day passes in thirty-six minutes.
 | P31 | The prologue opens at about half past five in the evening, with the sun a little south of due west, low over the Slagcrown | It was a quarter to six, with the sun fixed due west |
 | P32 | By daylight the far haze is dun, not red | |
 
-## A look test: beasts painted and modelled
+## A look test: the beasts, modelled
 
-`tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 25 in `docs/screenshots/`
+`tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
 
-Not part of the game: the page does not load it. The owner asked to see "a couple beasts both modeled
-and painted", to rule on D8 against the brief. The walking bloom and the blind quarry-troll are each
-made both ways and stood side by side on the ledge.
+Not part of the game yet: the page does not load it. The owner saw the walking bloom and the blind
+quarry-troll each painted and each modelled, and ruled: **"ill go with modeled so long as we can make
+them look drastically better than they are now."** The painted beasts are deleted. This is the second
+pass at the modelled ones.
 
-- **Painted:** one front-view picture, drawn by the engine as it draws people. It always turns to
-  face you: from the side and from behind you see its front. The engine's rig can walk a painted
-  thing that is shaped like a person (the bloom is), and lights, fogs and hides it like anything else.
-- **Modelled:** real geometry in a pass of its own, about 470 triangles each. It has sides and a
-  back, it can lean, reach and hunch in depth, and it throws no shadow yet. It is lit by this file's
-  own simple light, not the engine's, and nothing in the engine knows it is there: it cannot yet be
-  hit, heard, hidden by fog rules or saved.
+- **Sculpted, not boxed.** Each body is built from rounded limbs and masses (about 6,000 triangles
+  each, where the first had 470), with smooth surfaces.
+- **Drawn on in code.** The troll's hide is cracked into plates like dry clay, with lime lying on
+  what faces up and slabs of it on the hump. The bloom's dead skin is mottled and veined, crusted
+  in patches, with what is left of a shirt; its caps have stems, domes and gills and give light.
+- **Inked and banded like the painted people:** a dark outline, a few steps of light with a dither
+  between, the land's fire as a red rim along its edge, a shadow on the ground.
+- **They move:** the bloom shambles, sways and lolls its head; the troll breathes, shifts its weight
+  and turns its head to listen.
 
-Whichever is ruled against is deleted. Both are quick sketches made to show the difference, not
-finished things.
+**What it is not, yet.** The engine does not know these bodies are there: they cannot be hit,
+heard or saved, and they do not hunt. They are lit by this file's own light, not the engine's, so
+the bothy's fire and the caps' own glow do not fall on them or on the ground. **They are far too
+slow as built:** here, on software rendering, the two together cost about 27 milliseconds a frame,
+against a budget of about one. The cause is known (every body is rebuilt in full on every frame)
+and so is the cure (build each part once and move it on the graphics card); that is the first job
+of the phase that puts the bloom in the game. No test covers this file.
 
 ## Rulings (2026-11-11 and 2026-11-12)
 
@@ -248,23 +256,23 @@ finished things.
 | What hunts on the ledge | The walking bloom (O7). |
 | Does the coal sun move | "I suppose it should move", with real sunlight at times. Built as Phase 3 from three written lines of the bible; P27 to P32 await a ruling. |
 | Pages | The owner has set the source to GitHub Actions. It publishes when `main` receives the game. |
+| Beasts: modelled or painted | **Modelled** (D8 stands), "so long as we can make them look drastically better". The walking bloom is modelled too. The painted beasts are deleted; the second pass at the models awaits the owner's eye. |
+| The sun's day (P27 to P32) | "Yes the days are perfect." Approved; recorded as O8 on the canon sheet. |
 
 ## Decisions I still need
 
-1. **Beasts: modelled or painted?** The look test above shows both. D8 says modelled; the brief
-   says painted. A ruling could also split them: bodies that were people (the walking bloom) painted
-   like people, true beasts (the troll) modelled.
-2. **The sun's day:** is it right (P27 to P32), and are the proportions of days right?
-3. **The opening view.** The design says no prompt appears until every player has looked at the
+1. **Are the modelled beasts good enough now?** Stills 20 to 27. If not, say what is wrong with
+   them and they get another pass before anything is built on them.
+2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-4. **The pictures are still in the first branch's history.** "Squash and merge" on pull request 38
+3. **The pictures are still in the first branch's history.** "Squash and merge" on pull request 38
    keeps them out of `main`.
 
 ## Next phases, in order
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
-| 4 | The walking bloom hunts by sound on the ledge (O7). Waits on the ruling above for how it is drawn | "one thing that hunts by sound" |
+| 4 | The walking bloom hunts by sound on the ledge (O7), modelled. Its body moves from the look test into the game and is made fast first | "one thing that hunts by sound" |
 | 5 | The safe room made real: a door that holds, light, and what the bloom does at it | "one safe room" |
 | 6 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |

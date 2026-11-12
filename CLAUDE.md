@@ -80,7 +80,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/art2.js            Phase 2: every tile, person, thing and hand the engine itself needs, painted in code
     js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
     js/sun3.js            Phase 3: the sun crosses the sky; coal, coin and clear days
-    tools/look/           look tests the page never loads (beasts painted and modelled)
+    tools/look/           look tests the page never loads (the modelled beasts, until they go into the game)
 
 Useful facts, all checked in this repository:
 
@@ -129,7 +129,8 @@ Useful facts, all checked in this repository:
   vast. Teal belongs to the bloom. Pale blue belongs to workings.
 - **Cold where you stand, fire where you are going.** The ledge is lit cool; the far country burns.
 - **Black is the base colour.** Build dark and add light. Interiors are dark; one fire lights them.
-- **People are painted; beasts are modelled** (D8).
+- **People are painted; beasts are modelled** (D8, confirmed as O9). A modelled body gets the same
+  ink outline and the same few dithered steps of light as a painted person, so the two sit together.
 
 ## Canon
 
@@ -141,6 +142,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O5:** this game replaced the isometric one; all lore is kept.
 - **O6:** everything proposed for the ledge and the bothy (P1 to P26, except P17) is approved.
 - **O7:** the walking bloom hunts on the highland edge. It is a body, not a beast.
+- **O8:** the sun's day is approved: coal, coin and clear days, fixed by the day's number.
+- **O9:** beasts are modelled, the walking bloom too; living people stay painted.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

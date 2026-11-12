@@ -882,7 +882,7 @@ If painted people read well by one lantern in first person, the look works. If t
 | D15 | Who directs | One director: the owner, who alone rules on canon. The brief was written for two. |
 | D16 | When co-op is built | After the first single-player slice. The game is still for up to four (D7). |
 
-**Open for the owner's ruling.** D8 says people are drawn and beasts are modelled. The build brief says each person and each creature is one painted front-view picture. The two cannot both hold. Until the owner rules, D8 stands as written and no beast is built.
+**Ruled 2026-11-12 (O9).** D8 stands: people are drawn and beasts are modelled, the walking bloom too, on condition that the models look far better than the first sketches. The build brief's "one painted picture" holds for people only.
 
 ### New names
 

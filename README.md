@@ -72,7 +72,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/ledge1.js` | Phase 1: the ledge, the bothy, the coal sun, the ash, the words |
 | `js/art2.js` | Phase 2: the tiles, the two people, the bothy's things, the hand and blade, painted in code |
 | `js/sun3.js` | Phase 3: the sun's day |
-| `tools/look/` | Look tests the page never loads: beasts painted and modelled, for a ruling |
+| `tools/look/` | Look tests the page never loads: the walking bloom and the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
