@@ -1,84 +1,105 @@
 # CLAUDE.md - The Long Account
 
 Guidance for Claude (and other agents) working in this repository. Player-facing documentation is
-`README.md`. The design is `docs/worldbuilding/the-round-and-the-long-account.md`. The world's
-rules are `docs/worldbuilding/CANON.md`.
+`README.md`. The phases, and everything invented and awaiting a ruling, are in `ROADMAP.md`. The
+design is `docs/worldbuilding/the-round-and-the-long-account.md`. The world's rules are
+`docs/worldbuilding/CANON.md`.
 
 ## What this is
 
-A first-person, co-op dark-fantasy game in **Godot 4.7.2-stable**, GDScript, Forward+ renderer.
-It replaced the isometric Ashen Wilds game on 2026-11-11 (owner decision O5). Today it is a
-**look test**: `scripts/main.gd` builds one scene in code, the prologue's ledge, and there is no
-gameplay. The old game is on the branch `archive/isometric-prototype`; read its scripts for
-reference before rebuilding a system, and never copy isometric assumptions across.
+A first-person, grid-world game of dread that runs in a web browser, co-op for one to four. Plain
+JavaScript: **no framework, no bundler, no build step.** The engine was copied from *Echoes of the
+Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) with its story taken
+out (decision D14). That repository is read-only for this work: read it, never change it.
 
-## Get Godot (cloud sessions do not have it)
+Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`).
 
-    mkdir -p ~/godot && cd ~/godot
-    curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
-    unzip -o godot.zip
-    export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
+## The owners' rules
 
-Use exactly 4.7.2-stable. A project opened in a newer editor is converted and cannot go back.
-Commit the `.uid` file Godot writes beside each new script.
+- **Their word is canon.** The story folder is `docs/worldbuilding/`. Before inventing any name,
+  date, custom or fact, search it. Mark anything invented `[PROPOSED]` in `ROADMAP.md` and list it for
+  a ruling. Never contradict a written line.
+- **Numbered phases.** One phase is one feature, one file `js/<feature><phase>.js`, one test file
+  `test/<feature><phase>.test.js`, one entry in `ROADMAP.md` and one pull request.
+- **They merge; you never do.** Never force-push `main`. Never delete `archive/isometric-prototype`.
+- **Show pictures.** After every visible change, render stills, look at them yourself, and send them.
+  If they say they cannot see the difference, believe them and change approach.
+- **Write plainly.** Report what changed, what you invented, what is not done, and what needs
+  deciding. Say which suites you did not run.
 
-## Verify every change
+## Run and verify
 
-    $GODOT --headless --path . --import
-    for f in $(find scripts -name "*.gd" | sort); do
-      $GODOT --headless --path . --check-only --script "res://$f" 2>&1 | grep -E "ERROR|WARNING"
-    done
-    $GODOT --headless --path . --quit-after 120 2>&1 | grep -E "SCRIPT ERROR|Parse Error"
+    python3 -m http.server 8000                       # play at http://localhost:8000
 
-Then **render and look**. A headless run draws nothing.
+    node test/fork0.test.js --no-browser              # no browser needed
+    node test/ledge1.test.js --no-browser
+    node tools/pwa/precache.js --check                # the offline list is current
 
-    sudo apt-get install -y mesa-vulkan-drivers     # once
-    xvfb-run -a -s "-screen 0 1280x800x24" $GODOT --path . --rendering-driver vulkan -- --shots "$PWD/docs/screenshots"
+    NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
+    NODE_PATH=$(npm root -g) node test/ledge1.test.js
+    NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
 
-Open every PNG it writes. The stills have caught real faults: a sky panel showing its edges, a
-foreground lit entirely red, fog swallowing the citadel. Ash flecks move, so two runs never match
-byte for byte.
+Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
+running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
+straight lines from the ledge to the horizon. A test caught another:
+the engine lets a player wade into its water floor, so the cliff did not hold.
+
+After any change to a file the page loads: bump its `?v=N` in `index.html`, then run
+`node tools/pwa/precache.js` so `sw.js` is rebuilt. CI fails if it is stale.
+
+Headless Chromium needs `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader
+--ignore-gpu-blocklist`, and the page must set `window.__r3d21 = { automation: true }` before load
+or the 3D renderer stays off. `test/harness.js` does both.
+
+## How the engine is laid out
+
+    index.html            loads every script in order; the last one wins when two wrap the same function
+    js/engine.js          the classic raycaster (320 x 200 canvas, 150-row view); the reference renderer
+    js/r3d21.js           the WebGL2 renderer: one static mesh per map, passes, R3D.extendMesh(fn)
+    js/maps.js            GameMap: cells, blocks, doors, ground heights, entities
+    js/game.js            state (G), walking, collision (solidAt), noise, dialogue, saves
+    js/light21.js         sky by hour, sun, bloom          js/weather.js      weather states
+    js/eaves78.js         roofs, gables, windows, by a per-map style table (EAVES78.STYLES)
+    js/pixelfolk75.js, js/paintfolk76.js   painted people, rigged and walked
+    js/net19.js ...       two-player co-op: one hosts, one joins with a six-letter code
+    js/fork0.js           Phase 0: stand-ins for removed story hooks
+    js/ledge1.js          Phase 1: everything that is this game's
+
+Useful facts, all checked in this repository:
+
+- A map is `new GameMap(id, name, w, h, opts)`. Floor index **2** is the engine's water: nobody can
+  walk on it, except that `js/upgrades.js` lets the *player* wade in. `ledge1.js` closes that on this
+  game's maps (`map._la`), which is how the cliff holds with no wall.
+- A walker climbs a step of 0.36 and a grade of 1.1 (`js/engine.js`). Steeper is a cliff.
+- A building is a filled rectangle of walls, 3 x 3 or more, whose texture name matches
+  `/^(t_house|t_wood$|t_marble)/`, with `t_roof` inside and a door. Name a wall tile `t_house_...`
+  and the roof planner finds it.
+- An entity with `lightCol: [r, g, b]` is a point light.
+- A pass is `R3D.addPass({ name, order, init(gl), enabled(F), draw(gl, F) })`. Core orders: sky 0,
+  prepass 10, world 20, sprites 30, body 40, transparent 50, post 90.
+- `window.advanceTime(ms)` steps the game without a clock. `R3D.readPixels()` reads the frame. Stop
+  `performance.now` and render twice before hashing a frame; then it is the same every time.
+- Options rows are added by wrapping `renderAccessibilityMenu`; switches live on `GFX`.
+
+## Rules for new work
+
+- **Every visual feature has a switch** in Options. Off must draw exactly as before the feature.
+  Test it by frame hash, on and off.
+- **Nothing visual uses live random numbers.** Use a fixed hash of position (`LEDGE1.hash`).
+- **Tiles are 64 x 64, painted in code.** No image files for walls, floors or roofs.
+- **In-game text is plain ASCII** (canon rule). The tests check it.
+- **Do not edit the copied engine files** unless there is no other way; wrap from a phase file
+  instead, as the engine's own phases do. When an engine file must change, say so in `ROADMAP.md`.
+- **Keep it fast.** About a millisecond a frame per visual feature. Static geometry once per map.
+  Software rendering in CI cannot measure this; say so, and measure on real hardware when you can.
 
 ## The look: rules that must hold
 
-- **Scale.** The 3D view is 320 x 150 and is shown at exactly 4x (1280 x 600) with nearest
-  filtering and the ordered dither in `_build_view()`. The ledger panel is 1280 x 200 beneath it.
-  Never use a non-integer scale.
-- **People are painted; beasts are modelled.** A human is a flat painted figure (`Sprite3D`,
-  unshaded, alpha cut). A creature is real geometry through the same low-resolution pass.
 - **Four lights, never confused.** Yours is tallow yellow and small. The land's is ember red and
   vast. Teal belongs to the bloom. Pale blue belongs to workings.
 - **Cold where you stand, fire where you are going.** The ledge is lit cool; the far country burns.
-- **Black is the base colour.** Build dark and add light.
-- **The sky is a painting; the world is geometry.** `sky.png` is wrapped on an arc. Land, the
-  Slagcrown, fires and smoke are real meshes.
-- **In-game text is plain ASCII** (canon rule; the panel is drawn with it).
-
-## Layout
-
-    project.godot, main.tscn   the one scene; its root runs scripts/main.gd
-    scripts/main.gd            view, sky and light, land_height() and the land mesh, the Slagcrown,
-                               the ledge, the painted partner, camera, hands, panel, walking, stills
-    scripts/ash_overlay.gd     ash and embers as single pixels over the low-resolution view
-    assets/                    placeholder PNGs, loaded at run time with Image.load_from_file()
-    tools/make_assets.py       rebuilds assets/ from the owner's key painting (Pillow, NumPy, OpenCV)
-    docs/worldbuilding/        the world bible
-    docs/screenshots/          the stills
-
-`assets/` is loaded straight from disk, so `*.import` files are git-ignored. An exported build will
-need those textures imported properly; nothing exports yet.
-
-## Conventions and pitfalls
-
-- **Typed GDScript everywhere.** Fix warnings; do not ignore them.
-- **GDScript is not shader language.** `mix()` does not exist; use `lerp()` / `lerpf()`.
-- **Set `position`, not `global_position`, before `add_child()`.**
-- **Avoid particle nodes for anything that must be checked in a still.** They do not render under
-  software Vulkan. Ash, embers, fire glow and smoke are meshes or drawn pixels.
-- **`land_height(x, z)` is the one source of ground height.** Place anything that stands on the
-  land by calling it.
-- **Server authority is not negotiable** once networking begins: clients send intent, the server
-  owns every shared outcome.
+- **Black is the base colour.** Build dark and add light. Interiors are dark; one fire lights them.
+- **People are painted; beasts are modelled** (D8).
 
 ## Canon
 
@@ -94,13 +115,12 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 
 - Remote: `https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds` (`main`).
 - Commit under the owner's name and GitHub address, as earlier commits do, so GitHub credits them.
-- Never force-push `main` without the owner's explicit OK. Never delete `archive/isometric-prototype`.
-- Keep `README.md` in sync with what is actually built.
+  Take the address from `git log`; never type it into a command or send it anywhere else.
+- Keep `README.md` and `ROADMAP.md` in sync with what is actually built.
 
 ## Working with the owner (sleeves)
 
 - Before a big design-heavy build, say whether a stronger model such as Fable is worth switching to.
-- The owner works without a local Godot install: stills are how they see progress. Render them,
-  look at them yourself first, and send them.
-- Be honest about what a check cannot show: feel, motion, timing and how it reads on a real screen
-  still need a person at the controls.
+- The owner does not run the game from source: stills are how they see progress.
+- Be honest about what a check cannot show: feel, motion, timing, sound and how it reads on a real
+  screen still need a person at the controls.

@@ -1,39 +1,52 @@
-# Compile-check every script and boot the game headless on every push and pull request.
-# There is no regression suite yet: the game is a look test. Add one with the first gameplay.
-name: checks
+name: Checks
+
+# Every push and pull request: the scripts parse, the no-browser tests pass, the offline list is current,
+# and the game is played in a headless browser. Software rendering: nothing here measures speed.
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  godot:
+  node:
+    name: Syntax, land and words, offline list
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - name: Cache Godot 4.7.2-stable
-        uses: actions/cache@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          path: ~/godot
-          key: godot-4.7.2-stable-linux-x86_64
-      - name: Get Godot 4.7.2-stable
+          node-version: 22
+      - name: Every script parses
         run: |
-          if [ ! -x ~/godot/Godot_v4.7.2-stable_linux.x86_64 ]; then
-            mkdir -p ~/godot && cd ~/godot
-            curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
-            unzip -o godot.zip && rm godot.zip
-          fi
-          ~/godot/Godot_v4.7.2-stable_linux.x86_64 --version
-      - name: Compile-check
+          for f in js/*.js sw.js test/*.js tools/*.js tools/pwa/*.js; do node --check "$f"; done
+      - name: Phase 0, the fork (no browser)
+        run: node test/fork0.test.js --no-browser
+      - name: Phase 1, the ledge (no browser)
+        run: node test/ledge1.test.js --no-browser
+      - name: The offline list is current
+        run: node tools/pwa/precache.js --check
+
+  browser:
+    name: Played in a headless browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium (test tools only; nothing is bundled with the game)
         run: |
-          export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
-          $GODOT --headless --path . --import >/dev/null 2>&1 || true
-          fail=0
-          for f in $(find scripts -name "*.gd" | sort); do
-            out=$($GODOT --headless --path . --check-only --script "res://$f" 2>&1 | grep -E "ERROR|WARNING" || true)
-            if [ -n "$out" ]; then echo "--- $f"; echo "$out"; fail=1; fi
-          done
-          test "$fail" = 0
-      - name: Headless boot
-        run: |
-          out=$(~/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path . --quit-after 120 2>&1 | grep -E "SCRIPT ERROR|Parse Error|Failed to load" || true)
-          if [ -n "$out" ]; then echo "$out"; exit 1; fi
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Phase 0, the fork
+        run: node test/fork0.test.js
+      - name: Phase 1, the ledge
+        run: node test/ledge1.test.js

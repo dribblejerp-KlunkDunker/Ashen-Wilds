@@ -1,78 +1,93 @@
 # The Long Account
 
-A first-person, co-op dark-fantasy game in the world of Ashen Wilds, for one to four players.
-A small carrying company takes a dead kingdom's unpaid receipts, and one old woman who was inside
-the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
+A first-person game of dread in the world of Ashen Wilds, for one to four players, played in a web
+browser. A small carrying company takes a dead kingdom's unpaid receipts, and one old woman who was
+inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 
-**Status: a look test.** What is here renders the game's opening view and lets you walk a few
-metres of it. There is no combat, noise, load, saving or multiplayer yet.
+**Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
+the coal sun, walk down to Marget Sayle's bothy and speak to her. Nothing hunts you yet, and nothing
+of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
 
-![The ledge, by lantern](docs/screenshots/01_ledge_lantern.png)
+![The ledge](docs/screenshots/01_the_ledge.png)
 
 | | |
 | --- | --- |
-| ![Cold light and a glim-marked blade](docs/screenshots/02_ledge_cold_light.png) | ![The partner, by lantern](docs/screenshots/03_partner_by_lantern.png) |
+| ![At the edge](docs/screenshots/02_at_the_edge.png) | ![The bloom](docs/screenshots/04_the_bloom.png) |
+| ![The bothy](docs/screenshots/05_the_bothy.png) | ![Marget Sayle](docs/screenshots/06_marget_sayle.png) |
 
-## What the look test shows
+## Play
 
-- **The scale of the Shattered Octave build:** a 320 x 150 first-person view shown at exactly four
-  times its size, with an ordered dither, above a 200-pixel ledger panel.
-- **The prologue's ledge:** frosted black rock on Orlen's highland edge.
-- **The world of the key painting as real geometry:** the broken highland, cracks with fire in them,
-  the Slagcrown on its rise under the coal sun, smoke, and the teal hollow of the bloom.
-- **People are painted, and two hands are on screen:** a lantern or cold light in the left, a blade
-  in the right. `L` swaps them.
-
-**Placeholder art.** The sky and the partner figure are cut from the owner's key painting. The hands,
-the panel and the textures are drawn by `tools/make_assets.py`. The land is a height field and the
-Slagcrown is boxes. None of it is final.
-
-## Run
-
-Godot **4.7.2-stable** (standard build, Forward+). Do not open the project in a newer editor.
+There is nothing to build or install. Serve the folder and open it:
 
     git clone https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds.git
     cd Ashen-Wilds
-    godot --path .                       # walk the ledge
-    godot --path . -- --shots out        # write the four stills to out/ and quit
+    python3 -m http.server 8000        # then open http://localhost:8000
 
 | Input | Action |
 | --- | --- |
-| WASD | Walk (the ledge only) |
-| Mouse | Look |
-| L | Swap lantern and cold light |
-| Esc | Quit |
+| W A S D | Walk |
+| Mouse | Look (click the view first) |
+| E or Space | Open a door, speak, read what is in front of you |
+| Esc | Controls and Options |
+
+Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
+the coal sun, ash and embers, burning ground.
+
+## What is in the build
+
+- **The ledge** on Orlen's highland edge: frosted rock fourteen up, a cliff you cannot step off, a
+  ramp down to a shelf.
+- **The country of the key painting, as a map you could walk:** the cracked highland with fire in the
+  beds of its cracks, a canyon running west, the teal hollow of the bloom, and the Slagcrown on its
+  rise, with the far rim behind.
+- **The coal sun**, low in the west over the Slagcrown, with smoke for cloud and ash in the air.
+- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. It is marked as
+  the safe room, though nothing yet exists for it to be safe from.
+- **Two people who can be spoken to:** the carter on the ledge, and Marget Sayle.
+
+## What it is built on
+
+The engine is the one written for *Echoes of the Shattered Octave* (same owner), copied in at that
+game's commit `f2b3990` with its story removed. It is plain JavaScript: no framework, no bundler, no
+build step. `index.html` loads the scripts in order. Much inside the engine is still that game's:
+its panel wording, its items, its hands, and the two paintings standing in for the carter and Marget
+Sayle. `ROADMAP.md` lists all of it. `CREDITS.md` lists where every copied file came from.
 
 ## Where things are
 
 | Path | Purpose |
 | --- | --- |
-| `project.godot`, `main.tscn` | Engine configuration and the one scene |
-| `scripts/main.gd` | The whole look test: view, sky, land, the Slagcrown, the ledge, hands, panel, stills |
-| `scripts/ash_overlay.gd` | Falling ash and rising embers over the low-resolution view |
-| `assets/` | Placeholder art, built by `tools/make_assets.py` |
-| `tools/make_assets.py` | Rebuilds `assets/` from the key painting (not stored here) |
-| `docs/worldbuilding/` | The world bible. Start with `CANON.md`. |
+| `index.html` | The page. Loads every script in order, each with `?v=N` |
+| `js/fork0.js` | Phase 0: quiet stand-ins for the story hooks the engine still calls |
+| `js/ledge1.js` | Phase 1: the ledge, the bothy, the coal sun, the ash, the two people, the words |
+| `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
+| `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
+| `test/` | One test file per phase, and the shared browser harness |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` |
+| `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
 | `docs/worldbuilding/the-round-and-the-long-account.md` | The wider world, and this game's design |
-| `docs/screenshots/` | Stills written by `-- --shots` |
+| `ROADMAP.md` | Every phase, what is invented and awaits a ruling, what is not done |
 | `CLAUDE.md` | How to work on this repository |
 
-## The game this replaced
+## Tests
 
-Until 2026-11-11 this repository held Ashen Wilds, an isometric dark-survival game with a networked
-prototype. The owner retired it in favour of this game (owner decision O5 in
-`docs/worldbuilding/CANON.md`). **All of its lore is kept** in `docs/worldbuilding/`. Its code,
-assets, tests, tools and production records are on the branch
+    node test/fork0.test.js --no-browser
+    node test/ledge1.test.js --no-browser
+    node tools/pwa/precache.js --check
+
+    # the played half, in a headless browser (Playwright is not bundled)
+    NODE_PATH=$(npm root -g) node test/fork0.test.js
+    NODE_PATH=$(npm root -g) node test/ledge1.test.js
+
+A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
+the door opens, the people answer, and the switches change the picture. It says nothing about how the
+game feels: that needs a person at the controls.
+
+## The games this replaced
+
+Until 2026-11-11 this repository held Ashen Wilds, an isometric dark-survival game (owner decision
+O5 in `docs/worldbuilding/CANON.md`). **All of its lore is kept** in `docs/worldbuilding/`. Its code
+is on the branch
 [`archive/isometric-prototype`](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/tree/archive/isometric-prototype).
-Its rules (commitment melee, hearing, carry weight, the six weathers) are the starting point for
-this game's design and will be rebuilt for first person.
-
-## Verification
-
-    godot --headless --path . --import
-    godot --headless --path . --check-only --script res://scripts/main.gd
-    godot --headless --path . --quit-after 120
-
-CI runs the compile check and a headless boot on every push and pull request. There is no
-regression suite yet. A passing check says the scripts compile and the scene builds; it says nothing
-about how the game looks or feels.
+A one-day Godot look test of this game followed it and was dropped for the browser engine (decision
+D14); it is in the history of this branch.

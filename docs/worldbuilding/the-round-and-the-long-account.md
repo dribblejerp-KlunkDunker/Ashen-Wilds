@@ -574,7 +574,7 @@ The model is the one the retired isometric build was heading for: small, coopera
 
 - **Friends-scale.** One to four. Two is the first test.
 - **Server-owned.** Clients send intent. The server owns health, hits, loot, the Account and the Chart.
-- **Hosting.** One player's game is the server at first. A dedicated server comes later.
+- **Hosting.** One player's game is the server: the host's browser tab runs the world, and friends join it with a short code (D14). A dedicated server comes later, if it is ever needed.
 - **Saving.** The company (roster, Account, book, Chart) is one versioned file on the server.
 - **Joining and leaving.** Players come and go at any hearth. If one leaves during a landing, their person becomes a companion on *hold*.
 - **Absent players.** Their people stay aboard. They eat. They do not sicken or die while their player is away.
@@ -588,17 +588,19 @@ The isometric Ashen Wilds game is retired, and this game takes its place in the 
 
 **Its code is reference only.** The old build's combat, perception, weather, companion and network scripts are worth reading before each system is rebuilt. None of them runs in the new game.
 
-**What exists today.** The repository holds a look test of the prologue's ledge: a 320 by 150 first-person view shown at four times its size, a painted sky, the broken highland and the Slagcrown as real geometry, one painted person, two hands and the ledger panel. It has no gameplay.
+**What exists today.** The game runs in a web browser on the engine of *Echoes of the Shattered Octave*, copied into this repository with that game's story taken out (D14). Two places exist: the prologue's ledge on Orlen's highland edge, and Marget Sayle's bothy under it. The ledge can be walked, the Slagcrown stands under the coal sun, the carter and Marget Sayle can be spoken to, and the bothy is marked as the safe room. Nothing hunts yet. `ROADMAP.md` lists each phase, what in the build is still the Octave's, and what was invented and waits for a ruling.
 
-**The work ahead, in order:**
+**The work ahead, in order.** Each is one numbered phase and one pull request.
 
-1. **The first-person body.** Walking with collision, the two hands as real objects, the lantern and cold light as things held.
-2. **Painted people.** Facings, walk cycles and the first animated figure. The placeholder is a single still cut from the key painting.
-3. **Melee, noise and load in first person**, rebuilt from the old rules.
-4. **The network layer**, server-owned from the start, for two players first.
-5. **The Chart, the Account and people who talk.**
+1. **Something that hunts by sound**, on the ledge, with the engine's noise value driving it.
+2. **The six weathers**, beginning with Sleet (the engine's rain) and Ashfall, stopped by roofs.
+3. **This game's own people, hands and panel.** The carter and Marget Sayle are the Octave's paintings today. The panel's words (songs, sovereigns) are the Octave's.
+4. **The company:** backgrounds, the roster, death and succession.
+5. **Load and the two-person carry**, then the Wexhaven stove lift for two players.
+6. **Four players.** The engine joins two today.
+7. **The Chart, the Account and the word.**
 
-The engine stays Godot 4.7.2-stable, Forward+.
+The engine is plain JavaScript in the browser, with no framework and no build step. The Godot look test that stood here on 2026-11-11 is in the repository's history.
 
 ### The feeling: the key art
 
@@ -845,12 +847,12 @@ These are the rules that keep the tone, and every scene should pass all eight.
 
 ### First playable
 
-**Order of work.** The prologue's ledge comes first, because the look test already stands there: make it walkable, then put Marget's bothy and the carry under it. The stove lift below is the first two-player test after that.
+**Order of work.** The prologue's ledge came first and stands: it is walkable, and Marget's bothy is under it. Next comes the thing that hunts there, then the carry. The stove lift below is the first two-player test after that.
 
 The smallest build that proves the idea is the Wexhaven stove lift, for two players.
 
 - One scene: the inlet, the drowned *Constance*, the quay above.
-- One two-person load, carried over the existing network layer.
+- One two-person load, carried over the engine's two-player link.
 - One beast (the hulk-conger) and three people with morale (reavers).
 - One promise given, with surety, and marked at the hearth.
 - One death and one succession.
@@ -874,6 +876,7 @@ If painted people read well by one lantern in first person, the look works. If t
 | D11 | An opening on the highland edge | Yes: the prologue on the ledge, with the key painting's view |
 | D12 | Small magic in the canon | Yes: minor workings of varying uses and powers, and marks on weapons. Recorded as O4. Prophecy stays out. |
 | D13 | Retire the isometric game | Yes: this game replaces it in the repository. Only the lore is kept, brought in line with this file. The old code stays on an archive branch. Recorded as O5. |
+| D14 | The engine | The browser stack: plain JavaScript, no build step, the Shattered Octave's engine copied in and re-skinned. One player hosts and friends join with a code. The Godot look test is dropped. |
 
 ### New names
 

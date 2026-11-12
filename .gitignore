@@ -1,22 +1,14 @@
-# Godot 4+ local cache, imported assets, and shader cache
-.godot/
-*.import
-
 # OS-specific metadata
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Exported builds and local logs
-builds/
-export/
+# Local logs and scratch
 *.log
 *.tmp
+node_modules/
 
 # Local editor/IDE settings
 .vscode/
 .idea/
 *.swp
-
-# Stills written by a local `-- --shots` run outside docs/screenshots
-/shots/
