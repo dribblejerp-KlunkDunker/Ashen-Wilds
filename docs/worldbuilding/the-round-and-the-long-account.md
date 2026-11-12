@@ -514,9 +514,59 @@ Most of the hard rules already exist in `scripts/`. Combat, enemies and loot are
 
 The pinned engine (Godot 4.7.2-stable, Forward+) can do the look. Nothing here asks for an engine change.
 
+### The feeling: the key art
+
+The game should feel like the owner's key painting: two worn people on a cold ledge, looking at a broken country burning under a sun that has gone dark. The rendering comes from the Shattered Octave references in the next section. The mood, the palette and the composition come from the painting.
+
+The painting is the owner's and is not stored in this repository. It shows two armoured figures, an old soldier with a long blade and a young one with a spear and a raven shield, on a frosted ledge above a burning land, with a ruined citadel under a black sun with a red rim.
+
+**What each part of the painting becomes.**
+
+| In the painting | In the game |
+| --- | --- |
+| A black sun with a burning rim | **The coal sun.** On the worst days over Orlen the sun is a dark disc with a red edge. It is how the Dim is painted. It is not an eclipse and not a sign. |
+| A ruined citadel directly beneath it | The Slagcrown, and a rule for every land: one unlit landmark on the skyline, set under the sun |
+| Burning chasms and columns of smoke | Venting ground in the north. Kilns, pyres and the Standing Dead in the south. Fire is far off and never friendly. |
+| A teal glow in the hollow | The bloom. Corpse-caps give off a faint teal foxfire in the dark, as some real fungi do. This is new and proposed. |
+| Glowing marks on the blade | A maker's inscription cut down the blade, worn bright, catching the lantern. It does not glow by itself, because the canon sheet rules out glowing runes. |
+| Frost on black rock | Hoarfrost. Where the players stand is always the cold part of the picture. |
+| An old soldier and a young one | The roster: whoever carries the load now, and whoever carries it next |
+| A raven on the shield | The company's device. The players choose one mark, and it goes on their shields and on the cover of the Account. |
+| Torn cloaks, embers, drifting ash | Wind is always visible. Embers rise and ash falls. |
+
+**Six rules that carry the feeling into play.**
+
+1. **Small against vast.** Every landing opens on an overlook. The players see the whole place, its landmark and its fires, before they walk down into it.
+2. **Cold where you stand, fire where you are going.**
+3. **Black is the base colour.** About half of the painting is near-black. Scenes are built dark, and light is added to them.
+4. **Three lights, never confused.** Yours is tallow yellow and small. The land's is ember red and vast. Teal belongs to the bloom alone.
+5. **Never one figure.** The title screen, the loading plates and the Chart's corner art always show two or more of the company.
+6. **Worn, not heroic.** Fur, mail and dented plate that do not match. Nothing is new and nothing shines.
+
+**Where a painting goes in a first-person, low-resolution game.**
+
+- **The sky is the painting.** The coal sun, the smoke and the cloud are a painted dome, as the skies already are in the Shattered Octave build.
+- **People are cut from paintings in this brush.** Lit from behind by fire, cold from the front.
+- **The overlook is level design.** Each landing's first room is a ledge.
+- **The painting itself** is the title screen and the frontispiece of the Account.
+
+**The master palette**, sampled from the painting. The land palettes in the next section are tints of it.
+
+| Role | Colour | Used for |
+| --- | --- | --- |
+| Base black | #0c0c0c to #18191b | About half of any frame |
+| Ash and rock | #2c2e2e | Ground, cloud, ruin |
+| Scorched earth | #402e2a to #58413a | Middle distance, leather, fur |
+| Ember | #974e2a to #b05132 | Fire, the sun's rim, the horizon |
+| Bloom teal | #214644 | The bloom and nothing else |
+| Steel | #484949 | Armour and blades |
+| Bone | #9b7d66 | The lightest tone: skin, frost edges, paper |
+
+**One thing the painting raises.** It shows Orlen's Citadel highlands, and the story as written starts at Wexhaven and sails away. A short opening on the highland edge, looking back before the walk south, would put this exact view in the game. That would be an eleventh decision, and it is not yet made.
+
 ### The look
 
-The look is the Shattered Octave build's, taken from the owner's four reference images: a first-person view of a low-resolution 3D world, people painted as flat figures, and two hands at the bottom of the screen.
+The rendering is the Shattered Octave build's, taken from the owner's four reference images: a first-person view of a low-resolution 3D world, people painted as flat figures, and two hands at the bottom of the screen.
 
 **What each reference establishes.**
 
