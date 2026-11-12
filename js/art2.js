@@ -358,6 +358,8 @@ const ART2 = (() => {
     return true;
   }
   const installed = install();
-  return { paint, mark, install, installed, TILE_OF, hash, lum };
+  // the painter's kit, for later phases and for look tests (tools/look/): the same hands paint everything
+  const kit = { sheet, put, at, limb, drape, oval, box, outline, done, cols, hex, px, ramp, dith, hash, vnoise, clamp, lerp, SKIN, SKIN_OLD, INK };
+  return { paint, mark, install, installed, TILE_OF, hash, lum, kit };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = ART2;

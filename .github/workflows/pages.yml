@@ -35,6 +35,7 @@ jobs:
           node test/fork0.test.js --no-browser
           node test/ledge1.test.js --no-browser
           node test/art2.test.js --no-browser
+          node test/sun3.test.js --no-browser
       # derive the offline file list from index.html, then copy exactly the served files
       - name: Write the offline list and stage the site
         run: node tools/pwa/precache.js --stage _site

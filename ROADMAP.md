@@ -84,7 +84,7 @@ millisecond honestly. Feel, sound and how it reads on a real screen need a perso
 - The player is alone on the ledge unless a second joins; the default pair's carter is a person
   standing there, not a second player's body.
 
-### [PROPOSED] in Phase 1, for a ruling
+### Proposed in Phase 1: **approved 2026-11-12 (O6)**, except P17
 
 Everything below was invented for the build. Nothing here contradicts a written line that I could
 find; each was searched for in `docs/worldbuilding/` first.
@@ -114,7 +114,7 @@ find; each was searched for in `docs/worldbuilding/` first.
 | P14 | A canyon runs from under the ledge west toward the Slagcrown | From the painting |
 | P15 | The bothy is on a shelf north of the ledge, reached by a ramp. The design says only "under the ledge" | |
 | P16 | **How the highland edge builds** (the first row of the regional table): field stone laid dry, under turf and heather; one low room, one door, no window on the weather side | `EAVES78.STYLES.la_ledge` |
-| P17 | The sun does not move. It hangs low in the west at every hour; day and night only change how much light there is | The engine's own sun still rises and sets behind it. Is the coal sun fixed, or does it cross the sky? |
+| P17 | ~~The sun does not move.~~ **Not approved.** The owner: "I suppose it should move ... I do want there to be actual sunlight at times". See Phase 3. Original wording: it hangs low in the west at every hour; day and night only change how much light there is | The engine's own sun still rises and sets behind it. Is the coal sun fixed, or does it cross the sky? |
 
 **Words for things**
 
@@ -161,7 +161,7 @@ lights the room.
 - Seen from behind, a figure is the engine's guess from the front painting.
 - The classic renderer shows the people as flat cards.
 
-### [PROPOSED] in Phase 2, for a ruling
+### Proposed in Phase 2: **approved 2026-11-12 (O6)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -172,7 +172,69 @@ lights the room.
 | P25 | The game's mark is the coal sun: a black disc in a burning ring over a red horizon | Used for the app icons and the tab |
 | P26 | The engine's tile names for marble, brass, hedge, moss and the like all draw as this world's stone, grass or water | Nothing on the ledge uses them |
 
-## Rulings (2026-11-11)
+## Phase 3 - the sun's day
+
+`js/sun3.js` · `test/sun3.test.js` · `tools/sunshots.js` · stills 10 to 17 in `docs/screenshots/`
+
+The owner was unsure whether the coal sun should move, and wanted real sunlight at times. The world
+bible already answers it, in three written lines: the sun is "a pale coin behind the ash, a disc you
+can look at directly"; "the sun throws a shadow at noon now, on some days"; and "on the worst days
+over Orlen the sun is a dark disc with a red edge". So:
+
+- **The sun crosses the sky** on the engine's own arc: up in the east, high in the south at noon,
+  down behind the Slagcrown. The engine's shadows fall away from the disc.
+- **It has three faces.** A *coal* day: the dark disc with the burning rim, all day, and a gloom at
+  noon. A *coin* day: a pale disc behind the pall, flat grey daylight, hardly a shadow. A *clear* day:
+  about noon the pall thins, the sun burns through, and things throw shadows.
+- **Every dusk and dawn is red.** Near the horizon any sun sinks into the ash and is the coal again.
+- **The prologue's day is a coal day**, and it opens with the sun low over the Slagcrown, a little
+  before it sets behind the keep.
+- One Options switch, "The sun's day". Off: the sun hangs where Phase 1 put it.
+
+`js/ledge1.js` changed with it: the sky's shader learned the two paler faces, the fire along the
+horizon now belongs to the land (it stays in the west when the sun is elsewhere), and the hour the
+prologue opens at can be set.
+
+**Checked by the tests:** the arc is the engine's; day 0 is a coal day and all three kinds fall in the
+first ten; what each face does to the light; the three written lines are in the bible; in a browser,
+noon is three different pictures, the land is brightest under the clear sun and dimmest under the
+coal, the switch puts the fixed sun back, and indoors nothing changes.
+
+**Not done:** the moon and stars are the engine's and are hidden behind this sky. The six weathers do
+not yet change the sun's face (a clear noon in Sleet is still clear). The classic renderer shows none
+of it. Day length is the engine's: a day passes in thirty-six minutes.
+
+### [PROPOSED] in Phase 3, for a ruling
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P27 | How often: after the first day, of every twenty days about five are coal days, eleven are coin days and four have a clear noon | The bible says "the worst days" and "some days", no numbers |
+| P28 | A clear noon lasts from about ten in the morning to half past two | |
+| P29 | Which day is which is fixed for ever by the day's number, so a company can learn that the fourth day out is clear | A rule of the brief: nothing visual rolls dice |
+| P30 | Every sunset and sunrise shows the coal sun, on every kind of day | It keeps the key painting's view true each evening |
+| P31 | The prologue opens at about half past five in the evening, with the sun a little south of due west, low over the Slagcrown | It was a quarter to six, with the sun fixed due west |
+| P32 | By daylight the far haze is dun, not red | |
+
+## A look test: beasts painted and modelled
+
+`tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 25 in `docs/screenshots/`
+
+Not part of the game: the page does not load it. The owner asked to see "a couple beasts both modeled
+and painted", to rule on D8 against the brief. The walking bloom and the blind quarry-troll are each
+made both ways and stood side by side on the ledge.
+
+- **Painted:** one front-view picture, drawn by the engine as it draws people. It always turns to
+  face you: from the side and from behind you see its front. The engine's rig can walk a painted
+  thing that is shaped like a person (the bloom is), and lights, fogs and hides it like anything else.
+- **Modelled:** real geometry in a pass of its own, about 470 triangles each. It has sides and a
+  back, it can lean, reach and hunch in depth, and it throws no shadow yet. It is lit by this file's
+  own simple light, not the engine's, and nothing in the engine knows it is there: it cannot yet be
+  hit, heard, hidden by fog rules or saved.
+
+Whichever is ruled against is deleted. Both are quick sketches made to show the difference, not
+finished things.
+
+## Rulings (2026-11-11 and 2026-11-12)
 
 | Asked | Ruled |
 | --- | --- |
@@ -182,35 +244,34 @@ lights the room.
 | `story/` or `docs/worldbuilding/` | The world bible stays where it is. |
 | The Octave's art | It leaves now. Done in Phase 2. |
 | Where it is saved and published | The Ashen-Wilds repository only. The Shattered Octave's repository is read, never written. |
+| Everything proposed (P1 to P26) | Approved, except P17. Recorded as O6 on the canon sheet. |
+| What hunts on the ledge | The walking bloom (O7). |
+| Does the coal sun move | "I suppose it should move", with real sunlight at times. Built as Phase 3 from three written lines of the bible; P27 to P32 await a ruling. |
+| Pages | The owner has set the source to GitHub Actions. It publishes when `main` receives the game. |
 
 ## Decisions I still need
 
-1. **Beasts: modelled or painted?** D8 says people are drawn and beasts are modelled. The build
-   brief says each creature is one painted front-view picture, and the engine draws creatures that
-   way. The two cannot both hold. This must be ruled before Phase 3, because the thing that hunts is
-   a beast.
-2. **P17:** does the coal sun move across the sky, or hang where it is?
+1. **Beasts: modelled or painted?** The look test above shows both. D8 says modelled; the brief
+   says painted. A ruling could also split them: bodies that were people (the walking bloom) painted
+   like people, true beasts (the troll) modelled.
+2. **The sun's day:** is it right (P27 to P32), and are the proportions of days right?
 3. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-4. **One setting only you can change.** The site publishes from `main` by
-   `.github/workflows/pages.yml`, but GitHub will refuse until the repository's Settings > Pages >
-   Build and deployment > Source is set to "GitHub Actions". I am not able to change that setting.
-5. **The pictures are still in this branch's history.** Phase 2 removes them from the files. They
-   remain in the earlier commit on the branch. "Squash and merge" keeps them out of `main`. If you
-   want them gone from the branch too, say so and I will rewrite it.
+4. **The pictures are still in the first branch's history.** "Squash and merge" on pull request 38
+   keeps them out of `main`.
 
 ## Next phases, in order
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
-| 3 | Something that hunts by sound on the ledge. Which animal is yours to choose: the bestiary gives the walking bloom for the hollow | "one thing that hunts by sound" |
-| 4 | The safe room made real: a door that holds, light, and what the hunter does at it | "one safe room" |
-| 5 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
-| 6 | The highland edge's building style honoured by the planner (P16) | "every region builds differently" |
-| 7 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
-| 8 | Dread as a value that changes the picture, tuned for this world | section 3 |
-| 9 | This game's panel words, credits and creation | |
-| 10 | Death and succession | "death means something" |
-| 11 | Four players | D7 |
+| 4 | The walking bloom hunts by sound on the ledge (O7). Waits on the ruling above for how it is drawn | "one thing that hunts by sound" |
+| 5 | The safe room made real: a door that holds, light, and what the bloom does at it | "one safe room" |
+| 6 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
+| 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
+| 8 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
+| 9 | Dread as a value that changes the picture, tuned for this world | section 3 |
+| 10 | This game's panel words, credits and creation | |
+| 11 | Death and succession | "death means something" |
+| 12 | Four players | D7 |
 
-The order is a proposal. Phases 3 to 5 finish the brief's vertical slice.
+The order is a proposal. Phases 4 to 6 finish the brief's vertical slice.

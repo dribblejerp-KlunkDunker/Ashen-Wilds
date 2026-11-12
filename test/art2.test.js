@@ -86,7 +86,7 @@ check(ic.status === 0, 'the app icons are the game\'s own mark, and current (nod
 const mk = A.mark(64); let dark = 0, fire = 0; for (const v of mk) { if (lum(v) < 60) dark++; if ((v & 255) > 150) fire++; }
 check(dark / 4096 > 0.6 && fire > 150, 'the mark is a dark disc in a burning ring on black');
 const html = read('index.html'), files = [...html.matchAll(/<script[^>]*\bsrc="([^"?]+)/g)].map((m) => m[1]);
-check(files.indexOf('js/art2.js') === files.length - 2 && files[files.length - 1] === 'js/ledge1.js', 'the page loads this file just before the ledge');
+check(files.indexOf('js/art2.js') === files.indexOf('js/ledge1.js') - 1, 'the page loads this file just before the ledge');
 check(/rel="icon"[^>]*circle/.test(html) && !/M16 3 L26 24/.test(html), 'the tab icon is the coal sun, not the old game\'s mark');
 const ledge = read('js/ledge1.js');
 check(!/'townsman'|'townswoman'|'hearth'|'bed'|'table'|'sign'/.test(ledge) && /la_carter/.test(ledge) && /la_marget/.test(ledge), 'the ledge asks for none of the old sprites by name');

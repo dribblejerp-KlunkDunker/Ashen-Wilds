@@ -22,13 +22,15 @@ jobs:
           node-version: 22
       - name: Every script parses
         run: |
-          for f in js/*.js sw.js test/*.js tools/*.js tools/pwa/*.js; do node --check "$f"; done
+          for f in js/*.js sw.js test/*.js tools/*.js tools/pwa/*.js tools/look/*.js; do node --check "$f"; done
       - name: Phase 0, the fork (no browser)
         run: node test/fork0.test.js --no-browser
       - name: Phase 1, the ledge (no browser)
         run: node test/ledge1.test.js --no-browser
       - name: Phase 2, our own art (no browser)
         run: node test/art2.test.js --no-browser
+      - name: Phase 3, the sun's day (no browser)
+        run: node test/sun3.test.js --no-browser
       - name: The offline list and the icons are current
         run: |
           node tools/pwa/precache.js --check
@@ -56,3 +58,5 @@ jobs:
         run: node test/ledge1.test.js
       - name: Phase 2, our own art
         run: node test/art2.test.js
+      - name: Phase 3, the sun's day
+        run: node test/sun3.test.js
