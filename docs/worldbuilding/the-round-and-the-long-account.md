@@ -1,6 +1,6 @@
 # The Round and The Long Account: the wider world and a co-op game in it
 
-**Status: PROPOSED** (2026-11-11), like everything in `docs/worldbuilding/`. The ten decisions listed at the end (D1 to D10) were approved by the owner on 2026-11-11 and are recorded as O3 in `CANON.md`. Everything else here is proposed. Nothing in this file is implemented.
+**Status: PROPOSED** (2026-11-11), like everything in `docs/worldbuilding/`. The twelve decisions listed at the end (D1 to D12) were approved by the owner on 2026-11-11 and are recorded as O3 and O4 in `CANON.md`. Everything else here is proposed. Nothing in this file is implemented.
 
 **Summary.** Orlen is one dead quarter of a much larger world, and that world has spent thirty years going hungry under a dimmed sun. Part One sets out that world. Part Two designs **The Long Account**: a co-op game for one to four players that crosses it, drawn like the updated Shattered Octave and as grim as Ashen Wilds.
 
@@ -8,11 +8,11 @@
 
 The decisions are approved. The detail built on them stays proposed until it is on the canon sheet.
 
-- **It follows `CANON.md`.** Only humans are people (O1). The O2 names stand. No spells, no prophecy, and anything uncanny has, or could have, a plain cause.
+- **It follows `CANON.md`.** Only humans are people (O1). The O2 names stand. Magic is small and always costs something (O4). There is no prophecy, and anything uncanny beyond a known working has, or could have, a plain cause.
 - **Three doors stay shut.** Who made the Vaults, what the orks fled, and why the Unnamed rise are not settled here. This file adds evidence and guesses only.
 - **One door is opened partway.** Pieces of the royal fleet are found in the south. The King is never proven. That is decision D3 at the end.
 - **The look is settled.** The owner's four reference images of the Shattered Octave build show a first-person, low-resolution 3D world with painted people. The section called *The look* is written from them, and the gameplay sections were revised to match.
-- **Checked against the repo.** New names were checked against `docs/worldbuilding/` at today's `main`. They are listed at the end, with the ten approved decisions.
+- **Checked against the repo.** New names were checked against `docs/worldbuilding/` at today's `main`. They are listed at the end, with the approved decisions.
 
 ## Part One: the wider world
 
@@ -45,7 +45,7 @@ open ocean    (        THE SLATE SEA          )      the Grass
 
 Schematic, not to scale. Lines join lands that touch. The Lazaret Rocks lie in the Slate Sea off the Sable Shore.
 
-The game begins at Wexhaven and its story ends at the White Deeps. Everything between them is the year's voyage.
+The story opens on Orlen's highland edge, the voyage begins at Wexhaven, and it ends at the White Deeps.
 
 | Land | Where it lies | What it was | What it is in S.31 |
 | --- | --- | --- | --- |
@@ -248,6 +248,56 @@ The Keeping names the dead by speaking into the mouth. The Weald carves the name
 
 Sephar and Orlen count from the same year without having agreed to. Only those two start their calendars at the wound.
 
+### Small magic
+
+Small magic is real in this world: spoken **workings**, and **marks** cut into slag-iron. The owner approved this on 2026-11-11. It is owner decision O4, and it amends the canon sheet's rule against spells and glowing runes.
+
+**Three things are true of all of it.**
+
+- **It is small.** A working lights a hand, stops a bleed or shuts a sound in. Nothing in the world throws fire or moves a wall.
+- **It costs.** Every working is spoken aloud, so it can be heard. Every working takes warmth from the one who speaks it, which the fen calls *the chill*.
+- **Nobody knows why it works.** Workings are trade knowledge, taught by people who cannot explain them. The Keeping's naming of the dead was always one.
+
+**No one is chosen.** A working is learned the way a knot is. Anyone can learn one, most people know none, and nobody is born to it.
+
+**Why the fen's files never mention it.** The Keeping's hierarchy filed workings under superstition, and its register-keepers did not write them down. They were never common either. The trades that kept the most were the Citadels' hewers and smiths, and most of those are dead.
+
+**What no working does.**
+
+- Feed anyone, or make fuel.
+- Clear a lung of ash.
+- Raise the dead, or speak with them.
+- Show the future. There is still no prophecy.
+- Say who made the Vaults, what the orks fled, or why the Unnamed rise.
+- Serve a beast. Only people work them (O1).
+
+**Workings, by the trade that keeps them.**
+
+| Working | Kept by | What it does |
+| --- | --- | --- |
+| **Cold light** | Hewers | A pale blue light in the hand, with no flame. It was made for bad air, where a lamp kills the crew. |
+| **Staunch** | Fen healers | Stops a wound bleeding. It does not close the wound. |
+| **The stilling** | Bell-tenders | Shuts sound inside a small space for a few breaths |
+| **Kindle** | Sephar's register-priests | Lights tinder, wet or dry, with a crack like a snapped board |
+| **The ward** | Hedge-priests | A line spoken over salt across a doorway. Beasts will not cross it for a while. People can. |
+| **The naming** | The Keeping | Lays an Unnamed to rest. Why a name works stays unsettled. |
+| **Wind-knot** | Skerry boat-wives | A knotted cord that holds one breath of wind until it is untied |
+| **The bound word** | The Tally's notaries | Seals a promise so that both parties feel it break |
+
+**How each faith takes it.** The Keeping's hierarchy calls workings superstition, and its poor use them anyway. The Tally licenses the bound word and taxes it. Sephar forbids cold light as light that nobody repaid.
+
+**Marks.** Slag-iron holds what is put into it, and heat is only the plain case. A mark cut by a Dunmarrow smith lets the metal hold one working as it holds heat: for hours, until it fades and must be renewed at a fire. No slag-iron has been forged since the Citadels fell, so every marked blade is an heirloom. The reavers hunt them as they hunt stoves.
+
+| Mark | What the blade does while the mark holds |
+| --- | --- |
+| **Glim** | Gives cold light along its length |
+| **Keen** | Bites through mail and hide |
+| **Rime** | Chills what it wounds, and slows it |
+| **Ember** | Stays forge-hot: it sears a wound shut and burns spores at a touch |
+| **Dull-voice** | Rings softly, so a clang carries half as far |
+
+**What is not known.** Since S.0, cold light in the north burns bluer and lasts longer than the old hewers remember. At the wall in the White Deeps it gutters. Nobody can say why, and this file does not.
+
 ### Beasts of the wider world
 
 Every entry is an animal, a lizard or a fish (O1). Each has a temperament and a counter, on the bestiary's rule, and each has something nobody knows.
@@ -337,7 +387,7 @@ One to four players are a small carrying company. In the thaw of S.31 they take 
 2. **Every promise is written down with a name on it.** The shared ledger, **the Account**, is the quest log, the reputation system and the ending.
 3. **You do not get stronger. The book gets longer.** There are no levels. Progress is gear, knowledge written in the warning book, and people who trust you.
 4. **The world is bigger than you can save.** The season moves whether you are finished or not. You will leave places worse than you wanted to.
-5. **Nothing uncanny is confirmed.** The worst thing in the game is never on screen, and the book is allowed to say *we do not know*.
+5. **The large things are never confirmed.** Small workings are real and known. The worst thing in the game is never on screen, and the book is allowed to say *we do not know*.
 6. **Only people are people.** Beasts have temperaments and counters. Every decision that matters has a human on each side of it.
 
 ### Structure: the Chart, the Ground, the Hearth
@@ -437,6 +487,45 @@ The Account is one book that every player can open, and it has three kinds of pa
 
 **Why it works in co-op.** Nobody votes. One player can promise something the others think is foolish, and the others decide how close to stand. The game never forces agreement, and it writes down every disagreement.
 
+### Workings and marks in play
+
+A working is a third thing the left hand can hold, after the lantern and the shield. Workings add choices and add no safety. All figures below are starting points for tuning.
+
+**The rules of a working.**
+
+- **It is spoken, so it is heard.** Each working has a loudness on the hearing table. In a Dead Calm it is among the loudest things a person can do.
+- **It chills.** Speaking one costs breath. Holding one slows breath's return for as long as it is held.
+- **It takes the left hand.** A person holding cold light holds no shield and no lantern.
+- **A person knows two at most.** They are learned from people met on the road, never from levels.
+- **Silence ends it.** A person at the silent stage of ash-lung cannot speak, and so cannot work.
+
+| Working | In play | Heard at | What it costs |
+| --- | --- | --- | --- |
+| **Cold light** | A light with no fuel. Dimmer than a lantern, gives no warmth, and does not burn spores as a torch does. | 3 m, to raise it | The chill, while held |
+| **Staunch** | Stops a partner's bleed clock at arm's length. They are still wounded. | 6 m | The speaker cannot sprint until the next hearth |
+| **The stilling** | For ten seconds, noise made within three metres carries half as far | 2 m | A great deal of breath |
+| **Kindle** | Lights a torch, a pyre or a kiln in any weather | 12 m | Little |
+| **The ward** | Beasts balk at one doorway for about two minutes | 8 m | A measure of salt |
+| **The naming** | As in Ashen Wilds: kneel and speak | 5 m | Time, on your knees |
+| **Wind-knot** | Tied at the hearth and used once. Clears a spore cloud, or saves a day on one Chart leg. | Silent | A day's work |
+| **The bound word** | Seals a promise in the Account. If it is broken, the other party knows at once. | 5 m | The promise can never quietly lapse |
+
+**Who starts with what.** The hewer's grandchild has cold light. The fen healer has staunch. The hedge-priest has the ward and the naming. The register novice has kindle. The tallier's clerk has the bound word. The runaway oil-bond can tie a wind-knot. Everyone else starts with none.
+
+**Marks.** Only slag-iron blades take a mark, and one blade takes one mark. A mark holds for one landing. It is renewed at the hearth fire by someone who knows its word.
+
+| Mark | In play | The catch |
+| --- | --- | --- |
+| **Glim** | The blade is a dim light, which frees the left hand for a shield | You are lit whenever it is drawn |
+| **Keen** | Ignores part of armour and hide | The blade wears twice as fast |
+| **Rime** | A wounded beast moves slower for a few seconds | The wielder's own breath returns slower |
+| **Ember** | Sears a bleed shut and burns spores at a touch | It glows orange and cannot be sheathed while hot |
+| **Dull-voice** | A wall clang carries half as far | The blade lodges more often |
+
+**What magic must never do to this game.** No working deals damage at range, heals a wound, feeds the company or clears a lung. Light, weight, noise and the Account remain the game.
+
+**In co-op.** The left hand is now a three-way choice for every person: light, shield or working. A company of four cannot cover all of them at once.
+
 ### Combat
 
 Combat is Ashen Wilds' commitment melee, unchanged in its rules: startup, active, recovery, stamina, poise, durability, wall clangs and lodged weapons. Co-op adds formation.
@@ -518,7 +607,7 @@ The pinned engine (Godot 4.7.2-stable, Forward+) can do the look. Nothing here a
 
 The game should feel like the owner's key painting: two worn people on a cold ledge, looking at a broken country burning under a sun that has gone dark. The rendering comes from the Shattered Octave references in the next section. The mood, the palette and the composition come from the painting.
 
-The painting is the owner's and is not stored in this repository. It shows two armoured figures, an old soldier with a long blade and a young one with a spear and a raven shield, on a frosted ledge above a burning land, with a ruined citadel under a black sun with a red rim.
+The painting is the owner's and is not stored in this repository. It shows two armoured figures, an old soldier with a long marked blade and a young one with a spear and a raven shield, on a frosted ledge above a burning land, with a ruined citadel under a black sun with a red rim.
 
 **What each part of the painting becomes.**
 
@@ -528,7 +617,7 @@ The painting is the owner's and is not stored in this repository. It shows two a
 | A ruined citadel directly beneath it | The Slagcrown, and a rule for every land: one unlit landmark on the skyline, set under the sun |
 | Burning chasms and columns of smoke | Venting ground in the north. Kilns, pyres and the Standing Dead in the south. Fire is far off and never friendly. |
 | A teal glow in the hollow | The bloom. Corpse-caps give off a faint teal foxfire in the dark, as some real fungi do. This is new and proposed. |
-| Glowing marks on the blade | A maker's inscription cut down the blade, worn bright, catching the lantern. It does not glow by itself, because the canon sheet rules out glowing runes. |
+| Glowing marks on the blade | A marked blade. The mark is cut into slag-iron and holds cold light, as the metal holds heat. This is small magic, allowed by O4. |
 | Frost on black rock | Hoarfrost. Where the players stand is always the cold part of the picture. |
 | An old soldier and a young one | The roster: whoever carries the load now, and whoever carries it next |
 | A raven on the shield | The company's device. The players choose one mark, and it goes on their shields and on the cover of the Account. |
@@ -539,7 +628,7 @@ The painting is the owner's and is not stored in this repository. It shows two a
 1. **Small against vast.** Every landing opens on an overlook. The players see the whole place, its landmark and its fires, before they walk down into it.
 2. **Cold where you stand, fire where you are going.**
 3. **Black is the base colour.** About half of the painting is near-black. Scenes are built dark, and light is added to them.
-4. **Three lights, never confused.** Yours is tallow yellow and small. The land's is ember red and vast. Teal belongs to the bloom alone.
+4. **Four lights, never confused.** Yours is tallow yellow and small. The land's is ember red and vast. Teal belongs to the bloom alone. Pale blue belongs to workings.
 5. **Never one figure.** The title screen, the loading plates and the Chart's corner art always show two or more of the company.
 6. **Worn, not heroic.** Fur, mail and dented plate that do not match. Nothing is new and nothing shines.
 
@@ -562,7 +651,7 @@ The painting is the owner's and is not stored in this repository. It shows two a
 | Steel | #484949 | Armour and blades |
 | Bone | #9b7d66 | The lightest tone: skin, frost edges, paper |
 
-**One thing the painting raises.** It shows Orlen's Citadel highlands, and the story as written starts at Wexhaven and sails away. A short opening on the highland edge, looking back before the walk south, would put this exact view in the game. That would be an eleventh decision, and it is not yet made.
+**The painting is in the game.** It shows Orlen's Citadel highlands, so the story now opens there. The prologue puts the players on this ledge, in first person, before the walk south. This is decision D11.
 
 ### The look
 
@@ -584,7 +673,7 @@ The four reference images are the owner's and are not stored in this repository.
 | In the references | In this game |
 | --- | --- |
 | Clear midday and long views | The Dim. A low sky the colour of slate or old brick. The far wall of haze is ash, and weather brings it closer. |
-| The left hand holds a cold glowing light | The left hand holds the light: a lantern or a torch, or a shield in its place. Nothing glows that does not burn. |
+| The left hand holds a cold glowing light | The left hand holds a lantern, a torch, a shield or a working. Cold light is a working: it glows, gives no warmth and burns no fuel. |
 | The right hand holds a weapon | The same. A wind-up lifts the weapon out of frame, so a committed blow is one you watch yourself commit to. |
 | Painted people | People only. They are painted, they walk, and they face a way. |
 | No beasts shown | Beasts are true 3D models put through the same low-resolution pass. They turn and take light unlike any person on screen. This is D8. |
@@ -607,7 +696,7 @@ The four reference images are the owner's and are not stored in this repository.
 | The thin bar beside them | Lungs: a grey bar that only ever fills |
 | The black gauge with marker lines | Noise: how far you can be heard at this moment |
 | CHAR, INV, MAP, LOG | COMPANY, PACK, MAP, BOOK |
-| SONG, MURMUR | SIGNS (hewers' hand) and WORD (give your word) |
+| SONG, MURMUR | SIGNS (hewers' hand), MURMUR (workings) and WORD (give your word) |
 | NAMES | NAMES: the roll of the company's dead, and whether each was named |
 | REST, SAVE | REST, at a hearth only. Saving belongs to the server. |
 | The status box: STILL, the weapon, the day and date | Stance as noise (STILL, WALKING, BURDENED), what each hand holds, the date in S-dating |
@@ -637,7 +726,7 @@ The company carries two things south: a debt nobody will pay, and a warning nobo
 
 **The debt.** In S.1 and S.2 the Crown took the fen's grain against paper receipts: *to be repaid in kind, by order of the King*. **Gytha Marrin** was a customs tallywoman at Wexhaven when the fleet sailed. For twenty-eight years she has taken a receipt from everyone who walked down the Salt Trace, and written them a line in exchange. She has eleven thousand. She is at the crust stage of ash-lung and cannot go herself.
 
-**The warning.** Ebba Cray's survey went through the breach in S.0, and four came back. **Marget Sayle** is one of the four. She is sixty-two and has never described what she saw. Reavers' talk has reached her that the south is digging under its salt. She asks for passage.
+**The warning.** Ebba Cray's survey went through the breach in S.0, and four came back. **Marget Sayle** is one of the four. She is sixty-two and has never described what she saw. She lives in a bothy on the highland edge, in sight of the Slagcrown. Reavers' talk has reached Gytha that the south is digging under its salt, and Gytha sends the company north to ask her to come.
 
 Both of them have weight. The receipts are barrels in the hold. Marget cannot walk far and coughs in the cold. Keeping an old woman alive across a hungry world is the escort that runs under the whole game.
 
@@ -661,13 +750,30 @@ Both of them have weight. The receipts are barrels in the hold. Marget cannot wa
 
 Nobody on this list is a villain. Each of them has a ledger.
 
+### Prologue: the ledge
+
+*The first week of the thaw, S.31. About forty minutes. It puts the key painting in the game, in first person.*
+
+The game opens on the ledge in the painting. The players stand on frosted rock at Orlen's highland edge, and the first thing the game asks of them is to look.
+
+1. **The view.** The coal sun, the Slagcrown beneath it, the venting fires, a teal hollow below. No prompt appears until every player has looked at the Citadel.
+2. **The errand.** Gytha Marrin has sent them north for one of the four who came back. Marget Sayle's bothy is under the ledge.
+3. **The way down.** Hoarfrost footing. Cold light beside a lantern, if anyone has the working. One walking bloom in the teal hollow, which the path skirts. It teaches distance and wind, not fighting.
+4. **The asking.** Marget does not want to come. What the players promise her is the first entry in the Account, with a name on it.
+5. **The carry.** She cannot manage the ledge path. Getting her up it is the first two-person load.
+6. **The look back.** At the top she turns and looks at the Slagcrown once, and says nothing. The title comes up: THE LONG ACCOUNT.
+
+The walk south to Wexhaven is then the first leg on the Chart: down the Bell Road, across the fen and down the Salt Trace. It teaches days, food and weather. What state the Causeway is in is left to Ashen Wilds.
+
+**The default pair.** With no choices made, the two on the ledge are the painting's two: an old Watch deserter with a glim-marked blade, and a young causeway carter with a spear and the company's shield.
+
 ### Act I: the Burned Quay
 
 *The thaw of S.31. About six hours. The question: what does the world owe the people it shut out?*
 
-1. **The stove.** The first landing is the drowned hull of the royal ship *Constance* in Wexhaven's inlet. The company lifts her slag-iron galley stove at low water. It teaches the two-person load, the tide as a clock, and the hulk-conger.
+1. **The stove.** The first landing at Wexhaven is the drowned hull of the royal ship *Constance* in Wexhaven's inlet. The company lifts her slag-iron galley stove at low water. It teaches the two-person load, the tide as a clock, and the hulk-conger.
 2. **The reavers.** Corvin Hale's crew is stripping the upper town. The company can fight them, trade with them (they sell a chart of the harbour chains), or sail in their wake and say nothing.
-3. **The barrels and the witness.** Gytha's commission. Marget's request. The first admissions argument: she is one more mouth and she is sick.
+3. **The barrels and the witness.** Gytha's commission, with the witness now aboard. The first admissions argument: Marget is one more mouth and she is sick.
 4. **The crossing.** The first Dead Calm at sea. The Follower, if anyone aboard is dying. The first choice about a body.
 5. **The Forty.** Every northern hull must lie forty days at the Lazaret Rocks. The company can wait and lose a third of the summer. It can buy a clean bill with a stove plate or with receipts. Or it can run the chain at night, and be outlaws on the Sable Shore from then on.
 
@@ -732,7 +838,7 @@ The King is never proven. What is under the White Deeps is never shown.
 These are the rules that keep the tone, and every scene should pass all eight.
 
 1. **The worst thing is never on screen.** The Follower is a bump on the hull. The deep is a draught.
-2. **Every uncanny sign arrives with its plain cause.** The surveyor is in the room when the lamp leans.
+2. **Every uncanny sign that is not a known working arrives with its plain cause.** The surveyor is in the room when the lamp leans.
 3. **The book may say *we do not know*.** No character in the game knows more than the book.
 4. **Silence is scheduled.** A Dead Calm cannot be skipped, slept through or fast-forwarded.
 5. **Loss is slow and has a name.** Lungs, promises and the roster only ever get worse.
@@ -766,6 +872,8 @@ If painted people read well by one lantern in first person, the look works. If t
 | D8 | People drawn, beasts modelled | Yes |
 | D9 | Open ears: microphones as noise in a Dead Calm | Optional, off by default |
 | D10 | Whether the quays are right that the cough is catching | Left open on purpose |
+| D11 | An opening on the highland edge | Yes: the prologue on the ledge, with the key painting's view |
+| D12 | Small magic in the canon | Yes: minor workings of varying uses and powers, and marks on weapons. Recorded as O4. Prophecy stays out. |
 
 ### New names
 
@@ -777,4 +885,4 @@ Proper nouns this file introduces. All were checked against `docs/worldbuilding/
 - **Beasts:** hold-goblin, the Follower, hoar-bear, hulk-conger, ditch-monitor, dead-edge wolf.
 - **People:** Gytha Marrin, Marget Sayle, Wat Hebble, Corvin Hale, Bryde Hallam, Lucan Daw, Queen Ysabeau, Osbert called the Fifth, Prior Lambert Strand, the Guest, Ines Corrant, Edith Brode.
 - **Ships:** the *Small Mercy*, the *Constance*.
-- **Game terms:** the Chart, the Ground, the Hearth, the Account, the Reckoner, giving your word, standing surety, forsworn, open ears.
+- **Game terms:** the Chart, the Ground, the Hearth, the Account, the Reckoner, giving your word, standing surety, forsworn, open ears, workings, marks, the chill, cold light, staunch, the stilling, kindle, the ward, wind-knot, the bound word, glim, keen, rime, ember, dull-voice, the coal sun.

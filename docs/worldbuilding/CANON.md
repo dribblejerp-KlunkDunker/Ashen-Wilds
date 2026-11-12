@@ -21,7 +21,8 @@ game, the acts, and texts the game can show.
 |---|---|---|
 | **O1** | **Only humans are people. Everything else is an animal, a lizard, a fish or a monster.** Goblins, orks, ogres, trolls and every other creature have no language, names, culture, faith, bargains or society. They can be cunning, can use stolen tools and weapons and can hunt in packs, but they are beasts. Every companion, faction, quest-giver and playable background is human. | 2026-11-05 |
 | **O2** | **The names the Godot additions invented are kept**: the Kingdom of Orlen, Wexhaven, slag-iron, the five Highland Citadels (the Slagcrown, Greystair, Dunmarrow, Hob's Height, Kell Tor), the Slag-Lords, the Black Seam, Slag-Lord Cerrin Vane, the Breaking and S-dating, the Flight South, King Aldric IV, the Causeway Watch. | 2026-11-05 |
-| **O3** | **The ten wider-world decisions, D1 to D10 in `the-round-and-the-long-account.md`, are approved.** The follow-up game is titled The Long Account. Its look is first person, low-resolution 3D with painted people. The royal fleet is found in pieces in the south and the King is never proven; fact 8 stays true as what the Blackfen knows. There is a second wall, at the White Deeps, which adds evidence and settles nothing. Marget Sayle (one of the four who came back from the survey), Edith Brode (Ancel Brode's granddaughter) and Prior Lambert Strand (Abbot Hamon Strand's nephew) exist. The Collectors are agents of the Exchange at Port Sable, and the priests claiming southern appointment are sent from Vauclere. The game is for up to four players. People are drawn and beasts are modelled. Microphones as noise in a Dead Calm are optional and off by default. Whether the cough is catching is left open. Everything else in that file stays proposed. | 2026-11-11 |
+| **O3** | **The wider-world decisions D1 to D11 in `the-round-and-the-long-account.md` are approved.** The follow-up game is titled The Long Account. Its look is first person, low-resolution 3D with painted people. The royal fleet is found in pieces in the south and the King is never proven; fact 8 stays true as what the Blackfen knows. There is a second wall, at the White Deeps, which adds evidence and settles nothing. Marget Sayle (one of the four who came back from the survey), Edith Brode (Ancel Brode's granddaughter) and Prior Lambert Strand (Abbot Hamon Strand's nephew) exist. The Collectors are agents of the Exchange at Port Sable, and the priests claiming southern appointment are sent from Vauclere. The game is for up to four players. People are drawn and beasts are modelled. Microphones as noise in a Dead Calm are optional and off by default. Whether the cough is catching is left open. The game opens with a prologue on Orlen's highland edge (D11). Everything else in that file stays proposed. | 2026-11-11 |
+| **O4** | **Small magic exists.** Minor spells of varying uses and powers, and runes and magic on weapons, are part of the world (D12 in `the-round-and-the-long-account.md`). This amends the tone rule below, which used to read "no spells, no glowing runes". As proposed in that file: spoken *workings* and *marks* cut into slag-iron; every one is small, is heard, and costs the one who speaks it; anyone can learn one and nobody is chosen; only people work them (O1); none feeds anyone, clears a lung, raises the dead or shows the future. **Prophecy stays out**, and the three unsettled questions (who made the Vaults, what the orks fled, why the Unnamed rise) stay unsettled. The shipped Godot game has no magic, and nothing in it changes by this decision. | 2026-11-11 |
 
 The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
 
@@ -29,11 +30,12 @@ The archive was revised to fit O1 on the same day; see *Archive material revised
 
 ## Tone
 
-- **Grim and grounded.** Mud, cold, hunger, debt, small mercies. No chosen ones, no spells, no
-  glowing runes. **No prophecy is coming** *(in game)*.
+- **Grim and grounded.** Mud, cold, hunger, debt, small mercies. No chosen ones. Magic is small
+  and costs something (O4): minor workings and marked weapons, nothing grand.
+  **No prophecy is coming** *(in game)*.
 - **Uncertainty is a rule, not a gap.** The archive's habit: say what happened, say what you do not
   know, write down the dead. Lore files separate *what we know* from *what people guess*.
-  Anything uncanny has, or could have, a plain cause.
+  Beyond a known small working (O4), anything uncanny has, or could have, a plain cause.
 - **Only people are people (O1).** Creatures are animals, lizards, fish and monsters: they hunt,
   scavenge, nest, flee and feed, and they are never reasoned with. The moral weight of the story
   sits with humans: what they owe each other, and what they do to each other. The worst choices in
