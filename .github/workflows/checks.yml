@@ -35,6 +35,8 @@ jobs:
         run: node test/bloom4.test.js --no-browser
       - name: Phase 5, the door that holds (no browser)
         run: node test/door5.test.js --no-browser
+      - name: Phase 6, sleet and ashfall (no browser)
+        run: node test/weather6.test.js --no-browser
       - name: The offline list and the icons are current
         run: |
           node tools/pwa/precache.js --check
@@ -68,3 +70,5 @@ jobs:
         run: node test/bloom4.test.js
       - name: Phase 5, the door that holds
         run: node test/door5.test.js
+      - name: Phase 6, sleet and ashfall
+        run: node test/weather6.test.js

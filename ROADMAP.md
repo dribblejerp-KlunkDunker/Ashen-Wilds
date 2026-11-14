@@ -277,6 +277,68 @@ frame hash. There are no page errors.
 | P41 | The carter's warning: "Walk. Do not run. There is one on the shelf, and it hears running." | |
 | P42 | What the game says of it: "A walking bloom. Caps along its shoulders and its scalp. A crust where the eyes were. It stands and sways."; "The walking bloom. It is going to where the noise was."; "On the shelf, something has turned its head."; "The dust is in your mouth and eyes. You cannot stop coughing." | |
 
+## Phase 6 - sleet and ashfall
+
+`js/weather6.js` · `test/weather6.test.js` · `tools/weathershots.js` · stills 60 to 67 and clip 68 in `docs/screenshots/`
+
+The first two of the Smothering's six weathers, stopped by the bothy's roof. Every number is the bible's
+(`the-smothering.md`, section 3, the Godot build's figures, used as they stand). Every banner is the bible's own,
+word for word (section 6).
+
+- **Ashfall**, the ordinary weather: grey flakes come down slow and a little sideways, now in the world rather than
+  across the view. They fall in three layers at increasing distance, each hidden behind anything nearer, and stop at
+  any roof the roof planner has built (`js/eaves78.js`), the bothy's included. Embers still rise from the burning
+  country.
+- **Sleet** comes in spells of 70 to 130 seconds and blends in over 8.
+  - It beats the ash out of the air and puts most of the embers out.
+  - The fog closes in to 14/24 of its distance (sight 14 m against 24) and turns a wet grey instead of the land's red.
+  - The sun dims a little.
+  - You walk at 85%.
+  - The walking bloom hears a sound 0.85 as far and sees 14/24 as far. What muffles your footsteps muffles its
+    hearing.
+  - Indoors you hear it on the roof.
+- **When it comes:** fixed by the day's number, like the sun. A clear day stays dry, a coin day has one spell, a coal
+  day two. The first comes about two minutes after the prologue opens, at dusk.
+- **What you are told:** a cue as a spell begins ("The ash is coming down wet, in clumps."), then one of the bible's
+  sleet banners. When it ends you get one of its ashfall banners. Indoors: "Sleet rattles on the roof."
+- **One Options switch, "Ashfall and sleet".** Off puts back Phase 1's ash across the view and turns all of the
+  weather off, play included. The test checks off by frame hash.
+- `js/bloom4.js` changed with it. The weather can now scale the bloom's hearing and sight (`BLOOM4.setSenses`). With
+  nothing set, it is unchanged.
+
+**Checked by the tests:** the bible's numbers and the rules; 120 days of spells (lengths, no overlap, dry clear
+days); the 8-second blend; every banner is the bible's. In a browser:
+- In sleet the weather fills the view.
+- Under a roof over everything it draws nothing, and the bothy's roof covers all twelve of its cells.
+- The fog closes to 14/24 and turns grey.
+- Nothing is drawn inside the bothy.
+- You walk at 85% (measured).
+- A run 7.4 m from the bloom is heard in ashfall and lost in sleet.
+- The cue and a banner come outside; the roof line comes inside.
+- Switched off, nothing changes in play and the frame is exact.
+- There are no page errors.
+
+**Not done:**
+- The other four weathers (miasma fog, cinder-squall, hoarfrost, the Dead Calm).
+- What sleet does to a torch and to the shelter fire. There is no torch yet (Phase 8). Some of the bible's sleet
+  banners speak of the torch anyway.
+- Spore clouds, which sleet clears, do not exist yet.
+- Nobody has listened to the hiss outside or the roof rattle inside: the tests run without sound.
+- Under sleet the light dims only a little. By day the land measured 46.1 against 47.5 dry, on a coin day when the sun
+  is already behind the ash.
+- The weather is per player: co-op does not share it.
+- Frame cost on a real graphics card is not measured. The pass is one full-screen triangle, as the engine's own rain is.
+
+### Proposed in Phase 6: **[PROPOSED], awaiting a ruling**
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P50 | Sleet comes on coin and coal days only: one spell on a coin day, two on a coal day; a clear day stays dry | The bible gives the cycle as a rhyme, "a rule of thumb, not a calendar" |
+| P51 | The first spell comes about two minutes after the prologue opens, at dusk, for about 100 seconds | |
+| P52 | The cue before sleet: "The ash is coming down wet, in clumps." | The bible's hook asks for a sensory cue before a change |
+| P53 | Indoors: "Sleet rattles on the roof.", and the sound of it, low, on the roof | The bible: sleet is "rattling on roofs" |
+| P54 | Sleet puts out most of the rising embers, and turns the fog a wet grey | |
+
 ## Phase 5 - the door that holds
 
 `js/door5.js` · `test/door5.test.js` · `tools/doorshots.js` · stills 50 to 52 and clips 53 and 54 in `docs/screenshots/`
@@ -382,7 +444,8 @@ of the phase that puts the bloom in the game. No test covers this file.
 
 ## Decisions I still need
 
-1. **The walking bloom's rules, P33 to P42,** and **the door's, P43 to P49.** Clips 41 to 43 and 53 to 54 show them played.
+1. **The walking bloom's rules, P33 to P42,** **the door's, P43 to P49,** and **the weather's, P50 to P54.** Clips 41 to 43,
+   53 to 54 and 68 show them played.
 2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
 3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
@@ -394,7 +457,7 @@ of the phase that puts the bloom in the game. No test covers this file.
 | --- | --- | --- |
 | 4 | **Built.** The walking bloom hunts by sound on the ledge (O7), modelled | "one thing that hunts by sound" |
 | 5 | **Built.** The safe room made real: a door that holds, and what the bloom does at it | "one safe room" |
-| 6 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
+| 6 | **Built.** Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 8 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
 | 9 | Dread as a value that changes the picture, tuned for this world | section 3 |
