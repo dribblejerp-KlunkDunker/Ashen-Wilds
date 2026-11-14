@@ -47,18 +47,21 @@ const HighlandMaterials = (() => {
       return f>.54 ? color(palettes.frost,.16+(f-.54)*1.8,x,y) : color(palettes.rock,mineral(x,y,731),x,y);
     }
     if (name === 'drystone') {
-      // Periodic cell-based stone masses; no fixed full-width mortar stripe.
+      // Measure the 16 unique stones on a torus, not translated copies.
       let d1=1e9,d2=1e9,id=0;
-      for(let gy=-1;gy<=4;gy++) for(let gx=-1;gx<=5;gx++) {
-        const cx=(gx+.22+hash(mod(gx,4),mod(gy,4),41)*.56)*16;
-        const cy=(gy+.24+hash(mod(gx,4),mod(gy,4),42)*.52)*16;
-        const d=Math.hypot((x-cx)*.86,(y-cy)*1.13);
-        if(d<d1){d2=d1;d1=d;id=mod(gx,4)+4*mod(gy,4);}else if(d<d2)d2=d;
+      for(let gy=0;gy<4;gy++) for(let gx=0;gx<4;gx++) {
+        const cx=(gx+.22+hash(gx,gy,41)*.56)*16;
+        const cy=(gy+.24+hash(gx,gy,42)*.52)*16;
+        const ax=Math.abs(x-cx), ay=Math.abs(y-cy);
+        const d=Math.hypot(Math.min(ax,N-ax)*.86,Math.min(ay,N-ay)*1.13);
+        if(d<d1){d2=d1;d1=d;id=gx+4*gy;}else if(d<d2)d2=d;
       }
       const edge=d2-d1;
       const grit=(noise(x,y,16,75)-.5)*.12;
-      const t=edge<.65?.02:edge<1.3?.18:.36+hash(id,0,71)*.24+grit;
-      return color(palettes.stone,t,x,y);
+      const shoulder=clamp(edge/3.5,0,1);
+      const blend=shoulder*shoulder*(3-2*shoulder);
+      const body=.36+hash(id,0,71)*.24+grit;
+      return color(palettes.stone,.08+(body-.08)*blend,x,y);
     }
     if(name==='flags') {
       const row=y>>5, sx=mod(x+row*13,64), bx=sx%32, by=y%32;
