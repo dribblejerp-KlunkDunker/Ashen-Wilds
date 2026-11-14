@@ -1,0 +1,39 @@
+name: Highland actual-engine camera review
+on:
+  push:
+    branches: [assets/highland-material-quality]
+    paths:
+      - tools/material-camera-review.js
+      - tools/look/highland-materials.js
+      - .github/workflows/highland-camera-review.yml
+permissions:
+  contents: read
+jobs:
+  camera-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install isolated browser test dependency
+        run: |
+          npm install --prefix "$RUNNER_TEMP/camera-review" playwright@1.56.1
+          "$RUNNER_TEMP/camera-review/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Run material painter checks
+        run: |
+          node test/highland-materials.test.js
+          node test/highland-seams.test.js
+      - name: Capture original and revised actual-engine views
+        env:
+          NODE_PATH: ${{ runner.temp }}/camera-review/node_modules
+        run: node tools/material-camera-review.js camera-review
+      - name: Upload screenshots and diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highland-actual-engine-camera-review
+          path: camera-review/
+          if-no-files-found: warn
+          retention-days: 14

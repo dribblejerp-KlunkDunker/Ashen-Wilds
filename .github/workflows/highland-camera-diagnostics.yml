@@ -1,0 +1,45 @@
+name: Diagnose highland camera failure
+on:
+  push:
+    branches: [assets/highland-material-quality]
+    paths: [.github/workflows/highland-camera-diagnostics.yml]
+permissions:
+  contents: read
+  actions: read
+  issues: write
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish failed camera job diagnostics to PR 42
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const job_id = 132355364127;
+            const {data: job} = await github.rest.actions.getJobForWorkflowRun({owner, repo, job_id});
+            const steps = (job.steps || []).map(s => `${s.number}. ${s.name}: ${s.status} / ${s.conclusion || 'pending'}`).join('\n');
+            let logs;
+            try {
+              const response = await github.rest.actions.downloadJobLogsForWorkflowRun({owner, repo, job_id});
+              logs = response.data;
+              if (typeof logs === 'string' && /^https:\/\//.test(logs.trim())) {
+                const r = await fetch(logs.trim());
+                if (!r.ok) throw new Error('Signed log download returned ' + r.status);
+                logs = await r.text();
+              }
+              if (typeof logs !== 'string') logs = JSON.stringify(logs);
+              logs = logs.split('\n').slice(-120).join('\n').slice(-14000);
+            } catch (e) {
+              logs = 'Log retrieval failed: ' + e.message;
+            }
+            const safe = s => String(s).replace(/```/g, '\u0060\u200b\u0060\u200b\u0060');
+            const body = ['## Camera-review failure diagnostics',
+              'Source job: ' + job.html_url,
+              'Status: ' + job.status + ' / ' + job.conclusion,
+              '', '### Step results', '```text', safe(steps), '```',
+              '', '### Log tail (up to 120 lines / 14000 characters)', '```text', safe(logs), '```',
+              '', 'Diagnostic output only. This does not indicate a successful camera review.'
+            ].join('\n');
+            await github.rest.issues.createComment({owner, repo, issue_number: 42, body});
