@@ -20,8 +20,8 @@ check(read('js/assets.js').length < 800, 'and the file that held 2.4 MB of them 
 check(Object.keys(new Function(read('js/painted-manifest.js') + ';return PAINTED_MANIFEST')()).length === 0, 'the list of painted picture files is empty too');
 const walk = (dir, out) => { for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) { if (e.name === '.git' || e.name === 'node_modules') continue; const p = dir ? dir + '/' + e.name : e.name; if (e.isDirectory()) walk(p, out); else out.push(p); } return out; };
 const all = walk('', []), pics = all.filter((f) => /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f));
-const mine = (f) => f === 'img/title.png' || /^img\/p_la_\w+\.jpg$/.test(f) || /^assets\/icons\/[\w-]+\.png$/.test(f) || /^docs\/screenshots\/\w+\.png$/.test(f);
-check(pics.length > 0 && pics.every(mine), 'every picture file is a still of this game, a portrait cut from it, or its own icon: ' + (pics.filter((f) => !mine(f)).join(' ') || pics.length + ' files'));
+const mine = (f) => f === 'img/title.png' || /^img\/p_la_\w+\.jpg$/.test(f) || /^assets\/icons\/[\w-]+\.png$/.test(f) || /^docs\/screenshots\/\w+\.(png|gif)$/.test(f);   // stills, and clips of this game played (Phase 4)
+check(pics.length > 0 && pics.every(mine), 'every picture file is a still or clip of this game, a portrait cut from it, or its own icon: ' + (pics.filter((f) => !mine(f)).join(' ') || pics.length + ' files'));
 check(!all.some((f) => /\.(mp3|ogg|wav|m4a|flac)$/i.test(f)), 'no sound file is shipped');
 const big = []; for (const f of all.filter((f) => /\.(js|css|html|json|webmanifest)$/.test(f) && !/vendor\//.test(f))) { const m = read(f).match(/base64,[A-Za-z0-9+/=]{200,}/g); if (m) big.push(f); }
 check(big.length === 0, 'no picture is embedded as base64 in any script, style or page: ' + (big.join(' ') || 'none'));

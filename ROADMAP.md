@@ -215,11 +215,73 @@ of it. Day length is the engine's: a day passes in thirty-six minutes.
 | P31 | The prologue opens at about half past five in the evening, with the sun a little south of due west, low over the Slagcrown | It was a quarter to six, with the sun fixed due west |
 | P32 | By daylight the far haze is dun, not red | |
 
+## Phase 4 - the walking bloom
+
+`js/bloom4.js` · `test/bloom4.test.js` · `tools/bloomshots.js`, `tools/bloomgifs.js` · stills 30 to 36 and clips 40 to 43 in `docs/screenshots/`
+
+The owner ruled that the walking bloom hunts on the highland edge (O7) and that it is modelled (O9).
+One stands on the shelf by the foot of the ramp, its back to the way down. You must pass behind it
+to reach Marget Sayle's door. Its numbers are the bible's own (`the-smothering.md`, `bestiary.md`):
+it shambles at 1.9 m/s, slower than you walk; it sees 8 m in a 120 degree cone; it hears a run
+within 8 m, scaled by your noise; it claws for 16, with two seconds of choking.
+
+- **It hunts by sound.** It hears through the engine's own noise value. Standing still and walking
+  are under its hearing. A run is heard at 8 m, and louder noise from further off. It goes to *where
+  the noise was*, not to you. If you have gone quietly since, it reaches an empty place, listens
+  there a while, and goes back to its post.
+- **What little it sees is movement:** in front of it, within 8 m. Walk where it is looking and it
+  follows you.
+- **In reach it claws**: it winds up, strikes for 16, and rests before the next strike. The dust sets you
+  coughing for two seconds, and coughing is loud, so a clawed player is easy to find again.
+- **It cannot follow you in at the bothy's door.** It waits a little way off the door, then goes back.
+- **The carter warns you**, once, as you step onto the ramp: walk, do not run.
+- **Modelled, and fast.** The look test's body (approved) is built once, each part in the space of one
+  of sixteen bones, and the bones are moved on the graphics card each frame. It has the same ink
+  outline, banded light, red rim from the land's fire and ground shadow. The look test cost 27 ms a
+  frame for two bodies. This costs about 1 to 3 ms more than the flat figure for one body, measured in
+  software rendering.
+- **One Options switch, "Modelled bodies".** Off, or under the classic renderer, which cannot draw a
+  model: a flat painted figure stands in its place. The test checks that off draws exactly what it
+  draws with the modelled pass removed.
+
+**Checked by the tests:** the bible's numbers and the rules match. Hearing and sight work as described,
+step by step without a browser. It goes to where the noise was. It never steps into a wall or up a
+cliff. Its post and waiting place are on the shelf. Its body is whole, every vertex is carried by a
+bone, and every triangle faces the right way. In a browser the tests *play* it: walk to the door and
+it never turns; run and it hears, comes and claws for 16, and the coughing is loud; go in at the
+door and it waits outside, then goes home; it never stands on a blocked cell. The switch is checked by
+frame hash. There are no page errors.
+
+**Not done:**
+- It cannot be struck or killed. Its 55 health, the wound puff and the death burst are not built.
+- It makes no sound.
+- Saves do not record it: a loaded game puts it back at its post.
+- Co-op does not sync it.
+- It is lit by its own light, not the engine's, so its own caps and the bothy's fire do not light the ground around it.
+- There is only one.
+- The player's health is the engine's (43): three claws kill. Health is Phase 11's business.
+- Frame cost on a real graphics card is not measured.
+
+### Proposed in Phase 4: **[PROPOSED], awaiting a ruling**
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P33 | The hunt's metres are cells of walking: the engine walks you about 2.6 cells a second, so "1.9 m/s, slower than you walk" stays true | The engine's people are 0.62 of a cell tall; by that scale a cell would be 2.8 m and the bloom would be quicker than you |
+| P34 | Standing and walking are under its hearing, even close; a run is heard at 8 m; each step louder is heard further | The bible says "a sprint or a swing within 8 m (scaled by your noise)" |
+| P35 | It goes to where the noise was, not to where you are; it listens there about seven seconds, then goes back | |
+| P36 | It sees only movement | The bible: "a crust so thick over the eyes that it barely sees" |
+| P37 | "Two seconds of choking" is two seconds of coughing, and coughing is loud | |
+| P38 | Its post: the shelf by the foot of the ramp, its back to the way down, facing out over the drop | Marget Sayle's door is reached by passing behind it |
+| P39 | When you go in at the door it waits a little way off it for about twenty seconds, then goes back | Phase 5 makes the safe room real |
+| P40 | A wind-up of about 0.7 s before a claw, and a rest of 1.5 s after | |
+| P41 | The carter's warning: "Walk. Do not run. There is one on the shelf, and it hears running." | |
+| P42 | What the game says of it: "A walking bloom. Caps along its shoulders and its scalp. A crust where the eyes were. It stands and sways."; "The walking bloom. It is going to where the noise was."; "On the shelf, something has turned its head."; "The dust is in your mouth and eyes. You cannot stop coughing." | |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
 
-Not part of the game yet: the page does not load it. The owner saw the walking bloom and the blind
+The page does not load this file. The walking bloom went into the game in Phase 4; the quarry-troll is still only here. The owner saw the walking bloom and the blind
 quarry-troll each painted and each modelled, and ruled: **"ill go with modeled so long as we can make
 them look drastically better than they are now."** The painted beasts are deleted. This is the second
 pass at the modelled ones.
@@ -258,11 +320,11 @@ of the phase that puts the bloom in the game. No test covers this file.
 | Pages | The owner has set the source to GitHub Actions. It publishes when `main` receives the game. |
 | Beasts: modelled or painted | **Modelled** (D8 stands), "so long as we can make them look drastically better". The walking bloom is modelled too. The painted beasts are deleted; the second pass at the models awaits the owner's eye. |
 | The sun's day (P27 to P32) | "Yes the days are perfect." Approved; recorded as O8 on the canon sheet. |
+| The second pass at the modelled beasts | "Thank you lets proceed." Taken as approval; the walking bloom went into the game as Phase 4. |
 
 ## Decisions I still need
 
-1. **Are the modelled beasts good enough now?** Stills 20 to 27. If not, say what is wrong with
-   them and they get another pass before anything is built on them.
+1. **The walking bloom's rules, P33 to P42.** Clips 41 to 43 show them played.
 2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
 3. **The pictures are still in the first branch's history.** "Squash and merge" on pull request 38
@@ -272,7 +334,7 @@ of the phase that puts the bloom in the game. No test covers this file.
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
-| 4 | The walking bloom hunts by sound on the ledge (O7), modelled. Its body moves from the look test into the game and is made fast first | "one thing that hunts by sound" |
+| 4 | **Built.** The walking bloom hunts by sound on the ledge (O7), modelled | "one thing that hunts by sound" |
 | 5 | The safe room made real: a door that holds, light, and what the bloom does at it | "one safe room" |
 | 6 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |

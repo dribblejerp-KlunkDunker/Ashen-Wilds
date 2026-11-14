@@ -5,8 +5,9 @@ browser. A small carrying company takes a dead kingdom's unpaid receipts, and on
 inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 
 **Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
-the coal sun, walk down to Marget Sayle's bothy and speak to her. Nothing hunts you yet, and nothing
-of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
+the coal sun, walk down past the walking bloom that stands on the shelf, and reach Marget Sayle's
+bothy and speak to her. Walk, do not run: it hunts by sound. Nothing of the story past that door is
+built. `ROADMAP.md` says exactly what is and is not here.
 
 ![The ledge](docs/screenshots/01_the_ledge.png)
 
@@ -16,6 +17,7 @@ of the story past that door is built. `ROADMAP.md` says exactly what is and is n
 | ![The bothy](docs/screenshots/05_the_bothy.png) | ![Marget Sayle](docs/screenshots/06_marget_sayle.png) |
 | ![The carter](docs/screenshots/03_the_carter.png) | ![Speaking to Marget Sayle](docs/screenshots/08_talking_to_marget.png) |
 | ![Noon on a clear day](docs/screenshots/12_noon_on_a_clear_day.png) | ![Sunset behind the Slagcrown](docs/screenshots/16_sunset_behind_the_slagcrown.png) |
+| ![Run, and it comes](docs/screenshots/42_run_and_it_comes.gif) | ![The claw](docs/screenshots/33_the_claw.png) |
 
 ## Play
 
@@ -36,7 +38,7 @@ From source there is nothing to build or install. Serve the folder and open it:
 | Esc | Controls and Options |
 
 Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
-the coal sun, ash and embers, burning ground, the sun's day.
+the coal sun, ash and embers, burning ground, the sun's day, modelled bodies.
 
 ## What is in the build
 
@@ -48,8 +50,11 @@ the coal sun, ash and embers, burning ground, the sun's day.
 - **The sun's day.** The sun crosses the sky and has three faces: the coal sun on the worst days, a
   pale coin behind the ash on most, and on some days a clear noon with real sunlight and shadows.
   Every dusk it goes down red behind the Slagcrown.
-- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. It is marked as
-  the safe room, though nothing yet exists for it to be safe from.
+- **The walking bloom**, modelled, on the shelf by the foot of the ramp. It hunts by sound: walk
+  and it does not hear you; run and it comes to where the noise was, and claws. It sees only
+  movement, close and in front of it. It cannot follow you in at the bothy's door.
+- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. The safe room:
+  the bloom waits outside it.
 - **Two people who can be spoken to:** the carter on the ledge, and Marget Sayle. Both are painted
   in code and move on the engine's rig.
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
@@ -72,11 +77,12 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/ledge1.js` | Phase 1: the ledge, the bothy, the coal sun, the ash, the words |
 | `js/art2.js` | Phase 2: the tiles, the two people, the bothy's things, the hand and blade, painted in code |
 | `js/sun3.js` | Phase 3: the sun's day |
-| `tools/look/` | Look tests the page never loads: the walking bloom and the quarry-troll, modelled |
+| `js/bloom4.js` | Phase 4: the walking bloom, its hunt and its modelled body |
+| `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`; `bloomgifs.js` writes the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -90,6 +96,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/ledge1.test.js --no-browser
     node test/art2.test.js --no-browser
     node test/sun3.test.js --no-browser
+    node test/bloom4.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -97,9 +104,12 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/fork0.test.js
     NODE_PATH=$(npm root -g) node test/ledge1.test.js
     NODE_PATH=$(npm root -g) node test/art2.test.js
+    NODE_PATH=$(npm root -g) node test/sun3.test.js
+    NODE_PATH=$(npm root -g) node test/bloom4.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
-the door opens, the people answer, and the switches change the picture. It says nothing about how the
+the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, and the
+switches change the picture. It says nothing about how the
 game feels: that needs a person at the controls.
 
 ## The games this replaced
