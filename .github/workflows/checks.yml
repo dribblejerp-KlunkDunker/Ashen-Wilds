@@ -35,15 +35,30 @@ jobs:
         run: node test/bloom4.test.js --no-browser
       - name: Phase 5, the door that holds (no browser)
         run: node test/door5.test.js --no-browser
+      - name: Phase 6, sleet and ashfall (no browser)
+        run: node test/weather6.test.js --no-browser
       - name: The offline list and the icons are current
         run: |
           node tools/pwa/precache.js --check
           node tools/icons.js --check
 
-  browser:
-    name: Played in a headless browser
+  # One job per phase, run side by side: the whole set ran past 15 minutes in one job once Phase 6 came
+  # (a slow runner took 5 minutes over Phase 4 alone). Each phase keeps its own 15 minute limit.
+  phase:
+    name: Played in a headless browser (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Phase 0, the fork', test: fork0 }
+          - { name: 'Phase 1, the ledge', test: ledge1 }
+          - { name: 'Phase 2, our own art', test: art2 }
+          - { name: "Phase 3, the sun's day", test: sun3 }
+          - { name: 'Phase 4, the walking bloom', test: bloom4 }
+          - { name: 'Phase 5, the door that holds', test: door5 }
+          - { name: 'Phase 6, sleet and ashfall', test: weather6 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
@@ -56,15 +71,16 @@ jobs:
           npm install --no-audit --no-fund playwright@1.63.0
           npx playwright install --with-deps chromium
           echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
-      - name: Phase 0, the fork
-        run: node test/fork0.test.js
-      - name: Phase 1, the ledge
-        run: node test/ledge1.test.js
-      - name: Phase 2, our own art
-        run: node test/art2.test.js
-      - name: Phase 3, the sun's day
-        run: node test/sun3.test.js
-      - name: Phase 4, the walking bloom
-        run: node test/bloom4.test.js
-      - name: Phase 5, the door that holds
-        run: node test/door5.test.js
+      - name: ${{ matrix.name }}
+        run: node test/${{ matrix.test }}.test.js
+
+  # the check by its old name, green only when every phase above is
+  browser:
+    name: Played in a headless browser
+    needs: phase
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Every phase played
+        run: test "${{ needs.phase.result }}" = "success"
