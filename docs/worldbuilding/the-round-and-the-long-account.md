@@ -588,12 +588,12 @@ The isometric Ashen Wilds game is retired, and this game takes its place in the 
 
 **Its code is reference only.** The old build's combat, perception, weather, companion and network scripts are worth reading before each system is rebuilt. None of them runs in the new game.
 
-**What exists today.** The game runs in a web browser on the engine of *Echoes of the Shattered Octave*, copied into the Ashen-Wilds repository with that game's story and all of its pictures taken out (D14). Three phases are built: the fork, the ledge, and the game's own art. A fourth, the sun's day, waits in pull request 39: the sun crosses the sky and is the coal sun on the worst days, a pale coin on most, and on some days clear at noon. Two places exist: the prologue's ledge on Orlen's highland edge, and Marget Sayle's bothy under it. The ledge can be walked, the Slagcrown stands under the coal sun, and the carter and Marget Sayle are painted in code and can be spoken to. Nothing hunts yet. `ROADMAP.md` lists each phase, what in the build is still the Octave's wording, and what was invented and waits for a ruling.
+**What exists today.** The game runs in a web browser on the engine of *Echoes of the Shattered Octave*, copied into the Ashen-Wilds repository with that game's story and all of its pictures taken out (D14). Six phases are built: the fork, the ledge, the game's own art, the sun's day, the walking bloom, and the door that holds. Two places exist: the prologue's ledge on Orlen's highland edge, and Marget Sayle's bothy under it. One walking bloom stands on the shelf and hunts by sound; the bothy's door has a bar, and the room is safe only when it is across. `ROADMAP.md` lists each phase, what in the build is still the Octave's wording, and what was invented and waits for a ruling.
 
 **The work ahead, in order.** Each is one numbered phase and one pull request.
 
-1. **The walking bloom hunts by sound** on the ledge.
-2. **The safe room made real:** a door that holds, and what the hunter does at it.
+1. **The walking bloom hunts by sound** on the ledge. *Built.*
+2. **The safe room made real:** a door that holds, and what the hunter does at it. *Built.*
 3. **Sleet and Ashfall**, stopped by the bothy's roof.
 4. **The highland edge's own way of building**, honoured by the roof planner.
 5. **The lantern as the one light**, in the left hand, with a supply.

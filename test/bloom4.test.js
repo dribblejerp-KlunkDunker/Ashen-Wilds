@@ -115,8 +115,8 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
       try { renderAccessibilityMenu(); const b = document.getElementById('gfx-labodies'); out.row = b ? b.textContent : null; if (typeof closeModal === 'function') closeModal(); } catch (e) { out.row = String(e); }
       out.passes = R3D.passes().map((p) => p.name); out.failed = Bm.gl().failed; out.modelled = Bm.modelled();
       const ent = Bm.entity(); out.inMap = !!ent && G.maps.la_ledge.entities.includes(ent) && !!ent.solid;
-      const begin = (x, y) => { Bm.reset(); loadMap(LEDGE1.LEDGE, { x, y, dir: -Math.PI / 2 }); G.state = 'play'; G.dead = false; G.player.hp = G.player.hpMax || 43; G.noise = 1; G.keys = {}; advanceTime(300); };
-      const blockedAt = () => { const S = Bm.state(), m = G.maps.la_ledge; return m.isBlocked(Math.floor(S.x), Math.floor(S.y)); };
+      const begin = (x, y) => { Bm.reset(); G.flags = {}; loadMap(LEDGE1.LEDGE, { x, y, dir: -Math.PI / 2 }); G.state = 'play'; G.dead = false; G.player.hp = G.player.hpMax || 43; G.noise = 1; G.keys = {}; advanceTime(300); };
+      const blockedAt = () => { const S = Bm.state(), m = G.maps[S.map]; return m.isBlocked(Math.floor(S.x), Math.floor(S.y)); };
       let onBlocked = 0;
       const go = (tx, ty, secs, runK) => { for (let i = 0; i < secs * 10; i++) { c.dir = Math.atan2(ty - c.y, tx - c.x); G.keys = runK ? { w: true, shift: true } : { w: true }; advanceTime(100); if (blockedAt()) onBlocked++; if (Math.hypot(tx - c.x, ty - c.y) < 0.3 || G.state !== 'play') break; } G.keys = {}; };
       const wait = (secs) => { for (let i = 0; i < secs * 10; i++) { advanceTime(100); if (blockedAt()) onBlocked++; if (G.state !== 'play') break; } };
@@ -128,10 +128,10 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
       go(86.6, 33.3, 20, true); const heardAt = Bm.state().heard; let peakNoise = 0, clawedAt = -1, hpAfter = null;
       for (let i = 0; i < 80 && G.state === 'play'; i++) { advanceTime(100); if (blockedAt()) onBlocked++; if (Bm.state().clawed && clawedAt < 0) { clawedAt = i; hpAfter = G.player.hp; } if (clawedAt >= 0 && i - clawedAt < 20) peakNoise = Math.max(peakNoise, G.noise); if (clawedAt >= 0 && i - clawedAt > 20) break; }
       out.run = { heard: heardAt, clawed: Bm.state().clawed, hp0: G.player.hpMax || 43, hpAfter, peakNoise, msgs: box ? box.textContent : '' };
-      // 3. run, then go in at the door: it cannot follow, waits off the door, and goes back to its post
+      // 3. run, then go in at the door and bar it (Phase 5): it cannot follow, waits off the door, and goes back to its post
       begin(87, 41.5); go(86.6, 33.6, 20, true); wait(0.5); const heard3 = Bm.state().state;
-      loadMap(LEDGE1.BOTHY); G.state = 'play'; let maxIn = 0;
-      for (let i = 0; i < 400; i++) { advanceTime(100); const S = Bm.state(); if (S.x >= 82 && S.x < 86 && S.y >= 27 && S.y < 30) maxIn++; if (blockedAt()) onBlocked++; if (S.state === 'wait') break; }
+      G.flags.la_barred = true; loadMap(LEDGE1.BOTHY); G.state = 'play'; let maxIn = 0;
+      for (let i = 0; i < 400; i++) { advanceTime(100); const S = Bm.state(); if (S.map !== LEDGE1.LEDGE || (S.x >= 82 && S.x < 86 && S.y >= 27 && S.y < 30)) maxIn++; if (blockedAt()) onBlocked++; if (S.state === 'wait') break; }
       const atWait = Bm.state(); out.door = { heard: heard3, state: atWait.state, x: atWait.x, y: atWait.y, inside: maxIn };
       for (let i = 0; i < 900 && Bm.state().state !== 'post'; i++) advanceTime(100);
       out.door.after = Bm.state().state; out.onBlocked = onBlocked;
@@ -161,7 +161,7 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
     check(r.run.hpAfter === r.run.hp0 - 16, 'the claw takes 16 (' + r.run.hp0 + ' to ' + r.run.hpAfter + ')');
     check(r.run.peakNoise > 5, 'and the dust sets you coughing, which is loud (noise up to ' + r.run.peakNoise.toFixed(1) + ')');
     check(/walking bloom/i.test(r.run.msgs), 'what happened is said in words: "' + r.run.msgs.slice(0, 120).replace(/\s+/g, ' ') + '"');
-    check(r.door.inside === 0 && r.door.state === 'wait' && Math.hypot(r.door.x - 85.3, r.door.y - 31.5) < 0.5, 'PLAYED: go in at the door and it cannot follow; it waits off the door (' + r.door.state + ' at ' + r.door.x.toFixed(1) + ', ' + r.door.y.toFixed(1) + ')');
+    check(r.door.inside === 0 && r.door.state === 'wait' && Math.hypot(r.door.x - 85.3, r.door.y - 31.5) < 0.5, 'PLAYED: go in at the door and bar it, and it cannot follow; it waits off the door (' + r.door.state + ' at ' + r.door.x.toFixed(1) + ', ' + r.door.y.toFixed(1) + ')');
     check(r.door.after === 'post', 'and in time goes back to its post');
     check(r.onBlocked === 0, 'in all of that it never stood on a cell the map blocks');
     check(r.spriteOn === 'la_bloom_ghost' && r.spriteOff === 'la_bloom_flat', 'the switch: on, its place in the map holds nothing to see (the model is drawn there); off, the flat painted figure');
