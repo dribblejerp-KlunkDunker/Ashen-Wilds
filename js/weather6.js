@@ -231,6 +231,16 @@ void main() {
     if (typeof BLOOM4 !== 'undefined' && BLOOM4.setSenses) BLOOM4.setSenses((mapId) => { const m = G && G.maps && G.maps[mapId], k = outside(m) ? kNow() : 0, f = fx(k); return { hear: f.hear, see: f.sight }; });
     // footing: in sleet the ground is grease
     if (typeof playerMove === 'function') { const _pm = playerMove; playerMove = function (o, dx, dy) { const k = G && G.map && outside(G.map) ? kNow() : 0; if (k > 0 && o === Engine.cam) { const f = fx(k).footing; dx *= f; dy *= f; } return _pm.call(this, o, dx, dy); }; }
+    // the panel's weather word: this game's weather, not the engine's (held 'clear' since Phase 1)
+    if (typeof Weather !== 'undefined' && Weather && Weather.label) {
+      const _lb = Weather.label;
+      Weather.label = function () {
+        if (!sw() || typeof G === 'undefined' || !G || !G.map || !G.map._la) return _lb.apply(this, arguments);
+        const k = sleetAt(dayNow(), G.tod); if (k <= 0) return 'ashfall'; if (k >= 1) return 'sleet';
+        const rising = spells(dayNow()).some(([a]) => G.tod >= a && G.tod < a + W.blendS / DAY_S);
+        return (rising ? 'sleet' : 'ashfall') + ' coming in';
+      };
+    }
     const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { tick(dt); } catch (e) { ST.err = ST.err || String(e && e.message); } return r; };
     return true;
   }

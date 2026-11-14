@@ -303,6 +303,7 @@ word for word (section 6).
   sleet banners. When it ends you get one of its ashfall banners. Indoors: "Sleet rattles on the roof."
 - **One Options switch, "Ashfall and sleet".** Off puts back Phase 1's ash across the view and turns all of the
   weather off, play included. The test checks off by frame hash.
+- **The panel names it:** "ashfall", "sleet", or "sleet coming in", where it said "clear" before.
 - `js/bloom4.js` changed with it. The weather can now scale the bloom's hearing and sight (`BLOOM4.setSenses`). With
   nothing set, it is unchanged.
 
@@ -315,6 +316,8 @@ days); the 8-second blend; every banner is the bible's. In a browser:
 - You walk at 85% (measured).
 - A run 7.4 m from the bloom is heard in ashfall and lost in sleet.
 - The cue and a banner come outside; the roof line comes inside.
+- Phase 1's "Ash and embers" switch still rules the ash and embers.
+- The panel names the weather.
 - Switched off, nothing changes in play and the frame is exact.
 - There are no page errors.
 

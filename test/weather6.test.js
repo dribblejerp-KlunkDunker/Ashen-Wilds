@@ -71,6 +71,7 @@ check(/js\/door5\.js\?v=\d+"><\/script>\s*<script src="js\/weather6\.js\?v=\d+">
       const drawn = (a, b) => { let n = 0; for (let i = 0; i < a.data.length; i += 4) if (Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]) > 12) n++; return n / (a.data.length / 4); };
       const bare = () => { R3D.removePass('la-weather'); R3D.invalidate(); const p = frame(); R3D.addPass(wx); R3D.invalidate(); return p; };
       at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, SLEET, true); const Fon = { map: G.map, outdoor: true }; out.en = { wx: wx.enabled(Object.assign({}, Fon)), ash: ash.enabled(Object.assign({}, Fon)) };
+      out.label = { wet: Weather.label() };
       const pOn = frame(), fogOn = seen, pOnBare = bare(); out.sleet = { fog: fogOn, red: red(pOnBare), greys: drawn(pOn, pOnBare), k: WEATHER6.state().k };
       at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, DRY, true); GFX.laAsh = false; out.ashSwitch = { dry: wx.enabled(Object.assign({}, Fon)) }; G.tod = SLEET; out.ashSwitch.wet = wx.enabled(Object.assign({}, Fon)); GFX.laAsh = true;
       at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, SLEET, false); out.enOff = { wx: wx.enabled(Object.assign({}, Fon)), ash: ash.enabled(Object.assign({}, Fon)) };
@@ -79,7 +80,7 @@ check(/js\/door5\.js\?v=\d+"><\/script>\s*<script src="js\/weather6\.js\?v=\d+">
       // by day: the second day's spell, the same hour with the switch on and off
       const dayAt = (on) => { BLOOM4.reset(); GFX.laWx = on; loadMap(LEDGE1.LEDGE, { x: 89.5, y: 48.5, dir: Math.PI }); G.state = 'play'; G.day = 1; const t = (WEATHER6.spells(1)[0][0] + WEATHER6.spells(1)[0][1]) / 2; G.tod = t; advanceTime(300); G.tod = t; R3D.removePass('la-weather'); R3D.invalidate(); const p = frame(); R3D.addPass(wx); R3D.invalidate(); return lum(p); };
       out.day = { wet: dayAt(true), dry: dayAt(false) };
-      at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, DRY, true); const pDry = frame(); out.dry = { greys: drawn(pDry, bare()) };
+      at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, DRY, true); const pDry = frame(); out.label.dry = Weather.label(); out.dry = { greys: drawn(pDry, bare()) };
       // where a roof is, nothing falls: roof the whole map and the weather goes
       at(LEDGE1.LEDGE, 89.5, 48.5, Math.PI, SLEET, true); const sh = EAVES78.shelter;
       const mw = G.maps.la_ledge.w, mh = G.maps.la_ledge.h, roofed = { k: 1, w: mw, h: mh, data: new Float32Array(mw * mh).fill(1e4) }; EAVES78.shelter = () => roofed; const pRoof = frame(), pRoofBare = bare(); EAVES78.shelter = sh;
@@ -106,6 +107,7 @@ check(/js\/door5\.js\?v=\d+"><\/script>\s*<script src="js\/weather6\.js\?v=\d+">
     check(r.row === 'On', 'Options has a row for ashfall and sleet');
     check(r.passes.includes('la-weather') && !r.failed, 'its pass is in the renderer and compiled (' + (r.failed || 'no failure') + ')');
     check(r.en.wx && !r.en.ash && !r.enOff.wx && r.enOff.ash, 'on, it draws the weather and Phase 1\'s ash across the view stands aside; off, the other way round');
+    check(r.label.wet === 'sleet' && r.label.dry === 'ashfall', 'the panel names this game\'s weather: "' + r.label.wet + '", "' + r.label.dry + '"');
     check(r.ashSwitch.dry === false && r.ashSwitch.wet === true, 'Phase 1\'s "Ash and embers" switch still rules the ash: off and dry, nothing is drawn; off in sleet, only the sleet');
     check(r.sleet.k === 1 && r.sleet.greys > 0.01 && r.sleet.greys > r.dry.greys * 1.5, 'in sleet the view fills with streaks (' + (r.sleet.greys * 100).toFixed(1) + '% of the view drawn by the weather, ' + (r.dry.greys * 100).toFixed(1) + '% in ashfall)');
     check(Math.abs(r.sleet.fog.fogDist / r.off.fog.fogDist - 14 / 24) < 0.01, 'the fog closes in to 14/24 of its distance (' + r.sleet.fog.fogDist.toFixed(1) + ' against ' + r.off.fog.fogDist.toFixed(1) + ')');
