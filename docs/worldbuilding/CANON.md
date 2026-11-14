@@ -1,11 +1,15 @@
 # Canon sheet: the facts every Ashen Wilds file shares
 
-**Status: PROPOSED** (2026-11-05), like everything in `docs/worldbuilding/`. This sheet does not make
-anything canon by itself; the owner does. It exists so the two builds (this Godot game and the
-browser prototype, `Grim-Dark-Ashen-Wilds-`) and every lore file tell the same story.
+**Status: PROPOSED** (2026-11-05, revised 2026-11-11), like everything in `docs/worldbuilding/`.
+This sheet does not make anything canon by itself; the owner does. It exists so that this
+repository's game (The Long Account, first person: owner decision O5), the retired isometric
+Ashen Wilds game, the browser prototype (`Grim-Dark-Ashen-Wilds-`) and every lore file tell the
+same story.
 
-**Precedence.** (1) The owner's explicit decisions. (2) What ships in the Godot game: the README
-premise, item and background text, enemy doc comments, banners. (3) This sheet. (4) The other
+**Precedence.** (1) The owner's explicit decisions. (2) What the retired isometric game showed its
+players, marked *(in game)* below: the README premise, item and background text, enemy doc
+comments, banners. That game is no longer in this repository (O5; its code is on the branch
+`archive/isometric-prototype`), and what it showed stands as lore. (3) This sheet. (4) The other
 files in this folder. When a lower one disagrees with a higher one, the lower one is corrected.
 
 **Where the files came from.** The 24 files listed in `README.md` under *Previously preserved*,
@@ -21,18 +25,53 @@ game, the acts, and texts the game can show.
 |---|---|---|
 | **O1** | **Only humans are people. Everything else is an animal, a lizard, a fish or a monster.** Goblins, orks, ogres, trolls and every other creature have no language, names, culture, faith, bargains or society. They can be cunning, can use stolen tools and weapons and can hunt in packs, but they are beasts. Every companion, faction, quest-giver and playable background is human. | 2026-11-05 |
 | **O2** | **The names the Godot additions invented are kept**: the Kingdom of Orlen, Wexhaven, slag-iron, the five Highland Citadels (the Slagcrown, Greystair, Dunmarrow, Hob's Height, Kell Tor), the Slag-Lords, the Black Seam, Slag-Lord Cerrin Vane, the Breaking and S-dating, the Flight South, King Aldric IV, the Causeway Watch. | 2026-11-05 |
+| **O3** | **The wider-world decisions D1 to D11 in `the-round-and-the-long-account.md` are approved.** The follow-up game is titled The Long Account. Its look is first person, low-resolution 3D with painted people. The royal fleet is found in pieces in the south and the King is never proven; fact 8 stays true as what the Blackfen knows. There is a second wall, at the White Deeps, which adds evidence and settles nothing. Marget Sayle (one of the four who came back from the survey), Edith Brode (Ancel Brode's granddaughter) and Prior Lambert Strand (Abbot Hamon Strand's nephew) exist. The Collectors are agents of the Exchange at Port Sable, and the priests claiming southern appointment are sent from Vauclere. The game is for up to four players. People are drawn and beasts are modelled. Microphones as noise in a Dead Calm are optional and off by default. Whether the cough is catching is left open. The game opens with a prologue on Orlen's highland edge (D11). Everything else in that file stays proposed. | 2026-11-11 |
+| **O4** | **Small magic exists.** Minor spells of varying uses and powers, and runes and magic on weapons, are part of the world (D12 in `the-round-and-the-long-account.md`). This amends the tone rule below, which used to read "no spells, no glowing runes". As proposed in that file: spoken *workings* and *marks* cut into slag-iron; every one is small, is heard, and costs the one who speaks it; anyone can learn one and nobody is chosen; only people work them (O1); none feeds anyone, clears a lung, raises the dead or shows the future. **Prophecy stays out**, and the three unsettled questions (who made the Vaults, what the orks fled, why the Unnamed rise) stay unsettled. The retired isometric game showed no magic; see *Reading the older files* below for why the older files never mention it. | 2026-11-11 |
+| **O5** | **The isometric Ashen Wilds game is retired, and this repository's game is The Long Account** (D13 in `the-round-and-the-long-account.md`): first person, in the look of the Shattered Octave build and the owner's key painting. The old game's code, assets, tests, tools and production records are removed from `main` and kept on the branch `archive/isometric-prototype`. **All of the lore is kept**, and is read in line with O3 and O4 as set out under *Reading the older files* below. | 2026-11-11 |
 
 The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
+
+## Reading the older files after O3, O4 and O5 (2026-11-11)
+
+Every file in this folder is kept. None was rewritten wholesale; each file tied to the retired game
+carries a dated note at its head, and these rules say how all of them now read.
+
+- **"In game", "the Godot game" and "the Godot build"** mean the retired isometric game. Its
+  places, people, creatures, items, weathers and texts stand as lore.
+- **Its numbers are reference, not rules.** Metres of hearing, seconds, kilograms, collision sizes,
+  key bindings, test counts and paths under `scripts/` describe the retired build. The Long Account
+  starts from them and is free to change them. The files and tools those paths name are on the
+  archive branch.
+- **"Needs:" lines and "Godot integration" notes** are design notes for the retired build. They bind
+  nothing now.
+- **The winter of S.30 stands as a story.** Acts I to III (the Watchhouse, the Bell Road, the
+  Citadels) are kept as what may have happened that winter. The Long Account opens at the thaw that
+  ends it and assumes none of its choices or endings: not whether the Causeway is open, not what
+  was done at the mouth of the Vaults.
+- **Small magic (O4).** No older file shows a working, because the Keeping's register-keepers did
+  not write them down and the trades that kept most of them died with the Citadels
+  (`the-round-and-the-long-account.md`, *Small magic*). Where an older file rules that one
+  particular thing is not magical (a survey plate, a troll's hide, a rescue, a guarantee), that
+  ruling stands: O4 adds small workings and marked blades, it does not make those things magical.
+  The naming that lays an Unnamed to rest is a working; why a name works stays unsettled (fact
+  18a). The Keeping's own line, that the naming is a debt owed to the dead and not a charm, stands
+  as the Keeping's view. No beast works magic (O1).
+- **The wider world (O3).** "The south", the Collectors, the priests claiming southern appointment
+  and the question of where the fleet went read with `the-round-and-the-long-account.md`. What the
+  Blackfen knows is unchanged: nobody there knows where the fleet went.
+- **The unsettled questions stay unsettled:** who made the Vaults, what the orks fled, why the
+  Unnamed rise.
 
 ---
 
 ## Tone
 
-- **Grim and grounded.** Mud, cold, hunger, debt, small mercies. No chosen ones, no spells, no
-  glowing runes. **No prophecy is coming** *(in game)*.
+- **Grim and grounded.** Mud, cold, hunger, debt, small mercies. No chosen ones. Magic is small
+  and costs something (O4): minor workings and marked weapons, nothing grand.
+  **No prophecy is coming** *(in game)*.
 - **Uncertainty is a rule, not a gap.** The archive's habit: say what happened, say what you do not
   know, write down the dead. Lore files separate *what we know* from *what people guess*.
-  Anything uncanny has, or could have, a plain cause.
+  Beyond a known small working (O4), anything uncanny has, or could have, a plain cause.
 - **Only people are people (O1).** Creatures are animals, lizards, fish and monsters: they hunt,
   scavenge, nest, flee and feed, and they are never reasoned with. The moral weight of the story
   sits with humans: what they owe each other, and what they do to each other. The worst choices in
@@ -40,7 +79,8 @@ The archive was revised to fit O1 on the same day; see *Archive material revised
 - **Obligation is the theme.** Who owes whom, after the ones who were owed protection were left
   behind: lords, priests, the Crown, the Watch, a household, a friend.
 - **Plain words** and old English-flavoured names. **In-game text** uses plain ASCII punctuation
-  (straight quotes, hyphens; no arrows or symbols): the browser build has no system fonts.
+  (straight quotes, hyphens; no arrows or symbols). The rule began because the browser build had no
+  system fonts, and The Long Account keeps it for its ledger panel.
 
 ## The hard facts
 
@@ -178,7 +218,7 @@ status line. The originals, as copied from the browser prototype, are in git his
 
 ## Name register
 
-**In game:** the Smothering · the Highland Citadels · the Deep-Seam Vaults · the Blackfen · the
+**In game** (the retired isometric game)**:** the Smothering · the Highland Citadels · the Deep-Seam Vaults · the Blackfen · the
 Blackfen Outskirts · the Wayfarer's Watchhouse · the Old Causeway · the Roofed Mile · the Spore
 Hollow · the Old Quarry · the North-West Feeding Ground · Goblin Scavenger · Ork Vanguard ·
 Blackfen Ogre · Blind Quarry-Troll · Ash-Spore Husk · the Unnamed · the Drowned Graves · Edda · the eight backgrounds · the six
@@ -194,3 +234,5 @@ gallery-crawler, the warning book.
 Dunmarrow, Hob's Height, Kell Tor · Slag-Lords · the Black Seam · Cerrin Vane · the Breaking ·
 S-dating · the Flight South · Aldric IV · the Causeway Watch · walking blooms. Files written for
 this repository list their own new names at the end.
+
+**Wider world (O3):** see the *New names* list at the end of `the-round-and-the-long-account.md`.

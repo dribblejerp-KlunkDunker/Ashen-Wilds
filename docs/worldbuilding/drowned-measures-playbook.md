@@ -1,5 +1,7 @@
 # Drowned Measures: Player Forecasting and Frontier Playbook
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** This file's ruling that the survey plate is not automatically magical stands under O4. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Prepared 2026-11-09. Proposed lore and custom d20 tabletop/design rules, not implemented game runtime or finalized canon. Additive companion to silt-readers-and-drowned-measures.md and the quarry package. Consolidates the conversation's Cutwardens, regional events, Rootstone Witness and failed-forecast quest, then adds a usable player procedure and an orchard-specific event table. Structured consolidation, not verbatim transcript. No existing files, code, maps, assets, saves or checkpoints are replaced.
 
 ## 1. Player mechanic: Read the Ground

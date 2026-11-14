@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://octave.invalid/schemas/map.v1.json",
+  "title": "Octave mod map (schema v1)",
+  "x-schemaVersion": 1,
+  "description": "A dungeon grid. rows has h strings of w characters: \".\" open floor, \"1\"..\"8\" a wall (index into walls), \"D\" door, \"S\" start (exactly one), \"X\" exit (exactly one, reachable from S). Wall indexes are renumbered into a canonical order on import.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "w",
+    "h",
+    "walls",
+    "rows"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,23}$",
+      "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+      "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+    },
+    "w": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 40,
+      "description": "width in cells"
+    },
+    "h": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 40,
+      "description": "height in cells"
+    },
+    "floor": {
+      "enum": [
+        "t_flag",
+        "t_cobble",
+        "t_grass",
+        "t_wood",
+        "t_moss",
+        "t_stone",
+        "t_marble",
+        "t_greymarble"
+      ],
+      "default": "t_flag"
+    },
+    "ceil": {
+      "enum": [
+        "t_stone",
+        "t_wood",
+        "c_beams",
+        "c_vault",
+        "c_rock"
+      ],
+      "default": "t_stone"
+    },
+    "walls": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "t_stone",
+          "t_wood",
+          "t_house",
+          "t_roof",
+          "t_hedge",
+          "t_cobble",
+          "t_glassrock",
+          "t_marble",
+          "t_brass",
+          "t_greymarble",
+          "t_catacomb",
+          "t_mausoleum",
+          "t_deepwood",
+          "t_moss"
+        ]
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 40,
+      "items": {
+        "type": "string",
+        "pattern": "^[.1-8DSX]+$",
+        "minLength": 8,
+        "maxLength": 40
+      }
+    },
+    "ambient": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.5,
+      "description": "clamped",
+      "default": 0.18
+    },
+    "fog": {
+      "type": "number",
+      "minimum": 4,
+      "maximum": 24,
+      "description": "view distance, clamped",
+      "default": 12
+    },
+    "music": {
+      "enum": [
+        "dungeon",
+        "inside",
+        "cloister",
+        "mausoleum",
+        "root"
+      ],
+      "default": "dungeon"
+    },
+    "startDir": {
+      "enum": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "default": 0,
+      "description": "degrees; 0 faces east"
+    },
+    "entities": {
+      "type": "array",
+      "maxItems": 80,
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    }
+  },
+  "$defs": {
+    "entity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "kind": {
+              "const": "enemy"
+            },
+            "type": {
+              "enum": [
+                "hound",
+                "legionnaire",
+                "golem",
+                "proctor",
+                "mites",
+                "quiet",
+                "weaverling",
+                "drowned",
+                "marine",
+                "dirge",
+                "warden",
+                "tongueless",
+                "outrider",
+                "hushwarden",
+                "hushmoth",
+                "deacon",
+                "captain"
+              ]
+            },
+            "modEnemy": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5,
+              "description": "cell centre or anywhere inside an open cell"
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            }
+          },
+          "description": "exactly one of type / modEnemy"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "kind": {
+              "const": "item"
+            },
+            "item": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "A name from the game's item catalog that mods may use (healing, voice, ammunition, valuables). The validator checks it against the live ITEMS table."
+            },
+            "modItem": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            }
+          },
+          "description": "exactly one of item / modItem"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sprite",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "kind": {
+              "const": "prop"
+            },
+            "sprite": {
+              "enum": [
+                "lamp",
+                "crates",
+                "bones",
+                "chair",
+                "table",
+                "bed",
+                "shelf",
+                "hearth",
+                "pump",
+                "sign",
+                "chest",
+                "basin",
+                "campfire",
+                "grave",
+                "cores",
+                "gear",
+                "web",
+                "tomb",
+                "oak"
+              ]
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "npc",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "kind": {
+              "const": "npc"
+            },
+            "npc": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5
+            }
+          }
+        }
+      ]
+    }
+  }
+}

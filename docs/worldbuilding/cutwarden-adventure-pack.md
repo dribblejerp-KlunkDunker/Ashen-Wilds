@@ -1,5 +1,7 @@
 # The Opening That Must Stay Shut
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** "Godot content" in this file means the retired isometric game. The adventure stands as proposed lore. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Status: PROPOSED, 2026-11-09. A GM adventure supplement, not implemented Godot content. All speaking characters and factions are human. Creatures are animals or monsters, never negotiating societies. Canon precedence remains in CANON.md. Use the companion drowned-measures-playbook.md for custom d20 fieldwork. Costs are fictional play abstractions, not real engineering guidance.
 
 ## Hook and established situation

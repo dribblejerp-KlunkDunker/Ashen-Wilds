@@ -2,6 +2,8 @@
 
 ## Scope and status
 
+**As of 2026-11-11 this repository's game is The Long Account** (first person; owner decision O5), and the isometric Ashen Wilds game is retired to the branch `archive/isometric-prototype`. Every lore file below is kept. Files written beside the old game carry a dated note at their head, and `CANON.md` (*Reading the older files after O3, O4 and O5*) says how all of them read now: "the Godot game" means the retired build, its numbers are reference and not rules, the winter of S.30 stands as a story, small magic exists (O4), and the wider world is in [The Round and The Long Account](the-round-and-the-long-account.md).
+
 This index covers the original worldbuilding archive through 2026-11-01 18:06 EST, the Godot additions below, and the 2026-11-09 lore imports listed separately. These documents preserve proposed lore, not implemented game systems. Storage in GitHub does not automatically settle canon. No assets, development checkpoints, or existing lore documents are replaced by this additive batch.
 
 ## Previously preserved
@@ -56,6 +58,10 @@ Imported from the browser repository at commit `b46237b50b9aa1244e394b165364ad0a
 | [Drowned Measures playbook](drowned-measures-playbook.md) | Proposed player procedure, Cutwardens, Rootstone Witness, events and quest | Documentation only; no forecast journal, event integration or quest implementation |
 
 The `quarry-recreated/` workshop package remains pending import and validation. Its source README includes speaking goblins and requires O1 reconciliation or clearly segregated archival status. Do not treat a reference to that package in imported source prose as proof it is already present. Existing owner decisions and CANON.md keep precedence; these imports do not approve new species, exact placement, populations or balance.
+
+## The wider world and The Long Account (2026-11-11)
+
+- [The Round and The Long Account](the-round-and-the-long-account.md): proposed. Part One sets out the world beyond Orlen: the Slate Sea and the eight other lands around it (the Scald and the Hoar, the Skerries, the Weald, the Sable Shore and the Compact of Quays, Vauclere, Sephar, the White Deeps), the Dim, what crossed the sea after S.0, faiths, money, tongues, calendars, beasts (all animals under O1), the deep places as evidence only, and a timeline. Part Two designs a separate first-person co-op game for one to four players in that world, set from the thaw of S.31 to the thaw of S.32: structure, the company, co-op systems, the Account, combat, the multiplayer model, the look, the story and its five endings. It also proposes the small magic the owner approved as O4 (spoken workings and marks on slag-iron blades) and a prologue on Orlen's highland edge. Its twelve owner decisions (D1 to D12) are approved and recorded as O3 and O4 in the canon sheet; the rest is proposed. Of the game, only a look test of the prologue's ledge is built. It leaves who made the Vaults, what the orks fled and why the Unnamed rise unsettled.
 
 ## Continuity boundaries
 

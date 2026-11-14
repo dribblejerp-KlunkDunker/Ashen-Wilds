@@ -1,0 +1,13 @@
+/* Locally bundled fonts (no network needed). All are licensed under the SIL Open Font License 1.1;
+   the licence texts are in fonts/OFL-*.txt. Latin subsets from the @fontsource packages. */
+@font-face { font-family: 'Cinzel'; src: url('../fonts/cinzel-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Cinzel'; src: url('../fonts/cinzel-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-400-normal.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-500-italic.woff2') format('woff2'); font-weight: 500; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('../fonts/alegreya-latin-700-italic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Alegreya SC'; src: url('../fonts/alegreya-sc-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alegreya SC'; src: url('../fonts/alegreya-sc-latin-700-normal.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'UnifrakturMaguntia'; src: url('../fonts/UnifrakturMaguntia.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }

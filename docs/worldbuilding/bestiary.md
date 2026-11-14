@@ -1,5 +1,7 @@
 # The Blackfen Bestiary
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** Sizes here were matched to the retired isometric build's collision numbers and stand as the creatures' measures. No beast works magic (O1, O4). Six beasts of the wider world are in `the-round-and-the-long-account.md`. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Compiled 2026-11-04, revised 2026-11-05. Proposed lore, not implemented game systems; see *Status of this document* below. A live, editable copy is kept as a Claude Doc.
 
 Every creature a survivor can meet in the Ashen Wilds, from the goblins at the Watchhouse to the thing the orks fled: what it is, what it eats, where it sleeps, and what no one knows yet.

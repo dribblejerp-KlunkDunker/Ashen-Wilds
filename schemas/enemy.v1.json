@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://octave.invalid/schemas/enemy.v1.json",
+  "title": "Octave mod enemy (schema v1)",
+  "x-schemaVersion": 1,
+  "description": "A variant of an existing enemy behaviour type. Out-of-range stats are clamped by the validator (with a warning).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "base",
+    "name",
+    "hp",
+    "dmg",
+    "speed"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,23}$",
+      "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+    },
+    "base": {
+      "enum": [
+        "hound",
+        "legionnaire",
+        "golem",
+        "proctor",
+        "mites",
+        "quiet",
+        "weaverling",
+        "drowned",
+        "marine",
+        "dirge",
+        "warden",
+        "tongueless",
+        "outrider",
+        "hushwarden",
+        "hushmoth",
+        "deacon",
+        "captain"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+      "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+    },
+    "hp": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 250,
+      "description": "clamped"
+    },
+    "dmg": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 30,
+        "description": "clamped"
+      },
+      "description": "[low, high]"
+    },
+    "speed": {
+      "type": "number",
+      "minimum": 0.3,
+      "maximum": 2.6,
+      "description": "clamped"
+    },
+    "reach": {
+      "type": "number",
+      "minimum": 0.7,
+      "maximum": 1.8,
+      "description": "clamped"
+    },
+    "scale": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 1.5,
+      "description": "multiplier on the base enemy size, clamped"
+    },
+    "xp": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 200,
+      "description": "clamped"
+    },
+    "desc": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+      "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+    }
+  }
+}

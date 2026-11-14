@@ -1,5 +1,7 @@
 # The Godot game's people
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** "The Godot game" is the retired isometric game. Its people stand as lore, and the eight backgrounds carry into The Long Account beside eight more. Under O4 a hedge-priest keeps the ward and the naming and a fen healer keeps staunch (proposed in `the-round-and-the-long-account.md`). See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: Proposed. Godot addition, 2026-11-05.** Nothing here is canon until the owner says so.
 Precedence as in `CANON.md`: the owner's decisions, then what ships in the Godot game, then the
 canon sheet, then this file.

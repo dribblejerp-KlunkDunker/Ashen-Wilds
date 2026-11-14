@@ -1,5 +1,7 @@
 # Rook's Stair: The Held Benches
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** "Godot" in this file means the retired isometric game. Its ruling that the troll has no magical stone armour stands under O4. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 Prepared 2026-11-09. Proposed lore and custom tabletop playtest rules, not implemented game systems. Additive supplement to bestiary.md and bell-road-locations.md. Repository storage does not settle canon. No existing lore, code, assets, saves or checkpoints are replaced.
 
 ## Godot integration note

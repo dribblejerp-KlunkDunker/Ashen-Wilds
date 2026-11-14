@@ -1,5 +1,7 @@
 # Act I: the Outskirts
 
+> **Note, 2026-11-11 (owner decisions O3, O4, O5).** The isometric game this file describes location by location is retired (its code is on the branch `archive/isometric-prototype`). The places, props, people and hooks stand as lore of the Watchhouse in the winter of S.30; the level layout, coordinates and numbers are the retired build's. See `CANON.md`, *Reading the older files after O3, O4 and O5*.
+
 **Status: PROPOSED** (Godot addition, 2026-11-05). Nothing here is canon until the owner says so.
 It follows `CANON.md`, including owner decision **O1**: only humans are people, and every creature is
 a beast. Where older archive text treats goblins or orks as peoples, this file follows O1.

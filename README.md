@@ -1,82 +1,106 @@
-# Ashen Wilds
+# The Long Account
 
-A grounded, isometric dark-survival action game built in Godot. Thirty years into the Smothering, people survive in the Blackfen through scavenging, difficult journeys and obligations kept or broken. No prophecy is coming.
+A first-person game of dread in the world of Ashen Wilds, for one to four players, played in a web
+browser. A small carrying company takes a dead kingdom's unpaid receipts, and one old woman who was
+inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 
-## Play and project direction
+**Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
+the coal sun, walk down to Marget Sayle's bothy and speak to her. Nothing hunts you yet, and nothing
+of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
 
-- [Browser prototype](https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/): the single-player slice. Click the game to give it keyboard focus.
-- [Playtest downloads](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/releases/tag/playtest): desktop clients and dedicated server.
-- `main.tscn`: preserved single-player prototype, including committed melee, stamina, scavenging, equipment, weather, perception and Act I objectives.
-- `net_main.tscn`: networked courtyard development, with server-owned shared state. Browser builds do not currently support its network transport.
-- `launcher.tscn`: configured entry scene; selects the prototype or networked mode from launch arguments.
+![The ledge](docs/screenshots/01_the_ledge.png)
 
-The current direction is a two-developer, two-player-first 3D survival game. Read [the production record](docs/PRODUCTION.md) for network operation, decisions and milestone evidence. Do not mistake proposed worldbuilding for shipped features.
+| | |
+| --- | --- |
+| ![At the edge](docs/screenshots/02_at_the_edge.png) | ![The bloom](docs/screenshots/04_the_bloom.png) |
+| ![The bothy](docs/screenshots/05_the_bothy.png) | ![Marget Sayle](docs/screenshots/06_marget_sayle.png) |
+| ![The carter](docs/screenshots/03_the_carter.png) | ![Speaking to Marget Sayle](docs/screenshots/08_talking_to_marget.png) |
 
-## Run locally
+## Play
 
-Repository guidance pins Godot 4.7.2-stable, standard build, not .NET. Desktop Forward+ rendering needs a suitable Vulkan-capable GPU. Do not upgrade the project editor version casually.
+Once the owner has merged this and turned on Pages (Settings > Pages > Source: GitHub Actions), the
+game is published from `main` to `https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/`.
 
-```sh
-git clone https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds.git
-cd Ashen-Wilds
-godot --path . --editor
-```
+From source there is nothing to build or install. Serve the folder and open it:
 
-Open `project.godot`, allow art imports to finish, then press F5. Alternatively run `godot --path .` with the pinned executable available as `godot`. Network launch details belong to `docs/PRODUCTION.md` and generated build instructions, not guessed command lines here.
-
-## Single-player controls
+    git clone https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds.git
+    cd Ashen-Wilds
+    python3 -m http.server 8000        # then open http://localhost:8000
 
 | Input | Action |
 | --- | --- |
-| WASD / Shift | Move / sprint |
-| Mouse / LMB | Aim / light attack |
-| Q or Shift+LMB | Heavy attack |
-| RMB / Space | Shield / evasive step |
-| E / Tab | Interact / pack |
-| B / G | Bandage / quicklime |
-| 1, 2, 3 / 4 | Weapon / off-hand |
-| F / R | Companion follow-hold / respawn |
-| Mouse wheel | Zoom |
-| [ and ] / - and = | Brightness / camera shake |
+| W A S D | Walk |
+| Mouse | Look (click the view first) |
+| E or Space | Open a door, speak, read what is in front of you |
+| Esc | Controls and Options |
 
-These are prototype controls, not a promise of identical multiplayer behavior.
+Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
+the coal sun, ash and embers, burning ground.
 
-## Repository map
+## What is in the build
+
+- **The ledge** on Orlen's highland edge: frosted rock fourteen up, a cliff you cannot step off, a
+  ramp down to a shelf.
+- **The country of the key painting, as a map you could walk:** the cracked highland with fire in the
+  beds of its cracks, a canyon running west, the teal hollow of the bloom, and the Slagcrown on its
+  rise, with the far rim behind.
+- **The coal sun**, low in the west over the Slagcrown, with smoke for cloud and ash in the air.
+- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. It is marked as
+  the safe room, though nothing yet exists for it to be safe from.
+- **Two people who can be spoken to:** the carter on the ledge, and Marget Sayle. Both are painted
+  in code and move on the engine's rig.
+- **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
+  code here.
+
+## What it is built on
+
+The engine is the one written for *Echoes of the Shattered Octave* (same owner), copied in at that
+game's commit `f2b3990` with its story and all of its pictures removed. It is plain JavaScript: no
+framework, no bundler, no build step. `index.html` loads the scripts in order. Some wording inside
+the engine is still that game's: the panel's buttons, its items, its credits screen. `ROADMAP.md`
+lists all of it. `CREDITS.md` says where every file came from.
+
+## Where things are
 
 | Path | Purpose |
 | --- | --- |
-| `project.godot`, `*.tscn` | Engine configuration and launch scenes |
-| `scripts/`, `shaders/`, `scenes/` | Gameplay, rendering and scene work |
-| `art/`, `assets/` | Imported art and the project environment kit |
-| `tests/`, `tools/` | Regression checks, build/export and development tools |
-| `docs/PRODUCTION.md` | Current production and multiplayer working record |
-| `docs/ROADMAP.md`, `docs/TOOLING_ROADMAP.md` | Planning |
-| `docs/worldbuilding/` | Proposed world bible and adventure material |
-| `docs/screenshots/` | Prototype screenshots |
-| `CLAUDE.md` | Agent/contributor workflow, architecture and verification |
+| `index.html` | The page. Loads every script in order, each with `?v=N` |
+| `js/fork0.js` | Phase 0: quiet stand-ins for the story hooks the engine still calls |
+| `js/ledge1.js` | Phase 1: the ledge, the bothy, the coal sun, the ash, the words |
+| `js/art2.js` | Phase 2: the tiles, the two people, the bothy's things, the hand and blade, painted in code |
+| `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
+| `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
+| `test/` | One test file per phase, and the shared browser harness |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` |
+| `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
+| `.github/workflows/` | The checks on every pull request, and publishing from `main` |
+| `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
+| `docs/worldbuilding/the-round-and-the-long-account.md` | The wider world, and this game's design |
+| `ROADMAP.md` | Every phase, what is invented and awaits a ruling, what is not done |
+| `CLAUDE.md` | How to work on this repository |
 
-## Drowned Measures: proposed adventure material
+## Tests
 
-- [Player forecasting playbook](docs/worldbuilding/drowned-measures-playbook.md): Read the Ground, the Cutwardens, Rootstone Witness, orchard/regional events and Valid When Issued.
-- [Cutwarden adventure pack](docs/worldbuilding/cutwarden-adventure-pack.md): opening dispute, meeting Sella, downstream salvagers, threatened households, GM clock and d20 canal encounters.
-- [Worldbuilding index](docs/worldbuilding/README.md) and [canon precedence](docs/worldbuilding/CANON.md).
+    node test/fork0.test.js --no-browser
+    node test/ledge1.test.js --no-browser
+    node test/art2.test.js --no-browser
+    node tools/pwa/precache.js --check
+    node tools/icons.js --check
 
-The playbook is copied unchanged from the legacy repository's commit `b46237b50b9aa1244e394b165364ad0ac5c6b5f6` (file blob `69c2e4eb3cd86f195e76a46ab7f7caccb46888ae`). Its references to the Silt Readers source file and quarry package describe legacy companion material; those dependencies are not migrated by this batch. Named legacy people and places remain proposed, not implemented NPCs. This is a content copy, not a transfer of Git history or deletion from the old repository.
+    # the played half, in a headless browser (Playwright is not bundled)
+    NODE_PATH=$(npm root -g) node test/fork0.test.js
+    NODE_PATH=$(npm root -g) node test/ledge1.test.js
+    NODE_PATH=$(npm root -g) node test/art2.test.js
 
-The custom d20 rules, time costs and GM clocks are tabletop/design proposals. They do not change the Godot simulation, saves, HUD, multiplayer authority or campaign time.
+A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
+the door opens, the people answer, and the switches change the picture. It says nothing about how the
+game feels: that needs a person at the controls.
 
-## Verification and contributing
+## The games this replaced
 
-```sh
-godot --headless --path . --import
-godot --headless --path . --script res://tests/smoke_test.gd
-python3 tools/net_spike.py
-```
-
-Use the pinned engine. See `CLAUDE.md` for compile checks, collision suites, live boots and exported-build verification. This documentation update did not run Godot or establish a new test count. A successful file commit is not evidence of a successful game build.
-
-Keep multiplayer work alongside the preserved prototype. Clients send intent; the server owns shared outcomes. Read the relevant code and production contracts before changing network behavior. All new project updates target this repository, `dribblejerp-KlunkDunker/Ashen-Wilds`.
-
-## Art and credits
-
-The repository credits Quaternius character/animation material and ambientCG photo textures as CC0; consult the READMEs and licenses under `art/quaternius/` and `art/ambientcg/`. The project's environment kit lives under `assets/environment/`. Asset-specific permissions are not a blanket license for all project code or content.
+Until 2026-11-11 this repository held Ashen Wilds, an isometric dark-survival game (owner decision
+O5 in `docs/worldbuilding/CANON.md`). **All of its lore is kept** in `docs/worldbuilding/`. Its code
+is on the branch
+[`archive/isometric-prototype`](https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds/tree/archive/isometric-prototype).
+A one-day Godot look test of this game followed it and was dropped for the browser engine (decision
+D14); it is in the history of this branch.

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1a1410">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<title>The Long Account</title>
+<link rel="stylesheet" href="css/fonts.css?v=31">
+<link rel="stylesheet" href="css/style.css?v=39">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230c0707'/%3E%3Crect y='26' width='32' height='6' fill='%233a1208'/%3E%3Ccircle cx='16' cy='14' r='9.5' fill='%23e8691a'/%3E%3Ccircle cx='16' cy='14' r='8.6' fill='%23ffab3a'/%3E%3Ccircle cx='16' cy='14' r='7.4' fill='%23080404'/%3E%3C/svg%3E">
+</head>
+<body>
+<div id="stage">
+  <div id="rotate-hint" role="note">Turn your phone sideways for a bigger view.</div>
+  <div id="game">
+    <canvas id="view" width="320" height="200"></canvas>
+    <div id="fx"></div>
+    <div id="msgs"></div>
+    <div id="hint"></div>
+    <div id="cover-status" hidden role="status" aria-live="polite"></div>
+    <div id="lockhint">Move the mouse to look · rest it at an edge to keep turning · Esc for Controls</div>
+    <div id="t-stick"><div id="t-knob"></div></div>
+    <div id="touchui">
+      <button id="t-song" class="tb small">Songs</button>
+      <button id="t-run" class="tb small">Run</button>
+      <button id="t-cover" class="tb small" hidden aria-label="Disguise status and wear or remove Synod robes">Cover</button>
+      <button id="t-body" class="tb small" hidden aria-label="Drag, drop, conceal or recover a nearby body">Body</button>
+      <button id="t-throw" class="tb small" aria-label="Choose a throwing distraction">Throw</button>
+      <button id="t-pocket" class="tb small" hidden aria-label="Inspect nearby purse">Purse</button>
+      <button id="t-use" class="tb">Use</button>
+      <button id="t-atk" class="tb big">Strike</button>
+    </div>
+
+    <!-- TITLE -->
+    <section id="title" class="screen">
+      <img src="img/title.png" alt="" class="bg">
+      <div class="title-inner">
+        
+        <h1>The Long<br>Account</h1>
+        <p class="sub">Ashen Wilds - the thaw of S.31</p>
+        <div class="menu">
+          <button id="btn-new" class="dfbtn">Begin</button>
+          <button id="btn-load" class="dfbtn">Load a saved game</button>
+          <button id="btn-help" class="dfbtn">How to play</button>
+        </div>
+        <p class="tiny">A first-person game of dread, for one to four. This is the first place only: the ledge.</p>
+      </div>
+    </section>
+
+    <!-- CHARACTER CREATION -->
+    <section id="create" class="screen hidden">
+      <div class="panel wide" id="create-panel"></div>
+    </section>
+
+    <!-- INTRO SCROLL -->
+    <section id="intro" class="screen hidden">
+      <div class="scroll-text" id="intro-text"></div>
+      <button class="dfbtn" id="btn-intro-skip">Continue</button>
+      <div class="hint-key">Press Enter or click to continue</div>
+    </section>
+
+    <!-- GENERIC MODAL PANEL (inventory, character, logbook, map, rest, songs, ledger, help, dialogue) -->
+    <section id="modal" class="screen hidden">
+      <div class="panel" id="modal-panel"></div>
+    </section>
+
+    <!-- EVENT / CHOICE -->
+    <section id="event" class="screen hidden">
+      <div class="panel event" id="event-panel"></div>
+    </section>
+
+    <!-- DEATH -->
+    <section id="death" class="screen hidden">
+      <div class="death-inner"><h2 id="death-title">You have been found.</h2><p id="death-text"></p><button class="dfbtn" id="btn-wake">Wake</button></div>
+    </section>
+
+    <!-- ENDING -->
+    <section id="ending" class="screen hidden">
+      <img src="img/title.png" alt="" class="bg">
+      <div class="ending-inner"><h2 id="ending-title">Grab the Line</h2><div id="ending-text"></div><div class="ending-btns"><button class="dfbtn hidden" id="btn-part3">Sail on — Part Three: The Forgetting</button><button class="dfbtn" id="btn-again">Begin again</button></div></div>
+    </section>
+
+    <div id="loading" class="screen"><div class="load-inner"><p>Tuning the Octave…</p><div class="bar"><div id="load-fill"></div></div></div></div>
+    <div id="debug"></div>
+  </div>
+</div>
+<script src="js/assets.js?v=32"></script>
+<script src="js/data.js?v=47"></script>
+<script src="js/maps.js?v=40"></script>
+<script src="js/engine.js?v=33"></script>
+<script src="js/audio.js?v=32"></script>
+<script src="js/fork0.js?v=1"></script>
+  <script src="js/game.js?v=49"></script>
+  <script src="js/party.js?v=33"></script>
+  <script src="js/anim.js?v=31"></script>
+  <script src="js/upgrades.js?v=34"></script>
+  <script src="js/weather.js?v=31"></script>
+  <script src="js/gfx.js?v=31"></script>
+  <script src="js/sky.js?v=33"></script>
+  <script src="js/post.js?v=31"></script>
+  <script src="js/water.js?v=31"></script>
+  <script src="js/decals.js?v=32"></script>
+  <script src="js/ceilings.js?v=32"></script>
+  <script src="js/scenery.js?v=31"></script>
+  <script src="js/flora.js?v=31"></script>
+  <script src="js/directions.js?v=31"></script>
+  <script src="js/lighting.js?v=32"></script>
+  <script src="js/pathing.js?v=31"></script>
+  <script src="js/presets.js?v=34"></script>
+  <script src="js/creature-life.js?v=31"></script>
+  <script src="js/enemy-fx.js?v=31"></script>
+  <script src="js/telegraphs.js?v=31"></script>
+  <script src="js/fp-hands.js?v=31"></script>
+  <script src="js/fp-feel.js?v=31"></script>
+  <script src="js/doors.js?v=31"></script>
+  <script src="js/reading.js?v=31"></script>
+  <script src="js/companions.js?v=32"></script>
+  <script src="js/townsfolk.js?v=32"></script>
+  <script src="js/smalllife.js?v=32"></script>
+  <script src="js/firesmoke.js?v=32"></script>
+  <script src="js/windbells.js?v=31"></script>
+  <script src="js/gates.js?v=31"></script>
+  <script src="js/frames.js?v=31"></script>
+  <script src="js/icons.js?v=35"></script>
+  <script src="js/portraits.js?v=33"></script>
+  <script src="js/logmap.js?v=35"></script>
+  <script src="js/screens.js?v=31"></script>
+  <script src="js/spatial-audio.js?v=31"></script>
+  <script src="js/voices.js?v=39"></script>
+  <script src="js/ripples.js?v=1"></script>
+  <script src="js/painted-manifest.js?v=3"></script>
+  <script src="js/painted.js?v=1"></script>
+  <script src="js/look10.js?v=2"></script>
+  <script src="js/motion10.js?v=1"></script>
+  <script src="js/guard.js?v=1"></script>
+  <script src="js/dread.js?v=1"></script>
+  <script src="js/hud11.js?v=1"></script>
+  <script src="js/flourish11.js?v=2"></script>
+  <script src="js/air11.js?v=3"></script>
+  <script src="js/arms12.js?v=4"></script>
+  <script src="js/kit12.js?v=2"></script>
+  <script src="js/nerves13.js?v=2"></script>
+  <script src="js/night13.js?v=4"></script>
+  <script src="js/props14.js?v=3"></script>
+  <script src="js/far14.js?v=1"></script>
+  <script src="js/cinema14.js?v=2"></script>
+  <script src="js/gpu18.js?v=5"></script>
+  <script src="js/pwa18.js?v=2"></script>
+  <script src="js/ghost18.js?v=4"></script>
+  <script src="js/net19.js?v=4"></script>
+  <script src="js/sync19.js?v=4"></script>
+  <script src="js/partner19.js?v=3"></script>
+  <script src="js/playtools.js?v=31"></script>
+  <script src="js/access.js?v=31"></script>
+  <script src="js/mods.js?v=31"></script>
+  <script src="js/max20.js?v=3"></script>
+  <script src="js/walls77.js?v=1"></script>
+  <script src="js/r3d21.js?v=7"></script>
+  <script src="js/eaves78.js?v=6"></script>
+  <script src="js/sprites21.js?v=3"></script>
+  <script src="js/light21.js?v=3"></script>
+  <script src="js/gearlook21.js?v=3"></script>
+  <script src="js/card21.js?v=3"></script>
+  <script src="js/photo21.js?v=2"></script>
+  <script src="js/body21.js?v=7"></script>
+  <script src="js/cinematic24.js?v=3"></script>
+  <script src="js/touchlink36.js?v=1"></script>
+  <script src="js/pixelfolk75.js?v=3"></script>
+  <script src="js/paintfolk76.js?v=3"></script>
+  <script src="js/art2.js?v=1"></script>
+<script src="js/ledge1.js?v=2"></script>
+</body>
+</html>

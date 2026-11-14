@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://octave.invalid/schemas/quest.v1.json",
+  "title": "Octave mod quest (schema v1)",
+  "x-schemaVersion": 1,
+  "description": "A declarative quest: rules of trigger -> effects. No scripts. Rules run only inside the mod's own dungeons, and set flags only under mod:<modid>:.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "rules"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,23}$",
+      "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+      "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "when",
+        "then"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,23}$",
+          "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "if": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "flag"
+          ],
+          "properties": {
+            "flag": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "is": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "once": {
+          "type": "boolean",
+          "default": true,
+          "description": "Rules that give items or gold or spawn enemies must be once:true."
+        },
+        "then": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/effect"
+          }
+        }
+      }
+    },
+    "when": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "map",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "type": {
+              "const": "enter"
+            },
+            "map": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 40,
+              "description": "clamped"
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 40,
+              "description": "clamped"
+            },
+            "r": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 8,
+              "description": "radius in cells, clamped",
+              "default": 1.5
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "npc"
+          ],
+          "properties": {
+            "type": {
+              "const": "talk"
+            },
+            "npc": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "pickup"
+            },
+            "item": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "A name from the game's item catalog that mods may use (healing, voice, ammunition, valuables). The validator checks it against the live ITEMS table."
+            },
+            "modItem": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            }
+          },
+          "description": "exactly one of item / modItem"
+        }
+      ]
+    },
+    "effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "text"
+          ],
+          "properties": {
+            "do": {
+              "const": "journal"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+              "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "text"
+          ],
+          "properties": {
+            "do": {
+              "const": "say"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "pattern": "^[^<>&`\\\\\\u0000-\\u001f\\u007f-\\u009f\\u2028\\u2029\\u202a-\\u202e\\u2066-\\u2069\\ufeff]+$",
+              "description": "Plain text. Markup characters (< > &), backticks, backslashes and control characters are refused."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do"
+          ],
+          "properties": {
+            "do": {
+              "const": "give"
+            },
+            "item": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "A name from the game's item catalog that mods may use (healing, voice, ammunition, valuables). The validator checks it against the live ITEMS table."
+            },
+            "modItem": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3,
+              "description": "clamped"
+            }
+          },
+          "description": "exactly one of item / modItem"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "amount"
+          ],
+          "properties": {
+            "do": {
+              "const": "gold"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "clamped"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "flag"
+          ],
+          "properties": {
+            "do": {
+              "const": "setFlag"
+            },
+            "flag": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "do",
+            "map",
+            "x",
+            "y"
+          ],
+          "properties": {
+            "do": {
+              "const": "spawn"
+            },
+            "map": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "type": {
+              "enum": [
+                "hound",
+                "legionnaire",
+                "golem",
+                "proctor",
+                "mites",
+                "quiet",
+                "weaverling",
+                "drowned",
+                "marine",
+                "dirge",
+                "warden",
+                "tongueless",
+                "outrider",
+                "hushwarden",
+                "hushmoth",
+                "deacon",
+                "captain"
+              ]
+            },
+            "modEnemy": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,23}$",
+              "description": "Lowercase local id. The game namespaces it as mod:<modid>:<id>."
+            },
+            "x": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5,
+              "description": "clamped"
+            },
+            "y": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 39.5,
+              "description": "clamped"
+            }
+          },
+          "description": "exactly one of type / modEnemy"
+        }
+      ]
+    }
+  }
+}

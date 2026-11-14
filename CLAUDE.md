@@ -1,195 +1,143 @@
-# CLAUDE.md — Ashen Wilds
+# CLAUDE.md - The Long Account
 
-Guidance for Claude (and other agents) working in this repository. Player-facing documentation lives in `README.md`; this file covers how to work on the code.
+Guidance for Claude (and other agents) working in this repository. Player-facing documentation is
+`README.md`. The phases, and everything invented and awaiting a ruling, are in `ROADMAP.md`. The
+design is `docs/worldbuilding/the-round-and-the-long-account.md`. The world's rules are
+`docs/worldbuilding/CANON.md`.
 
 ## What this is
 
-An isometric dark-survival action game in **Godot 4.7.2-stable**, GDScript 2.0, Forward+ renderer. Everything (level geometry, enemies, items, UI, audio) is built in code at startup by `scripts/core/scene_bootstrap.gd`, and there are no `.tres` resources. The one exception to "all in code" is art: the survivor is a rigged Quaternius character (CC0) with its animations under `art/quaternius/`, the level's boxes wear photo textures from `art/ambientcg/` (CC0; see each README), and the owner's own environment kit under `assets/environment/` (generated GLBs; see each set's README) dresses the yard; the only scenes are `launcher.tscn` (the main scene: picks the networked courtyard when started with `-- --server` or `-- --client`, else the prototype), `main.tscn` and `net_main.tscn`.
+A first-person, grid-world game of dread that runs in a web browser, co-op for one to four. Plain
+JavaScript: **no framework, no bundler, no build step.** The engine was copied from *Echoes of the
+Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) with its story taken
+out (decision D14). That repository is read-only for this work: read it, never change it.
 
-Milestones 1–5 of the single-player prototype are complete: combat core, three enemy types, scavenging and equipment, wall deflection and weapon lodging. That prototype (`main.tscn`) is preserved as the rollback baseline.
+Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`).
 
-**Since 2026-11-03 the project is the two-developer 3D multiplayer game described in the owners' briefs.** `docs/PRODUCTION.md` is the working record: tool versions, the decision register, temporary rules, network operation contracts, and the evidence for each milestone. Read it before changing anything under `scripts/net/`. The networked work lives beside the prototype (`net_main.tscn`, `scripts/net/`), never inside it. Server authority is not negotiable: clients send intent, the server owns every shared outcome, and every RPC lives on `NetMain` with the sender derived from the connection, never from the payload.
+## The owner's rules
 
-## Get Godot (cloud sessions don't have it)
+- **The owner's word is canon, and the owner alone rules on it.** The story folder is
+  `docs/worldbuilding/` and stays there. Before inventing any name,
+  date, custom or fact, search it. Mark anything invented `[PROPOSED]` in `ROADMAP.md` and list it for
+  a ruling. Never contradict a written line.
+- **Numbered phases.** One phase is one feature, one file `js/<feature><phase>.js`, one test file
+  `test/<feature><phase>.test.js`, one entry in `ROADMAP.md` and one pull request.
+- **The owner merges; you never do.** Never force-push `main`. Never delete `archive/isometric-prototype`.
+- **Save and publish to this repository only** (`dribblejerp-KlunkDunker/Ashen-Wilds`). The
+  Shattered Octave's repository is read, never written. Check `git remote -v` before any push.
+- **No picture that this repository did not make.** The Octave's art was removed in Phase 2 and
+  must not come back: no copied sprite, texture, portrait or icon, and nothing embedded as base64.
+  `test/art2.test.js` fails if any appears.
+- **Show pictures.** After every visible change, render stills, look at them yourself, and send them.
+  If they say they cannot see the difference, believe them and change approach.
+- **Write plainly.** Report what changed, what you invented, what is not done, and what needs
+  deciding. Say which suites you did not run.
 
-GitHub release downloads work through the session proxy. Keep the binary **outside** the repo:
+## Run and verify
 
-```bash
-mkdir -p ~/godot && cd ~/godot
-curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
-unzip -o godot.zip
-export GODOT=~/godot/Godot_v4.7.2-stable_linux.x86_64
-$GODOT --version   # 4.7.2.stable.official.ed1daf0bf
-```
+    python3 -m http.server 8000                       # play at http://localhost:8000
 
-Use exactly 4.7.2-stable (upgraded from 4.3-stable on 2026-11-05, decision P2 in `docs/PRODUCTION.md`). GDScript and API details differ between minor versions, and a project opened in a newer editor is converted and cannot go back. Commit the `.uid` file Godot writes beside each new script or shader.
+    node test/fork0.test.js --no-browser              # no browser needed
+    node test/ledge1.test.js --no-browser
+    node test/art2.test.js --no-browser
+    node tools/pwa/precache.js --check                # the offline list is current
+    node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
-## Verify every change
+    NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
+    NODE_PATH=$(npm root -g) node test/ledge1.test.js
+    NODE_PATH=$(npm root -g) node test/art2.test.js
+    NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
 
-Run these from the repo root after any code change, and before committing:
+Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
+running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
+straight lines from the ledge to the horizon. A test caught another:
+the engine lets a player wade into its water floor, so the cliff did not hold.
 
-```bash
-# 1. Build the class cache (needed after adding or renaming a class_name; harmless otherwise)
-$GODOT --headless --path . --import
+After any change to a file the page loads: bump its `?v=N` in `index.html`, then run
+`node tools/pwa/precache.js` so `sw.js` is rebuilt. CI fails if it is stale.
 
-# 2. Compile-check every script (prints nothing when clean)
-for f in $(find scripts tests tools -name "*.gd" | sort); do
-  out=$($GODOT --headless --path . --check-only --script "res://$f" 2>&1 | grep -E "ERROR|WARNING")
-  [ -n "$out" ] && echo "--- $f" && echo "$out"
-done
+Headless Chromium needs `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader
+--ignore-gpu-blocklist`, and the page must set `window.__r3d21 = { automation: true }` before load
+or the 3D renderer stays off. `test/harness.js` does both.
 
-# 3. Regression suite: exit code = number of failures
-$GODOT --headless --path . --script res://tests/smoke_test.gd 2>&1 | grep -E "FAIL|passed|SCRIPT ERROR"
+## How the engine is laid out
 
-# 4. Live boot with enemies active (should print nothing after filtering)
-$GODOT --headless --path . --quit-after 1200 2>&1 \
-  | grep -vE 'mesh_get_surface_count|Parameter "m" is null|^\s*$|ObjectDB|cleanup \(core|^Godot Engine'
-```
+    index.html            loads every script in order; the last one wins when two wrap the same function
+    js/engine.js          the classic raycaster (320 x 200 canvas, 150-row view); the reference renderer
+    js/r3d21.js           the WebGL2 renderer: one static mesh per map, passes, R3D.extendMesh(fn)
+    js/maps.js            GameMap: cells, blocks, doors, ground heights, entities
+    js/game.js            state (G), walking, collision (solidAt), noise, dialogue, saves
+    js/light21.js         sky by hour, sun, bloom          js/weather.js      weather states
+    js/eaves78.js         roofs, gables, windows, by a per-map style table (EAVES78.STYLES)
+    js/pixelfolk75.js, js/paintfolk76.js   painted people, rigged and walked
+    js/net19.js ...       two-player co-op: one hosts, one joins with a six-letter code
+    js/assets.js          an empty table: the engine's embedded pictures are gone
+    js/fork0.js           Phase 0: stand-ins for removed story hooks
+    js/art2.js            Phase 2: every tile, person, thing and hand the engine itself needs, painted in code
+    js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
 
-**Expected headless noise. Ignore it:** `Parameter "m" is null` / `mesh_get_surface_count` (dummy renderer) and `ObjectDB instances leaked at exit` (an `AudioStreamGeneratorPlayback` under the dummy audio driver). Neither happens with a real renderer or sound card. **Exported release builds** also log one `Attempt to disconnect a nonexistent connection from 'NetMain' ... 'tree_exited'` line per process at shutdown after RPCs were exchanged; the editor binary never does, and it is unaffected by whether the peer is detached. Engine teardown noise, verified 2026-11-03; anything else in a log is a bug.
+Useful facts, all checked in this repository:
 
-Run the suite twice after timing-sensitive changes to catch flakiness. Currently: **532 checks, 0 failures**. The environment kit has its own collision suites, `tests/test_env006_collisions.gd` to `test_env009_collisions.gd` (exit code 1 on any failure).
+- A map is `new GameMap(id, name, w, h, opts)`. Floor index **2** is the engine's water: nobody can
+  walk on it, except that `js/upgrades.js` lets the *player* wade in. `ledge1.js` closes that on this
+  game's maps (`map._la`), which is how the cliff holds with no wall.
+- A walker climbs a step of 0.36 and a grade of 1.1 (`js/engine.js`). Steeper is a cliff.
+- A building is a filled rectangle of walls, 3 x 3 or more, whose texture name matches
+  `/^(t_house|t_wood$|t_marble)/`, with `t_roof` inside and a door. Name a wall tile `t_house_...`
+  and the roof planner finds it.
+- An entity with `lightCol: [r, g, b]` is a point light.
+- A pass is `R3D.addPass({ name, order, init(gl), enabled(F), draw(gl, F) })`. Core orders: sky 0,
+  prepass 10, world 20, sprites 30, body 40, transparent 50, post 90.
+- `window.advanceTime(ms)` steps the game without a clock. `R3D.readPixels()` reads the frame. Stop
+  `performance.now` and render twice before hashing a frame; then it is the same every time.
+- Options rows are added by wrapping `renderAccessibilityMenu`; switches live on `GFX`.
+- A person is one front-view painting 160 pixels high. `PAINTFOLK.autorig(sprite)` measures a rig
+  from it: arms move only if they hang clear of the body from 30% to 44% of the height; legs move
+  only if they stand apart from 60% down. Do not make a painting 53, 60 or 66 wide: the engine would
+  lay one of its old hand-made rigs on it.
+- The held weapon is `Engine.images.fp_sword`, 99 x 190, drawn at half size at the view's right.
+  The arm must leave through the bottom edge of the picture, or a cut edge shows.
 
-```bash
-# 5. Networked courtyard: a headless server and driven headless clients as separate processes on loopback.
-#    Exit code = failures. Two-client LOCAL test; it says nothing about internet play.
-python3 tools/net_spike.py
+## Rules for new work
 
-# 6. The same with a rendered client under Xvfb (needs mesa-vulkan-drivers; apt-get update first if it
-#    has "no installation candidate"). Look at every PNG it writes.
-python3 tools/net_spike.py --shots docs/screenshots/net
+- **Every visual feature has a switch** in Options. Off must draw exactly as before the feature.
+  Test it by frame hash, on and off.
+- **Nothing visual uses live random numbers.** Use a fixed hash of position (`LEDGE1.hash`).
+- **Tiles are 64 x 64, painted in code.** No image files for walls, floors or roofs.
+- **In-game text is plain ASCII** (canon rule). The tests check it.
+- **Do not edit the copied engine files** unless there is no other way; wrap from a phase file
+  instead, as the engine's own phases do. When an engine file must change, say so in `ROADMAP.md`.
+- **Keep it fast.** About a millisecond a frame per visual feature. Static geometry once per map.
+  Software rendering in CI cannot measure this; say so, and measure on real hardware when you can.
 
-# 7. Exported builds (tools/get_export_templates.sh installs the 4.7.2-stable templates once), then the
-#    loopback test on the exported binaries. An archive is not proof it runs; this is.
-tools/export_builds.sh && python3 tools/net_spike.py --exported builds
-```
+## The look: rules that must hold
 
-CI (`.github/workflows/checks.yml`) runs steps 1–3, the environment kit's collision suites, and step 5 on every push and pull request. `.github/workflows/publish.yml` runs step 7 on every pull request and push to `main`; on `main` it then deploys the browser build (`builds/web/`, the single-player prototype) to GitHub Pages and replaces the zips on the rolling `playtest` pre-release. Anything that breaks the web export breaks that publish. The browser has no system fonts: UI text must stay within Godot's default font (no arrows or symbols like ⇄), and audio generators must set `playback_type = AudioServer.PLAYBACK_TYPE_STREAM`.
+- **Four lights, never confused.** Yours is tallow yellow and small. The land's is ember red and
+  vast. Teal belongs to the bloom. Pale blue belongs to workings.
+- **Cold where you stand, fire where you are going.** The ledge is lit cool; the far country burns.
+- **Black is the base colour.** Build dark and add light. Interiors are dark; one fire lights them.
+- **People are painted; beasts are modelled** (D8).
 
-## Screenshots (README images)
+## Canon
 
-`tools/capture_screenshots.gd` renders `docs/screenshots/*.png` through the real Forward+ renderer. Without a GPU, use Mesa's software Vulkan under Xvfb:
+Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 
-```bash
-sudo apt-get install -y mesa-vulkan-drivers   # once; xvfb is usually present
-xvfb-run -a -s "-screen 0 1920x1080x24" $GODOT --path . --rendering-driver vulkan \
-  --script res://tools/capture_screenshots.gd
-```
-
-A full run takes about ten minutes under software Vulkan; `-- --gallery` after the script path renders only shots 15 and 18 (the Roofed Gallery) in about a minute. **Look at every image after rendering** (open the PNGs). The script poses enemies and freezes them, and the shots have exposed real bugs before: torch self-shadowing, and an occluding wall without the cutaway. `docs/.gdignore` keeps the images out of Godot's import pipeline.
-
-## Layout
-
-```
-scripts/core/       scene_bootstrap.gd (level, input map, spawns, containers), procedural_audio.gd
-scripts/camera/     iso_camera_rig.gd (-30° pitch ortho; four quarter-turn views, zoom, recenter, shake, brightness)
-scripts/net/        net_main.gd (session: roles, every RPC, the request pipeline, test drives), net_protocol.gd (constants, rejections, results),
-                    net_player.gd (identity, state, the one walking rule), net_player_view.gd, net_courtyard.gd (the crate and its seed),
-                    net_container.gd (a world object: stable id, server-owned contents, stack ids, version), net_hud.gd, net_loot_window.gd,
-                    net_fixture.gd (the breach and the hearth: one-way state, cost, collision), net_save.gd (the world save and its load policy)
-scripts/combat/     hitbox_component, hurtbox_component, encounter_coordinator (attack tokens), wall_deflection (shared clang rules),
-                    thrown_stone (the goblin's projectile: a moving HitboxComponent stopped by layer 1 rays)
-scripts/data/       weapon_data, combat_payload, item_data, item_instance, item_database (all items + loot tables),
-                    survivor_background (the eight starting characters: kit, trait, flaw, modifiers),
-                    lore_texts (GENERATED by tools/generate_lore_texts.py from the world bible: item lore and the Act I notes)
-scripts/inventory/  inventory.gd (stacks, weight, encumbrance, equip slots)
-scripts/world/      lootable.gd (crates, corpses, ground piles, lodged weapons), set_dressing.gd (the owner's kit placed as decoration; container models),
-                    ash_fall.gd (shader-driven falling ash around the survivor), flicker_light.gd (the shelter fire's breathing light),
-                    acoustic_ripple.gd (dust rings for unseen noises, last-seen marks), vision_cone_overlay.gd (the charcoal memory map, a full-screen quad),
-                    weather.gd (six conditions on a cycle: fog, ash, fire, hearing, sight range, footing),
-                    companion.gd (a follower: follow/hold/fight/downed/revive), action_point.gd (a timed [E] action instead of a search),
-                    spore_cloud.gd (a choking cloud: burnt by a lit torch, its life set by the weather),
-                    lime_cloud.gd (thrown quicklime: blinds what has `blind()`, chokes the survivor without a wound, burns spores),
-                    discovery.gd (one-time discovery banners for places, finds, pages and the first torch),
-                    objectives.gd (Act I's four objectives and the act's close; the HUD's objectives panel)
-scripts/player/     player_controller.gd (state machine, the largest file), survivor_model.gd (the animated Quaternius body and hand sockets),
-                    perception.gd (the 130° vision cone cut by walls, hearing, ripples: what the survivor can see and hear)
-scripts/enemies/    enemy_goblin_scavenger, enemy_ork_warrior, enemy_ogre_brute, enemy_quarry_troll (blind: hunts by sound),
-                    enemy_spore_husk (bursts into spore clouds), enemy_unnamed (rises again until named at its grave),
-                    enemy_gallery_crawler (drops from a ledge, flanks round stone, worries a shield, kept off by a torch),
-                    enemy_model.gd (the Ashbound body shared by all of them)
-scripts/ui/         tactical_hud.gd, inventory_ui.gd, vignette.gd (screen-edge shade, CanvasLayer 0 under the HUD),
-                    background_select.gd (the start screen: eight cards, keyboard and mouse; emits only)
-shaders/            foreground_cutaway.gdshader (Bayer-dither cutaway, world-space photo textures), ash_fall.gdshader (falling ash),
-                    vision_cone.gdshader (charcoal outside the cone, world position rebuilt from depth)
-tests/smoke_test.gd headless regression suite
-art/quaternius/     the survivor (Ranger outfit), the enemies (ashbound/: Peasant outfit + Ranger hood), the two animation libraries,
-                    recoloured textures, licences (README)
-art/ambientcg/      photo textures (mud, stone, planks) for the level and props (README)
-assets/environment/ the owner's environment kit ENV-001..010: crates, barrels, walls, roofs, fences, trees, rocks, ruins,
-                    ground cover, the ENV-010 Watchhouse layout preview; generated by tools/generate_env*.py (each set has a README)
-scenes/environment/, scripts/environment/  the ENV-010 layout preview scene and its builder (not used by the game yet)
-docs/worldbuilding/ the world bible (proposed lore): CANON.md first; the browser prototype's archive plus the Godot additions
-assets/reference/   the 3D quality benchmark: README (the quality bar), benchmark_manifest.json (32 CC0 Poly Haven models, 11 materials);
-                    the files themselves are git-ignored, fetched into assets/reference/benchmark/ by tools/fetch_benchmark_assets.py
-docs/ROADMAP.md     the work phased by which model should do it (Opus until 2026-11-08, then lighter models)
-tools/              capture_screenshots.gd, net_spike.py (loopback multiplayer test and screenshots),
-                    get_export_templates.sh, export_builds.sh, package_builds.sh (the five builds and their zips)
-```
-
-Physics layers: 1 Environment · 2 PlayerBody · 3 EnemyBody · 4 PlayerHurtbox · 5 EnemyHurtbox · 6 Occluders · 7 Props. Every ray (line of sight, hidden-behind-a-wall, clangs, hit blocking) casts against layer 1 only; survivor and enemy bodies collide with 1, 2, 3 and 7.
-
-## How the systems connect
-
-- **Damage:** the attacker builds a `CombatPayload` and calls `HitboxComponent.begin_swing()` during its ACTIVE phase. The hitbox rejects repeat hits and targets behind walls, then calls `HurtboxComponent.receive_attack()`. The defender decides dodge, block or take.
-- **Player states** (`PlayerController.ActionState`): IDLE, MOVE, SPRINT, BLOCK are "neutral". ATTACK_STARTUP → ATTACK_ACTIVE → ATTACK_RECOVERY. DODGE, BLOCK_IMPACT, STAGGER. CHANNEL is shared by search, bandage and equip swap; a hit, move, attack or dodge cancels it. RECOIL is a wall clang. LODGED is a stuck weapon. DEAD.
-- **Items:** `ItemData` is a shared definition, one instance per id, created in code by `ItemDatabase`. `ItemInstance` holds quantity and condition. Torch condition = fuel in seconds. Equipped items stay in `Inventory.items` and still count toward weight.
-- **Armour:** `ItemData.Category.ARMOUR` with an `ArmourSlot` (HEAD, BODY, LEGS), `protection`, `poise_bonus`, `bleed_resist`, `noise_mult`, `don_time`; `ItemDatabase._register_armour()` makes the six pieces. `Inventory.armour` maps slot to piece (`equip` replaces the slot, `remove` and `unequip` clear it) and sums them: `total_protection()` (broken pieces half), `armour_poise_bonus()`, `bleed_resist()` (chances combined), `armour_noise_mult()`, `wear_armour()`. The player's hit handling soaks `protection` off each blow (x0.6 for heavy, floor 30% of the blow), wears every worn piece (2 for heavy), turns bleeds by `bleed_resist()`, and staggers on a heavy blow only when the poise bonus is under half the blow's poise; `effective_max_poise()` feeds the stagger rule and the HUD. `request_equip()` on armour takes `don_time` (half to take off). Nothing is drawn on the body yet.
-- **Deflection:** `WeaponData.is_thrust(heavy)` marks each player stroke. Sweeps raycast their arc (layer 1) through `WallDeflection.sweep_obstruction()` when they go active, and a hit enters RECOIL instead of opening the hitbox. Thrusts never clang. Enemies use the same helper: the Ork's opening slash and the Ogre's sweep clang into an `AIState.RECOIL` that counts as staggered; the Goblin's jab (`attack_is_thrust`), the Ork's chop and the Ogre's slam never clang.
-- **Lodging:** a heavy confirmed hit on a target whose `is_dead()` or `is_staggered()` is true rolls `heavy_lodge_chance`. Every enemy class must implement both methods.
-- **Survivor look:** `SurvivorModel` is presentation only. `_update_animation()` picks a clip from the action state; timed states (attacks, dodge, stagger, recoil) stretch their clip to the state's own duration, so the simulation sets the timing and the animation follows. The weapon and torch hang off the model's hand sockets (`right_socket`, `left_socket`, whose -Z points out of the fist), the shield off `shield_mount` on the back of the left hand; hitboxes, collision and aim stay on the controller, so a different mesh on the same rig changes nothing in play. Godot strips a `_Loop` suffix from imported clip names (`Idle_Loop` is `Idle`). During a dodge the model turns to face the roll.
-- **Enemy look:** `EnemyModel` is the Ashbound body (Peasant rags, the Ranger's hood, grey skin tinted per type, scaled to each collision capsule), presentation only like `SurvivorModel` and sharing its clip library. Each enemy's `_update_model_animation()`, called at the end of `_update_visual_telegraph()`, picks clips from its AI state; attacks use `play_strike()` so the blow lands as the startup timer runs out. Weapons hang in the right hand, the ork's shield on the left `shield_mount`; the coloured status ring stays the readable telegraph. Death plays `Death01` (the body is no longer tipped flat). Its AnimationPlayer runs even when the enemy is frozen.
-- **Atmosphere:** `_build_atmosphere_and_lighting()` sets the night: cold `Moon` light, blue-grey ambient, distance fog plus ground mist (`fog_height`), glow on emissive flames, and a desaturated, slightly contrasty adjustment. All of it works in the browser's Compatibility renderer except SSAO (desktop only). The brightness setting still moves `tonemap_exposure` (0.6 to 2.6; default 1.7). Screenshots render at the default brightness; the owner found the first night far too dark, so judge darkness from the shots at default, not with a boost. A near-black fog colour darkens the ground under the mist; keep the mist colour pale.
-- **Enemy temperaments:** each enemy has its own style (a doc comment at the top of its script), an `aggression` (0 to 1; what it changes is documented on the export, different per enemy) and an `attack_power` multiplier on every damage it deals; base damages are named constants (`JAB_DAMAGE`, `SLASH_DAMAGE`, `CHARGE_DAMAGE`...). Goblin, the opportunist: circles at `CIRCLE_RADIUS`, darts in on `player_is_open()` or when its patience runs out, backstabs for x2 from behind the survivor's aim (`PlayerController.get_aim_direction()`), disengages after a jab, throws `ThrownStone`s at 5 to 11 m. Ork, the soldier: a guard held in front of it past `turtle_patience()` draws the shield bash, whose payload sets `CombatPayload.breaks_guard` (the player's block code staggers on it anyway); aggression scales recovery (x1.0 at 0.5, so the shield ork's timings are the baseline) and the bootstrap makes the shieldless ork 0.85. Ogre, the juggernaut: `WINDUP_POISE_MULT` during startups and the charge; the charge needs a shoulder-wide lane clear of layer 1 from knee to chest (`_charge_lane_clear()`: no doorways, no crates), has its own `_charge_hitbox`, cannot steer, and crashes into any StaticBody3D into RECOIL; enraged below 40%. New enemy attacks must take and release an attack token, and close every hitbox they open on death, stagger, `_abandon_attack()` and the survivor's death (goblin and ork `_stand_down()`). Every looping gait or idle clip must be in `SurvivorModel.LOOPING` (the suite checks), or it plays once and freezes.
-- **The Blind Quarry-Troll:** `EnemyQuarryTroll` never looks. `_listen()` asks `player_noise_radius()` (a metres-per-action table `HEARING` times the survivor's `get_noise_multiplier()`, so load, weather, background and armour all reach it; still, blocking still and walking-while-blocking are silent) and `companion_noise_radius()` for every `Companion`, muffles through stone (`WALL_MUFFLE`), and keeps the loudest source by reach. `heard(pos)` remembers a spot for `MEMORY_SECONDS`; it walks there and `_begin_pound(spot)` aims at the spot, not the survivor: `_pound_ring` and `_pound_hitbox` are `top_level` and placed at the spot. A blow on it calls `heard(attacker_origin)` and, from close by, `_begin_thrash()` (a cylinder hitbox round itself). Both take and release the attack token (priority, like the ogre's committed blows); `_stand_down()` on the survivor's death; `RETURN_HOME` when it has lost the sound away from `_home_pos`. It lives in the north-east quarry (15.5, -14.5); F6 teleports there. The suite freezes it with the other level enemies.
-- **Ash-Spore Husks and spore clouds:** `EnemySporeHusk` sees (8 m, 120°, a layer 1 ray) and hears a sprint or a swing (8 m times the noise multiplier), shambles at 1.9 m/s and claws (16, and `PlayerController.choke(2.0, 0.0)` on a hit through `confirmed_hit`). Every wound calls `SporeCloud.spawn(parent, pos, 1.2, 3.0)` and death `(…, 2.4, 8.0)`, deferred because hits resolve in physics callbacks. A `SporeCloud` (group "spore_cloud") finds the player among its siblings each tick: inside it calls `player.choke(delta, CHOKE_DPS)`; a lit torch within `radius + TORCH_REACH` burns it `TORCH_BURN_MULT` times faster; its life is scaled once, at spawn, by the Weather profile's "spores" field (found as the sibling named "Weather"). `choke()` keeps `_choke_timer` at least 0.35 s, drains health down to 1 at most (like bleeding), and while it runs stamina regen is x0.25 and `Perception.obscured` is 0.35 (sight range). The HUD flags `[CHOKING: SPORES]`. Three husks and the "Spore-Choked Cart" (a full torch) are in the Spore Hollow, west edge; F7 teleports there.
-- **The Unnamed:** `EnemyUnnamed` (sight 10 m / 130°, hears a sprint or a swing at 10 m times the noise multiplier, grab 14) is bound to a grave, an `ActionPoint` whose `action` is set by `bind_grave()`. At 0 health it does not die: `_fall()` puts it in FALLEN (collision layer 0, hurtbox off, `is_dead()` true so the companion and lodging treat it as down, no corpse) for `RISE_SECONDS`, then RISING (`LayToIdle`) back to full health. Completing the grave's channel calls `_on_named()`: AT_REST for good from any state, the grave freed, a corpse Lootable. It turns home beyond `grave_leash()` and stands down on the survivor's death. Three, with their graves, are in the south-east burial ground; F8 teleports there.
-- **The gallery-crawler:** `EnemyGalleryCrawler` waits PERCHED on a ledge (`set_perch(pos, out_dir)`: the top of the Roofed Gallery's hillside wall, `AshenWildsBootstrap.GALLERY_PERCH`), positioned by hand while PERCHED, TELL, LEAP and CLIMB (no `move_and_slide`). A survivor within `DROP_TRIGGER` whom it can see over the lip of its ledge starts the TELL (the `top_level` `_drop_ring` at their spot), then a LEAP arc and `_land()`: the `top_level` `_drop_hitbox` there (heavy) for `DROP_ACTIVE`. On the ground it STALKs at walking pace; with layer 1 between them (`line_clear_to_player()`) inside `SIDLE_RANGE` it sidles perpendicular, keeping or switching side by two side rays, and lunges only down a clear line (`_struck_wall()` ends a lunge on stone, ignoring the floor). Its bite hitbox's `confirmed_hit` sees the survivor in BLOCK_IMPACT with a shield and starts WORRY (`end_swing` deferred: it is inside the hitbox's signal): each tick a held guard pays `PlayerController.drain_stamina()`, an exhausted survivor loses the off hand through `wrench_off_hand(land_at)` (a ground pile, a stagger), and a blow on it while it worries does `WORRY_EXPOSED_MULT` and staggers it. `torch_keeps_it_off()` (a lit torch aimed within about 70 degrees, inside `TORCH_FEAR_RANGE`, which is longer than `LUNGE_RANGE`) puts it in WARY, circling at `WARY_DISTANCE`. It hears through the troll's table (`EnemyQuarryTroll.survivor_noise_radius()`, static) times `HEARING_MULT`. Lost, it walks to `foot_pos()` and CLIMBs back. `blind(seconds)` (a `LimeCloud` calls it every tick it stands in one; ignored while PERCHED, TELL, LEAP or CLIMB) drops its attack, clears its memory and puts it in BLINDED, backing off home with `sees_player()` false; a stagger while blind returns to BLINDED, and when `_blind_timer` runs out it goes RETURN_HOME and climbs. The bible names it (bestiary.md, "The Roofed Mile animal": carriers call it the gallery-crawler). F9 teleports there; the troll's hearing tests listen east of OGRE_YARD because the gallery's wall is west of it.
-- **Quicklime:** the "quicklime" item (the gallery's "Overturned Handcart" holds two). [G] (`throw_lime`) calls `PlayerController.start_throw_lime()`: a CHANNEL of kind THROW_LIME (`LIME_THROW_SECONDS`, the `OverhandThrow` clip); on completion one sack is consumed and `LimeCloud.spawn()` lands at `lime_landing_spot()` (`LIME_THROW_DISTANCE` ahead, or 0.4 m short of a layer 1 hit). A `LimeCloud` (group "lime_cloud", life scaled by the Weather "spores" field like a spore cloud) scans its siblings each tick: the survivor inside gets `choke(delta, 0.0, "LIME")` (`choke_cause` feeds the HUD flag), any sibling with a `blind()` method inside gets `blind(BLIND_SECONDS)`, and an overlapping `SporeCloud` loses life `SPORE_KILL_MULT` times as fast (canon 16: lime stops spores). A freed cloud lives until the frame ends: tests wait two ticks after freeing one.
-- **Perception (presentation only):** `PlayerController.perception` (`Perception`) is the survivor's sight and hearing. Sight is a `CONE_DEGREES` wedge around the aim plus a layer 1 ray from the eyes. Every enemy calls `perception.update_visibility(self, _visual_root, head_height, alive)` each tick and never reads `_visual_root.visible` for its own decisions (the ogre once did and would have gone blind behind the survivor; it has `_can_see_player()`). Enemies report every noise they make with a loudness in metres (`_noise(x)` on windups, swings, roars, slams; `report_footsteps()` by stride); an unseen heard noise spawns an `AcousticRipple` (rate-limited per source) and emits `heard`, which the bootstrap turns into the cue and a rare banner. Slipping out of sight leaves a last-seen mark (not for corpses). `VisionConeOverlay` is a full-screen quad drawn first among transparents (`render_priority -100`) so ash, sparks and ripples draw over it; it rebuilds world positions from `hint_depth_texture`, reversed on Forward+/Mobile (a `RenderingDevice` exists) and not on Compatibility. `enabled` (F4) restores the old draw rule, line of sight alone. Nothing in the simulation reads any of this.
-- **Weather:** `Weather` (bootstrap) holds `PROFILES`, one dictionary per `Condition`, every field a float or a Color so `profile()` can lerp a change over `BLEND_SECONDS`. `bind()` captures the base ambient, moon and fire energies and `_apply()` writes the blended profile every frame of a blend into the Environment, the Moon, `AshFall.apply()`, the `FlickerLight`, the player's `weather_hearing` / `weather_torch_burn` / `weather_footing`, and `Perception.hearing` / `sight_range`. Enemy hearing of the survivor goes through `get_noise_multiplier()`, which now includes `weather_hearing`, so a condition deafens or sharpens both sides. Tests set `cycling = false` and `set_condition(c, true)`; F5 is `advance()`. Add a condition by adding a profile and a `CYCLE` entry; nothing else needs to know.
-- **Backgrounds:** `SurvivorBackground.all()` builds the eight in code; `PlayerController.apply_background(bg)` sets the stats (absolute fields for health, stamina, poise, carry, dodge cost; `*_mult` fields against `_base_stats` captured in `_ready`), empties and refills the pack, equips the kit and heals. The hooks read `background.*` at the point of use: search and bandage time in `_start_channel`, bandage heal, bleed length, attack cost and `heavy_allowed` in `_start_attack`, block cost, heavy damage, wear, own noise in `get_noise_multiplier()`, torch burn; `Perception.sight_mult` / `hearing_mult` stack on the weather. The default (`DEFAULT_ID`, the Watch Deserter) carries the prototype's original kit so the suite's early expectations hold. `BackgroundSelect` only emits `chosen`; the bootstrap pauses the tree, applies, unpauses, and skips the screen when `DisplayServer.get_name() == "headless"`, so tests and CI keep the default. Add a background by adding it to `_build()`; the picker lays out whatever `all()` returns.
-- **Companions:** `Companion` (CharacterBody3D on the player's body layer 2) follows `anchor()` (the survivor, or `hold_spot` in HOLD), fights the nearest living, processing enemy within `ENGAGE_RADIUS` of itself and `LEASH` of the anchor (targets are found by duck typing: a CharacterBody3D with `is_dead` and `is_staggered`, so every enemy class must keep both), and rejoins behind the survivor after `REJOIN_SECONDS` further than `REJOIN_DISTANCE` away (no pathfinding). Its hurtbox is on layer 4 (the survivor's), so enemy hitboxes (mask 8) and stones hit it; its hitbox mask is 16 (enemy hurtboxes), so it can never hit the survivor. At 0 health it is DOWNED for `DOWNED_SECONDS` with an `ActionPoint` "Lift" child whose action needs a bandage, then dies into a corpse Lootable. `ActionPoint` is a `Lootable` whose `on_search_complete(by)` runs a Callable instead of opening the loot window (`Lootable.on_search_complete` is the hook; `PlayerController._complete_channel` honours it), used for the bound captive and the lift. The bootstrap's `_on_captive_freed` makes the companion and hands it to `TacticalHUD.companion`, which draws the ALLY row each frame; F is `toggle_mode()`. The companion is always drawn (never passed to Perception). `EnemyModel` has a "companion" type (human skin, undyed cloth).
-- **Lore in the game:** `docs/worldbuilding/items-and-texts.md` is the source; `python3 tools/generate_lore_texts.py` writes `LoreTexts` (`ITEM_LORE`, `NOTES`) and fails on non-ASCII text. Never hand-edit `lore_texts.gd`: edit the bible and regenerate. `ItemDatabase._register()` gives every item its `lore` (shown under `description` by `ItemData.tooltip()`); `_register_notes()` makes each note a `Category.NOTE` item (0.02 kg, `note_text`). `_spawn_container()` appends the notes whose `place` is the container's label, and `_spawn_ground_notes()` lays the "ground" ones at `NOTE_GROUND_SPOTS`. `InventoryUI.read_note()` opens the reading panel (counts as open for UI capture; `note_read` signal). `Discovery` (bootstrap child) queues each first discovery once (places by position, `PlayerController.item_taken`, `loot_opened`, `note_read`, the first lit torch) and shows it only when `TacticalHUD.banner_showing()` is false; the screenshot tool disables it.
-- **Act I objectives:** `Objectives` (bootstrap child) is bound to the two Watchhouse goblins and the two choke-point orks (`_watchhouse_goblins`, `_choke_orks`; anything with `is_dead()` counts) and polls each tick: both goblins dead, both orks dead, the pot (`cooking_pot`) in the pack within `FIRE_RADIUS` of `FIRE_POS` (removed from the pack; the bootstrap's `_on_objective_completed("pot")` puts `PotOnTheFire` on the bed), and each warning-book page (`PAGE_IDS`) in the pack inside `Discovery.WATCHHOUSE_RECT` (removed, counted in `pages_returned`). Objectives latch (enemies never respawn). Its lines go through `Discovery.announce()` so they share the banner queue; `TacticalHUD.set_objectives()` draws the panel under the stats panel. The suite pauses the bootstrap's tracker and drives a fresh one against stand-in foes; the screenshot tool hides the panel except in shot 17.
-- **UI capture:** while the pack or loot window is open, `PlayerController.ui_capture` suppresses combat input. Any hit force-closes the windows.
-
-## Conventions and pitfalls (learned the hard way)
-
-- **Typed GDScript everywhere**: `var x: float`, `-> void`, typed arrays and loop variables. Fix warnings; don't ignore them.
-- **GDScript is not shader language.** `mix()` doesn't exist in GDScript; use `lerpf()` / `lerp()`. This broke the whole project once, because every enemy references the audio class.
-- **Set `position`, not `global_position`, before `add_child()`.** Global transforms need the node in the tree.
-- **Avoid `CPUParticles3D` / `GPUParticles3D` for gameplay feedback.** They don't render under software Vulkan, so they can't be screenshot-verified. Sparks are tween-animated mesh shards instead (`WallDeflection.spawn_sparks`).
-- **Quaternius characters face +Z in their files; the game aims down -Z.** Both models turn the character 180° (`_character.rotation.y = PI`). The survivor shipped backwards once (LF-1b) because a render was misread; the suite now checks that every character's toes point where it aims. Measure facing from the skeleton (toes vs. foot), not by eye.
-- **Lights must not sit inside or right beside meshes that cast shadows.** The torch light hangs on the survivor's visual root over the left shoulder, 2.3 m up (`TORCH_LIGHT_POSITION`), not at the flame. At the torso's centre it shadowed the survivor black; at the flame, which the animated hands carry in front of, behind or above the body, the body threw dark wedges across rooms and the light swung about.
-- **Walls facing the camera** (the rig sits on the +X/+Z side) need `enable_cutaway = true` in `_create_static_box()`, or they hide interiors. Give every new box a surface (`"mud"`, `"stone"`, `"dark_stone"`, `"planks"` in `SURFACES`) as its last argument; the suite fails on a flat one. Props use `AshenWildsBootstrap.surface_material()`.
-- **Set dressing blocks bodies, never rays.** `SetDressing` gives solid pieces (trees at the trunk, stumps, fences, boulders, ruin walls and columns, fallen trees) a collider on layer 7 Props, which bodies collide with and no ray uses; ground cover, pebbles, low rubble and firewood stay walk-through. Never put a dressing collider on layer 1: it would hide enemies, stop hits and clang swords. Tall pieces stand at the yard's edges, away from the doorway, the entry hall and test positions. Containers get their kit model through `CONTAINER_MODELS` in the bootstrap, fitted inside their collision box (the suite checks nothing pokes out). Godot's `.import` files and extracted `*_0.png` textures under `assets/environment/` are git-ignored: they are regenerated on every import.
-- **Stylised kits are out** (KayKit, Kenney, Quaternius props): the owner wants grim and grounded. Photo-based CC0 sources fit (ambientCG; Poly Haven, whose API and download server answer scripted clients that send a User-Agent, as `tools/fetch_benchmark_assets.py` does). `assets/reference/` holds the owner's 3D quality bar: photoscans to match, not to ship (the nature scans are 40k to 340k triangles).
-- **Node names collide.** `add_child(n)` renames a node whose name a sibling already has to `@Class@id`, so `find_children("Name*")` misses every one after the first. Spawned effects (ripples, marks) use `add_child(n, true)` and a group; count them with `get_nodes_in_group`.
-- **Unused parameters** are prefixed `_`. Rename them when they become used.
-- **Keybindings** are added in `_ensure_input_bindings()`; `_bind_key` won't double-bind. 1–4 switch gear, F1–F3 are dev teleports. The networked scene binds its own (WASD/arrows, Q/E turn, C recenter) in `NetMain`; the camera rig only reacts to `camera_rotate_*` and `camera_recenter` when a scene has bound them.
-- **Networked code:** never move an avatar on a client except through `integrate()` for prediction; never read `multiplayer.get_unique_id()` or `multiplayer.is_server()` after a peer may have closed (use `own_peer_id` and `role`); send state per live peer, not broadcast, so a peer mid-handshake or being rejected gets nothing. Every interaction goes through `_serve_request()`: identity from the sender, rate limit, repeat detection, validate, apply, answer, then push the changed durable state to everyone. A client never changes a pack or a container itself; it waits for `pack_state` and `container_contents`.
-- **Test drives read the first snapshot** (`first_views`) when two clients must ask for the same stack, because the loser's live view has already lost it. Drives that must reach a place use `_goto([points])`, which walks straight at each point regardless of spawn order or camera.
-- **Persistence:** every durable change must set `save_dirty = true` on the server (take, store, fixture use, join of a new key, disconnect); the debounce writes within a second. Nothing writes before `_load_world()` succeeds (`save_enabled`), so a refused load can never overwrite a save. Tests always pass `--save <temp path>`; never let a test touch the developer's real `user://ashen_world.json`.
-
-### Writing tests (`tests/smoke_test.gd`)
-
-- It's a `SceneTree` script. Add a `_test_*()` coroutine and call it from `_run()`. Use `_check(cond, label)` and `_section(title)`.
-- Enemies are frozen (`PROCESS_MODE_DISABLED`) after the Milestone 1–3 section so later checks are deterministic. Spawn your own dummies if you need targets.
-- `_tap(action)` presses for one physics tick and waits a tick for the result. Listeners in `_unhandled_input` (the pack window) need real events: use `_send_event(action)`.
-- No mouse exists headless: set `_player.camera_rig = null` and aim with `_face(dir)`. Restore the rig afterwards.
-- Force random rolls by temporarily changing data, e.g. `heavy_lodge_chance = 1.0`, and restore it afterwards.
-- Time with `_seconds()` / `_ticks()` (physics frames), not process frames.
+- **O1:** only humans are people. Every creature is an animal, a lizard, a fish or a monster.
+- **O3:** the wider world and this game's design decisions are approved.
+- **O4:** small magic exists: spoken workings and marks on slag-iron. It is small and always costs.
+- **O5:** this game replaced the isometric one; all lore is kept.
+- No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git
 
-- Remote: `https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds` (`main`). The lowercase URL redirects and still works.
-- Commit as `sleeves <dribblejerp@gmail.com>` so GitHub credits the owner.
-- Keep the README in sync: the status line's test count, the controls table, feature sections, and the roadmap (remove items once they ship).
-- Never force-push `main` without the owner's explicit OK.
+- Remote: `https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds` (`main`).
+- Commit under the owner's name and GitHub address, as earlier commits do, so GitHub credits them.
+  Take the address from `git log`; never type it into a command or send it anywhere else.
+- Keep `README.md` and `ROADMAP.md` in sync with what is actually built.
 
 ## Working with the owner (sleeves)
 
-- Before a big design-heavy build (weather, acoustic ripples + vision cone, companion AI), **say whether a stronger model such as Fable is worth switching to.** Routine milestones are fine on Opus.
-- **Lore** lives in `docs/worldbuilding/`. Read `CANON.md` before writing any in-game text (item descriptions, banners, background cards, notes): it fixes the names and the rules. **Owner rule O1: only humans are people; goblins, orks, ogres, trolls and every other creature are animals, lizards, fish or monsters** (no speech, names, culture or bargains; every companion and background is human). Also: no prophecy; what the orks fled stays unexplained; calling a person "Ashbound" is a verdict. All of it is proposed until the owner confirms it.
-- Be honest about what headless tests can't show: feel, timing, light levels and UI layout still need a real playtest. Say so when handing back work.
+- Before a big design-heavy build, say whether a stronger model such as Fable is worth switching to.
+- The owner does not run the game from source: stills are how they see progress.
+- Be honest about what a check cannot show: feel, motion, timing, sound and how it reads on a real
+  screen still need a person at the controls.
