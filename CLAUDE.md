@@ -12,7 +12,8 @@ JavaScript: **no framework, no bundler, no build step.** The engine was copied f
 Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) with its story taken
 out (decision D14). That repository is read-only for this work: read it, never change it.
 
-Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`).
+Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
+thing hunts: the walking bloom on the shelf (`js/bloom4.js`).
 
 ## The owner's rules
 
@@ -41,6 +42,7 @@ Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`l
     node test/ledge1.test.js --no-browser
     node test/art2.test.js --no-browser
     node test/sun3.test.js --no-browser
+    node test/bloom4.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -48,9 +50,12 @@ Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`l
     NODE_PATH=$(npm root -g) node test/ledge1.test.js
     NODE_PATH=$(npm root -g) node test/art2.test.js
     NODE_PATH=$(npm root -g) node test/sun3.test.js
+    NODE_PATH=$(npm root -g) node test/bloom4.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
+    NODE_PATH=$(npm root -g) node tools/bloomshots.js docs/screenshots    # the walking bloom, posed
+    NODE_PATH=$(npm root -g) node tools/bloomgifs.js docs/screenshots     # and played, as clips (needs ffmpeg)
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -80,7 +85,8 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/art2.js            Phase 2: every tile, person, thing and hand the engine itself needs, painted in code
     js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
     js/sun3.js            Phase 3: the sun crosses the sky; coal, coin and clear days
-    tools/look/           look tests the page never loads (the modelled beasts, until they go into the game)
+    js/bloom4.js          Phase 4: the walking bloom: a pure think() step, a boned body drawn by one pass
+    tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
 
@@ -110,6 +116,14 @@ Useful facts, all checked in this repository:
   lay one of its old hand-made rigs on it.
 - The held weapon is `Engine.images.fp_sword`, 99 x 190, drawn at half size at the view's right.
   The arm must leave through the bottom edge of the picture, or a cut edge shows.
+- The engine's noise (`G.noise`) floors at 1.0 standing, 2.4 walking, 4.2 running, plus what you wear.
+  A hunter that hears by it lives in `js/bloom4.js`: copy its `think(S, env, dt)` shape, which runs in
+  Node, so its rules can be tested step by step without a browser.
+- A modelled body: build every part once, in the space of the bone that carries it (a bone index per
+  vertex), and send the bones as `uniform vec4 uBone[]` each frame. Rebuilding geometry each frame
+  cost the look test 27 ms. Give it a solid map entity with an empty sprite so it can be looked at and
+  bumped into, and a flat painting for the classic renderer.
+- The hunt's metres are cells of walking (P33): the walker covers about 2.6 cells a second.
 
 ## Rules for new work
 
@@ -155,7 +169,9 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 
 ## Working with the owner (sleeves)
 
-- Before a big design-heavy build, say whether a stronger model such as Fable is worth switching to.
+- Before a big design-heavy build, say which model it needs. The owner has no access to Fable; Opus is
+  the strongest they have. Use Opus for design-heavy phases, canon and shaders; Sonnet will do for
+  routine follow-through (bringing a branch up to date, fixing a test, docs).
 - The owner does not run the game from source: stills are how they see progress.
 - Be honest about what a check cannot show: feel, motion, timing, sound and how it reads on a real
   screen still need a person at the controls.

@@ -12,7 +12,7 @@ const SHOTS = [
   ['02_at_the_edge', 78.35, 49.2, 178, -0.2, false],
   ['03_the_carter', 82.6, 47.9, 212, 0, false],
   ['04_the_bloom', 78.35, 55.5, 152, -0.3, false],
-  ['05_the_bothy', 88.6, 31.4, 214, 0.04, false],
+  ['05_the_bothy', 87.6, 33.4, 224, 0.04, false],
   ['06_marget_sayle', 'bothy', null, null, 0, false],
   ['07_down_on_the_plain', 72.5, 44.5, 180, -0.1, false],
 ];
