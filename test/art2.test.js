@@ -115,7 +115,7 @@ check(!/'townsman'|'townswoman'|'hearth'|'bed'|'table'|'sign'/.test(ledge) && /l
       // the hearth lights the room
       loadMap(LEDGE1.BOTHY); advanceTime(400);
       const he = G.ents.find((q) => q.sprite === 'la_hearth'); out.hearth = he ? { light: he.lightCol, solid: he.solid } : null;
-      out.inside = G.ents.filter((q) => q.sprite).map((q) => q.sprite).sort();
+      out.inside = G.ents.filter((q) => q.sprite && !q.hidden).map((q) => q.sprite).sort();   // (the walking bloom's place in the room is hidden until it comes in: Phase 5)
       const pn = performance.now.bind(performance), t0 = pn(); performance.now = () => t0; G.state = 'play';
       const bright = () => { render(); render(); const p = R3D.readPixels(); let m = 0, n = 0; for (let i = 0; i < p.data.length; i += 16) { m += p.data[i] + p.data[i + 1] + p.data[i + 2]; n++; } return m / n; };
       out.lit = bright(); const keep = he.lightCol; he.lightCol = null; R3D.invalidate(); out.unlit = bright(); he.lightCol = keep; performance.now = pn;
@@ -126,7 +126,7 @@ check(!/'townsman'|'townswoman'|'hearth'|'bed'|'table'|'sign'/.test(ledge) && /l
     check(r.npc && r.npc.sprite === 'la_carter' && r.has[0] && r.has[1], 'the carter on the ledge wears his own painting, and the rig has taken both people');
     check(r.idle && r.walk2 && r.walk6 && r.talk && new Set([r.idle[2], r.walk2[2], r.walk6[2], r.talk[2]]).size === 4, 'standing, two steps of a walk and talking are four different pictures of him');
     check(r.side && r.side[0] < r.idle[0], 'seen from the side he is narrower than from the front (' + (r.side || []).join(' x ') + ' against ' + r.idle.slice(0, 2).join(' x ') + ')');
-    check(r.hearth && Array.isArray(r.hearth.light) && r.hearth.light[0] > r.hearth.light[2] * 3 && r.inside.join() === 'la_bed,la_hearth,la_marget,la_table', 'the bothy holds the bed, the fire, the table and Marget Sayle; the fire\'s light is red');
+    check(r.hearth && Array.isArray(r.hearth.light) && r.hearth.light[0] > r.hearth.light[2] * 3 && r.inside.join() === 'la_bar_lean,la_bed,la_hearth,la_marget,la_table', 'the bothy holds the bed, the fire, the table, the door bar (Phase 5) and Marget Sayle; the fire\'s light is red');
     check(r.lit > r.unlit * 1.15, 'the room is brighter with the fire than without it (' + r.lit.toFixed(1) + ' against ' + r.unlit.toFixed(1) + ')');
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
     const gone = [...s.missing].filter((p) => /pixel3d|painted|face_/.test(p));

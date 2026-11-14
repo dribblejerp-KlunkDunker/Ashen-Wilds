@@ -6,8 +6,8 @@ inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 
 **Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
 the coal sun, walk down past the walking bloom that stands on the shelf, and reach Marget Sayle's
-bothy and speak to her. Walk, do not run: it hunts by sound. Nothing of the story past that door is
-built. `ROADMAP.md` says exactly what is and is not here.
+bothy and speak to her. Walk, do not run: it hunts by sound. Put the bar across her door, or it may
+follow you in. Nothing of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
 
 ![The ledge](docs/screenshots/01_the_ledge.png)
 
@@ -18,6 +18,7 @@ built. `ROADMAP.md` says exactly what is and is not here.
 | ![The carter](docs/screenshots/03_the_carter.png) | ![Speaking to Marget Sayle](docs/screenshots/08_talking_to_marget.png) |
 | ![Noon on a clear day](docs/screenshots/12_noon_on_a_clear_day.png) | ![Sunset behind the Slagcrown](docs/screenshots/16_sunset_behind_the_slagcrown.png) |
 | ![Run, and it comes](docs/screenshots/42_run_and_it_comes.gif) | ![The claw](docs/screenshots/33_the_claw.png) |
+| ![The bar across Marget Sayle's door](docs/screenshots/51_the_bar_across.png) | ![Left open, it comes in](docs/screenshots/52_it_came_in.png) |
 
 ## Play
 
@@ -53,8 +54,8 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies.
 - **The walking bloom**, modelled, on the shelf by the foot of the ramp. It hunts by sound: walk
   and it does not hear you; run and it comes to where the noise was, and claws. It sees only
   movement, close and in front of it. It cannot follow you in at the bothy's door.
-- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. The safe room:
-  the bloom waits outside it.
+- **Marget Sayle's bothy:** field stone under a roof, one door, a banked peat fire. The safe room, if
+  you bar the door: barred, the bloom leans on it once and goes away; left open, it comes in.
 - **Two people who can be spoken to:** the carter on the ledge, and Marget Sayle. Both are painted
   in code and move on the engine's rig.
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
@@ -78,11 +79,12 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/art2.js` | Phase 2: the tiles, the two people, the bothy's things, the hand and blade, painted in code |
 | `js/sun3.js` | Phase 3: the sun's day |
 | `js/bloom4.js` | Phase 4: the walking bloom, its hunt and its modelled body |
+| `js/door5.js` | Phase 5: the bar on Marget Sayle's door, and what the bloom does at it |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`; `bloomgifs.js` writes the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`; `bloomgifs.js` and `doorshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -97,6 +99,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/art2.test.js --no-browser
     node test/sun3.test.js --no-browser
     node test/bloom4.test.js --no-browser
+    node test/door5.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -106,10 +109,11 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/art2.test.js
     NODE_PATH=$(npm root -g) node test/sun3.test.js
     NODE_PATH=$(npm root -g) node test/bloom4.test.js
+    NODE_PATH=$(npm root -g) node test/door5.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
-the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, and the
-switches change the picture. It says nothing about how the
+the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
+barred door holds and the open one does not, and the switches change the picture. It says nothing about how the
 game feels: that needs a person at the controls.
 
 ## The games this replaced

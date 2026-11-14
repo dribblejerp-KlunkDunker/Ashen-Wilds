@@ -277,6 +277,63 @@ frame hash. There are no page errors.
 | P41 | The carter's warning: "Walk. Do not run. There is one on the shelf, and it hears running." | |
 | P42 | What the game says of it: "A walking bloom. Caps along its shoulders and its scalp. A crust where the eyes were. It stands and sways."; "The walking bloom. It is going to where the noise was."; "On the shelf, something has turned its head."; "The dust is in your mouth and eyes. You cannot stop coughing." | |
 
+## Phase 5 - the door that holds
+
+`js/door5.js` · `test/door5.test.js` · `tools/doorshots.js` · stills 50 to 52 and clips 53 and 54 in `docs/screenshots/`
+
+The design's work list asks for "a door that holds, and what the hunter does at it". The safe room is only safe if
+the bar is across the door.
+
+- **The bar.** A bar of heavy timber leans by the door inside. Use it and it drops across the door, which makes a
+  little noise. Use it again and it stands back by the door. A barred door will not open from outside ("The door is
+  barred from inside"), and will not open from inside until you lift the bar.
+- **The bloom at the door.** If it was coming for you when you went in, it follows you to the door.
+  - **Barred:** the door holds. It leans on the door once, waits a while off it, then goes back to its post.
+  - **Not barred:** it comes in after you, and the room is as dangerous as the shelf. Move where it can see you and
+    it claws. Stand still and it finds nothing: it listens, then goes back out the way it came.
+- **One knock, once** (rule of dread 7). The first time it leans on the barred door with you inside, you hear it, you
+  are told so, and Marget Sayle says one thing. After that it leans in silence. You never see it at the door.
+- **Marget Sayle** tells you, the first time you come in, to put the bar across.
+- `js/bloom4.js` changed with it. The bloom can now be on more than one map, go through doors that a later phase
+  lists (`BLOOM4.DOORS`), and be lit by a fire indoors. With no doors listed it behaves exactly as Phase 4 made it.
+  Phase 4's test now bars the door in its door case, because an open door lets the bloom in.
+
+Nothing here adds a visual effect, so there is no new Options switch. The bar is a painted thing like the table. The
+bloom indoors is drawn by Phase 4's pass and covered by its switch, "Modelled bodies".
+
+**Checked by the tests:** the design's lines are in the bible; the bar's place and paintings; the bloom's mind at a
+door without a browser. In a browser the tests *play* it:
+- Bar the door and it leans once, you are told, Marget speaks, it goes home, and you are not touched.
+- The second time, it leans in silence.
+- Leave the door open and it comes in and claws you.
+- Stand still in the room and it goes back out and home.
+- A barred door opens from neither side.
+- It never stands in a wall, the table, the bed or Marget Sayle.
+- Inside, it is drawn by firelight, modelled or flat.
+
+**Not done:**
+- Nothing at the door can be seen: no dust from the lintel, no movement of the bar.
+- The knock and the bar make sound through the engine's synthesiser, but nobody has listened to them: the tests run
+  without sound.
+- Marget Sayle does nothing when the bloom is in the room, and it ignores her.
+- The bar is per player: co-op does not share it, or the bloom.
+- A save keeps whether the bar is across, but not where the bloom is.
+- If you bar it in with you, it stands back from the door and waits; that case is not tested.
+- The roadmap listed light for this phase. The hearth is still the room's one light, unchanged; light as a supply is
+  Phase 8.
+
+### Proposed in Phase 5: **[PROPOSED], awaiting a ruling**
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P43 | The door has a bar: heavy timber, iron at both ends, on two hooks. Dropping it makes a little noise | The bible says only "a door that holds" |
+| P44 | Barred, the bloom leans on the door once and waits about twenty seconds off it; not barred, it follows you in | |
+| P45 | The knock comes only the first time, with you inside; after that it leans in silence | Rule of dread 7: one knock, once |
+| P46 | Marget Sayle: "Put the bar across. They come to a door." and, after the knock, "It will go. They do not stay where it is quiet." | |
+| P47 | A barred door is barred to a partner outside too: "The door is barred from inside." | Rule of dread 8: your partners are the uncertainty |
+| P48 | Indoors the bloom hunts as it does outside: a still player is not found, and it goes back out the way it came | |
+| P49 | The bar's words: "A bar of heavy timber, iron at both ends, leaning by the door. It goes across the door on two hooks."; "You drop the bar across the door. It sits in its hooks with a sound like a dropped plank."; "Something leans on the door from outside, once. The bar takes it." | |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
@@ -304,7 +361,7 @@ against a budget of about one. The cause is known (every body is rebuilt in full
 and so is the cure (build each part once and move it on the graphics card); that is the first job
 of the phase that puts the bloom in the game. No test covers this file.
 
-## Rulings (2026-11-11 and 2026-11-12)
+## Rulings (2026-11-11 to 2026-11-14)
 
 | Asked | Ruled |
 | --- | --- |
@@ -321,21 +378,22 @@ of the phase that puts the bloom in the game. No test covers this file.
 | Beasts: modelled or painted | **Modelled** (D8 stands), "so long as we can make them look drastically better". The walking bloom is modelled too. The painted beasts are deleted; the second pass at the models awaits the owner's eye. |
 | The sun's day (P27 to P32) | "Yes the days are perfect." Approved; recorded as O8 on the canon sheet. |
 | The second pass at the modelled beasts | "Thank you lets proceed." Taken as approval; the walking bloom went into the game as Phase 4. |
+| Merging pull requests 38 to 40 | "Merge and proceed." The owner asked Claude to merge them. Each was squashed, so the Octave's pictures stay out of `main`'s history. The old Godot work that was on `main` is kept on `archive/isometric-prototype`. |
 
 ## Decisions I still need
 
-1. **The walking bloom's rules, P33 to P42.** Clips 41 to 43 show them played.
+1. **The walking bloom's rules, P33 to P42,** and **the door's, P43 to P49.** Clips 41 to 43 and 53 to 54 show them played.
 2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-3. **The pictures are still in the first branch's history.** "Squash and merge" on pull request 38
-   keeps them out of `main`.
+3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
+   whose spot I chose. Say which stand, and it can come into the repository with them.
 
 ## Next phases, in order
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
 | 4 | **Built.** The walking bloom hunts by sound on the ledge (O7), modelled | "one thing that hunts by sound" |
-| 5 | The safe room made real: a door that holds, light, and what the bloom does at it | "one safe room" |
+| 5 | **Built.** The safe room made real: a door that holds, and what the bloom does at it | "one safe room" |
 | 6 | Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 8 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |

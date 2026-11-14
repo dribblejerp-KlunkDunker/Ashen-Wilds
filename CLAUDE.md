@@ -13,7 +13,7 @@ Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) w
 out (decision D14). That repository is read-only for this work: read it, never change it.
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
-thing hunts: the walking bloom on the shelf (`js/bloom4.js`).
+thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
 
 ## The owner's rules
 
@@ -43,6 +43,7 @@ thing hunts: the walking bloom on the shelf (`js/bloom4.js`).
     node test/art2.test.js --no-browser
     node test/sun3.test.js --no-browser
     node test/bloom4.test.js --no-browser
+    node test/door5.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -51,11 +52,13 @@ thing hunts: the walking bloom on the shelf (`js/bloom4.js`).
     NODE_PATH=$(npm root -g) node test/art2.test.js
     NODE_PATH=$(npm root -g) node test/sun3.test.js
     NODE_PATH=$(npm root -g) node test/bloom4.test.js
+    NODE_PATH=$(npm root -g) node test/door5.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
     NODE_PATH=$(npm root -g) node tools/bloomshots.js docs/screenshots    # the walking bloom, posed
     NODE_PATH=$(npm root -g) node tools/bloomgifs.js docs/screenshots     # and played, as clips (needs ffmpeg)
+    NODE_PATH=$(npm root -g) node tools/doorshots.js docs/screenshots     # the door: stills and played clips
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -86,6 +89,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
     js/sun3.js            Phase 3: the sun crosses the sky; coal, coin and clear days
     js/bloom4.js          Phase 4: the walking bloom: a pure think() step, a boned body drawn by one pass
+    js/door5.js           Phase 5: the bar on the bothy's door; the doors the bloom can go through (BLOOM4.DOORS)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -124,6 +128,11 @@ Useful facts, all checked in this repository:
   cost the look test 27 ms. Give it a solid map entity with an empty sprite so it can be looked at and
   bumped into, and a flat painting for the classic renderer.
 - The hunt's metres are cells of walking (P33): the walker covers about 2.6 cells a second.
+- To let the bloom use a door, push `{ from, at, to, out, barred(), onBarred(S), waitAt }` onto `BLOOM4.DOORS` and
+  give the far map an entity with `BLOOM4.addMap(map)`. `transfer(portal)` and `useDeco(e)` in `js/game.js` are the
+  hooks for a door that will not open and a thing you use.
+- The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
+  pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
 ## Rules for new work
 

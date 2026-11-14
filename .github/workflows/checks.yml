@@ -33,6 +33,8 @@ jobs:
         run: node test/sun3.test.js --no-browser
       - name: Phase 4, the walking bloom (no browser)
         run: node test/bloom4.test.js --no-browser
+      - name: Phase 5, the door that holds (no browser)
+        run: node test/door5.test.js --no-browser
       - name: The offline list and the icons are current
         run: |
           node tools/pwa/precache.js --check
@@ -64,3 +66,5 @@ jobs:
         run: node test/sun3.test.js
       - name: Phase 4, the walking bloom
         run: node test/bloom4.test.js
+      - name: Phase 5, the door that holds
+        run: node test/door5.test.js

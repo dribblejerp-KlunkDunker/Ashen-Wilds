@@ -53,17 +53,20 @@ const BLOOM4 = (() => {
     if (!moving) return false; const dx = px - S.x, dy = py - S.y, d = Math.hypot(dx, dy); if (d > R.see || d < 1e-6) return false;
     let a = Math.atan2(dy, dx) - S.yaw; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.abs(a) <= R.seeCone / 2;
   }
-  const fresh = () => ({ x: R.post.x, y: R.post.y, yaw: R.post.yaw, state: 'post', t: 0, tx: R.post.x, ty: R.post.y, phase: 0, walk: 0, reach: 0, alert: 0, heard: 0, clawed: 0, choke: 0 });
+  const fresh = () => ({ map: 'la_ledge', x: R.post.x, y: R.post.y, yaw: R.post.yaw, state: 'post', t: 0, tx: R.post.x, ty: R.post.y, phase: 0, walk: 0, reach: 0, alert: 0, heard: 0, clawed: 0, choke: 0 });
   // One step of its mind and body. env: { px, py, noise, moving, here (the player is on this map), blocked(x, y), ground(x, y) }.
   // Returns what happened this step: { heard, claw } (for messages and for hurting the player).
   function think(S, env, dt) {
-    const ev = { heard: false, claw: false }, d = Math.hypot(env.px - S.x, env.py - S.y);
+    const ev = { heard: false, claw: false, door: false }, d = Math.hypot(env.px - S.x, env.py - S.y);
     const aware = env.here && (hears(env.noise, d) || sees(S, env.px, env.py, env.moving));
     const face = (x, y, rate) => { let a = Math.atan2(y - S.y, x - S.x) - S.yaw; a = Math.atan2(Math.sin(a), Math.cos(a)); const m = rate * dt; S.yaw += clamp(a, -m, m); return Math.abs(a); };
     const go = (state) => { S.state = state; S.t = 0; };
     S.t += dt;
     if (aware && S.state !== 'claw') { S.tx = env.px; S.ty = env.py; if (S.state === 'post' || S.state === 'back' || S.state === 'listen' || S.state === 'wait') { go('turn'); ev.heard = true; S.heard++; } }
-    if (!env.here && (S.state === 'come' || S.state === 'turn' || S.state === 'claw')) { S.tx = R.wait.x; S.ty = R.wait.y; go('toWait'); }
+    // you have gone out of its map. With no door known it makes for its waiting place (Phase 4); with a door (Phase 5)
+    // it follows to the door you went through, and what happens there is the door's business (ev.door)
+    if (!env.here && (S.state === 'come' || S.state === 'turn' || S.state === 'claw')) { if (env.door) { S.tx = env.door.x; S.ty = env.door.y; go('toDoor'); } else { S.tx = R.wait.x; S.ty = R.wait.y; go('toWait'); } }
+    const home = env.home || R.post;
     let moveTo = null;
     if (S.state === 'post') { face(S.x + Math.cos(R.post.yaw), S.y + Math.sin(R.post.yaw), 0.6); }
     else if (S.state === 'turn') { face(S.tx, S.ty, 2.2); if (S.t >= R.turn) go('come'); }
@@ -73,10 +76,14 @@ const BLOOM4 = (() => {
       face(env.px, env.py, 3);
       if (S.t >= R.windup && !S._hit) { S._hit = true; if (env.here && d <= R.reach + 0.2) { ev.claw = true; S.clawed++; } }
       if (S.t >= R.windup + R.rest) { S._hit = false; S.tx = env.px; S.ty = env.py; go(env.here && d <= R.reach ? 'claw' : 'listen'); }
-    } else if (S.state === 'listen') { if (S.t >= R.listen) { S.tx = R.post.x; S.ty = R.post.y; go('back'); } }
+    } else if (S.state === 'listen') { if (S.t >= R.listen) { S.tx = home.x; S.ty = home.y; go('back'); } }
+    else if (S.state === 'toDoor') { if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.35) ev.door = true; else if (S.t > R.giveUp) go('listen'); else moveTo = [S.tx, S.ty]; }
     else if (S.state === 'toWait') { if (env.here) go('listen'); else if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.3) go('wait'); else moveTo = [S.tx, S.ty]; }
-    else if (S.state === 'wait') { if (S.t >= R.waitFor) { S.tx = R.post.x; S.ty = R.post.y; go('back'); } }
-    else if (S.state === 'back') { if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.25) go('post'); else if (S.t > R.giveUp * 3) { S.x = R.post.x; S.y = R.post.y; go('post'); } else moveTo = [S.tx, S.ty]; }
+    else if (S.state === 'wait') { if (S.t >= R.waitFor) { S.tx = home.x; S.ty = home.y; go('back'); } }
+    else if (S.state === 'back') {
+      if (env.homeIsDoor) { S.tx = home.x; S.ty = home.y; if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.35) ev.door = true; else moveTo = [S.tx, S.ty]; }   // home is through a door: go to it
+      else if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.25) go('post'); else if (S.t > R.giveUp * 3) { S.x = R.post.x; S.y = R.post.y; go('post'); } else moveTo = [S.tx, S.ty];
+    }
     let moved = 0;
     if (moveTo) {
       const off = face(moveTo[0], moveTo[1], 2.4), sp = R.speed * (off > 1.2 ? 0.25 : 1) * dt, vx = Math.cos(S.yaw) * sp, vy = Math.sin(S.yaw) * sp;
@@ -98,6 +105,7 @@ const BLOOM4 = (() => {
     atPost: 'A walking bloom. Caps along its shoulders and its scalp. A crust where the eyes were. It stands and sways.',
     hunting: 'The walking bloom. It is going to where the noise was.',
     heard: 'On the shelf, something has turned its head.',
+    heardIn: 'In the room, something has turned its head.',
     choke: 'The dust is in your mouth and eyes. You cannot stop coughing.',
     warn: 'The carter, behind you, low: "Walk. Do not run. There is one on the shelf, and it hears running."',
     name: 'The walking bloom',
@@ -292,7 +300,7 @@ void main() {
   vec3 p = vec3(dot(r0, q), dot(r1, q), dot(r2, q)) + n * uGrow;
   vPos = p; vNrm = n; vCol = aCol; vLoc = aLoc; vMS = aMS; gl_Position = uViewProj * vec4(p, 1.0); }`;
   const FS = `in vec3 vPos; in vec3 vNrm; in vec3 vCol; in vec3 vLoc; in vec2 vMS;
-uniform vec4 uBSun; uniform vec3 uBSunC; uniform vec3 uBAmb; uniform vec3 uBFire; uniform float uInk;
+uniform vec4 uBSun; uniform vec3 uBSunC; uniform vec3 uBAmb; uniform vec3 uBFire; uniform vec3 uBFireDir; uniform float uInk;
 layout(location=0) out vec4 oColor; layout(location=1) out vec4 oAux;
 float h1(vec3 p) { p = fract(p * vec3(443.897, 441.423, 437.195)); p += dot(p, p.yzx + 19.19); return fract((p.x + p.y) * p.z); }
 vec3 h3(vec3 p) { return vec3(h1(p), h1(p + 17.3), h1(p + 41.7)); }
@@ -324,7 +332,7 @@ void main() {
   else { alb *= 0.85 + 0.2 * tex; glow = 0.12; }                                                           // a stem
   n = normalize(n + (h3(tp) - 0.5) * 0.12 * rough);
   float ndl = max(dot(n, normalize(uBSun.xyz)), 0.0), hemi = 0.62 + 0.38 * n.z, ground = smoothstep(0.0, 0.5, vPos.z - uBSun.w);
-  vec3 fireDir = normalize(vec3(-1.0, 0.0, 0.12));
+  vec3 fireDir = normalize(uBFireDir);   // the land's fire to the west outdoors; the hearth indoors
   float rim = pow(1.0 - max(dot(n, v), 0.0), 2.2) * smoothstep(-0.65, 0.3, dot(n, fireDir));
   vec3 lit = uBAmb * hemi * mix(0.5, 1.0, ground) * vMS.y + uBSunC * ndl + uBFire * (max(dot(n, fireDir), 0.0) * 0.1 + rim * 1.5);
   float l = max(lit.r, max(lit.g, lit.b)), r = sqrt(l), q = (floor(r * 6.0 + bay * 0.9) + 0.55) / 6.0; lit *= l > 0.0005 ? (q * q) / l : 0.0;   // a few steps of light, even to the eye
@@ -334,7 +342,7 @@ void main() {
 }`;
   const GLS = { prog: null, vao: null, buf: null, failed: null, drawn: 0, ms: 0 };
   const sw = () => typeof GFX === 'undefined' || GFX.laBodies !== false;
-  let S = fresh(), ent = null;
+  let S = fresh();
   const modelled = () => sw() && typeof R3D !== 'undefined' && R3D.active && R3D.active() && !!GLS.prog && !GLS.failed;
   const pass = {
     name: 'la-bodies', order: 32,
@@ -347,18 +355,25 @@ void main() {
         gl.bindVertexArray(null);
       } catch (e) { GLS.failed = String(e && e.message); }
     },
-    enabled(F) { return sw() && !!GLS.prog && !GLS.failed && F.map && F.map.id === L1.LEDGE; },
+    enabled(F) { return sw() && !!GLS.prog && !GLS.failed && F.map && F.map.id === S.map; },
     draw(gl, F) {
-      const t0 = typeof performance !== 'undefined' ? performance.now() : 0, m = getMesh(), ZK = R3D.ZK, h = L1.landH(S.x, S.y);
+      const t0 = typeof performance !== 'undefined' ? performance.now() : 0, m = getMesh(), ZK = R3D.ZK, h = groundOf(S.map)(S.x, S.y);
       const root = chain(Tr(S.x, S.y, h * ZK), Sc(ZK), Tr(0, 0, -m.lo), Rz(S.yaw)), bones = rig(S), u8 = new Float32Array(NB * 12);
       for (let b = 0; b < NB; b++) u8.set(b === B.ground ? chain(Tr(S.x, S.y, h * ZK + 0.012), Rz(S.yaw)) : mul(root, bones[b]), b * 12);
       R3D.bindScene(gl, F); const u = R3D.use(GLS.prog).u; gl.uniform4fv(u.uBone || u['uBone[0]'], u8);
       const tod = F.tod == null ? 0.5 : F.tod, f = S3.on() ? S3.face(G.day | 0, tod) : S3.face(0, 0.735), day = smooth(-0.06, 0.2, Math.cos((tod - 0.5) * Math.PI * 2));
       const ce = Math.cos(f.el), lowSun = 1 - smooth(0.15, 0.5, f.el), k = day * (1 - f.dark * 0.6), sk = day * f.shadows * (1 - 0.82 * f.coal), fk = 0.16 + 0.84 * f.coal * (1 - 0.6 * smooth(0.2, 0.6, f.el));
       gl.uniform4f(u.uBSun, Math.cos(f.az) * ce, Math.sin(f.az) * ce, Math.max(0.08, Math.sin(f.el)), h * ZK);
-      gl.uniform3f(u.uBSunC, 1.0 * sk, (0.93 - 0.45 * lowSun) * sk, (0.80 - 0.6 * lowSun) * sk);
-      gl.uniform3f(u.uBAmb, 0.10 + 0.50 * k, 0.11 + 0.48 * k, 0.15 + 0.44 * k);
-      gl.uniform3f(u.uBFire, 0.95 * fk, 0.24 * fk, 0.06 * fk);
+      const fire = !F.outdoor && F.map.entities && F.map.entities.find((e) => e.lightCol && !e.hidden);
+      if (fire) {                                                                // indoors: no sun, little else, and one fire (the look: one fire lights an interior)
+        const dx = fire.x - S.x, dy = fire.y - S.y, dd = Math.hypot(dx, dy) || 1, fall = 1.6 / (1 + dd * dd * 0.18), lc = fire.lightCol;
+        gl.uniform3f(u.uBSunC, 0, 0, 0); gl.uniform3f(u.uBAmb, 0.035, 0.03, 0.03);
+        gl.uniform3f(u.uBFire, lc[0] / 160 * fall, lc[1] / 160 * fall, lc[2] / 160 * fall); gl.uniform3f(u.uBFireDir, dx / dd, dy / dd, 0.35);
+      } else {
+        gl.uniform3f(u.uBSunC, 1.0 * sk, (0.93 - 0.45 * lowSun) * sk, (0.80 - 0.6 * lowSun) * sk);
+        gl.uniform3f(u.uBAmb, 0.10 + 0.50 * k, 0.11 + 0.48 * k, 0.15 + 0.44 * k);
+        gl.uniform3f(u.uBFire, 0.95 * fk, 0.24 * fk, 0.06 * fk); gl.uniform3f(u.uBFireDir, -1, 0, 0.12);
+      }
       gl.bindVertexArray(GLS.vao); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
       gl.depthMask(false); gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
       gl.uniform1f(u.uInk, 0); gl.uniform1f(u.uGrow, 0); gl.drawArrays(gl.TRIANGLES, m.body, m.shadow);              // the shadow
@@ -370,21 +385,54 @@ void main() {
   };
 
   // ---------------------------------------------------------------- in the game
-  function blockedOn(m) { return (x, y) => { for (const [ox, oy] of [[0, 0], [R.radius, 0], [-R.radius, 0], [0, R.radius], [0, -R.radius]]) if (m.isBlocked(Math.floor(x + ox), Math.floor(y + oy))) return true; return false; }; }
+  // It lives on one map at a time (S.map). DOORS lists the doors it can go through, filled by a later phase
+  // (js/door5.js): { from, at: {x, y} (where it stands to use the door), to, out: {x, y, yaw} (where it comes out),
+  // barred() (is the way shut), onBarred(S) (what happens when it finds it shut), waitAt: {x, y} }. With none, it
+  // waits off the bothy's door as Phase 4 made it.
+  const DOORS = [], ents = {};
+  const groundOf = (id) => (id === L1.LEDGE ? L1.landH : () => 0);
+  const doorFrom = (id) => DOORS.find((d) => d.from === id) || null;
+  function blockedOn(m) {
+    return (x, y) => {
+      for (const [ox, oy] of [[0, 0], [R.radius, 0], [-R.radius, 0], [0, R.radius], [0, -R.radius]]) if (m.isBlocked(Math.floor(x + ox), Math.floor(y + oy))) return true;
+      for (const e of m.entities) if (e.solid && !e.laBloom && !e.hidden && !e.dead && e.kind !== 'item' && Math.hypot(e.x - x, e.y - y) < (e.radius || 0.3) + R.radius) return true;   // the table, the bed, Marget Sayle
+      return false;
+    };
+  }
   let last = { x: 0, y: 0 }, warned = false, saidHeard = 0;
+  function through(d) {                                                          // it has reached a door
+    const going = S.state;
+    if (d.barred && d.barred()) { if (d.onBarred) d.onBarred(S); S.tx = d.waitAt.x; S.ty = d.waitAt.y; S.state = 'toWait'; S.t = 0; return 'barred'; }
+    S.map = d.to; S.x = d.out.x; S.y = d.out.y; S.yaw = d.out.yaw == null ? S.yaw : d.out.yaw; S.t = 0;
+    const back = doorFrom(S.map), homeHere = S.map === L1.LEDGE;
+    if (going === 'back') { const h = homeHere ? R.post : back.at; S.tx = h.x; S.ty = h.y; S.state = 'back'; } else S.state = 'listen';
+    return 'through';
+  }
   function tick(dt) {
     if (typeof G === 'undefined' || !G || G.state !== 'play' || !G.maps || !G.maps[L1.LEDGE]) return;
-    const m = G.maps[L1.LEDGE], c = Engine.cam, here = G.map === m, moving = here && Math.hypot(c.x - last.x, c.y - last.y) > dt * 0.4; last = { x: c.x, y: c.y };
-    const ev = S.held ? { heard: false, claw: false } : think(S, { px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: L1.landH }, Math.min(dt, 0.1));
-    if (ev.heard && G.time - saidHeard > 12) { saidHeard = G.time; msg(TX.heard, 'bad', 3500); }
+    if (!G.maps[S.map]) S.map = L1.LEDGE;
+    const m = G.maps[S.map], c = Engine.cam, here = G.map === m, moving = here && Math.hypot(c.x - last.x, c.y - last.y) > dt * 0.4; last = { x: c.x, y: c.y };
+    const door = doorFrom(S.map), homeIsDoor = S.map !== L1.LEDGE && !!door;
+    const env = { px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, home: homeIsDoor ? door.at : R.post, homeIsDoor };
+    const ev = S.held ? { heard: false, claw: false, door: false } : think(S, env, Math.min(dt, 0.1));
+    if (ev.door && door) through(door);
+    if (ev.heard && G.time - saidHeard > 12) { saidHeard = G.time; msg(S.map === L1.LEDGE ? TX.heard : TX.heardIn, 'bad', 3500); }
     if (ev.claw) { damagePlayer(R.claw, TX.name); S.choke = R.choke; if (G.state === 'play') msg(TX.choke, 'bad', 3000); }
     if (S.choke > 0) { S.choke -= dt; if (typeof addNoise === 'function') addNoise(dt * 4.5); }
-    if (here && !warned && c.x >= L1.RAMP.x0 && c.x <= L1.RAMP.x1 + 1 && c.y < L1.RAMP.y1 + 0.5 && c.y > L1.RAMP.y0) { warned = true; msg(TX.warn, '', 7000); }
-    if (ent) { ent.x = S.x; ent.y = S.y; ent.sprite = modelled() ? 'la_bloom_ghost' : 'la_bloom_flat'; ent.scale = 1; ent.label = S.state === 'post' || S.state === 'back' || S.state === 'wait' ? TX.atPost : TX.hunting; }
+    if (here && S.map === L1.LEDGE && !warned && c.x >= L1.RAMP.x0 && c.x <= L1.RAMP.x1 + 1 && c.y < L1.RAMP.y1 + 0.5 && c.y > L1.RAMP.y0) { warned = true; msg(TX.warn, '', 7000); }
+    sync();
   }
+  function sync() {
+    for (const id in ents) {
+      const e = ents[id], on = id === S.map; e.hidden = !on; if (!on) continue;
+      e.x = S.x; e.y = S.y; e.sprite = modelled() ? 'la_bloom_ghost' : 'la_bloom_flat'; e.scale = 1; e.label = S.state === 'post' || S.state === 'back' || S.state === 'wait' ? TX.atPost : TX.hunting;
+    }
+  }
+  // a map it can be on: one entity there, hidden while it is elsewhere
+  function addMap(m) { if (!m || ents[m.id]) return ents[m && m.id]; const e = m.deco('la_bloom_ghost', R.post.x, R.post.y, { solid: true, radius: R.radius, scale: 1, label: TX.atPost, laBloom: true }); ents[m.id] = e; sync(); return e; }
   // for stills and tests: stand it somewhere, in some moment of its movement, and hold it there until reset()
-  function pose(o) { Object.assign(S, o || {}); S.held = true; if (ent) { ent.x = S.x; ent.y = S.y; } return S; }
-  function reset() { S = fresh(); warned = false; saidHeard = 0; if (ent) { ent.x = S.x; ent.y = S.y; } }
+  function pose(o) { Object.assign(S, o || {}); S.held = true; sync(); return S; }
+  function reset() { S = fresh(); warned = false; saidHeard = 0; sync(); }
   function wire() {
     if (typeof Engine === 'undefined' || typeof R3D === 'undefined' || !L1) return false;
     const fl = paintFlat(); Engine.addSprite('la_bloom_flat', { w: fl.w, h: fl.h, data: fl.data, hs: fl.hs, cx: fl.cx, dy: fl.dy }); if (fl.emit && Engine.setEmissive) Engine.setEmissive('la_bloom_flat', fl.emit);
@@ -392,11 +440,11 @@ void main() {
     R3D.addPass(pass);
     L1.SWITCHES.push(['laBodies', 'Modelled bodies', 'The walking bloom as a sculpted body. Off: a flat painted figure, as the classic renderer shows it (3D renderer only)']);
     // it stands in the map as a thing you can look at and cannot walk through; the engine's maps are built once at start
-    const _bm = buildAllMaps; buildAllMaps = function () { const maps = _bm.apply(this, arguments); try { const m = maps && maps[L1.LEDGE]; if (m) { ent = m.deco('la_bloom_ghost', R.post.x, R.post.y, { solid: true, radius: R.radius, scale: 1, label: TX.atPost, laBloom: true }); reset(); } } catch (e) { /* the ledge stands without it */ } return maps; };
+    const _bm = buildAllMaps; buildAllMaps = function () { const maps = _bm.apply(this, arguments); try { for (const k in ents) delete ents[k]; addMap(maps && maps[L1.LEDGE]); reset(); } catch (e) { /* the ledge stands without it */ } return maps; };
     const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { tick(dt); } catch (e) { if (!GLS.tickErr) { GLS.tickErr = String(e && e.message); } } return r; };
     return true;
   }
   const wired = wire();
-  return { R, TX, B, NB, STRIDE, hearRange, hears, sees, fresh, think, rig, sculpt: getMesh, paintFlat, state: () => S, reset, pose, modelled, entity: () => ent, gl: () => GLS, pass, wired };
+  return { R, TX, B, NB, STRIDE, hearRange, hears, sees, fresh, think, rig, sculpt: getMesh, paintFlat, state: () => S, reset, pose, modelled, entity: (id) => ents[id || L1.LEDGE], addMap, DOORS, gl: () => GLS, pass, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BLOOM4;
