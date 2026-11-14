@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`).
 
 ## The owner's rules
 
@@ -47,6 +47,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/door5.test.js --no-browser
     node test/weather6.test.js --no-browser
     node test/lantern7.test.js --no-browser
+    node test/building8.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -58,6 +59,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node test/door5.test.js
     NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
+    NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -66,6 +68,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node tools/doorshots.js docs/screenshots     # the door: stills and played clips
     NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
     NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -99,6 +102,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/door5.js           Phase 5: the bar on the bothy's door; the doors the bloom can go through (BLOOM4.DOORS)
     js/weather6.js        Phase 6: ashfall and sleet, by day number; a pass that stops at roofs (EAVES78.shelter)
     js/lantern7.js        Phase 7: the lantern in the left hand; its oil (G.flags.la_oil, la_flasks); its light (LIGHTING.lanternLight)
+    js/building8.js       Phase 8: EAVES78.STYLES.la_ledge.plan, the highland planner; turf, the smoke hole, the owner's drystone
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -153,6 +157,14 @@ Useful facts, all checked in this repository:
 - The 3D renderer shades your own body (pass `body`) at a point 0.3 cells in front of your eye. Any light there burns the
   sword arm white; `js/lantern7.js` turns its own light down for that one pass (the lights buffer is binding 1).
 - Things drawn on `Engine.ctx` after `drawHUD` show over the 3D view in the 320 x 150 view's own units; clip to the view.
+- A region builds its own way through `EAVES78.STYLES[mapId].plan(m)`. `js/building8.js` runs the timber planner under a
+  copy of the old style row (`la_ledge_timber`, via `Object.create(m)` with another `id`) and reshapes what it finds.
+  `EAVES78.planOf` caches a plan against `m.cells`: give the map a copy of that array to make the planner look again.
+  Heights in a plan are absolute: the bothy stands on the shelf at 9.5, so a ridge limit is `top - 1 + limit`.
+- Smoke from anything: `FIRESMOKE.spawn(0, x, y, z, vx, vy, vz, life, r0, r1, a, warm, zmax)`, in game units. The 3D
+  renderer draws it with the engine's chimney smoke.
+- To hash two frames alike, hold `ANIM.T` as well as the clocks: set it back before each `render()`. The lantern's sway
+  and the smoke read it.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
