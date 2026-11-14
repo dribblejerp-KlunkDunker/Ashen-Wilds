@@ -40,13 +40,17 @@ Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`l
     node test/fork0.test.js --no-browser              # no browser needed
     node test/ledge1.test.js --no-browser
     node test/art2.test.js --no-browser
+    node test/sun3.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
     NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
     NODE_PATH=$(npm root -g) node test/ledge1.test.js
     NODE_PATH=$(npm root -g) node test/art2.test.js
+    NODE_PATH=$(npm root -g) node test/sun3.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
+    NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
+    NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -75,6 +79,8 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/fork0.js           Phase 0: stand-ins for removed story hooks
     js/art2.js            Phase 2: every tile, person, thing and hand the engine itself needs, painted in code
     js/ledge1.js          Phase 1: the ledge, the bothy, the coal sun, the words
+    js/sun3.js            Phase 3: the sun crosses the sky; coal, coin and clear days
+    tools/look/           look tests the page never loads (the modelled beasts, until they go into the game)
 
 Useful facts, all checked in this repository:
 
@@ -90,7 +96,14 @@ Useful facts, all checked in this repository:
   prepass 10, world 20, sprites 30, body 40, transparent 50, post 90.
 - `window.advanceTime(ms)` steps the game without a clock. `R3D.readPixels()` reads the frame. Stop
   `performance.now` and render twice before hashing a frame; then it is the same every time.
-- Options rows are added by wrapping `renderAccessibilityMenu`; switches live on `GFX`.
+- Options rows are added by wrapping `renderAccessibilityMenu`; switches live on `GFX`. A later
+  phase adds a row by pushing onto `LEDGE1.SWITCHES`.
+- The renderer's world is `(x, y, z * R3D.ZK)`: map cells across, height times `ZK` up. Geometry
+  built in heights must be scaled by `ZK` or it draws nowhere you can see.
+- The lighting reads the weather's `cloud` and `dark` before any pass runs. To change the light,
+  wrap `Engine.setWeather` (as `js/sun3.js` does), not a pass.
+- The engine's anim clock moves ash, smoke and firelight, so two stills taken one after the other
+  never hash alike. Compare what a still measures, or stop the clock and take one.
 - A person is one front-view painting 160 pixels high. `PAINTFOLK.autorig(sprite)` measures a rig
   from it: arms move only if they hang clear of the body from 30% to 44% of the height; legs move
   only if they stand apart from 60% down. Do not make a painting 53, 60 or 66 wide: the engine would
@@ -116,7 +129,8 @@ Useful facts, all checked in this repository:
   vast. Teal belongs to the bloom. Pale blue belongs to workings.
 - **Cold where you stand, fire where you are going.** The ledge is lit cool; the far country burns.
 - **Black is the base colour.** Build dark and add light. Interiors are dark; one fire lights them.
-- **People are painted; beasts are modelled** (D8).
+- **People are painted; beasts are modelled** (D8, confirmed as O9). A modelled body gets the same
+  ink outline and the same few dithered steps of light as a painted person, so the two sit together.
 
 ## Canon
 
@@ -126,6 +140,10 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O3:** the wider world and this game's design decisions are approved.
 - **O4:** small magic exists: spoken workings and marks on slag-iron. It is small and always costs.
 - **O5:** this game replaced the isometric one; all lore is kept.
+- **O6:** everything proposed for the ledge and the bothy (P1 to P26, except P17) is approved.
+- **O7:** the walking bloom hunts on the highland edge. It is a body, not a beast.
+- **O8:** the sun's day is approved: coal, coin and clear days, fixed by the day's number.
+- **O9:** beasts are modelled, the walking bloom too; living people stay painted.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

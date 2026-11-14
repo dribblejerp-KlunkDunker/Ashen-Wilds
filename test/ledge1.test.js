@@ -172,7 +172,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
     check(F.back === F.on, 'turned back on, the picture is the one it was');
     check(F.bothOff === F.gone, 'with the sun and ash switched off the frame is the same as with their passes taken out of the renderer');
     check(r.sky.red > r.sky.blue * 1.5 && r.sky.red > 40, 'the country under the sun is red, not blue (red ' + r.sky.red.toFixed(0) + ', blue ' + r.sky.blue.toFixed(0) + ' of 255)');
-    check(Array.isArray(r.rows) && r.rows.length === 3 && r.rows.every((t) => t === 'On'), 'Options has a row for each: ' + JSON.stringify(r.rows));
+    check(Array.isArray(r.rows) && r.rows.length >= 3 && r.rows.every((t) => t === 'On'), 'Options has a row for each: ' + JSON.stringify(r.rows));
 
     check(r.edge.every((p) => p.x >= P.x0 + 0.2 && p.feet === P.h && p.state === 'play'), 'walking west off the ledge is refused at the lip, three places tried: x = ' + r.edge.map((p) => p.x.toFixed(2)).join(', '));
     const [w1, w2, w3, w4] = r.way;

@@ -20,7 +20,7 @@ check(new Set(files).size === files.length, 'none is listed twice');
 const onDisk = fs.readdirSync(path.join(ROOT, 'js')).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f);
 check(onDisk.every((f) => files.includes(f)), 'no script lies in js/ that the page does not load: ' + (onDisk.filter((f) => !files.includes(f)).join(' ') || 'none'));
 const iFork = files.indexOf('js/fork0.js'), iGame = files.indexOf('js/game.js'), iLedge = files.indexOf('js/ledge1.js');
-check(iFork >= 0 && iFork < iGame && iLedge === files.length - 1, 'the stubs load before the game; this game\'s first phase loads last');
+check(iFork >= 0 && iFork < iGame && iLedge > iGame && files.slice(iLedge + 1).every((f) => /^js\/[a-z]+\d+\.js$/.test(f)), 'the stubs load before the game; this game\'s own phases load after everything of the engine\'s');
 const seen = html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');
 check(/The Long/.test(seen) && !/Shattered Octave|Echoes of|Oakhaven/i.test(seen), 'the page names this game and not the one the engine came from');
 const man = JSON.parse(read('manifest.webmanifest'));

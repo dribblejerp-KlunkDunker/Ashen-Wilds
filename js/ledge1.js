@@ -352,7 +352,9 @@ out vec2 vNdc;
 void main() { vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)) * 2.0 - 1.0; vNdc = p; gl_Position = vec4(p, 0.0, 1.0); }`;
   const SKY_FS = `
 uniform vec4 uLaSun;    // xyz: toward the sun (GL world), w: its radius in radians
-uniform vec4 uLaK;      // x: day 0..1, y: clock (s)
+uniform vec4 uLaK;      // x: day 0..1, y: clock (s), z: the bearing the land burns on (the Slagcrown's)
+uniform vec4 uLaFace;   // the sun's face (js/sun3.js). x: coal 0..1, y: a clear noon 0..1, z: sun above the horizon 0..1,
+                        // w: 1 when the sun moves. (1, 0, *, 0) is the fixed coal sun exactly as Phase 1 drew it.
 in vec2 vNdc;
 layout(location=0) out vec4 oColor; layout(location=1) out vec4 oAux;
 float lh(vec2 p) { p = fract(p * vec2(443.897, 441.423)); p += dot(p, p.yx + 19.19); return fract((p.x + p.y) * p.x); }
@@ -375,10 +377,17 @@ void main() {
   float day = uLaK.x;
   // the air: black overhead, old brick low down, fire along the horizon under the sun
   vec3 c = mix(vec3(0.030, 0.028, 0.034), vec3(0.150, 0.066, 0.050), exp(-up * 5.5));
-  c += vec3(0.80, 0.26, 0.07) * exp(-up * 15.0) * exp(-daz * daz / 1.3) * 0.60;
+  // (the fire along the horizon belongs to the land, not the sun: once the sun moves, it stays over the Slagcrown)
+  float wst = abs(mod(atan(dir.y, dir.x) - uLaK.z + 3.14159265, 6.2831853) - 3.14159265);
+  float hz = mix(daz, wst, uLaFace.w);
+  c += vec3(0.80, 0.26, 0.07) * exp(-up * 15.0) * exp(-hz * hz / 1.3) * 0.60;
   c += vec3(0.58, 0.15, 0.045) * exp(-ang * ang / 0.060) * 0.70;
   // smoke for cloud: dark above, lit red underneath where it hangs near the sun
   float cl = lfbm(vec2(az * 2.6 + uLaK.y * 0.004, up * 8.0 - az * 0.7));
+  if (uLaFace.w > 0.5 && daz > 2.6) {      // a moving sun turns the seam into view: there, cross-fade the smoke with its other side
+    float az2 = az - sign(az) * 6.2831853;
+    cl = mix(cl, lfbm(vec2(az2 * 2.6 + uLaK.y * 0.004, up * 8.0 - az2 * 0.7)), smoothstep(2.6, 3.14159265, daz) * 0.5);
+  }
   float cover = smoothstep(0.38, 0.62, cl) * smoothstep(0.015, 0.12, up);
   vec3 smoke = mix(vec3(0.020, 0.018, 0.022), vec3(0.26, 0.085, 0.04), exp(-ang * ang / 0.16) * 0.85 + exp(-up * 10.0) * 0.22);
   c = mix(c, smoke, cover * 0.92);
@@ -396,6 +405,22 @@ void main() {
   // below the horizon, where the map ends: the haze the land burns into
   if (dir.z < 0.0) c = mix(c, vec3(0.085, 0.036, 0.028), smoothstep(0.0, -0.05, dir.z));
   c *= mix(0.42, 1.0, day);
+  // the other faces of the sun (canon: "a pale coin behind the ash, a disc you can look at directly"; and "the sun
+  // throws a shadow at noon now, on some days"). Near the horizon every sun sinks into the ash and is the coal again.
+  if (uLaFace.x < 1.0) {
+    float clear = uLaFace.y;
+    vec3 d = mix(mix(vec3(0.150, 0.142, 0.135), vec3(0.27, 0.31, 0.35), clear), mix(vec3(0.37, 0.325, 0.27), vec3(0.60, 0.585, 0.53), clear), exp(-up * 3.2));
+    d += vec3(0.50, 0.43, 0.31) * exp(-ang * ang / 0.09) * mix(0.14, 0.50, clear);
+    d += vec3(0.42, 0.13, 0.04) * exp(-up * 22.0) * exp(-wst * wst / 0.9) * 0.5;                       // the land still burns under it
+    vec3 pall = mix(vec3(0.105, 0.098, 0.092), vec3(0.40, 0.375, 0.335), exp(-ang * ang / 0.3) * 0.8 + 0.12);
+    d = mix(d, pall, cover * mix(0.88, 0.30, clear));
+    float gd = 0.0;
+    if (ang < R * 0.82) { d = mix(vec3(0.93, 0.89, 0.76), vec3(1.7, 1.6, 1.3), clear) * (1.0 - cover * mix(0.30, 0.05, clear)); gd = clear; }
+    else d += vec3(1.3, 1.15, 0.8) * exp(-(ang - R * 0.82) / (R * 0.9)) * clear * 0.6;
+    if (dir.z < 0.0) d = mix(d, mix(vec3(0.20, 0.175, 0.15), vec3(0.33, 0.32, 0.29), clear), smoothstep(0.0, -0.05, dir.z));
+    d *= mix(0.30, 1.0, uLaFace.z);
+    c = mix(d, c, uLaFace.x); glow = mix(gd, glow, uLaFace.x);
+  }
   c += (float(r3dBayer(lp)) / 16.0 - 0.5) / 42.0;
   oColor = vec4(max(c, 0.0), 1.0);
   oAux = vec4(1.0 / 255.0, glow, 0.0, 1.0);
@@ -425,6 +450,7 @@ void main() {
 }`;
   const GLS = { vao: null, sky: null, ash: null, failed: null };
   const laMap = (F) => !!(F && F.map && F.map._la && F.outdoor);
+  const START = { tod: 0.735 };          // the hour the prologue opens at (a later phase may move it)
   // the three Options switches (Options -> Graphics & access). Off means the engine draws as it did without this file.
   const SWITCHES = [
     ['laSky', 'The coal sun', 'The dark sun, its burning rim and the red sky over the highland (3D renderer only)'],
@@ -432,7 +458,10 @@ void main() {
     ['laFire', 'Burning ground', 'The beds of the cracks and the bloom in its hollow give their own light (3D renderer only)'],
   ];
   const sw = (k) => typeof GFX === 'undefined' || GFX[k] !== false;
-  function sunDir() { const c = Math.cos(SUN.el); return [Math.cos(SUN.az) * c, Math.sin(SUN.az) * c, Math.sin(SUN.el)]; }
+  // where the sun stands this frame, and its face: fixed as Phase 1 drew it, unless js/sun3.js is loaded and switched on
+  const FIXED = { az: SUN.az, el: SUN.el, coal: 1, clear: 0, up: 1, moving: 0 };
+  function sunNow(F) { try { if (typeof SUN3 !== 'undefined' && SUN3.on()) return SUN3.state(F); } catch (e) { /* the fixed sun */ } return FIXED; }
+  function sunDir(st) { const c = Math.cos(st.el); return [Math.cos(st.az) * c, Math.sin(st.az) * c, Math.sin(st.el)]; }
   function dayOf(F) { const tod = F.tod == null ? 0.5 : F.tod, elev = Math.cos((tod - 0.5) * Math.PI * 2); return smooth(-0.3, 0.1, elev); }
   function initGL(gl) {
     GLS.vao = gl.createVertexArray();
@@ -447,9 +476,10 @@ void main() {
       if (!laMap(F) || !GLS.sky || !GLS.sky.p) return;
       R3D.bindScene(gl, F);
       gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND);
-      const p = R3D.use(GLS.sky), u = p.u, s = sunDir();
+      const p = R3D.use(GLS.sky), u = p.u, st = sunNow(F), s = sunDir(st);
       if (u.uLaSun) gl.uniform4f(u.uLaSun, s[0], s[1], s[2], SUN.r);
-      if (u.uLaK) gl.uniform4f(u.uLaK, dayOf(F), F.time || 0, 0, 0);
+      if (u.uLaK) gl.uniform4f(u.uLaK, dayOf(F), F.time || 0, Math.PI, 0);
+      if (u.uLaFace) gl.uniform4f(u.uLaFace, st.coal, st.clear, st.up, st.moving);
       tri(gl);
     },
   };
@@ -501,7 +531,7 @@ void main() {
   function arrive() {
     const box = document.querySelector('#msgs'); if (box) box.innerHTML = '';
     G.journal = [{ cat: 'main', text: TX.journal, day: G.day }];
-    G.tod = 0.735;
+    G.tod = START.tod;
     try { if (typeof Weather !== 'undefined' && Weather.hold) Weather.hold('clear'); } catch (e) { /* the engine's own weather */ }
     msg(TX.arrive[0], 'warn', 5000); msg(TX.arrive[1], 'info', 6000);
   }
@@ -563,7 +593,7 @@ void main() {
     };
   }
   wire(); optionRows();
-  return { LEDGE, BOTHY, W, H, SUN, CIT, PLATEAU, SHELF, RAMP, HOLLOW, CANYON, landH, citadelTop, buildLedge, buildBothy, TX, TOPICS: TOPICS_LA, FL, hash, gl: () => GLS, begin, SWITCHES,
+  return { LEDGE, BOTHY, W, H, SUN, CIT, PLATEAU, SHELF, RAMP, HOLLOW, CANYON, landH, citadelTop, buildLedge, buildBothy, TX, TOPICS: TOPICS_LA, FL, hash, gl: () => GLS, begin, SWITCHES, START, laMap,
     tiles: () => ({ t_la_rock: paintRock(), t_la_frost: paintFrost(21), t_la_frost2: paintFrost(121), t_la_scorch: paintScorch(), t_la_ember: paintEmber(), t_la_slag: paintSlag(), t_la_bloom: paintBloom(), t_house_la_drystone: paintDrystone(), t_la_turfroof: paintTurfRoof() }) };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LEDGE1;
