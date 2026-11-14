@@ -323,7 +323,7 @@ days); the 8-second blend; every banner is the bible's. In a browser:
 
 **Not done:**
 - The other four weathers (miasma fog, cinder-squall, hoarfrost, the Dead Calm).
-- What sleet does to a torch and to the shelter fire. There is no torch yet (Phase 8). Some of the bible's sleet
+- What sleet does to a torch and to the shelter fire. There is no torch yet (the lantern came in Phase 7). Some of the bible's sleet
   banners speak of the torch anyway.
 - Spore clouds, which sleet clears, do not exist yet.
 - Nobody has listened to the hiss outside or the roof rattle inside: the tests run without sound.
@@ -384,8 +384,8 @@ door without a browser. In a browser the tests *play* it:
 - The bar is per player: co-op does not share it, or the bloom.
 - A save keeps whether the bar is across, but not where the bloom is.
 - If you bar it in with you, it stands back from the door and waits; that case is not tested.
-- The roadmap listed light for this phase. The hearth is still the room's one light, unchanged; light as a supply is
-  Phase 8.
+- The roadmap listed light for this phase. The hearth is still the room's one light, unchanged; light as a supply came
+  in Phase 7.
 
 ### Proposed in Phase 5: **[PROPOSED], awaiting a ruling**
 
@@ -398,6 +398,88 @@ door without a browser. In a browser the tests *play* it:
 | P47 | A barred door is barred to a partner outside too: "The door is barred from inside." | Rule of dread 8: your partners are the uncertainty |
 | P48 | Indoors the bloom hunts as it does outside: a still player is not found, and it goes back out the way it came | |
 | P49 | The bar's words: "A bar of heavy timber, iron at both ends, leaning by the door. It goes across the door on two hooks."; "You drop the bar across the door. It sits in its hooks with a sound like a dropped plank."; "Something leans on the door from outside, once. The bar takes it." | |
+
+## Phase 7 - the lantern
+
+`js/lantern7.js` · `test/lantern7.test.js` · `tools/lanternshots.js` · stills 70 to 77 and clip 78 in `docs/screenshots/`
+
+The lantern as the one light, in the left hand, with a supply. What the bible gives is used as it stands: "Yours is
+tallow yellow and small"; "Whoever holds the lantern cannot hold a shield"; light "shows you to everything that sees,
+while doing nothing about what hears"; the weather's torch-burn column (ashfall x1.0, sleet x1.8); a light "dims as it
+runs low and gutters out"; the Flask of Lamp Oil "fills a lantern" and is kept "from the torch"; a night costs "oil for
+one lamp, dusk to dawn".
+
+- **In the left hand.** An iron lantern with horn panes, held up by its ring, drawn at the left of the view as the
+  sword is at the right, painted in code. Unlit it is a dark thing you carry. Lit, the horn glows and the fist above it
+  takes the light. The arm leaves through the picture's bottom edge.
+- **Its light.** Tallow yellow (255, 168, 40), yellower than the hearth's red. It is a pool 4.2 cells round, centred a
+  little ahead and to your left. It warms the ground, the walls and anyone in it. Indoors, where the fire is lit, it adds
+  about a fifth as much. By day out of doors it adds nothing.
+- **U lights it and douses it** (the engine's own key). Lit, it tells you how full it is in words: "You light the
+  lantern. It is about half full."
+- **Its oil.** One filling burns dusk to dawn in ashfall: 1080 s, half the 2160 s day. Sleet spends it 1.8 times as
+  fast, so a full lantern lasts 600 s out in it. Under a roof the weather spends nothing extra. Over its last fifth the
+  flame and the pool shrink. At 12% you are told it is burning low. Its last half minute it gutters. Then it goes out,
+  and dry it will not light.
+- **The supply.** You come to the ledge with it half full. Marget Sayle keeps two flasks of lamp oil in the bothy's
+  corner. Use them and one flask fills the lantern. Not while it burns: "Douse the lantern first. Oil is not poured
+  near a flame." The first time, she says one thing. The corner shows two flasks, then one, then the wax drips where
+  they stood.
+- **What it costs.** Lit out of doors after dark, it shows you. The walking bloom sees you standing still as well as
+  moving, and half as far again: 12 m instead of 8. Sleet still shortens that. It does nothing about what it hears.
+- **One Options switch, "Your lantern".** Off, everything is as it was before this phase: no picture in the left hand,
+  no oil spent, no flasks, and U gives the engine's own lantern. The test checks off by frame hash, scene and HUD.
+- **Two earlier files changed with it.** `js/bloom4.js`: the bloom's `sees()` takes a sixth argument, `lit`, set
+  through `BLOOM4.setLight`. With nothing set it is unchanged. And the 3D renderer shades your own body (the sword arm,
+  `js/body21.js`, pass `body`) at a point 0.3 cells in front of your eye, which is where the lantern is. At full
+  strength it burned the sword arm white. So for that one pass the lantern's colour in the lights buffer is turned
+  down to 16% (`LANTERN7`'s `bodyPass`, a wrap through `R3D.getPass('body')`). No engine file was edited.
+
+**Checked by the tests:** the bible's numbers in the rules; a full lantern lasts 1080 s dry and 600 s in sleet; the
+low warning once; the flame shrinking and guttering, the same every time; a flask refused near a flame, into a full
+lantern, and when there is none; the colour is tallow and not the hearth's; the bloom sees a lit lantern still at 7 m
+and moving at 11 m, not at 13; the arm leaves the picture's bottom edge. In a browser:
+- U lights it with this game's words, douses it, and will not light it dry.
+- Its light is tallow and in your hand, and nothing by day.
+- Looking down, it warms the ground at your feet (red up, blue barely).
+- The left hand shows it, its horn glowing only when lit.
+- It warms the sword arm without burning it white.
+- It burns its oil and goes out.
+- Ten seconds burn 1.8 times the oil in sleet, and no extra under the bothy's roof.
+- Marget Sayle's flasks: refused while lit, then fill it, then full, then none.
+- Standing still 10 m in front of the bloom at night: unseen in the dark, seen with the lantern lit.
+- Switched off: the engine's lantern, no oil spent, no flasks, and the frame is exact.
+- There are no page errors.
+
+**Not done:**
+- There is no shield yet, so "whoever holds the lantern cannot hold a shield" has nothing to bite on. The left hand
+  holds the lantern always.
+- There is no torch, no cold-light working and no ash-moths. The bestiary's "a shuttered lantern draws fewer than an
+  open torch" waits for both.
+- Co-op: the second player's lantern is not drawn, does not light the world for the first, and its oil is not shared.
+  The bible's "their light reveals for everyone near them" is not built.
+- The oil runs out for good: two flasks and no trade. That needs the road and the Skerries' oil.
+- The lantern does not swing as you walk; it bobs with the sword.
+- Lighting it makes no sound, and nobody has heard the flame.
+- The CPU raycaster (the 3D renderer off) shows the engine's lantern pool and this game's picture, but no test or
+  still covers it.
+- Its frame cost on a real graphics card is not measured. It adds one light to the engine's list, one small picture to
+  the HUD, and one 12-byte buffer write before and after the body pass.
+
+### Proposed in Phase 7: **[PROPOSED], awaiting a ruling**
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P55 | The lantern is iron with horn panes, held up by its ring in the left hand, and you carry it from the start | The bible gives the left hand's choices, not the lantern's make |
+| P56 | One filling burns dusk to dawn in ashfall (1080 s) | The bible's price of a night, "oil for one lamp, dusk to dawn", read as the lantern's capacity |
+| P57 | The weather's torch-burn column spends the lantern too: sleet x1.8; a roof shelters it | The bible gives the column for the Pitch Torch only |
+| P58 | You come to the ledge with it half full | |
+| P59 | Marget Sayle keeps two flasks of lamp oil; one fills the lantern; not while it burns | "The Watchhouse has two lanterns and seldom the oil for both" |
+| P60 | It shrinks over its last fifth, warns at 12%, and gutters its last half minute | The bible: "it dims as it runs low and gutters out" |
+| P61 | Its light: tallow (255, 168, 40), 4.2 cells round, a fifth as much indoors, nothing by day | "Yours is tallow yellow and small" |
+| P62 | Lit out of doors after dark, the walking bloom sees you standing still, and at 12 m instead of 8 | "Light also shows you to everything that sees" |
+| P63 | The words: "You light the lantern. It is about half full.", "The lantern is burning low.", "The lantern gutters and goes out.", "Douse the lantern first. Oil is not poured near a flame.", and Marget Sayle's "That oil came up the road on somebody's back. Burn it where it counts." | |
+| P64 | U lights and douses it (the engine's own lantern key) | |
 
 ## A look test: the beasts, modelled
 
@@ -447,8 +529,8 @@ of the phase that puts the bloom in the game. No test covers this file.
 
 ## Decisions I still need
 
-1. **The walking bloom's rules, P33 to P42,** **the door's, P43 to P49,** and **the weather's, P50 to P54.** Clips 41 to 43,
-   53 to 54 and 68 show them played.
+1. **The walking bloom's rules, P33 to P42,** **the door's, P43 to P49,** **the weather's, P50 to P54,** and **the
+   lantern's, P55 to P64.** Clips 41 to 43, 53 to 54, 68 and 78 show them played.
 2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
 3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
@@ -461,8 +543,8 @@ of the phase that puts the bloom in the game. No test covers this file.
 | 4 | **Built.** The walking bloom hunts by sound on the ledge (O7), modelled | "one thing that hunts by sound" |
 | 5 | **Built.** The safe room made real: a door that holds, and what the bloom does at it | "one safe room" |
 | 6 | **Built.** Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
-| 7 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
-| 8 | The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
+| 7 | **Built.** The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
+| 8 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 9 | Dread as a value that changes the picture, tuned for this world | section 3 |
 | 10 | This game's panel words, credits and creation | |
 | 11 | Death and succession | "death means something" |
