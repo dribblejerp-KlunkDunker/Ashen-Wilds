@@ -605,6 +605,10 @@ of the phase that puts the bloom in the game. No test covers this file.
    Citadel. Alone, how long is a look?
 3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
    whose spot I chose. Say which stand, and it can come into the repository with them.
+4. **The warning book of S.30 [PROPOSED].** `docs/worldbuilding/the-warning-book-s30.md` gathers the thirty
+   chapter-head entries of the novel's beats into one readable book, built from Warning-Book Pages
+   (`items-and-texts.md`, proposal 11), with a proposed place for each page. It needs a ruling on the entries,
+   on where each page is found, and on whether the last entry carries Rafe Sedley's name.
 
 ## Next phases, in order
 
