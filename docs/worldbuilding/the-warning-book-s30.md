@@ -251,8 +251,8 @@ M. Reeve.
 *Found: the Watchhouse door.*
 
 ```text
-No heat-stones for two weeks. A runner from Coldbarrow with
-one sentence: "They are coming down the road."
+No heat-stones for two weeks. Old Edrin's runner, with one
+sentence: "The north road is going quiet."
 M. Reeve.
 ```
 
