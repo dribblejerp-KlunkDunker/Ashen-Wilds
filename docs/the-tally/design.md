@@ -619,7 +619,8 @@ you cannot move.
 Lane, infinite east-west, deep water north and south. **The dry ways:** every four minutes the water
 drops for 60 s and the old drowned roads come up beside the causeway, widening the map; anything
 standing in the water when it rises is slowed and pulled, enemies too. **Wonder:** at low water, the
-drowned lanterns along the dry ways glow under the surface. **Boss:** the Causeway Tower band at
+drowned lanterns along the dry ways glow under the surface. **Brazier:** the causeway's one fire,
+where a faded mark is renewed. **Boss:** the Causeway Tower band at
 15:00. **Page:** entry 6, *The Dry Ways*.
 
 ### 16.3 Stage 3 - Halwen House
