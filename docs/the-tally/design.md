@@ -797,7 +797,6 @@ is the game telling you where you are.
 ## 18. The things that make this game its own
 
 ### 18.1 The muster book as the spine
-
 Four lines, and the muster book grows across hundreds of runs. Some unlocks are patterns in it, not
 totals of kills.
 
