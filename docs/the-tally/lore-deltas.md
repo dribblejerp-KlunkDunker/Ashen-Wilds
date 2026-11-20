@@ -84,7 +84,7 @@ carried glim marks (`people/the-novel.md`).
 **Change.** Both characters stand, and both are correctly named. Character 1 is **Rafe Sedley of
 the Causeway tower**: about 34, lean, the grey cloak worn to the weave, a **wooden targe** on his
 back (a trait hook the brief missed), the issued sword with its glim mark. S1 is the **unnamed older
-Watch man** of the ledge, and his line in the book stays nameless.
+Watch man** of the ledge, and his line in the muster book stays nameless.
 
 ---
 
@@ -108,10 +108,13 @@ voice under it. The prompt reads the same. The two answers are unchanged. Three 
 - On stages far from the Watch, the same event is a **passing company's horn** on the road. The
   ambiguity is canon's own position, and it does not weaken the moment.
 - **Rafe's third choice**, "Go back" (+3 levels, rewards x2, no extract) is kept. **proposal.**
+- The **book** the order means is the **muster book**, the tower's roll of names: it is the one that
+  travels. The warning book is already at the Watchhouse and never leaves the fire. Say it once, in
+  the text, so nobody later swaps them.
 
 ---
 
-## 6. The book has four lines, not three
+## 6. The muster book has four lines, not three
 
 **Brief.** Three lines: the dead, those who held, those who ran.
 
@@ -129,7 +132,7 @@ dozen times in the Seam Roll and used by the house for the ones the ash took (`a
 | **Deserted** | took the Order and left |
 | **Did not answer** | the Silent, the Unnamed, the ash's own |
 
-"Deserted" replaces "ran" everywhere, because it is the word the book uses. "Did not answer" is the
+"Deserted" replaces "ran" everywhere, because it is the word the muster book uses. "Did not answer" is the
 fourth line and it is the one that will hurt, which is the point of it.
 
 ---
@@ -230,8 +233,9 @@ two. **Which day is which is fixed by the day's number.**
 
 **Change.** The day's number sets the sky before the player leaves the Tally Room. A **clear day**
 gives the Bright Hour, inside its clear noon. The chance is four days in twenty, by the calendar,
-not a per-run roll. The Warning Book relic tells the player tomorrow's sky. A coal day makes the run
-genuinely darker, and an Approved Load tier can force one.
+not a per-run roll. The Tally Room's board shows the coming day's face, because the calendar fixes it
+and everyone in the fen can count. A coal day makes the run genuinely darker, and an Approved Load
+tier can force one.
 
 ---
 
@@ -275,7 +279,7 @@ the three shut doors and stays unsettled. The naming is a working of the Keeping
 **Change.** The Unnamed are **stage 1's signature enemy** and the game's first moral mechanic (see
 `design.md` section 19.15). Standing at a grave and speaking a name is a real action with a real cost: it
 takes **time** (a working's fourth price), it is loud, and it can only be done at the grave. This is
-what the Muster Book weapon and the "Named" status were always reaching for, and it gives the book,
+what the Muster Book weapon and the "Named" status were always reaching for, and it gives the muster book,
 the fire and the yard one job.
 
 ---
@@ -326,11 +330,13 @@ twenty-eight years at the same chair, 315 miles south of the Watchhouse, and she
 north. Her whole function in the world is to take a receipt from everyone who walks down the Salt
 Trace and write them a line for it.
 
-**Change.** **proposal.** She stays the game's patron and its voice, not a playable body: her hand
-writes the book's lines in the Tally Room and at every end screen, and the salt in the Tally Room is
-hers. If sleeves wants a chair-borne character, the lore-native candidate is **Marget Sayle** (62,
-the witness, the bothy under the ledge), though she walks in the novel; or a new carried character
-from the fen, which needs a name.
+**Change.** **proposal.** She stays the game's patron and its voice, not a playable body: the Tally
+Room is her counter, every end screen is a receipt in her manner (one line, a name, a date, what was
+owed), and the salt in the Tally Room is hers. **The muster book's own lines stay in the Watch's
+hand**, as canon has them: Pim's last entry, then Rafe's line for Merrick with Margery's fair copy
+under it. If sleeves wants a chair-borne character, the lore-native candidate is **Marget Sayle**
+(62, the witness, the bothy under the ledge), though she walks in the novel; or a new carried
+character from the fen, which needs a name.
 
 ---
 
@@ -369,7 +375,7 @@ stage, and the mix thins with it.
 **Brief.** Merrick's trait: at 20:00 "cannot be healed by pickups"; separately section 19.3 says at 15
 stacks "health pickups heal half".
 
-**Lore.** N15: the cough runs the lore's stages through the book: **cough, crust, silence, and a
+**Lore.** N15: the cough runs the lore's stages through the novel: **cough, crust, silence, and a
 moment that may be a return**.
 
 **Change.** Both use one ladder, section 19.3's: cough at 5, crust at 10, silence at 15. Merrick's trait is
@@ -493,17 +499,38 @@ which is what canon puts in the drains.
 
 ---
 
-## 28. The Warning Book is one book, so the kit item is a page
+## 28. Two books, never one
 
-**Brief.** Kit: "Warning Book, +10% Duration, the warning book".
+**Brief.** Kit: "Warning Book, +10% Duration, the warning book". Relic: "The Warning Book ... unlocks
+reading the stage's warning-book entry before a run (and its hint)". And the collection ("The Muster
+Book") holding "a page for every enemy type killed ... a page for every weapon, kit, evolution,
+working and relic found ... and a page for every place visited".
 
-**Lore.** The warning book is a single object that never leaves the Watchhouse fire, kept by Margery
-Reeve. Its pages, though, are found where their entries happened and carried back
-(`the-warning-book-s30.md`).
+**Lore.** There are two books and they are not interchangeable.
 
-**Change.** The kit is **Warning-Book Page**, +10% Duration. You cannot carry the book; you can carry
-a page of it, and the evolution that needs it is the Bell-Tender's Toll, which is a page's worth of
-urgency.
+| | Warning book | Muster book |
+| --- | --- | --- |
+| Who keeps it | Margery Reeve, at the Watchhouse fire, since S.12 | the Causeway Watch |
+| Does it travel | **No.** "The book itself does not leave the fire." Its **pages** do: 0.01 kg each, found where their entry happened and returned | **Yes.** Pim Haddow carried it to the Watchhouse about nine weeks before Rafe, and wrote its last entry: four dead, a date, *Deserted: none* |
+| What is in it | the beast pages (the bestiary) and the thirty dated entries of S.30 | the roll of names: the dead, and *Deserted* |
+| What "Bring the book" means | nothing: it is already there | **this one** |
+
+**Change.** Four fixes.
+
+1. The kit is **Warning-Book Page**, +10% Duration. You cannot carry the book; you carry a page of it.
+2. **The relic "The Warning Book" is removed.** The book is not lost and cannot be carried, so it
+   cannot be a relic. Its job is done by returning pages: each page returned unlocks its stage's
+   **hint** and fills that leaf. The loading-screen entry is still shown regardless, because that is
+   the game telling you where you are.
+3. **The collection is split.** Run lines, the naming lines and the "carried to the fire" lines go in
+   the **muster book**. Beast pages and the thirty entries go in the **warning book**. Weapons, kit,
+   evolutions, workings and relics are in neither book in the lore, so they get their own leaves, and
+   that is marked as a UI conceit.
+4. The replacement relic is **Stott's whittling knife**, from the tower's guardroom (canon lists the
+   dead Watchmen's gear, "Stott's whittling knife"), which keeps the count at sixteen.
+
+**Also fixed in passing:** Pim's trait was called "Kept the Book", which is Margery's phrase about the
+warning book. It is now "Carried the Book".
 
 ---
 
@@ -537,13 +564,13 @@ in Rafe's. They are already mapped to places along the road.
 | 2 The Old Causeway | 6, *The Dry Ways* |
 | 3 Halwen House | 12, *The Culvert* |
 | 4 Rook's Stair | 10, *Lime* |
-| 5 The Drowned Measures | **blank**: the book has no entry for the Measures, and a missing page shows its number and nothing else |
+| 5 The Drowned Measures | **blank**: the warning book has no entry for the Measures, and a missing page shows its number and nothing else |
 | 6 The Roofed Mile | 15, *The Third Arch* |
 | 7 Greystair | 25, *The Venting Slopes* |
 | 8 The Low Galleries | 26, *The Quiet* |
 | 9 The Slagcrown | 27, 28, 29, 30 in order, and 30 appears by itself |
 
-The blank page at stage 5 is the best use of the file: it tells the player the book is a real object
+The blank page at stage 5 is the best use of the file: it tells the player the warning book is a real object
 with holes in it, and it tells them where they are without a word.
 
 ---
@@ -572,7 +599,7 @@ their choices. Winna's fate is explicitly unsettled. Pim dies in chapter 21. Mer
 mouth.
 
 **Change.** The game adopts one sentence as its frame: **every run is what may have happened that
-winter.** A run does not correct the book and the book does not correct a run. That is why Merrick can
+winter.** A run does not correct the muster book and the muster book does not correct a run. That is why Merrick can
 be played and still be at the gate, and it is why Winna can stand at the fire without settling
 anything. **proposal**, but it is the same move canon already makes, and it is the only way to have
 this cast.
@@ -590,7 +617,7 @@ this cast.
 | P5 | The **Reed-Jaw of the Long Cut** is stage 5's boss | the atlas names the animal and leaves it undescribed |
 | P6 | The **Grey Hour** replaces "the Thaw" on non-final stages | eight springs in one winter is not a thing |
 | P7 | **Wat Corley** as secret character S3 | canon, human, and mechanically strange in a way no other character is |
-| P8 | **Gytha Marrin as patron and narrator**, not a playable body | she is 315 miles away and her function is the book |
+| P8 | **Gytha Marrin as patron and narrator**, not a playable body | she is 315 miles away and her function is the receipt |
 | P9 | **Brass tags at the Naming Stone** | a tag is a name; the Seam Roll makes it mean something |
 | P10 | **Ringing a bell near a listener costs their trust** | the Low Galleries' best weapon is the wrong one to carry |
 | P11 | **Marks fade and are renewed at a fire** (the Marking craft) | canon already, and it gives every stage a fire to come back to |
