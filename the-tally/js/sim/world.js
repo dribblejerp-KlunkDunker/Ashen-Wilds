@@ -126,9 +126,9 @@ export function stepWorld(world, intent, dt = DT) {
     if (p.dash.elapsed >= STEP.duration - 1e-9) {
       p.dash.active = false;
       p.dash.elapsed = 0;
+      // Exit a step at running speed, not at dash speed: the move ends when it ends.
       world.stats.dashTiles = Math.hypot(p.x - p.dash.fromX, p.y - p.dash.fromY) / TILE;
       world.stats.dashMs = STEP.duration * 1000;
-      // Exit a step at running speed, not at dash speed: the move ends when it ends.
       p.vx = p.dash.dirX * MAX_SPEED_PX;
       p.vy = p.dash.dirY * MAX_SPEED_PX;
       const left = dt - use;
