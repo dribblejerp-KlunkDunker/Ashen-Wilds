@@ -203,7 +203,8 @@ void main() {
         }
       }
     } catch (x) { /* no bloom */ }
-    try { if (typeof PARTNER19 !== 'undefined' && PARTNER19.active && PARTNER19.active()) { const P = PARTNER19.S; if (P && P.x != null) e.partner = Math.hypot(P.x - c.x, P.y - c.y); } } catch (x) { /* alone */ }
+    // a partner counts only when here: active, not paused for a map change, and on this map (partner19's own sameMap test)
+    try { if (typeof PARTNER19 !== 'undefined' && PARTNER19.active && PARTNER19.active()) { const P = PARTNER19.S; if (P && !P.paused && P.map === G.mapId && P.x != null) e.partner = Math.hypot(P.x - c.x, P.y - c.y); } } catch (x) { /* alone */ }
     return e;
   }
   function tick(dt) {
