@@ -438,7 +438,9 @@ stat differences, a unique dodge, and a line of their own in the muster book.
 
 **v1 ships six: Rafe, Merrick, Edda, Pim, Margery and Aud.** Every one of those six is unlocked by
 something a player can do inside three stages. The other nine are written below and built after the
-first release; where an unlock needs stages 4-9 or co-op, the row says **post-1.0**.
+first release; where an unlock needs stages 4-9 or co-op, the row says **post-1.0**. The six are the
+four who are already at the fire in the first three stages, plus the listener whose cold light the
+game teaches.
 
 | # | Character | Starts with | Trait | Unlock |
 | --- | --- | --- | --- | --- |
