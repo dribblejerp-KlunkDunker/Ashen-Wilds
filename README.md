@@ -40,7 +40,7 @@ From source there is nothing to build or install. Serve the folder and open it:
 | Esc | Controls and Options |
 
 Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
-the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern.
+the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern, highland building.
 
 ## What is in the build
 
@@ -55,6 +55,9 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
 - **Ashfall and sleet.** Ash falls in the world and stops at roofs. On grey days sleet comes in
   spells: the fog closes in, you walk at 85%, and the walking bloom hears less. Inside the bothy you
   hear it on the roof.
+- **Marget Sayle's bothy, built the highland way**: field stone laid dry under a low hipped roof of
+  turf and heather, one small window on the lee side and none to the north wind, and smoke from a
+  hole in the roof.
 - **Your lantern**, in your left hand: a small tallow light that warms the ground at your feet. It
   burns oil. A full one lasts dusk to dawn; sleet spends it nearly twice as fast; it shrinks, gutters
   and goes out. Marget Sayle keeps two flasks of oil in her corner. Lit after dark, it shows you to
@@ -90,11 +93,12 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/door5.js` | Phase 5: the bar on Marget Sayle's door, and what the bloom does at it |
 | `js/weather6.js` | Phase 6: ashfall and sleet, stopped by the bothy's roof |
 | `js/lantern7.js` | Phase 7: your lantern, its light and its oil, and Marget Sayle's flasks |
+| `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js` and `lanternshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -112,6 +116,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/door5.test.js --no-browser
     node test/weather6.test.js --no-browser
     node test/lantern7.test.js --no-browser
+    node test/building8.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -124,6 +129,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/door5.test.js
     NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
+    NODE_PATH=$(npm root -g) node test/building8.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the

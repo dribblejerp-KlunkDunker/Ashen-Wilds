@@ -78,7 +78,7 @@ millisecond honestly. Feel, sound and how it reads on a real screen need a perso
   to draw, but it is not this world's weather yet and is never called for in play.
 - The bothy's roof comes from the Octave's timber-house planner with a thatch tile. It has windows
   with shutters. The style table says it should have no window on the weather side; the planner does
-  not read that yet.
+  not read that yet. *(Done in Phase 8.)*
 - The view is not gated ("no prompt until every player has looked at the Citadel").
 - No walking bloom in the hollow. No carry. No Account. No title card at the look back.
 - The player is alone on the ledge unless a second joins; the default pair's carter is a person
@@ -481,6 +481,75 @@ and moving at 11 m, not at 13; the arm leaves the picture's bottom edge. In a br
 | P63 | The words: "You light the lantern. It is about half full.", "The lantern is burning low.", "The lantern gutters and goes out.", "Douse the lantern first. Oil is not poured near a flame.", and Marget Sayle's "That oil came up the road on somebody's back. Burn it where it counts." | |
 | P64 | U lights and douses it (the engine's own lantern key) | |
 
+## Phase 8 - the highland edge builds its own way
+
+`js/building8.js` · `test/building8.test.js` · `tools/buildshots.js` · stills 80 to 86 and clip 87 in `docs/screenshots/`
+
+P16, approved, says how the highland edge builds: "field stone laid dry, under turf and heather; one low room, one door,
+no window on the weather side". Until now the roof planner did not read it. The bothy's roof came from the Octave's
+timber-house planner: gabled thatch, a window with shutters on every side and an attic window in each gable (still 80).
+What else the bible gives is used as it stands. The door line, approved in Phase 1: "Smoke at the hole in the roof."
+The weather: "The ash comes on the wind, mostly from the north", so the north wall is the weather side. And "Thatch rots
+under a crust of wet ash in a season; slate and stone hold."
+
+- **The roof.** Turf and heather, hipped all round, cut short at the wall heads, and low. The ridge is no more than 2.1
+  above the ground (the timber planner allowed 2.2). The turf is a tile painted in code: peat-dark sod, heather in
+  clumps, dead grass, a crust of grey ash in the hollows, and frost.
+- **The hole in the roof.** There is no chimney. A rim of turf on the ridge goes round a black hole, and the fire's smoke
+  comes out of it, leaning away from the north wind. It is the engine's own smoke (`js/firesmoke.js`), put out through
+  its `spawn()`. Its jitter is a hash of a counter, not a dice roll.
+- **One window, on the lee side.** There is nothing in the north wall, no attic windows, no shutters and no stone footing.
+  One small window sits in the south wall beside the door, lit by the fire after dusk. Inside, the same window is in the
+  same wall: a deep opening on the night, with a long lintel stone.
+- **The stone.** The walls, outside and in, are laid in the owner's own highland drystone from the look test
+  (`tools/look/highland-materials.js`, merged in #41): irregular fieldstone masses instead of Phase 1's courses. The
+  painter is carried into `js/building8.js`, and the test checks all 4096 pixels against the look test's.
+- **One Options switch, "Highland building".** Off, everything is as it was: the timber planner's thatch roof and its
+  five windows, Phase 1's coursed stone, no hole, no smoke. The test checks off by frame hash against a frame with this
+  phase taken out.
+- **How it reaches the planner.** `EAVES78.STYLES.la_ledge` gets its own `plan`, as the Octave's regions do. It runs the
+  timber planner under Phase 1's style row (kept as `la_ledge_timber`) and builds what that finds the highland way.
+  The plan is cached against the map's cells array, so the switch hands the planner a copy of that array to make it look
+  again. No engine file was edited.
+
+**Checked by the tests:** the bible's lines it rests on; the stone pixel for pixel; the turf tiles without a seam, is
+dark, and has sod, heather, grass, ash and frost in it; the inside window is a dark opening in the same stone. In a
+browser:
+- The bothy is hipped, turfed and low, with eaves cut short.
+- It has one window, on the south, lit, and beside the one door; none on the north and none in the roof.
+- It has no footing and no dormers.
+- The hole is on the ridge.
+- Sleet still stops at the new roof, at its own height, over all twelve cells.
+- The stone is in place outside and in, with the window in the bothy's south wall.
+- Smoke comes out of the hole and rises.
+- Switched off, it is the old plan and stone, with no smoke, and the frame is exact.
+- Switched on, outside and inside both change.
+- There are no page errors.
+
+**Not done:**
+- Only the bothy: it is the highland edge's one building. The next region's buildings will need their own row and rules.
+- The walls stay a full cell high. "One low room" is the roof's lowness and the single room, not lower walls.
+- The look test's other materials (rock, frost, flagstones, planks) are not installed. They are not building style, and
+  each needs its own look before and after.
+- The smoke does not lean with the weather's spells (it always leans south), and the classic renderer shows no hole and
+  no turf, only the old boxes, as it does for every eaves roof.
+- Already there before this phase: by the hearth, the 3D renderer lights the sword arm a saturated orange (stills 85 and
+  86 both show it). The lantern's fix in Phase 7 covers only the lantern. The hearth's light on the body pass needs the
+  same treatment, in its own small change.
+- Frame cost on a real card is not measured. The hole adds 18 triangles to the map's static mesh; the smoke adds about
+  one puff a second to the engine's particles while you are within 22 cells.
+
+### Proposed in Phase 8: **[PROPOSED], awaiting a ruling**
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P65 | The highland roof is hipped all round, cut short at the wall heads, its ridge no more than 2.1 above the ground | P16 says turf and heather, not the shape |
+| P66 | The turf: peat-dark sod, heather in clumps, dead grass, a crust of ash in the hollows, frost | |
+| P67 | No chimney: a rim of turf round a hole on the ridge, and the smoke out of it leaning south | From "Smoke at the hole in the roof" |
+| P68 | One small window, in the south wall beside the door, unshuttered and glazed; the same window inside | P16 forbids a window on the weather side only |
+| P69 | The weather side of a highland house is north | From "The ash comes on the wind, mostly from the north" |
+| P70 | The owner's highland drystone replaces Phase 1's coursed drystone, outside and in | The look test's own candidate mapping, "drystone -> t_house_la_drystone" |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
@@ -530,7 +599,8 @@ of the phase that puts the bloom in the game. No test covers this file.
 ## Decisions I still need
 
 1. **The walking bloom's rules, P33 to P42,** **the door's, P43 to P49,** **the weather's, P50 to P54,** and **the
-   lantern's, P55 to P64.** Clips 41 to 43, 53 to 54, 68 and 78 show them played.
+   lantern's, P55 to P64,** and **the highland building's, P65 to P70.** Clips 41 to 43, 53 to 54, 68, 78 and 87
+   show them played.
 2. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
 3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
@@ -544,7 +614,7 @@ of the phase that puts the bloom in the game. No test covers this file.
 | 5 | **Built.** The safe room made real: a door that holds, and what the bloom does at it | "one safe room" |
 | 6 | **Built.** Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | **Built.** The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
-| 8 | The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
+| 8 | **Built.** The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 9 | Dread as a value that changes the picture, tuned for this world | section 3 |
 | 10 | This game's panel words, credits and creation | |
 | 11 | Death and succession | "death means something" |
