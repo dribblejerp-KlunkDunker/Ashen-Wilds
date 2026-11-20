@@ -47,7 +47,7 @@ put Gise Marrable in S3. The ruling's substance is untouched: the Kept Hand is o
 Wat Corley is in it. But the label in 16 and P7 was wrong. See 36.
 
 **The proposals, ruled.** A second pass, same day: the fifteen proposals, **all fifteen as written**.
-They change the design's text rather than its framing, which is why they wanted a pass of its own;
+They change the design's text rather than its framing, which is why they wanted a pass of their own;
 none of them blocks M1.
 
 | # | Ruling | Settles |
