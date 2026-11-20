@@ -119,9 +119,9 @@ voice under it. The prompt reads the same. The two answers are unchanged. Three 
 **Brief.** Three lines: the dead, those who held, those who ran.
 
 **Lore.** The muster book's own last entry, in Pim's hand: "four dead, a date, and *Deserted:
-none*". And the Watchhouse's verdict for the Ashbound is the phrase **"did not answer"**, written a
-dozen times in the Seam Roll and used by the house for the ones the ash took (`acts-two-and-three.md`;
-`atlas/4`).
+none*". And the phrase **"did not answer"** is written a dozen times in the Seam Roll, with no payment
+against any name, and it is the Watchhouse's word for the Ashbound: the bestiary's second sense,
+*a verdict on anyone who has stopped answering* (`acts-two-and-three.md`; `atlas/4`; `bestiary.md`).
 
 **Change.** Four lines:
 
@@ -130,7 +130,7 @@ dozen times in the Seam Roll and used by the house for the ones the ash took (`a
 | **The dead** | died in the run |
 | **Held** | survived to first light |
 | **Deserted** | took the Order and left |
-| **Did not answer** | the Silent, the Unnamed, the ash's own |
+| **Did not answer** | the Silent, and any who stopped answering. **Not** a laid Unnamed: laying one is the reverse |
 
 "Deserted" replaces "ran" everywhere, because it is the word the muster book uses. "Did not answer" is the
 fourth line and it is the one that will hurt, which is the point of it.
@@ -347,11 +347,16 @@ name and the player picks a boon.
 
 **Lore.** Brass tags are **miners' identity tags**, worn on a cord; the miners' dead lie on the
 venting slopes with their tags still on them; the tags can be matched against the Seam Roll to give
-the dead their names. The Naming Stone is in the yard, with names scratched into its top in many
-hands, and three were scratched this autumn by nobody knows who.
+the dead their names. The Naming Stone stands **on the road out of the yard**, its top worn smooth
+and paler than its sides, names scratched into it in many hands. The Watch laid its dead on it so
+their names could be spoken into their mouths before the lime, and **when a body had no name the
+warden wrote down what it carried**. Three short names were scratched into it this autumn, in
+different hands, and none of them belonged to the dead limed.
 
 **Change.** The mechanic is kept and marked **proposal**. It is thematically exact, a tag is a name,
-and the Seam Roll makes the tags mean something. What is new is that the stone *takes* them.
+and the Seam Roll makes the tags mean something. What is new is that the stone *takes* them: canon
+has the warden write down **what a nameless body carried**, and a brass tag is exactly that, so the
+mechanic is that practice repeated a hundred times.
 
 ---
 
@@ -622,6 +627,9 @@ this cast.
 | P10 | **Ringing a bell near a listener costs their trust** | the Low Galleries' best weapon is the wrong one to carry |
 | P11 | **Marks fade and are renewed at a fire** (the Marking craft) | canon already, and it gives every stage a fire to come back to |
 | P12 | The **naming at a grave** is a timed, noisy action | it is the Working's price, and it makes the yard a place you return to |
+| P13 | **Return-bread on the Causeway**, as road food | the custom is Reedwake's, in the west fen, and canon says it works no magic: it is eaten, never worn |
+| P14 | **The tower bell rung once**, its tongue returned | the bell lies on its side in the yard with its tongue gone; the tongue is in the loft, wrapped in a Watch cloak |
+| P15 | **Kell Tor's tarn seen from Greystair** | the tarn is at the crag's foot, furthest east, and the lights on it are canon |
 
 ---
 
@@ -636,3 +644,24 @@ The brief leaves these `[name]` or `[OPEN]`, and the lore does not answer them. 
   Watchhouse's own words: *The third would not say.*).
 - Whether the daily board is online.
 - The working title: **The Tally**.
+
+---
+
+## 35. Five canon claims checked line by line
+
+These five were used in `design.md` as canon roots but had been taken from a search rather than a
+reading. Each is now checked against the file named, and four of the five needed changing.
+
+| Claim | What the lore actually says | What changed |
+| --- | --- | --- |
+| The Naming Stone is in the yard | `atlas/2-the-blackfen.md`, zone 7: "**The Naming Stone,** on the road out of the yard." `act-one-the-outskirts.md` gives it as (6.0, 12.5), "on the road out", its top "worn smooth and paler than its sides" | it is on the **road out**, not in the yard. Fixed in 18 |
+| The stone is scratched by nobody knows who | `act-one`: "Three short names were scratched into the Naming Stone this autumn, in different hands, **none of the dead limed**." The hook is that the names match no dead body, not that the hands are unknown | fixed in 18 |
+| "Did not answer" is for the ash's own | `acts-two-and-three.md`: the Seam Roll's last entries read "did not answer" in a dozen hands, no payment against any name, and "the phrase is the same verdict the Watchhouse uses for the Ashbound". `bestiary.md`: the Ashbound's second sense is "a verdict on anyone who has stopped answering" | right, and stronger than the design claimed. The line is now the Ashbound's only, and a laid Unnamed is explicitly **not** on it |
+| Kell Tor's tarn | `atlas/4-the-citadels.md`: at the crag's foot, "still black water that never freezes and always steams, and at night small pale lights that drift across it and go out"; "most likely marsh gas catching at warm vents". Kell Tor has been sealed since S.1 and "is never entered in the novel" | the wonder is now the lights, in canon's words, not the tarn "lighting". The sightline from Greystair is **proposal** (P15) |
+| Return-bread | `atlas/2-the-blackfen.md`, Reedwake: a lost town of moorings in the **west fen**, about twelve miles south of Saint Orra's Steps, abandoned. A loaf baked and set on a mooring post when someone went out, "to be eaten when they came back". "**The return-bread is a custom and works no magic.**" The families keep the custom at Saint Orra's Steps and Dunmere | the kit and the pickup now say plainly it is **food, not a charm**. Its presence on the Causeway is **proposal** (P13) |
+| The Bell's Tongue | `atlas/2-the-blackfen.md`: in the tower yard "the bell lies on its side in the mud with its tongue gone"; the tongue "turns up hidden in the bell-loft, wrapped in a Watch cloak" | the relic's place is the **bell-loft**, not the yard. Ringing it is **proposal** (P14) |
+
+**Why this matters more than it looks.** Four of the five were close enough to pass a search and wrong
+enough to mislead an artist: a stone on the road turned into a stone in the yard, three names turned
+into anonymous graffiti, bread made into a charm, a tongue separated from its bell. None of it changes
+a number. All of it changes what a stage looks like.
