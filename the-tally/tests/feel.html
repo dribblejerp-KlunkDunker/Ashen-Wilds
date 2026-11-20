@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tally - feel gate</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #14120f; overflow: hidden; }
+  body {
+    font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #cfc7b8; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  #panel {
+    position: fixed; top: 14px; left: 14px; z-index: 4;
+    width: 322px; padding: 14px 16px 12px;
+    background: rgba(20, 17, 13, 0.92); border: 1px solid #2b2620;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+  }
+  #panel h1 { margin: 0 0 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #ded6c6; }
+  #panel .sub { margin: 0 0 12px; color: #6b655a; }
+  #panel table { width: 100%; border-collapse: collapse; }
+  #panel th, #panel td { text-align: left; padding: 3px 0; font-weight: 400; }
+  #panel th { color: #8f8879; }
+  #panel td.got { text-align: right; font-variant-numeric: tabular-nums; color: #e8b169; }
+  #panel td.verdict { text-align: right; padding-left: 10px; }
+  #panel .good { color: #8fb68a; }
+  #panel .bad { color: #c98b7a; }
+  #panel .flat { color: #6b655a; }
+  #panel .foot { margin: 11px 0 0; padding-top: 9px; border-top: 1px solid #241f1a; color: #6b655a; }
+  #panel kbd {
+    font: inherit; color: #cfc7b8; background: #241f1a; border: 1px solid #332c24;
+    border-radius: 2px; padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="view" data-goblins="3" data-dummies tabindex="0"></canvas>
+  </div>
+
+  <div id="panel">
+    <h1>Feel gate: the Watch Step</h1>
+    <p class="sub">Hold and turn until the numbers below stop surprising you.</p>
+    <table>
+      <tr><th>Top speed</th><td class="got" id="m-top">-</td><td class="verdict" id="v-top"></td></tr>
+      <tr><th>Rest to top</th><td class="got" id="m-accel">-</td><td class="verdict" id="v-accel"></td></tr>
+      <tr><th>Top to rest</th><td class="got" id="m-decel">-</td><td class="verdict" id="v-decel"></td></tr>
+      <tr><th>Full reverse</th><td class="got" id="m-rev">-</td><td class="verdict" id="v-rev"></td></tr>
+      <tr><th>Step distance</th><td class="got" id="m-dash">-</td><td class="verdict" id="v-dash"></td></tr>
+      <tr><th>Step duration</th><td class="got" id="m-dashms">-</td><td class="verdict" id="v-dashms"></td></tr>
+      <tr><th>Input to motion</th><td class="got" id="m-lat">-</td><td class="verdict" id="v-lat"></td></tr>
+    </table>
+    <p class="foot"><kbd>WASD</kbd> move &nbsp; <kbd>Space</kbd> step &nbsp; <kbd>F</kbd> perfect-step bell &nbsp; <kbd>R</kbd> reset</p>
+  </div>
+
+  <script type="module">
+    import { createGame } from '../js/game.js';
+    import { TILE, MOVE, STEP } from '../js/sim/tuning.js';
+
+    const canvas = document.getElementById('view');
+    const game = createGame(canvas, { dummies: true });
+    window.tally = game;
+    game.loop.start();
+    canvas.focus({ preventScroll: true });
+
+    const el = (id) => document.getElementById(id);
+    const rows = {
+      top: { got: el('m-top'), verdict: el('v-top'), target: MOVE.maxSpeed, tol: 0.05, unit: ' t/s' },
+      accel: { got: el('m-accel'), verdict: el('v-accel'), target: MOVE.accelTime * 1000, tol: 12.5, unit: ' ms' },
+      decel: { got: el('m-decel'), verdict: el('v-decel'), target: MOVE.decelTime * 1000, tol: 12.5, unit: ' ms' },
+      rev: { got: el('m-rev'), verdict: el('v-rev'), target: MOVE.reverseTime * 1000, tol: 16.7, unit: ' ms' },
+      dash: { got: el('m-dash'), verdict: el('v-dash'), target: STEP.distance, tol: 0.02, unit: ' tiles' },
+      dashms: { got: el('m-dashms'), verdict: el('v-dashms'), target: STEP.duration * 1000, tol: 1, unit: ' ms' },
+      lat: { got: el('m-lat'), verdict: el('v-lat'), target: null, tol: 16.7, unit: ' ms' },
+    };
+
+    let wasDashing = false;
+    let dashCount = 0;
+
+    function show(row, value) {
+      if (value === null || value === undefined || !Number.isFinite(value)) {
+        row.got.textContent = '-';
+        row.verdict.textContent = '';
+        row.verdict.className = 'verdict flat';
+        return;
+      }
+      row.got.textContent = value.toFixed(row.unit === ' t/s' ? 2 : 1) + row.unit;
+      if (row.target === null) { row.verdict.textContent = ''; row.verdict.className = 'verdict flat'; return; }
+      const ok = Math.abs(value - row.target) <= row.tol;
+      row.verdict.textContent = ok ? 'on' : 'off';
+      row.verdict.className = 'verdict ' + (ok ? 'good' : 'bad');
+    }
+
+    function frame() {
+      const w = game.world;
+      const s = w.stats;
+      const speed = Math.hypot(w.player.vx, w.player.vy) / TILE;
+      if (w.player.dash.active && !wasDashing) dashCount++;
+      wasDashing = w.player.dash.active;
+
+      show(rows.top, s.topSpeedTiles || null);
+      show(rows.accel, s.accelMs >= 0 ? s.accelMs : null);
+      show(rows.decel, s.decelMs >= 0 ? s.decelMs : null);
+      show(rows.rev, s.reverseMs >= 0 ? s.reverseMs : null);
+      show(rows.dash, dashCount ? s.dashTiles : null);
+      show(rows.dashms, dashCount ? s.dashMs : null);
+      show(rows.lat, s.latencies.length ? s.latencies[s.latencies.length - 1] : null);
+      void speed;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

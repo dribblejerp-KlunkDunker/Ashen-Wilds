@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tally</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #14120f; overflow: hidden; }
+  body {
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #cfc7b8; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  #hud {
+    position: fixed; left: 16px; right: 16px; bottom: 14px;
+    display: flex; gap: 18px; align-items: baseline; justify-content: space-between;
+    pointer-events: none; text-shadow: 0 1px 0 #000;
+  }
+  #hud .left, #hud .right { display: flex; gap: 18px; align-items: baseline; }
+  #hud b { color: #e8b169; font-weight: 600; }
+  #hud .dim { color: #6b655a; }
+
+  #page {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: radial-gradient(ellipse at center, rgba(10, 9, 7, 0.86), rgba(6, 5, 4, 0.97));
+    z-index: 5;
+  }
+  #page[hidden] { display: none; }
+  #page .card {
+    width: min(560px, calc(100vw - 48px));
+    border: 1px solid #2b2620; background: #1a1713;
+    padding: 26px 28px 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+  }
+  #page h1 { margin: 0 0 4px; font-size: 19px; font-weight: 600; letter-spacing: 0.02em; color: #ded6c6; }
+  #page .sub { margin: 0 0 18px; color: #6b655a; font-size: 12px; }
+  #page dl { display: grid; grid-template-columns: 1fr auto; gap: 7px 16px; margin: 0 0 20px; }
+  #page dt { color: #8f8879; }
+  #page dd { margin: 0; text-align: right; color: #e8b169; }
+  #page button {
+    font: inherit; color: #14120f; background: #cfc7b8; border: 0;
+    padding: 9px 18px; cursor: pointer;
+  }
+  #page button:hover { background: #e8b169; }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="view" data-goblins="6" tabindex="0"></canvas>
+  </div>
+
+  <div id="hud">
+    <div class="left">
+      <span>Tally <b id="h-level">1</b></span>
+      <span class="dim">Embers <b id="h-xp">0</b></span>
+    </div>
+    <div class="right">
+      <span class="dim">WASD move</span>
+      <span class="dim">Space step</span>
+      <span class="dim">R reset</span>
+    </div>
+  </div>
+
+  <div id="page" hidden>
+    <div class="card">
+      <h1>The tally is read</h1>
+      <p class="sub">A page in the tally book. The muster choices arrive with the Tally Room.</p>
+      <dl>
+        <dt>Tally</dt><dd id="p-level">1</dd>
+        <dt>Embers kept</dt><dd id="p-xp">0</dd>
+        <dt>Steps taken</dt><dd id="p-dashes">0</dd>
+      </dl>
+      <button type="button" data-close>Close</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createGame } from './js/game.js';
+
+    const canvas = document.getElementById('view');
+    const levelEl = document.getElementById('h-level');
+    const xpEl = document.getElementById('h-xp');
+    const pLevel = document.getElementById('p-level');
+    const pXp = document.getElementById('p-xp');
+    const pDashes = document.getElementById('p-dashes');
+    let dashes = 0;
+    let wasDashing = false;
+
+    const game = createGame(canvas, { embers: 12 });
+    window.tally = game;
+
+    game.world.stats.dashes = 0;
+
+    game.loop.start();
+    canvas.focus({ preventScroll: true });
+
+    // HUD and page rows are written from the world, never the other way round.
+    function paint() {
+      const w = game.world;
+      if (w.player.dash.active && !wasDashing) dashes++;
+      wasDashing = w.player.dash.active;
+      levelEl.textContent = String(w.player.level);
+      xpEl.textContent = String(w.player.xp);
+      if (!document.getElementById('page').hidden) {
+        pLevel.textContent = String(w.player.level);
+        pXp.textContent = String(w.player.xp);
+        pDashes.textContent = String(dashes);
+      }
+      requestAnimationFrame(paint);
+    }
+    requestAnimationFrame(paint);
+
+    // A step flare on the first frame the page opens: it is a page turning, not a pause menu.
+    game.loop.setTimeScale(1);
+  </script>
+</body>
+</html>
