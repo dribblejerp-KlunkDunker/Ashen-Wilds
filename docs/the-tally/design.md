@@ -291,7 +291,7 @@ Five levels each.
 | **Muster Roll** | +8% Growth | the muster book's list of names |
 | **Lamp Oil** | +10% projectile Speed | oil counted in nights |
 | **Iron Ration** | +20 Max Health | Watch stores |
-| **Passage Rule** | +1 Amount at levels 3 and 5 only (rare) | Merrick's letters-board |
+| **Passage Rule** | +1 Amount at levels 3 and 5 only (rare) | Merrick's letters-board, the rule cut in it |
 | **Strong Corner** | +5% damage reduction while standing still | the hall's strong corner, where the salt is hid |
 | **Salt Cache** | blooms and spore-things take +10% | the Cold Passing salt |
 
@@ -342,8 +342,9 @@ salt**, **the naming at the graves**, and **cold light**.
 
 ### 10.1 The twelve
 
-**v1 ships eight of the twelve: the ward, the naming, cold light, the passage rule, the carter's
-hitch, the Kept Hand, the third arch and Call the Roll. The four that wait are in 26.**
+**v1 ships eight of the twelve: The Ward Spoken, The Naming at the Graves, Cold Light Taught, The
+Passage Rule, The Carter's Hitch Tied, Kept Hand, The Third Arch and Call the Roll. The other four
+are in 26.**
 
 | Working | Craft | Gift | Price |
 | --- | --- | --- | --- |
@@ -404,20 +405,19 @@ rag, one stick, in a low box).
 
 Permanent, found once, each tied to a place. **The warning book is not one of them**: it never leaves
 the fire, so what you find and carry are its pages (17.4). **v1 has the ones that stand in stages
-1-3**; the rest are marked **post-1.0** and wait for the road north. The Watch Whistle is a
-collectible there whose effect arrives with co-op.
+1-3**; the rest are marked **post-1.0** and wait for the road north.
 
 | Relic | Where | Unlocks |
 | --- | --- | --- |
 | **The Muster Book's Clasp** | the Watchhouse, the tally room | **Turn the page** |
 | **Gytha Marrin's Seal** | the Causeway toll house | **Strike it out** |
 | **A Tally Stick** | the Outside Fire, the second one out of Joan Tallis's belt | the minute-by-minute kill graph on the end screen |
-| **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
+| **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag; tags bank until the stone opens (17.2) |
 | **A Witness Token** | Halwen's chapel, the chaplain's cupboard | the Kept Hand working |
 | **A Bent Spoon from Darnel Cross** | Halwen's gatehouse, in the bowl by the door | **Measure** +5% for good: a free raise of the Tally Room's own Measure line, stacking with the ones bought there |
 | **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying (**post-1.0**) |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
-| **Osric Brayne's Sheet** | the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
+| **Osric Brayne's Sheet** | the Watchhouse, the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
 | **T. Gale's Kettle Hat** | the ogre's bone heap | a Watch helm; the refuge asks for it back |
 | **Winna's Pot** | the ogre's bone heap | the pot returns to the children; a book line |
 | **Odo Starke's Name-Strip** | the Spore-Choked Cart | back at the fire it writes Odo's line in the book; Dowsett's is a delivery for the road south (**post-1.0**) |
@@ -599,9 +599,9 @@ Naming Stone, and three figures standing in the flooded corner. Reeds to the hor
 coal sun low and red.
 **Map:** the atlas's thirteen zones, exactly: the gallows stump, the Outside Fire, the yard, the 1.35 m
 doorway and the Counting Passage, the hall (hearth, drain cover, wayfarers' room, tally room, strong
-corner, assize corner), the drain, the Naming Stone, the Drowned Graves, Withy Bottom (the Spore
-Hollow) and its lime pit, the Long Stable and the bone heap, the Causeway Delph, the Roofed Gallery,
-the East Choke Point.
+corner, assize corner, the bricked hatch), the drain, the Naming Stone, the Drowned Graves, Withy
+Bottom (the Spore Hollow) and its lime pit, the Long Stable and the bone heap, the Causeway Delph, the
+Roofed Gallery, the East Choke Point.
 
 **Mechanic: keep the fire.** The Outside Fire burns down. Peat bricks drop from breakables; carry them
 back. A fed fire gives Recovery nearby and keeps blooms out. A dead fire shrinks the light radius
@@ -621,16 +621,18 @@ you cannot move.
 
 Lane, infinite east-west, deep water north and south. **The dry ways:** every four minutes the water
 drops for 60 s and the old drowned roads come up beside the causeway, widening the map; anything
-standing in the water when it rises is slowed and pulled, enemies too. **Wonder:** at low water, the
-drowned lanterns along the dry ways glow under the surface. **Brazier:** the causeway's one fire,
-where a faded mark is renewed. **Boss:** the Causeway Tower band at
-15:00. **Page:** entry 6, *The Dry Ways*.
+standing in the water when it rises is slowed and pulled, enemies too. **The toll house:** a squat
+stone house across the road, come up at 6:00, the Watch's second post and where Gytha Marrin's seal
+was left (11.4). **Wonder:** at low water, the drowned lanterns along the dry ways glow under the
+surface. **Brazier:** the causeway's one fire, where a faded mark is renewed. **Boss:** the Causeway
+Tower band at 15:00. **Page:** entry 6, *The Dry Ways*.
 
 ### 16.3 Stage 3 - Halwen House
 
-Bounded: rooms, corridors, gardens, the glasshouse range, the Chapel of the Kept Hand, the records
-tower, the cistern vault. **Mechanic: bells.** Bell-posts can be rung by hitting them: every enemy on
-the map turns toward the bell for 8 s. Pull the horde off yourself, or pile it into one place.
+Bounded: the gatehouse, rooms, corridors, gardens, the glasshouse range, the Chapel of the Kept Hand,
+the records tower, the cistern vault. **Mechanic: bells.** Bell-posts can be rung by hitting them:
+every enemy on the map turns toward the bell for 8 s. Pull the horde off yourself, or pile it into one
+place.
 **The Gutter Kin** hold the glasshouse range, and they are people, not enemies. **The room nobody
 claims:** with the Glass Key, the cistern vault opens. Inside is nothing. The game never explains it,
 and after that the door is open a crack on every Halwen run. **Boss:** the Halwen siege at 15:00.
@@ -754,8 +756,8 @@ so does every name spoken at a grave. Patterns in the muster book, not totals of
 and stages: ten **Deserted** lines, a full page of **Held**, and a page of **Did not answer** that is
 longer than you meant it to be.
 
-Weapons, kit, evolutions, workings and relics are in neither book in the lore. The collection gives
-them their own leaves, in the same hand: a UI conceit, and nothing more.
+Weapons, kit, evolutions, workings and relics are in neither book in the lore. The collection
+(**post-1.0**) gives them their own leaves, in the same hand: a UI conceit, and nothing more.
 
 ### 17.4 The Warning Book
 
@@ -812,6 +814,7 @@ The Silent cannot be heard at all. The screen desaturates 40%. Small ripples on 
 heavy things are stepping, so nobody is disadvantaged by it except in the way everyone is.
 
 ### 18.9 Goblin thieves
+
 A goblin takes embers, sometimes salt, and runs for the edge of the screen. If it gets away it keeps
 the haul and its laugh echoes. A small, funny, tense game inside the big one.
 
@@ -1059,8 +1062,8 @@ Ruled 2026-11-20.
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
-| Evolutions | 8, one per weapon; every v1 weapon's partner kit is in the v1 eight | 8, and both unions |
-| Workings | 8: the ward, the naming, cold light, the passage rule, the carter's hitch, the Kept Hand, the third arch, Call the Roll | 4: the Bright Hour called, take nothing you cannot carry, the bargain, lime the road |
+| Evolutions | 8: The Cold Edge, Held the Gate, The Limed Road, The Nailhouse, The Bell-Tender's Toll, Deserted: None, Grisel's Hedge, Aud's Lesson | 8, and both unions |
+| Workings | 8: The Ward Spoken, The Naming at the Graves, Cold Light Taught, The Passage Rule, The Carter's Hitch Tied, Kept Hand, The Third Arch, Call the Roll | 4: The Bright Hour Called, Take Nothing You Cannot Carry, The Bargain, Lime the Road |
 | Characters | 6: Rafe, Merrick, Edda, Pim, Margery, Aud | 6, and all three secret |
 | Meta | the Tally Room, saves, the relics that stand in stages 1-3 | the Naming Stone's long arc, the collection |
 | Modes | the Watch Rota | the Long Account, the Approved Load |
