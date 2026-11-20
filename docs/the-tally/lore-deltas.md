@@ -1,7 +1,8 @@
 # The Tally: lore deltas
 
-**Status: proposal, partly ruled.** The ten framing questions in PR #49 were ruled on 2026-11-20; see
-*Rulings* below. Fifteen proposals are still open: P1-P6, P9-P15, P16 and P17.
+**Status: proposal, ruled through to M1.** The ten framing questions in PR #49 were ruled on
+2026-11-20, then all seventeen proposals in 33, every one as recommended; see *Rulings* below. The
+only things still open in this file are the two names in 34, which are deliberately open to M4.
 
 Every place where the build brief for *The Tally* and the lore of Ashen Wilds disagree, what the lore
 says, what this design does instead, and every new thing the design adds to canon. Nothing here is
@@ -45,10 +46,34 @@ had already given Wat Corley **S2**, the slot Gytha's chair vacated when she bec
 put Gise Marrable in S3. The ruling's substance is untouched: the Kept Hand is out of the roster and
 Wat Corley is in it. But the label in 16 and P7 was wrong. See 36.
 
-**What this does not settle.** Fifteen proposals remain open: **P1** to **P6**, **P9** to **P15**, and
-**P16** and **P17**. None of them was among the ten questions, and none of them blocks M1. They change
-the design's text rather than its framing, so they want one pass of their own. Two names in 34 also
-stay open, deliberately.
+**The proposals, ruled.** A second pass, same day: the fifteen proposals, **all fifteen as written**.
+They change the design's text rather than its framing, which is why they wanted a pass of its own;
+none of them blocks M1.
+
+| # | Ruling | Settles |
+| --- | --- | --- |
+| P1 | salt is the currency and `Measure` is the stat | 1, and the Tally Room's prices |
+| P2 | the fourth line, **did not answer** | 6, and the four lines in 17.3 of `design.md` |
+| P3 | the wayfarer's horn is what is heard at the Order | 5 |
+| P4 | **Go back**, and only Rafe's | 5 |
+| P5 | the Reed-Jaw is stage 5's boss | 9 |
+| P6 | the Grey Hour replaces the Thaw | 15 |
+| P9 | brass tags at the Naming Stone; v1 keeps the stone as a place and a pickup | 18 |
+| P10 | a bell near a listener costs their trust | 23 |
+| P11 | marks fade and are renewed at a fire | 10, and **stage 2 gets a brazier** (16.2 of `design.md`) |
+| P12 | the naming at a grave is timed and loud | 14 |
+| P13 | return-bread on the Causeway, eaten and never worn | 35 |
+| P14 | the tower bell struck once, its tongue returned | 35 |
+| P15 | Kell Tor's tarn seen from Greystair | 16.7 of `design.md`, and 35 |
+| P16 | the bargain at the covenant recess; the altar stays empty | 36 |
+| P17 | **Call the Roll**, and the Seam Roll keeps its name | 36 |
+
+**One ruling changes a build.** Marks are renewed at a fire, so the Old Causeway, which has none, gets
+one brazier (16.2 of `design.md`). That is the only thing the second pass adds to the design; every
+other proposal was already written into it.
+
+**What is still open.** Two names in 34, deliberately left to M4: character 10 and the Halwen siege
+captain.
 
 ---
 
@@ -799,8 +824,9 @@ this cast.
 | P16 | The chapel's bargain is spoken at the **covenant recess**, and the altar stays empty | canon says the altar holds no treasury and was broken open long before the player arrives; the recess is the room's own subject |
 | P17 | The Marking working is called **Call the Roll**, not **Seam Roll** | the canon object keeps its name; the invented thing moves |
 
-**Ruled on 2026-11-20:** P7 (Wat Corley) and P8 (Gytha as patron). **Open:** P1-P6, P9-P15, P16 and
-P17.
+**Ruled on 2026-11-20, all seventeen.** P7 (Wat Corley) and P8 (Gytha as patron) in the first pass;
+P1-P6, P9-P15, P16 and P17 in the second, **every one as written**. **Still open:** the two names in
+34.
 
 *Sources: each P is sourced in the delta that argues for it: P1 in 1, P2 in 6, P3 and P4 in 5, P5 in
 9, P6 in 15, P7 in 16, P8 in 17, P9 in 18, P10 in 23, P11 in 10, P12 in 14, P13 and P14 in 35, P15 in
