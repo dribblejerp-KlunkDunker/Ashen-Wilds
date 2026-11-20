@@ -58,8 +58,10 @@ effect limiter, the light pass. The gate is a frame-time capture. One player's s
 no interest management until v1.1.
 
 **M3, the build.** The 8 weapons, 8 kit and 8 evolutions as data, boxes, workings, the Debt, the cough,
-and the first modelled goblin and ork rendered to sheets. The gate is a test, not a feeling: all 24
-items exist, are data-driven and are unit-tested. Nothing in M3 is tuned.
+and two creature sheets rendered to prove the art pipeline, the **goblin scavenger** and the **ork
+shield**; the other eleven v1 sheets land with M4a and M6. The gate is a test, not a feeling: all 24
+items exist, are data-driven and are unit-tested, and both sheets load through `data/enemies.js`.
+Nothing in M3 is tuned.
 
 **M4, stage 1.** The complete night, in two halves. **4a** is the night whole - the fire, the naming,
 the rot, the Order, the Grey Hour, a wonder, a boss, a book line, thieves - and its gate is that the
@@ -86,7 +88,7 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 | --- | --- | --- |
 | **M1** | Feel: fixed step, movement, the Watch Step, collision, one enemy, embers, the level curve | 13-19 |
 | **M2** | The horde: instancer, pools, spatial hash, flow fields, the light pass, 1,500 at 60 fps | 25-37 |
-| **M3** | The build as data: 24 items, 8 workings, the Debt, the cough, the first two creature sheets | 30-45 |
+| **M3** | The build as data: 24 items, 8 workings, the Debt, the cough, the goblin scavenger and ork shield sheets | 30-45 |
 | **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves | 30-44 |
 | **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
 | **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
