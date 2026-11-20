@@ -117,15 +117,33 @@ licensed, pays his crew, thinks of himself as a salvor, and wants stoves. His cr
 
 ### The Long Marrow
 
-*Mountain range · the highlands running about 80 miles east from the Citadels to the Weald's edge · held by nobody, its passes by ork packs · danger IV · lore, with new details marked*
+*Mountain range · the highlands running about 80 miles east from Dunmarrow's spur to the Weald's edge, seven or eight days by the Marrow Passes · held by nobody, its passes by ork packs · danger IV · lore, with new details marked*
 
-**At a glance.** The spine of the north-east. Bare, cold, high country, cut by deep valleys, where the old Citadel prospectors went and found little. The Weald believes the Long Marrow is burning inside and that the fire will come out east, and cuts its firebreaks every year on that belief.
+**At a glance.** The spine of the north-east: bare, cold, high country cut by deep valleys, where the old Citadel prospectors went and found little. The Weald believes the Long Marrow is burning inside and that the fire will come out east, and cuts its firebreaks every year on that belief.
 
-**How it looks.** Ridge after ridge of grey stone, white on top for most of the year, with vents smoking on the western slopes nearest the Citadels and fewer as you go east. Abandoned prospect pits and cairns mark the old trails.
+**History.** Prospectors from the Citadels worked its valleys for three centuries and found lesser seams, a hot spring and a great many ways to die. The Crown built one cart road through it, the Marrow Passes, to the Weald's timber. After S.0 the vents on its western slopes began to smoke. About S.6 ork packs took the passes, and no cart has crossed since.
 
-**Wonder and mystery (new). The Warm Valley**: one high valley where snow never lies and a hot spring steams in a stone basin that may be cut or may be natural. Prospectors called it the Kettle. Nobody lives there now. The Weald's fear has one fact under it here, and it proves only that one valley is warm.
+**How it looks.** Ridge after ridge of grey stone, white on top for most of the year, with vents smoking on the western slopes nearest the Citadels and fewer as you go east. Abandoned prospect pits and cairns mark the old trails. From any ridge you can see the next, and the next, to the dark line of the Weald.
+
+**Layout.**
+
+1. **The western slopes,** smoking, below Dunmarrow's spur.
+2. **The Marrow Passes,** the cart road (below).
+3. **The prospectors' trails,** marked by cairns, round the Saddle Wall and up the high valleys.
+4. **The Kettle,** the Warm Valley (`9-the-wilds-between.md`).
+5. **The Weald Steps,** the long descent east into forest.
+
+**Who is here.** Ork packs near the passes. Prospectors' ghosts in carriers' stories, which are only stories. In hard winters, Weald scouts watching the passes from the eastern ridges.
+
+**Old magic.** None that anyone can show.
+
+**Wonder and mystery.** The Warm Valley, where snow never lies. The western vents at night, a line of red breath along the ridges.
 
 **Dangers.** Weather (IV). Ork packs near the passes (IV). The vents on the western slopes.
+
+**Finds.** Prospectors' caches under the cairns: picks, assay scales, rope. The Kettle's map.
+
+**Hooks.** The prospectors' trail round the Saddle Wall. The Weald pays for news.
 
 ### The Marrow Passes
 
@@ -133,8 +151,27 @@ licensed, pays his crew, thinks of himself as a salvor, and wants stoves. His cr
 
 **At a glance.** The only cart road from Orlen to the Weald. Ork packs hold it, and it suits them: stone, one way in, a wall across a road. No cart has crossed since about S.6.
 
-**Layout (new).** 1. **The Lower Gate**, a toll-house and wall across the valley mouth, built by the Crown and now an ork pack's den. 2. **The Climb**, switchbacks under cliffs, with fallen carts still in the ditches. 3. **The Saddle Wall**, a second wall at the pass's height, where a
+**History.** Built by the Crown for the Weald's timber and pitch, with a toll-house at its foot and a second wall at its height against raiders. The orks came south out of Dunmarrow and took it wall by wall. Why none of them ever went on east into the Weald is not known.
 
-| pack holds the parapet in silence. 4. The Weald Steps, the long descent east into forest. A secret: the old prospectors' trail round the Saddle Wall, which a carrier could find from the cairns. Who is here. Ork packs (beasts; never reasoned with), holding walls and choke points without a sound. Why none of them ever went on east into the Weald is not known. Dangers. The packs (V at the walls). Exposure on the Saddle (IV). Hooks. The Weald pays for news of the passes. A cart is said to have crossed in S.29; the Moot of Posts denies it. |
-|---|
-|  |
+**How it looks.** A paved road switchbacking up a valley under cliffs, two walls across it like teeth, fallen carts in every ditch, and at the top the Saddle: a bare pass with the Weald below one side and Orlen below the other.
+
+**Layout.**
+
+1. **The Lower Gate,** a toll-house and wall across the valley mouth, built by the Crown and now an ork pack's den.
+2. **The Climb,** switchbacks under cliffs, with fallen carts still in the ditches.
+3. **The Saddle Wall,** a second wall at the pass's height, where a pack holds the parapet in silence.
+4. **The Weald Steps,** the long descent east into forest.
+5. **A secret:** the old prospectors' trail round the Saddle Wall, which a carrier could find from the cairns.
+
+**Who is here.** **Ork packs** (beasts; never reasoned with), holding walls and choke points without a sound.
+
+**Old magic.** None.
+
+**Wonder and mystery.** The Saddle at sunrise: the Weald's dark forest one way, the smoking Long Marrow and Orlen's grey the other. Why the orks stop here.
+
+**Dangers.** The packs (V at the walls). Exposure on the Saddle (IV).
+
+**Finds.** The fallen carts on the Climb: Weald pitch in sealed barrels, cart iron, a carter's strongbox from S.5. The toll-house's last ledger, in the pack's den.
+
+**Hooks.** The Weald pays for news of the passes. A cart is said to have crossed in S.29; the Moot of Posts denies it.
+

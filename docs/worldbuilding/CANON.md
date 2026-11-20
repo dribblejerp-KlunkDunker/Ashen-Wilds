@@ -32,6 +32,7 @@ game, the acts, and texts the game can show.
 | **O7** | **The walking bloom hunts on the highland edge.** It is the thing that hunts by sound in the game's first place. (A walking bloom is not a beast: it is a body. `the-smothering.md`.) | 2026-11-12 |
 | **O8** | **The sun's day is approved** ("yes the days are perfect"): items P27 to P32 in `ROADMAP.md`. The sun crosses the sky. After the first day, of every twenty days about five are coal days (the dark disc all day), eleven are coin days (a pale disc behind the ash, grey daylight) and four have a clear noon, from about ten in the morning to half past two, when the sun burns through and things throw shadows. Which day is which is fixed by the day's number. Every sunset and sunrise shows the coal sun. By daylight the far haze is dun. | 2026-11-12 |
 | **O9** | **Beasts are modelled** (D8 stands; ruled against the build brief's "one painted picture" for creatures), on condition that they look far better than the first sketches. The walking bloom is modelled too, though it is a body and not a beast. Living people stay painted. | 2026-11-12 |
+| **O10** | **All proposals are accepted, across the board** ("I accept all proposals across the board"), 2026-11-19. This approves: the proposals of Phases 4 to 8 in `ROADMAP.md` (P33 to P70); the warning book of S.30 (`the-warning-book-s30.md`); every placement on the Chart of the Round; the whole atlas, now in `atlas/`, with its scale (`atlas/1-scale-and-distances.md`: the pace table, Orlen at about 250 miles each way, the scarp at about 60, the Bell Road at 96, the Causeway at 60, the walk south taking the whole thaw, built places at true size and open country at one tenth); the novel's proposals N1 to N20 (Rafe Sedley and Merrick Thwaite are canon); the rulings rows of the roadmap sheet; and the fill-in the owner asked for the same day, a full entry for every person and place (`people/`, `atlas/9-the-wilds-between.md` and the expanded atlas entries). Lines marked *(new)* record where something came from. **Not settled by O10**, because they are questions rather than proposals: Q2 and Q4 below, the opening view, the novel's date knot and title, and whether Rafe Sedley is the deserter on The Long Account's ledge. | 2026-11-19 |
 
 The archive was revised to fit O1 on the same day; see *Archive material revised for O1* below.
 
@@ -201,7 +202,7 @@ carries a dated note at its head, and these rules say how all of them now read.
 | # | Question | Options |
 |---|---|---|
 | Q1 | ~~The Gutter-kin background~~ **Settled by O1:** the Gutter-kin are human road waifs, children who sheltered under the Roofed Mile and lived by taking what wasn't watched; the Godot card stands. The archive's Gutter Kin were revised into the same kind of human household. | Settled |
-| Q2 | Mara Venn and Harl name conflicts (from `keeping-and-merewick.md`) | Unchanged; still the owner's to settle |
+| Q2 | Mara Venn and Harl name conflicts (from `keeping-and-merewick.md`) | Unchanged; still the owner's to settle. `people/` keeps the two Mara Venns and the two Harls apart until then. |
 | Q3 | ~~The kingdom's name, Wexhaven, the Citadels' names, Aldric IV, Cerrin Vane~~ | **Settled by O2:** kept |
 | Q4 | Whether the archive's "faction bible" and "Reedwake chapter" still exist | They are referenced but in neither repository |
 

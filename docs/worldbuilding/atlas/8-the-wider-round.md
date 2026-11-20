@@ -220,6 +220,132 @@ the coast, three bare islands with hulks moored round them.
 
 **Hooks.** Selling the receipts at a hundredth: enough grain for the fen for one winter, and the land claims with it. The Limewalks' dead-cart crews stop work.
 
+### The ten other ports of the Compact
+
+*Ten walled ports along about 300 miles of the Sable Shore, west and east of Port Sable · each held by its counting-houses, one seat each in the Compact · (new) 2026-11-19*
+
+Every port keeps a chain across its harbour (raised for northern hulls since S.6), lime-sheds for the dead, and a Tally notary. Every port has hold-goblins in its drains. Distances are along the Shore from Port Sable.
+
+#### Gannet Quay
+
+*Cliff harbour · 150 miles west, the Shore's last port · about 900 people · danger II*
+
+**At a glance.** A harbour cut into the foot of a seabird cliff, where a hundred thousand gannets nest above the roofs and the town lives on eggs, feathers and salt fish: the poorest seat in the Compact.
+**How it looks.** White cliffs gone whiter with birds; a harbour wall like a hook; houses stacked up the cliff on ledges, joined by ladders; nets everywhere.
+**Layout.** 1. The harbour and its short chain. 2. The egging ladders up the cliff. 3. The fish-flakes, racks of salt cod. 4. The counting-house, the smallest on the Shore. 5. The night quay (a secret), a ledge round the headland.
+**Who is here.** **Harbourmaster Ruan Pellow** (new), who quay talk says lets northern hulls water at the night quay, for a fee. Eggers on ropes. Greys who came west because Gannet Quay asks fewer questions.
+**Old magic.** None. **Wonder.** The cliff at dawn when every bird lifts at once. **Dangers.** The cliffs (IV), the harbourmaster's men (II).
+**Finds.** Salt fish, eggs, down. Fresh water at the night quay, for northern hulls that cannot lie forty days.
+**Hooks.** The night quay: a way round the Forty, and the Compact would hang Ruan for it.
+
+#### Kestle Head
+
+*Fortified headland · 120 miles west · the Compact's watch-station · about 1,200 people · danger II*
+
+**At a glance.** A walled town on a headland with a light-tower at its point, where the Compact's chain-smiths forge the harbour chains for every port on the Shore.
+**How it looks.** A fortress of grey stone on a rock above the sea, smoke from its forges, the great tower's fire visible thirty miles out.
+**Layout.** 1. The light-tower. 2. The chain-forge, longest building on the Shore. 3. The Compact's armoury. 4. The garrison yard. 5. The fishers' quay below the wall.
+**Who is here.** **Chainmaster Odile Brask** (new), who has never seen a slag-iron link and wants one to test. Smiths, soldiers of the Compact, lightkeepers.
+**Old magic.** None. **Wonder.** A harbour chain half-forged, each link the size of a man, laid out the length of the forge. **Dangers.** The garrison (III for a northerner).
+**Finds.** Chain, iron fittings, the Compact's charts of the western approach. A slag-iron link would buy anything here.
+**Hooks.** Bring Odile a slag-iron link and learn how every chain on the Shore can be broken.
+
+#### Corvane
+
+*Oil port · 85 miles west · about 2,000 people · danger II*
+
+**At a glance.** The oil port: rendering yards for fish and seal oil, and the lamp-oil trade that once went north, smelling of it for a mile out to sea.
+**How it looks.** Black try-pot sheds along the shore, a harbour full of oil-barges, every wall stained amber.
+**Layout.** 1. The try-yards. 2. The barrel quay. 3. The oil exchange. 4. The rendering pits behind the town. 5. The chandlers' street, where lamp oil is counted in *nights*.
+**Who is here.** **Factor Helis Stroud** (new) of the oil exchange, who buys Skerry oil and sells it on at three times; Skerry boat-masters; flensers.
+**Old magic.** None. **Wonder.** Corvane at night, every window lit with cheap oil: the brightest town on the Round. **Dangers.** Fire (V in the try-yards).
+**Finds.** Lamp oil by the barrel. Seal-skin, whalebone. Tallow.
+**Hooks.** Fuel for the voyage, at a price; or an oil-barge to borrow.
+
+#### Lisk
+
+*Salt and lime port · 55 miles west · about 1,500 people, half of them Greys · danger II, III in the Limewalks*
+
+**At a glance.** A port of salt-pans and lime kilns worked almost entirely by the Greys, with its own Limewalks, smaller and worse than Port Sable's.
+**How it looks.** White everything: salt-pans in square ranks along the shore, kilns smoking behind the town, huts of lime-washed wattle along the kilns.
+**Layout.** 1. The pans. 2. The kilns. 3. The Lisk Limewalks. 4. The dead-cart yard. 5. The counting-house on the only hill.
+**Who is here.** The Greys, who speak hewers' hand among themselves and still keep the Keeping. **Mother Annis Quill** (new), an old Grey who keeps a list of every northerner who died in Lisk.
+**Old magic.** None. **Wonder.** The Greys singing in hewers' hand, silently, at a burial. **Dangers.** The kilns, the dead-carts (II).
+**Finds.** Salt. Lime. Annis's list, which may hold a name someone in the fen is waiting for.
+**Hooks.** Carry Annis's list north. The lime price, which the quays read as a pulse.
+
+#### Pennick
+
+*Shipyard port · 25 miles west · about 2,500 people · danger I*
+
+**At a glance.** The Compact's shipyard, where the hulls that sail the Round are built and caulked; every hull on the Shore has a Pennick mark on its keel.
+**How it looks.** Slipways in rows, hulls in every stage of building like the skeletons of whales, the smell of pitch and sawn oak.
+**Layout.** 1. The slipways. 2. The timber ponds. 3. The ropewalk, a third of a mile long. 4. The pitch-houses. 5. The shipwrights' guildhall.
+**Who is here.** Shipwrights. **Master Shipwright Joran Tey** (new), who would like to meet Wat Hebble and has heard of the *Small Mercy*.
+**Old magic.** None. **Wonder.** A launch: a new hull sliding into the sea while the whole town shouts. **Dangers.** Few.
+**Finds.** Ship's timber, rope, pitch, caulking, canvas. Repairs, for silver.
+**Hooks.** Mend the *Small Mercy* properly, at a price Wat will hate.
+
+#### Wendlemouth
+
+*River port · 30 miles east · about 3,000 people · danger I*
+
+**At a glance.** A river port at the mouth of the Wendle, Vauclere's river, where the grain barges come down from the terraces; because grain rules the Round, it holds the second voice in the Compact.
+**How it looks.** A broad estuary crowded with barges, granaries along both banks, a bridge of seven arches, the road to Saint-Aumere leaving inland along the river.
+**Layout.** 1. The barge basin. 2. The granaries. 3. The seven-arch bridge. 4. The river road. 5. The grain exchange, rival to Port Sable's.
+**Who is here.** **Granary-Reeve Bastien Holm** (new), who sets the price of bread for half the Round. Bargees from Vauclere.
+**Old magic.** None. **Wonder.** The granaries' doors open at harvest: the smell of bread before it is baked. **Dangers.** The price of grain.
+**Finds.** Grain, the only coin that matters. Passage up the river to Saint-Aumere.
+**Hooks.** Grain for the fen, if the receipts can be made to mean anything here.
+
+#### Marlstow
+
+*Port with a Bloom Quarter · 60 miles east · about 1,800 people in the upper town · danger II, IV in the lower town*
+
+**At a glance.** The Shore's other Bloom Quarter: the whole lower town, walled off and given to the corpse-caps, which fruit in days in southern warmth. The port still trades from its upper town and does not speak of the lower one.
+**How it looks.** An upper town of good houses on a ridge; below it, behind a wall with no gate, a whole quarter of streets gone teal at night, the glow seen from the sea.
+**Layout.** 1. The upper town and its quay. 2. The wall. 3. The lower town, given up. 4. The lime-house, where the wall's watch keeps its barrels. 5. The fishermen's steps down to the lower harbour (a way in).
+**Who is here.** **Wallwarden Pieter Lusk** (new), who keeps the wall and wants the lower town burned. Walking blooms in the lower town.
+**Old magic.** None. **Wonder.** The lower town at night, teal in every window. **Dangers.** The lower town (IV): still air, spores, blooms.
+**Finds.** In the lower town, everything its people left when the wall went up: a whole quarter's goods.
+**Hooks.** Burn the lower town for Pieter, or go in for what was left.
+
+#### Saltinge
+
+*Salt-marsh port · 90 miles east · about 1,000 people · danger II*
+
+**At a glance.** Tidal marshes and salt-pans: the salt that cures the Shore's fish, raked by people who walk on stilts across the flats.
+**How it looks.** Flat grey marsh to the horizon, pans glittering, stilt-walkers moving across it like herons, a small town on the only gravel bank.
+**Layout.** 1. The gravel bank and the town. 2. The pans. 3. The tide channels. 4. The salt-sheds. 5. The heron-hide, a lookout over the flats.
+**Who is here.** Salt-rakers on stilts. Ditch-monitors in the warm channels in summer.
+**Old magic.** None. **Wonder.** The flats at sunset, the pans like a field of mirrors. **Dangers.** The tide (IV), ditch-monitors (III).
+**Finds.** Salt, cheap. Stilts.
+**Hooks.** Salt is the fen's money: a cargo of it is a winter.
+
+#### Brineholt
+
+*Fortress harbour · 120 miles east · about 1,400 people · danger II, III on the reavers' quay*
+
+**At a glance.** A fortress harbour where the plate-reavers fit out each thaw and sail north under licence; its taverns are the only place on the Shore where anyone talks about Orlen as a place rather than a debt.
+**How it looks.** A walled harbour with a castle on a rock, reaver ships with northern stove-plates nailed to their sterns as trophies.
+**Layout.** 1. The reavers' quay. 2. The licence-house. 3. The taverns of Plate Street. 4. The castle. 5. The stove market, where Greystair plates are sold.
+**Who is here.** Plate-reavers. **Corvin Hale**'s crew in the off-season. **Licenser Tobias Wren** (new), who sells the licences and buys the stories.
+**Old magic.** None. **Wonder.** The stove market: Greystair plates in rows, each one a house. **Dangers.** Reavers (III).
+**Finds.** Stove plates (to buy, never cheap). Charts of Orlen's coast drawn by reavers. News from the north.
+**Hooks.** Sell a story of the north in Plate Street and hear one back.
+
+#### Seaverne
+
+*The youngest port · 150 miles east, the Shore's last port east · about 1,100 people · danger II*
+
+**At a glance.** The youngest seat, admitted to the Compact long after the oath and still quarrelling over its vote; its market sells passage beyond the Round, to anyone who can pay.
+**How it looks.** A new town of brick on an old fishing harbour, the only port on the Shore without a full harbour chain, its quays crowded with ships flying flags from beyond the Round.
+**Layout.** 1. The passage market. 2. The half-chain. 3. The brick quarter. 4. The old fishing harbour. 5. The Compact house, where Seaverne argues its vote.
+**Who is here.** **Passage-broker Ilse Danner** (new), who will sell you a berth to the warm current and green land in the west, or say she can.
+**Old magic.** None. **Wonder.** Ships from beyond the Round, painted strangely, sailing in with things nobody on the Shore has a word for. **Dangers.** Brokers (II).
+**Finds.** Passage beyond the Round. Goods from far coasts.
+**Hooks.** The western ocean: a few whaling boats came back after years away, talking of a warm current and green land.
+
 ## The Lazaret Rocks
 
 *Quarantine islands · three bare islands off Port Sable, with old hulks moored round them as wards · held by the Compact's keepers, barely · danger IV, V in a sealed hulk · lore, with new details marked*
@@ -329,6 +455,28 @@ the coast, three bare islands with hulks moored round them.
 
 **Who is here. Ines Corrant**, steward of the Deeps Company, who wants heat for forty thousand people in the valley towns before another winter. She is not in debt and she is not proud. She has counted. **Edith Brode**, spokeswoman of the **Low Lodge**,
 
-| granddaughter of Ancel Brode, who wants the right of refusal that no southern law grants. The Lodge is unlawful. Bonded hewers, salt-cutters, carters, bakers. What lives here: nothing. Salt mines never held rats, bats or beetles, and no goblin has been seen in Halsing's drains. The Company cites this as proof the deep is empty. The hewers say nothing came up at the Slagcrown either, until the wall was broken. The wall and the shut doors. If the wall is the same work as the Vaults, the makers were not only an older people of Orlen. If it is natural jointing (cooling rock joints itself into blocks, and the sea cliffs at one of the quays show it in daylight), perhaps the first wall was too. Witnesses disagree about the steps beyond the crack exactly as the Slagcrown's did: too shallow, too tall, frightened people in lamplight. The atlas answers none of it. Wonder and mystery. The White Galleries under a hundred lamps, white to every horizon. The Chapel Gallery's saints, carved in salt, weeping brine in the warm draught. Dangers. Collapse (III). The Company's law (III). The wall (V, and unknown). Hooks. Fire-setting is planned to begin at the thaw of S.32. It took eleven days to break the wall at the Slagcrown, and the Company's engineers have planned for the same. Past the edges Off the chart · four directions, each a rumour of somewhere better · lore West of the Skerries: the open ocean. A few whaling boats came back after years away, talking of a warm current and green land. Most did not come back. East of the Weald: the Grass. Horse-herding peoples who trade at the Weald's edge posts. Their herds are drifting west, so the winters are bad there too. South of Sephar: the Red Country. Desert and caravan cities, a year's journey by camel. Grain is said to be cheap there. No ship of the Round has gone to find out. North of the Hoar. Nothing is known. These stay off the chart, and the atlas leaves them as rumours. |
-|---|
-|  |
+granddaughter of Ancel Brode, who wants the right of refusal that no southern law grants. The Lodge is unlawful. Bonded hewers, salt-cutters, carters, bakers.
+
+**What lives here: nothing.** Salt mines never held rats, bats or beetles, and no goblin has been seen in Halsing's drains. The Company cites this as proof the deep is empty. The hewers say nothing came up at the Slagcrown either, until the wall was broken.
+
+**The wall and the shut doors.** If the wall is the same work as the Vaults, the makers were not only an older people of Orlen. If it is natural jointing (cooling rock joints itself into blocks, and the sea cliffs at one of the quays show it in daylight), perhaps the first wall was too. Witnesses disagree about the steps beyond the crack exactly as the Slagcrown's did: too shallow, too tall, frightened people in lamplight. The atlas answers none of it.
+
+**Wonder and mystery.** The White Galleries under a hundred lamps, white to every horizon. The Chapel Gallery's saints, carved in salt, weeping brine in the warm draught.
+
+**Dangers.** Collapse (III). The Company's law (III). The wall (V, and unknown).
+
+**Hooks.** Fire-setting is planned to begin at the thaw of S.32. It took eleven days to break the wall at the Slagcrown, and the Company's engineers have planned for the same.
+
+## Past the edges
+
+*Off the chart · four directions, each a rumour of somewhere better · lore*
+
+**West of the Skerries: the open ocean.** A few whaling boats came back after years away, talking of a warm current and green land. Most did not come back.
+
+**East of the Weald: the Grass.** Horse-herding peoples who trade at the Weald's edge posts. Their herds are drifting west, so the winters are bad there too.
+
+**South of Sephar: the Red Country.** Desert and caravan cities, a year's journey by camel. Grain is said to be cheap there. No ship of the Round has gone to find out.
+
+**North of the Hoar.** Nothing is known.
+
+These stay off the chart, and the atlas leaves them as rumours.

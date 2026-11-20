@@ -6,6 +6,19 @@
 
 This index covers the original worldbuilding archive through 2026-11-01 18:06 EST, the Godot additions below, and the 2026-11-09 lore imports listed separately. These documents preserve proposed lore, not implemented game systems. Storage in GitHub does not automatically settle canon. No assets, development checkpoints, or existing lore documents are replaced by this additive batch.
 
+## The atlas, the people, and the wilds between (2026-11-19)
+
+Approved by the owner under O10 (`CANON.md`): "I accept all proposals across the board", with a request that every
+person and place have a full entry.
+
+- [The atlas](atlas/): the nine tabs of the Claude Doc "Ashen Wilds atlas", from how to read it to the wider Round,
+  with the scale every distance is measured to (`atlas/1-scale-and-distances.md`), and
+  [the wilds between](atlas/9-the-wilds-between.md): ten new places across the open country.
+- [Who is who](people/README.md): every named person (169 entries) and where their full entry is, with new full entries
+  by region in `people/`.
+- The Chart of the Round, redrawn to the scale: https://claude.ai/artifact/7Y4ERUJAC19mHBcDMwm19k (an Artifact, not in
+  this repository).
+
 ## Previously preserved
 
 - [Keeping and Merewick](keeping-and-merewick.md): structured consolidation, not a verbatim transcript; includes unresolved Mara Venn and Harl name conflicts.

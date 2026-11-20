@@ -393,6 +393,18 @@ The road north out of the fen, climbing through sheep country and quarry spoil t
 7. **The northern gate,** and its two painted words.
 8. **The upper road,** out of the gate toward the Citadels.
 
-| Who is here. The storehouse remnant: about fifteen people at the start of the winter, five by the time the novel reaches it in chapter 23 (both counts new). Scavenging parties from the south. Goblins in the slaughter quarter and the drains. In this winter's story, refugees heading south and ork packs coming down behind them. Old magic. Marking, faintly: the best tools in the smithies' racks carry glim-wrights' marks, and nobody left alive knows their words. Wonder and mystery. The blood channels in the slaughter floors, still red-brown after thirty years. The words on the gate. Dangers. Goblins in numbers (III). The drains (V). Other scavengers (II, III). The gate's advice. Finds. The hoist and chain (the only tools in the north that could finish the Slagcrown's gate). Iron shutters. The fixed anvil, which can be used but not taken. Marked tools. Food and oil, for the climb. The upper road Open country · 16 miles and about two days from Coldbarrow to Greystair · held by nobody · danger IV · lore, with new details marked Nothing on wheels gets up it. The road climbs in long switchbacks from Coldbarrow's shelf to the Citadels' scarp, through troll country and past the warm ground of the venting slopes. Layout: the switchbacks above Coldbarrow; the Hewers' Cross (new), where the road crosses the hewers' old track and a stone cross stands with a cold-light mark worn into its face; the edge of the venting slopes; the view of Kell Tor's black tarn and its shut gate; the fork to fallen Greystair and its furnace glow; the last climb to the Slagcrown. Who: quarry-trolls on the high ground; the Bloomery Company's carriers between Greystair and Coldbarrow; listeners, who are seldom seen and see everyone. Dangers: trolls (IV), cold (V), and ork packs coming down. Wonder: the Citadels' scarp seen close for the first time, black and huge, with the Slagcrown's crown-towers on its rim. |
-|---|
-|  |
+**Who is here. The storehouse remnant**: about fifteen people at the start of the winter, five by the time the novel reaches it in chapter 23 (both counts new). Scavenging parties from the south. Goblins in the slaughter quarter and the drains. In this winter's story, refugees heading south and ork packs coming down behind them.
+
+**Old magic.** Marking, faintly: the best tools in the smithies' racks carry glim-wrights' marks, and nobody left alive knows their words.
+
+**Wonder and mystery.** The blood channels in the slaughter floors, still red-brown after thirty years. The words on the gate.
+
+**Dangers.** Goblins in numbers (III). The drains (V). Other scavengers (II, III). The gate's advice.
+
+**Finds.** The hoist and chain (the only tools in the north that could finish the Slagcrown's gate). Iron shutters. The fixed anvil, which can be used but not taken. Marked tools. Food and oil, for the climb.
+
+## The upper road
+
+*Open country · 16 miles and about two days from Coldbarrow to Greystair · held by nobody* *· danger IV · lore, with new details marked*
+
+Nothing on wheels gets up it. The road climbs in long switchbacks from Coldbarrow's shelf to the Citadels' scarp, through troll country and past the warm ground of the venting slopes. **Layout:** the switchbacks above Coldbarrow; **the Hewers' Cross (new)** , where the road crosses the hewers' old track and a stone cross stands with a cold-light mark worn into its face; the edge of the venting slopes; the view of Kell Tor's black tarn and its shut gate; the fork to fallen Greystair and its furnace glow; the last climb to the Slagcrown. **Who:** quarry-trolls on the high ground; the Bloomery Company's carriers between Greystair and Coldbarrow; listeners, who are seldom seen and see everyone. **Dangers:** trolls (IV), cold (V), and ork packs coming down. **Wonder:** the Citadels' scarp seen close for the first time, black and huge, with the Slagcrown's crown-towers on its rim.

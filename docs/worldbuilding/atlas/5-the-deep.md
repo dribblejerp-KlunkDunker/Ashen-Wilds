@@ -144,13 +144,6 @@ Deep places described in other tabs, for anyone laying out the underground world
 | Deep place | Tab | What it is |
 |---|---|---|
 | The Burning Bank | The Blackfen | Peat caverns burned out by the underburn; the Black Wood, the Sleepers, the Trackway |
-
-| Deep place Tab What it is The Lower Ossuary of Saint The Blackfen Burial galleries in the rock; Orra's Steps the unnamed dead behind the Lower Door Dunmere's Undercroft The Blackfen The old fort's tunnels and the granary vaults under the mound The drain under the The Blackfen A crawl-wide culvert, the Watchhouse goblins' road The Causeway tower's culvert The Blackfen A stair inside the wall to a water gate Low Harrow's drowned lanes The Blackfen A town under water and cellars Halwen's service passage, The Bell Road The house's hidden water cistern vault and lower culvert system Rook's Stair's lower adit and The Bell Road Quarry galleries with Holding old galleries marks The Roofed Mile's roof-space The Bell Road The crawler's road above the vault Coldbarrow's drains The Bell Road Brick vaults under the whole town Greystair's breathing hollow The Citadels Where the Hewers' Road breathes Dunmarrow's deep forges The Citadels Quenching halls under the forge-court The Sunk Stair, the White The wider Round and the Written in those tabs Deeps, the Three Mouths, the Drowned Measures Long Cut |
-|---|
-|  |
-
-| Deep place | Tab | What it is |
-|---|---|---|
 | The Lower Ossuary of Saint Orra's Steps | The Blackfen | Burial galleries in the rock; the unnamed dead behind the Lower Door |
 | Dunmere's Undercroft | The Blackfen | The old fort's tunnels and the granary vaults under the mound |
 | The drain under the Watchhouse | The Blackfen | A crawl-wide culvert, the goblins' road |

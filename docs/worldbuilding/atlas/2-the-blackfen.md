@@ -754,7 +754,16 @@ Shorter places of the fen. The four lost towns that were once only names in the 
 3. **The drying racks,** where turves stand to dry from spring to autumn.
 4. **The cuttings,** the stepped workings, deep and wet.
 5. **The bargain stone,** at the end of the row: flat and worn. A trade sworn there with both hands on the stone is binding, by custom.
+6. **The road's head,** where carts load for Merewick.
 
-| 6. The road's head, where carts load for Merewick. Who is here. About thirty people. Dowsett Starke, Odo's brother, who keeps the bargain stone and the count of whose turn it is. Mattock, the oldest cutter, who remembers the last re-driving of the stakes. The cutters' families. Old magic. None. The bargain stone holds by custom alone, which in the Nine Stakes is stronger than law. Wonder and mystery. Odo Starke. The village does not know he is dead: his name-strip asked whoever found him to lime him. Who the third traveller at his cart was, and whether the three came to the Watchhouse door first, nobody knows. The two rotten stakes, and who now has the right to the peat they bounded. Dangers. The cuttings, with deep cold water at the bottom of every step (II). The Merewick road, where visible cargo attracts claims (II). Arguments at the bargain stone that end in the cuttings. Finds. Peat turves, the fen's fuel. Cutters' spades. Flour from Merewick. Hooks. Carry word of Odo, and his name-strip, back to the Nine Stakes. Find a stake-hand, one of Edda's scattered people, to re-drive the rotten stakes. A bargain sworn at the stone that a player cannot keep. In The Long Account, the fen's fuel market. |
-|---|
-|  |
+**Who is here.** About thirty people. **Dowsett Starke**, Odo's brother, who keeps the bargain stone and the count of whose turn it is. **Mattock**, the oldest cutter, who remembers the last re-driving of the stakes. The cutters' families.
+
+**Old magic.** None. The bargain stone holds by custom alone, which in the Nine Stakes is stronger than law.
+
+**Wonder and mystery.** Odo Starke. The village does not know he is dead: his name-strip asked whoever found him to lime him. Who the third traveller at his cart was, and whether the three came to the Watchhouse door first, nobody knows. The two rotten stakes, and who now has the right to the peat they bounded.
+
+**Dangers.** The cuttings, with deep cold water at the bottom of every step (II). The Merewick road, where visible cargo attracts claims (II). Arguments at the bargain stone that end in the cuttings.
+
+**Finds.** Peat turves, the fen's fuel. Cutters' spades. Flour from Merewick.
+
+**Hooks.** Carry word of Odo, and his name-strip, back to the Nine Stakes. Find a stake-hand, one of Edda's scattered people, to re-drive the rotten stakes. A bargain sworn at the stone that a player cannot keep. In The Long Account, the fen's fuel market.

@@ -262,7 +262,7 @@ frame hash. There are no page errors.
 - The player's health is the engine's (43): three claws kill. Health is Phase 11's business.
 - Frame cost on a real graphics card is not measured.
 
-### Proposed in Phase 4: **[PROPOSED], awaiting a ruling**
+### Proposed in Phase 4: **approved 2026-11-19 (O10)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -332,7 +332,7 @@ days); the 8-second blend; every banner is the bible's. In a browser:
 - The weather is per player: co-op does not share it.
 - Frame cost on a real graphics card is not measured. The pass is one full-screen triangle, as the engine's own rain is.
 
-### Proposed in Phase 6: **[PROPOSED], awaiting a ruling**
+### Proposed in Phase 6: **approved 2026-11-19 (O10)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -387,7 +387,7 @@ door without a browser. In a browser the tests *play* it:
 - The roadmap listed light for this phase. The hearth is still the room's one light, unchanged; light as a supply came
   in Phase 7.
 
-### Proposed in Phase 5: **[PROPOSED], awaiting a ruling**
+### Proposed in Phase 5: **approved 2026-11-19 (O10)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -466,7 +466,7 @@ and moving at 11 m, not at 13; the arm leaves the picture's bottom edge. In a br
 - Its frame cost on a real graphics card is not measured. It adds one light to the engine's list, one small picture to
   the HUD, and one 12-byte buffer write before and after the body pass.
 
-### Proposed in Phase 7: **[PROPOSED], awaiting a ruling**
+### Proposed in Phase 7: **approved 2026-11-19 (O10)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -539,7 +539,7 @@ browser:
 - Frame cost on a real card is not measured. The hole adds 18 triangles to the map's static mesh; the smoke adds about
   one puff a second to the engine's particles while you are within 22 cells.
 
-### Proposed in Phase 8: **[PROPOSED], awaiting a ruling**
+### Proposed in Phase 8: **approved 2026-11-19 (O10)**
 
 | # | Invented | Note |
 | --- | --- | --- |
@@ -577,7 +577,26 @@ against a budget of about one. The cause is known (every body is rebuilt in full
 and so is the cure (build each part once and move it on the graphics card); that is the first job
 of the phase that puts the bloom in the game. No test covers this file.
 
-## Rulings (2026-11-11 to 2026-11-14)
+## Lore: the atlas, the people and the wilds between (2026-11-19)
+
+Not a phase: no code changes. At the owner's request ("lets fix any and all names with nothing behind them", "very
+large map", then "update the repo lore so each and every location and character have full entries. I accept all
+proposals across the board"):
+
+- `docs/worldbuilding/atlas/`: the atlas's nine tabs, exported from the Claude Doc and approved (O10), including the
+  scale tab; thin entries filled out (Darnel Cross, the Old Charcoal Lodge, the Split Kiln, the Bell-Tender's House,
+  the Bent Span, the Corpseway, Saint Ebbe's, Saint Leof's, Stakeby, Tavin's road station, Alder Fold, Moss Hythe,
+  the Drowned Measures' eight places, the Long Marrow, the Marrow Passes); the ten other ports of the Compact named
+  and written up; `9-the-wilds-between.md`, ten new places in the open country.
+- `docs/worldbuilding/people/`: a who-is-who of 169 entries, and new full entries for everyone who lacked one.
+- The Chart of the Round (an Artifact) redrawn to the scale, with five views.
+- **Invented here:** everything marked *(new)* in those files, including new people (the Haskett smiths, Garth Collier
+  and Tam, Dowsett Starke and Mattock, the Aske bridge household, Aveline Croft, Ulric Tibb, Jessamy Hesketh, Garrick
+  Hollin, Ambrose Fell, Ide Varrow, and the ten ports' named people). The owner's O10 covers them; any can be struck.
+- **Not done:** Kell Tor and the edge of the Vaults stay written only to their shut doors, by design. The atlas Claude
+  Doc does not yet carry the new entries written here.
+
+## Rulings (2026-11-11 to 2026-11-19)
 
 | Asked | Ruled |
 | --- | --- |
@@ -594,21 +613,21 @@ of the phase that puts the bloom in the game. No test covers this file.
 | Beasts: modelled or painted | **Modelled** (D8 stands), "so long as we can make them look drastically better". The walking bloom is modelled too. The painted beasts are deleted; the second pass at the models awaits the owner's eye. |
 | The sun's day (P27 to P32) | "Yes the days are perfect." Approved; recorded as O8 on the canon sheet. |
 | The second pass at the modelled beasts | "Thank you lets proceed." Taken as approval; the walking bloom went into the game as Phase 4. |
+| Everything still proposed: P33 to P70, the warning book, the chart's placements, the atlas and its scale, the novel's N1 to N20 | "I accept all proposals across the board" (2026-11-19). Recorded as O10 on the canon sheet. The owner also asked for a full entry for every person and place; written the same day (`docs/worldbuilding/people/`, `docs/worldbuilding/atlas/`). |
 | Merging pull requests 38 to 40 | "Merge and proceed." The owner asked Claude to merge them. Each was squashed, so the Octave's pictures stay out of `main`'s history. The old Godot work that was on `main` is kept on `archive/isometric-prototype`. |
 
 ## Decisions I still need
 
-1. **The walking bloom's rules, P33 to P42,** **the door's, P43 to P49,** **the weather's, P50 to P54,** and **the
-   lantern's, P55 to P64,** and **the highland building's, P65 to P70.** Clips 41 to 43, 53 to 54, 68, 78 and 87
-   show them played.
-2. **The opening view.** The design says no prompt appears until every player has looked at the
+1. **The opening view.** The design says no prompt appears until every player has looked at the
    Citadel. Alone, how long is a look?
-3. **The world map's placements.** The chart of the Round (an Artifact, not in this repository) marks every place
-   whose spot I chose. Say which stand, and it can come into the repository with them.
-4. **The warning book of S.30 [PROPOSED].** `docs/worldbuilding/the-warning-book-s30.md` gathers the thirty
-   chapter-head entries of the novel's beats into one readable book, built from Warning-Book Pages
-   (`items-and-texts.md`, proposal 11), with a proposed place for each page. It needs a ruling on the entries,
-   on where each page is found, and on whether the last entry carries Rafe Sedley's name.
+2. **Two Mara Venns and two Harls** (CANON Q2): keep both pairs as different people, or rename one of each.
+3. **The novel's open questions:** the date knot (the tower fell in the autumn of S.29, the winter is S.30, The Long
+   Account opens at the thaw of S.31); whether Rafe Sedley is the deserter on the ledge; the title.
+4. **Odo Starke's route.** Three travellers "from the west", bound for Saint Orra's Steps, died at the Watchhouse
+   yard; the Nine Stakes is 27 miles south of the Watchhouse and the Steps 23 miles west, so the route needs a reason.
+
+Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
+book of S.30.
 
 ## Next phases, in order
 

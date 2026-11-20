@@ -155,6 +155,4 @@ The thaw is four weeks. A company that leaves the ledge in the first week of the
 ## The Blackfen up close
 
 
-| The Watchhouse sits on the fen's north edge, about a quarter of the way in from its west end, where the Bell Road comes down and the Causeway sets out east. The Fen Gate, the tower and the Cold Passing are all within five miles of its door. |
-|---|
-|  |
+The Watchhouse sits on the fen's north edge, about a quarter of the way in from its west end, where the Bell Road comes down and the Causeway sets out east. The Fen Gate, the tower and the Cold Passing are all within five miles of its door.

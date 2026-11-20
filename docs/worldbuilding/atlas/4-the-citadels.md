@@ -207,6 +207,22 @@ Citadel's own pumped water, warm from the deep. The beacon tower. The Marne libr
 
 **Layout.**
 
-| 1. The lower slope, open ground where an ogre feeds. 2. The vent line, a row of cracks and fumaroles across the hill, warm enough to boil water in places. 3. The flower ground (new), the warmest turf, in bloom out of season. 4. The Bloom drifts, still hollows full of hanging spores, the miners' dead among them with their brass tags. 5. The upper slope, steep scree to the scarp's foot and the lower gate of the Slagcrown. Who is here. Nobody living. The miners' dead. Walking blooms, some of them the Company's people a week ago. An ogre on the lower slope. Bees. Old magic. None that anyone knows. The heat is from below, and why the hills are warm runs from the old fires to something that breathes. Weather. Locked between ashfall and cinder-squall: the vents make gusts that are hot and dry one hour and still the next. Wonder and mystery. A spring you can die in. The tags, each a name the Slagcrown's roll can return. Dangers. Spore clouds in the hollows (V). The ogre (IV). Blooms (II). Vents underfoot (V). Finds. The brass tags, heavy. Early herbs. Warmth. Hooks. The novel's chapter 25. |
-|---|
-|  |
+1. **The lower slope,** open ground where an ogre feeds.
+2. **The vent line,** a row of cracks and fumaroles across the hill, warm enough to boil water in places.
+3. **The flower ground (new),** the warmest turf, in bloom out of season.
+4. **The Bloom drifts,** still hollows full of hanging spores, the miners' dead among them with their brass tags.
+5. **The upper slope,** steep scree to the scarp's foot and the lower gate of the Slagcrown.
+
+**Who is here.** Nobody living. The miners' dead. Walking blooms, some of them the Company's people a week ago. An ogre on the lower slope. Bees.
+
+**Old magic.** None that anyone knows. The heat is from below, and why the hills are warm runs from the old fires to something that breathes.
+
+**Weather.** Locked between ashfall and cinder-squall: the vents make gusts that are hot and dry one hour and still the next.
+
+**Wonder and mystery.** A spring you can die in. The tags, each a name the Slagcrown's roll can return.
+
+**Dangers.** Spore clouds in the hollows (V). The ogre (IV). Blooms (II). Vents underfoot (V).
+
+**Finds.** The brass tags, heavy. Early herbs. Warmth.
+
+**Hooks.** The novel's chapter 25.
