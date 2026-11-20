@@ -797,6 +797,7 @@ is the game telling you where you are.
 ## 18. The things that make this game its own
 
 ### 18.1 The muster book as the spine
+
 Four lines, and the muster book grows across hundreds of runs. Some unlocks are patterns in it, not
 totals of kills.
 
@@ -1008,7 +1009,7 @@ weather-as-shader system. The Tally is top-down and its world is a horde field.
 60 fps locked on an Intel Chromebook in Chrome at **1,500 enemies, 600 player projectiles, 200 enemy
 projectiles, 3,000 particles, 400 embers, 30 lights**. Simulation step **<= 4 ms**, render **<= 6 ms**.
 Memory **< 600 MB**. First load **< 15 MB** before the title screen; stages stream. `tests/stress.html`
-spawns the target horde with a frame-time graph and runs at every milestone.
+spawns the target horde with a frame-time graph and runs at every milestone from M2.
 
 ### 23.5 Saves
 
@@ -1134,20 +1135,20 @@ prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, 
 gallery-crawler, reed-jaw, cutwarden, plate-reaver, grey-rag raider, the Unpaid - and the unique art
 of bosses 4 to 9.
 
-Each milestone ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
+Each milestone from M2 ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
 a stop for sleeves.
 
 | # | What | Gate |
 | --- | --- | --- |
 | **M0** | Read and plan. `design.md`, `lore-deltas.md`, `plan.md`. No code. | sleeves rules the deltas |
-| **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
+| **M1** | Feel, movement only: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, goblins with steering and separation, embers, the level curve, a bare page, and `tests/feel.html`. The Watch Sword is not in M1: it is one of M3's eight weapons. `tests/stress.html` is not in M1 either: it is built for M2's frame-time capture. | sleeves says the movement is right |
 | **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. One player's snapshot budget only. | a frame-time capture in the PR |
 | **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and **two** creature sheets rendered to prove the art pipeline: the **goblin scavenger** and the **ork shield**. The other eleven are M4a's and M6's. Behaviour, not balance. | all 16 items exist and are data-driven and unit-tested: every weapon and kit defined in `data/`, no item special-cased in code; all 8 evolutions resolve from their pairs; and both sheets load through `data/enemies.js` and render in the stress scene at 1x, so the remaining eleven are repetition and not discovery |
 | **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, and **six of the thirteen sheets** (walking bloom, corpse-cap, spore drift, goblin nest-runt, the Silent, the Ogre). | the night runs 0 to 30 with every beat firing; rough is allowed |
-| **M4b** | Stage 1, good: the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
+| **M4b** | Stage 1, good: the measuring bot (`tests/bot.html`), the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
 | **M5** | Meta and roster: the Tally Room, saves with export, the relics of stages 1-3, characters 1-6 and their unlocks. | a run survives a reload and the roster is playable |
 | **M6** | The road so far: stages 2 and 3, their bosses and pages, and the Watch Rota. | three stages, start to finish, with no dead ends |
-| **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | it runs on the worst machine and reads on the smallest screen |
+| **M7** | Ship: the full ship bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | it runs on the worst machine and reads on the smallest screen |
 
 **Why M3 and M4 are split.** M3 proves the data and is not a game: it is done when the 16 items exist,
 the 8 evolutions resolve, and a test says so; nothing in it is tuned. M4a is done when the night is
@@ -1170,7 +1171,7 @@ means both halves.
 ## 27. Definition of done, every milestone
 
 1. All unit and sim tests pass **on the exact commit in the PR**.
-2. The stress scene holds 60 fps at the target counts on the Chromebook, with the capture attached.
+2. From M2, the stress scene holds 60 fps at the target counts on the Chromebook, with the capture attached.
 3. Pictures or a short clip of everything new, in the PR.
 4. `lore-deltas.md` updated; nothing new slipped into canon without a **proposal** mark.
 5. No console errors; **no allocation per frame** in the hot loop, checked in the profiler.
