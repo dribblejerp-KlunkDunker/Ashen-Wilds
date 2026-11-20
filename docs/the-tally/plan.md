@@ -109,10 +109,22 @@ All ten questions in PR #49 were ruled on **2026-11-20**, every one as recommend
 
 The four that change code rather than text are therefore settled: the currency (**salt**, not coin),
 the player's colour (**pale blue**, never teal), Edda's weapon (**Nails**), and the roster's shape.
-**Nothing in `design.md` changes**: every ruling confirmed what it already specifies.
 
-Fifteen proposals in `lore-deltas.md` are still open (P1-P6, P9-P15, P16 and P17). None of them blocks M1.
-They are the ones that alter the design's text rather than its framing, and they need a second pass.
+**The seventeen proposals, ruled 2026-11-20 in a second pass, every one as written:** salt as the
+currency with **Measure** as the stat; the fourth muster-book line, **did not answer**; the
+wayfarer's horn at the Order; Rafe's **Go back**; the Reed-Jaw as stage 5's boss; the **Grey Hour**
+in place of the Thaw; brass tags at the Naming Stone; a bell near a listener costing their trust;
+marks fading and renewed at a fire; the naming at a grave as a timed, loud action; return-bread on
+the Causeway as food, never a charm; the tower bell struck once with its tongue returned; Kell Tor's
+tarn from Greystair; the bargain at the covenant recess, with the altar empty; and **Call the Roll**
+for the Marking working, so the canon Seam Roll keeps its name.
+
+**One ruling changes a build.** Marks are renewed at a fire, so stage 2, the Old Causeway, gets one
+brazier (16.2 of `design.md`). That is the only thing the second pass adds to the design; everything
+else was already written into it.
+
+Nothing in `lore-deltas.md` now waits on a ruling except the two names in 34, which are open to M4 by
+ruling.
 
 ## What is not in this plan
 
