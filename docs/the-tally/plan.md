@@ -57,12 +57,15 @@ this is built on how it feels.
 effect limiter, the light pass. The gate is a frame-time capture. One player's snapshot budget only:
 no interest management until v1.1.
 
-**M3, the build.** The 8 weapons, 8 kit and 8 evolutions, boxes, workings, the Debt, the cough, and the
-first modelled goblin and ork rendered to sheets.
+**M3, the build.** The 8 weapons, 8 kit and 8 evolutions as data, boxes, workings, the Debt, the cough,
+and the first modelled goblin and ork rendered to sheets. The gate is a test, not a feeling: all 24
+items exist, are data-driven and are unit-tested. Nothing in M3 is tuned.
 
-**M4, stage 1.** The complete night. This is the milestone that decides whether the game is good,
-because stage 1 holds every one of the game's ideas: the fire, the naming, the rot, the Order, the
-Grey Hour, a wonder, a boss and a book line.
+**M4, stage 1.** The complete night, in two halves. **4a** is the night whole - the fire, the naming,
+the rot, the Order, the Grey Hour, a wonder, a boss, a book line, thieves - and its gate is that the
+script fires from 0 to 30, rough allowed. **4b** is the night good: the tuning pass in section 24, 50
+seeded games a character, music and sound, the book line and the map portrait. Stage 1 holds every one
+of the game's ideas, so these two halves are where the game is decided.
 
 **M5, meta and roster.** The Tally Room, saves with export, the relics of stages 1-3, and characters
 1-6 with their unlocks.
@@ -71,6 +74,42 @@ Grey Hour, a wonder, a boss and a book line.
 start to finish, with no dead ends.
 
 **M7, ship.** The bot, accessibility, Chromebook performance, README, Pages, a trailer capture.
+
+## What it costs
+
+**Person-days, one developer, art included, three stages.** A day is one person's working day. The
+ranges are estimate, not promise: where the work is understood the spread is narrow, where it is not
+the spread is the honest width of the ignorance. Five days a week, about 21 a month, so the total is
+**9 to 13 months solo**.
+
+| Milestone | The work | Days |
+| --- | --- | --- |
+| **M1** | Feel: fixed step, movement, the Watch Step, collision, one enemy, embers, the level curve | 13-19 |
+| **M2** | The horde: instancer, pools, spatial hash, flow fields, the light pass, 1,500 at 60 fps | 25-37 |
+| **M3** | The build as data: 24 items, 8 workings, the Debt, the cough, the first two creature sheets | 30-45 |
+| **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves | 30-44 |
+| **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
+| **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
+| **M6** | Stages 2 and 3: two maps, two bosses, two pages, six more creatures | 32-48 |
+| **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, the trailer | 13-19 |
+| | **Total** | **185-278** |
+
+**What balloons.** M4 is the largest block by far - 51-78 as one, about 28% of the total - and it is
+split in `design.md` section 26 because its halves fail differently: 4a can be finished and dull, 4b
+can be tuned and unplayable. M3 (30-45) is next: 24 items of behaviour, 8 workings, and a test for
+each. M6 (32-48) is two stages through a pipeline that is by then proven, so it is roughly 4a plus
+part of 4b, twice; art is linear per stage, which is why it does not fall even though the engine work
+is done.
+
+**What I could not verify.** These numbers assume The Long Account's parts port: `js/audio.js` for
+the mix and the streaming score, `js/net19.js` for v1.1, the sun and light modules, `test/` and
+`tools/shots.js`. They are named in `design.md` 23.3, but this worktree carries only `docs/`, so I
+could not open or run them. If the audio engine has to be rebuilt, M4b and M7 are the two that grow,
+and the mix stops being the cheap item. The other reuse is lower risk and mostly bites in M2.
+
+**What is not in the numbers.** Co-op (v1.1), the post-1.0 road, balance past the 4b pass,
+localisation, store pages, and marketing. The estimate is for the design as written at v1, not for
+the game as it will feel once stage 1 is in front of a player.
 
 ## What I think is risky
 
