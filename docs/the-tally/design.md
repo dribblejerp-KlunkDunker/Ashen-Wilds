@@ -20,7 +20,7 @@ choices. The Tally adopts that framing as a rule of the game:
 > **Every run is what may have happened that winter.**
 
 That single sentence is why Merrick can be played and still die at the gate, why Pim can walk out of
-the White Trees, and why Winna, whose fate canon leaves unsettled, can stand at the fire. The book
+the White Trees, and why Winna, whose fate canon leaves unsettled, can stand at the fire. The muster book
 records what the run did. It does not correct the lore. It is the same move canon already makes.
 
 ---
@@ -70,6 +70,9 @@ It is the roster's standing order, word for word:
 Fall back to the Watchhouse. Bring the book.
 ```
 
+The book the order means is the tower's **muster book**, the roll of names: it is the one that
+travels. The warning book is already at the Watchhouse and never leaves the fire.
+
 Then the prompt, for ten seconds: **"Did you hear the order?"**
 
 | Answer | What happens |
@@ -85,7 +88,7 @@ moral weight and it is the novel's own question. **Rafe** gets a third answer: *
 Health to zero ends the run on a quiet screen: the muster book, a pen moving, the line for the dead.
 Salt and brass tags are kept at **100%**. Strongbox contents not yet opened are lost.
 
-### 2.4 The book's four lines
+### 2.4 The muster book's four lines
 
 | Line | Entry condition |
 | --- | --- |
@@ -94,7 +97,7 @@ Salt and brass tags are kept at **100%**. Strongbox contents not yet opened are 
 | **Deserted** | took the Order and left |
 | **Did not answer** | the ash's own: the Silent put down, the Unnamed laid, a companion lost |
 
-Each is a real page in the collection. Patterns in the book unlock characters and stages: ten
+Each is a real line in the muster book. Patterns in it unlock characters and stages: ten
 **Deserted** lines, a full page of **Held**, a page of **Did not answer** that is longer than you
 meant it to be.
 
@@ -276,7 +279,7 @@ Five levels each.
 | **Return-Bread** | +0.2 Recovery | Reedwake's return-bread |
 | **Warning-Book Page** | +10% Duration | a page of the warning book, found where its entry happened |
 | **Brass Tag** | +10% Luck | the tags on the miners' dead |
-| **Muster Roll** | +8% Growth | the book's list of names |
+| **Muster Roll** | +8% Growth | the muster book's list of names |
 | **Lamp Oil** | +10% projectile Speed | oil counted in nights |
 | **Iron Ration** | +20 Max Health | Watch stores |
 | **Passage Rule** | +1 Amount at levels 3 and 5 only (rare) | Merrick's letters-board |
@@ -385,19 +388,20 @@ rag, one stick, in a low box).
 
 ### 11.4 Relics (16+)
 
-Permanent, found once, each tied to a place.
+Permanent, found once, each tied to a place. **The warning book is not one of them**: it never leaves
+the fire, so what you find and carry are its pages (17.4).
 
 | Relic | Where | Unlocks |
 | --- | --- | --- |
 | **The Muster Book's Clasp** | the Watchhouse, the tally room | **Turn the page** |
 | **Gytha Marrin's Seal** | the Causeway toll house | **Strike it out** |
 | **A Tally Stick** | Darnel Cross | the minute-by-minute kill graph on the end screen |
-| **The Warning Book** | the Watchhouse | reading a stage's entry, and its hint, before a run |
+| **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
 | **The Kept Hand** | Halwen's chapel | the Kept Hand working |
 | **A Bent Spoon from Darnel Cross** | Darnel Cross | Hard Bargain shop items |
 | **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
-| **Osric Brayne's Sheet** | the bricked hatch | a page of the book that names the turned away |
+| **Osric Brayne's Sheet** | the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
 | **T. Gale's Kettle Hat** | the ogre's bone heap | a Watch helm; the refuge asks for it back |
 | **Winna's Pot** | the ogre's bone heap | the pot returns to the children; a book line |
 | **Odo Starke's Name-Strip** | the Spore-Choked Cart | carry it to Dowsett at the Nine Stakes |
@@ -414,7 +418,7 @@ thin pale-blue outline on their icon.
 ## 12. Characters
 
 **Twelve, plus three secret.** Every one is human (O1). Each has a starting weapon, a trait, small
-stat differences, a unique dodge, and a line of their own in the book.
+stat differences, a unique dodge, and a line of their own in the muster book.
 
 | # | Character | Starts with | Trait | Unlock |
 | --- | --- | --- | --- | --- |
@@ -424,7 +428,7 @@ stat differences, a unique dodge, and a line of their own in the book.
 | 4 | **Aud**, a listener | Cold Light | **The Lesson:** her cold light lingers 50% longer; darkness never shrinks her light radius | reach Greystair |
 | 5 | **Tobin Crane**, of the Bloomery Company | Bloomery Hammer | **Hammers:** each consecutive hammer hit is +2% damage to +40%; reset when he is hurt | open 25 strongboxes |
 | 6 | **Edda Wray** | Nails | **The Assize Corner:** +1 Armour per wall or obstacle within 2 tiles (max +4) | survive 60 s below 10% health |
-| 7 | **Pim Haddow** | Muster Book | **Kept the Book:** +15% Growth; Named kills give double embers | write 100 lines in the book |
+| 7 | **Pim Haddow** | Muster Book | **Carried the Book:** +15% Growth; Named kills give double embers | write 100 lines in the book |
 | 8 | **Grisel**, hedge-priest of no chapel | Salt Pouch | **Hedge-Lore:** blooms take +30% from her; spores do not stack the cough on her | Name 1,000 enemies |
 | 9 | **Winna** | Peat Fire | **The Pot:** all healing pickups heal double; her fires warm allies in co-op | heal 5,000 health in total |
 | 10 | **[name]**, a hand from the Split Kiln | Lime Sack | **Kiln-Burned:** immune to lime and burn; her lime patches are 25% larger | lime 10,000 enemies |
@@ -512,7 +516,8 @@ Affixes: **Limed** (immune to lime), **Banner** (buffs neighbours), **Hollow** (
 ## 14. Bosses
 
 Every boss: an arrival (music drops, a sound, a warning-book line on screen), a health bar with its
-name in the book's hand, 2-3 patterns with clear telegraphs, a phase at 50%, and a death that matters.
+name in the warning book's hand, 2-3 patterns with clear telegraphs, a phase at 50%, and a death that
+matters.
 
 | Stage | Boss | The fight |
 | --- | --- | --- |
@@ -613,7 +618,7 @@ Rising: the water level changes through the run. **Mechanic: dykes.** Cutwardens
 each cut floods a quarter of the map with slow water and congers. Stop them, or use the flood against
 the horde. **Boss:** the Reed-Jaw of the Long Cut at 15:00. **Wonder:** the Drowned Orchard in flower
 under the water at 22:00. **Page:** *blank*. The warning book has no entry for the Measures, and the
-page shows its number and nothing else, which is the book's own rule for a page not yet found.
+page shows its number and nothing else, which is the warning book's own rule for a page not yet found.
 
 ### 16.6 Stage 6 - The Roofed Mile
 
@@ -655,7 +660,7 @@ unfinished Weight Gate on its scaffold.
   with a volunteer prompt and no default. That player's run ends at the gate; everyone else wins; the
   line is **Held the gate**, and it marks their portrait forever.
 
-**Pages:** entries 27, 28, 29, 30, in that order, and 30 appears in the book by itself.
+**Pages:** entries 27, 28, 29, 30, in that order, and 30 appears in the warning book by itself.
 
 ### 16.10 Secret stages
 
@@ -673,7 +678,7 @@ unfinished Weight Gate on its scaffold.
 **The Long Account** (endless): any stage, no Grey Hour, and every 10 minutes the Account comes due.
 **The Approved Load** (challenge tiers): ten stacking tiers chosen before a run, each one weight: +enemy
 speed, fewer heals, no dodging, the dark never lifts, elites everywhere, the Order cannot be refused.
-Each tier adds salt and a mark on the book's line. **The Watch Rota** (daily): one seeded run a day,
+Each tier adds salt and a mark on the muster book's line. **The Watch Rota** (daily): one seeded run a day,
 fixed character, stage and workings.
 
 ---
@@ -694,23 +699,36 @@ small permanent boons. It fills slowly over the whole game: the long arc.
 
 ### 17.3 The Muster Book
 
-Every run writes a line: character, stage, minutes, kills, how it ended, and the build's evolved
-weapons. It also holds a page for every enemy killed, every weapon, kit, evolution, working and relic
-found, and every place visited, each with a short note in the world's voice. Achievements are written
-as book entries, never as pop-up trophies.
+The Causeway Watch's roll of names, and the one that travels. Pim Haddow carried it to the Watchhouse
+about nine weeks before Rafe arrived and wrote its last entry there: four dead, a date, and
+*Deserted: none*.
 
-### 17.4 Warning-book entries
+Every run writes one line in it: character, stage, minutes, kills, how it ended, and the build's
+evolved weapons. The small kindnesses write their lines here too ("[Name], carried to the fire"), and
+so does every name spoken at a grave. Patterns in the muster book, not totals of kills, unlock characters
+and stages: ten **Deserted** lines, a full page of **Held**, and a page of **Did not answer** that is
+longer than you meant it to be.
 
-Every stage opens with its entry on screen while it loads, in the canon text of
-`the-warning-book-s30.md`. New entries unlock by playing, and a missing one shows its number and
-nothing else.
+Weapons, kit, evolutions, workings and relics are in neither book in the lore. The collection gives
+them their own leaves, in the same hand: a UI conceit, and nothing more.
+
+### 17.4 The Warning Book
+
+A different object, and it never leaves the Watchhouse fire. Margery Reeve has kept it since S.12.
+It holds the beast pages (the bestiary) and the thirty dated entries of the winter of S.30.
+
+Its **pages** travel. Each is found where its entry happened and carried back, and each returned
+page fills that leaf and unlocks its **hint**. A page not yet found is not blank: it shows its
+number and nothing else. Entry 30 is the exception and appears by itself. Every stage still opens
+with its entry on screen while it loads, in the canon text of `the-warning-book-s30.md`, because that
+is the game telling you where you are.
 
 ---
 
 ## 18. The things that make this game its own
 
-### 18.1 The book as the spine
-Four lines, and the book grows across hundreds of runs. Some unlocks are patterns in the book, not
+### 18.1 The muster book as the spine
+Four lines, and the muster book grows across hundreds of runs. Some unlocks are patterns in it, not
 totals of kills.
 
 ### 18.2 The rot
@@ -769,7 +787,7 @@ the game does not soften it.
 
 ### 18.13 Bell-ringing combos
 Every ring of any bell adds to a hidden count. **13 rings in 13 seconds** and a deep bell sounds from
-far off and every enemy on screen hesitates for 1 s. Players will find it; the book will note it.
+far off and every enemy on screen hesitates for 1 s. Players will find it; the muster book will note it.
 
 ### 18.14 Small kindnesses
 Some stages have survivors: a woman at a cistern, a child in the reeds, an old man with a cart.
@@ -779,7 +797,7 @@ book: **"[Name], carried to the fire."** No reward beyond the line.
 ### 18.15 The naming at the graves
 Stage 1's mechanic, and the game's first real choice. An Unnamed cannot be killed: cut it down and it
 rises whole. To lay one you must **kneel at its grave and speak a name**: three seconds, stationary,
-loud, and it draws the horde. Doing it is worth brass and a line in the book. Doing it during the Grey
+loud, and it draws the horde. Doing it is worth brass and a line in the muster book. Doing it during the Grey
 Hour is how the best runs end. The game never says whether the name has to be true, because canon
 never says either.
 
@@ -820,7 +838,7 @@ trolls into stone.
 
 **UI.** Ink on paper, iron and leather. Top bar: XP as a line of **tally marks** filling in. Health as
 a red-brown **cord** under the player. Weapon and kit slots as woodcut icons with cooldown rings. The
-timer is **a candle burning down**. Salt and kills in the book's hand. A readable book face for
+timer is **a candle burning down**. Salt and kills in the muster book's hand. A readable book face for
 numbers, a period hand for headings. Readability is never sacrificed.
 
 **Key screens:** title (the key-painting view, coal sun, animated reeds, slow ember drift), the Tally
@@ -851,7 +869,7 @@ already exist in `js/audio.js` and are reused.
 
 Title -> (first time: a 60-second playable opening at the Outside Fire with no UI but the health cord,
 teaching move, auto-fire, embers and the first level-up) -> Tally Room -> character select -> stage
-select -> (optional) Approved Load -> run -> the book line -> the map portrait -> the Tally Room.
+select -> (optional) Approved Load -> run -> the book's line -> the map portrait -> the Tally Room.
 
 The pause menu shows the build (every weapon and kit, its level, and what it evolves with), the run's
 stats, options, and **Deserted** (quit, written as deserting).
@@ -929,7 +947,7 @@ the-tally/
   js/    core/ (loop rng input audio save)  sim/ (entities spatial flow spawn combat)
          weapons/  enemies/  render/ (gl atlas lights ui)  net/  screens/
   data/  weapons.js kit.js evolutions.js workings.js enemies.js characters.js relics.js
-         palette.js stages/  text/ (warning book, barks, book lines)
+         palette.js stages/  text/ (warning-book entries, barks, muster lines)
   art/   audio/
   tests/ unit/ sim/ feel.html stress.html bot.html
   docs/the-tally/ design.md lore-deltas.md plan.md balance.md art/reference.md
@@ -941,7 +959,7 @@ in a `shared/` folder both pages can load, and nothing in `js/` is duplicated.
 ### 23.8 Tests
 
 **Unit** (a tiny no-dependency runner, the repo's own pattern): level curve, damage formula, evolution
-rules, strongbox rolls, spawn budget, Debt, save migration, the book's four lines.
+rules, strongbox rolls, spawn budget, Debt, save migration, the muster book's four lines.
 **Headless sim:** 30 minutes at 10x with a scripted bot; no crashes, no NaNs, entity counts in budget,
 the boss on time, the Grey Hour ends the run.
 **Feel** and **stress** scenes, played by a person and captured for the PR.
@@ -985,7 +1003,7 @@ sleeves.
 | **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
 | **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. | a frame-time capture in the PR |
 | **M3** | The build: all 16 weapons, 16 kit, evolutions, strongboxes and the ceremony, pickups, breakables, workings, the Debt, the cough, and the first modelled goblin and ork rendered to sheets. | the build is a game |
-| **M4** | Stage 1 complete: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, music and sound, the book line, the map portrait. | a full 30 minutes is fun start to finish |
+| **M4** | Stage 1 complete: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish |
 | **M5** | Meta: the Tally Room, the Naming Stone, the collection, saves with export, characters 1-4 and their unlocks. | |
 | **M6** | The road: stages 2-6, characters 5-8. | |
 | **M7** | The north: stages 7-9, the Weight Gate, the billman; characters 9-12; the Silent, the listeners, Dead Calm, the Bright Hour. | |
