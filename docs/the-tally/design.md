@@ -616,6 +616,7 @@ the yard. The only way to lay one is to kneel at a grave and speak a name: three
 you cannot move.
 **Wonder:** at 12:00 the reeds catch the last of the light and turn gold for 20 s.
 **Opening page:** warning book entry 1, nailed to the fence post.
+**Kindness:** a child in the reeds at Withy Bottom, hiding until the way is clear.
 
 ### 16.2 Stage 2 - The Old Causeway
 
@@ -626,6 +627,7 @@ stone house across the road, come up at 6:00, the Watch's second post and where 
 was left (11.4). **Wonder:** at low water, the drowned lanterns along the dry ways glow under the
 surface. **Brazier:** the causeway's one fire, where a faded mark is renewed. **Boss:** the Causeway
 Tower band at 15:00. **Page:** entry 6, *The Dry Ways*.
+**Kindness:** an old man with a cart, stuck on the causeway with a broken axle.
 
 ### 16.3 Stage 3 - Halwen House
 
@@ -637,6 +639,7 @@ place.
 claims:** with the Glass Key, the cistern vault opens. Inside is nothing. The game never explains it,
 and after that the door is open a crack on every Halwen run. **Boss:** the Halwen siege at 15:00.
 **Wonder:** the glasshouse range at dawn, every pane lit. **Page:** entry 12, *The Culvert*.
+**Kindness:** a woman at the cistern, with the Remnant in the corridors.
 
 ### 16.4 Stage 4 - Rook's Stair
 
