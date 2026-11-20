@@ -14,6 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`).
 
 ## The owner's rules
 
@@ -44,6 +45,7 @@ thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door h
     node test/sun3.test.js --no-browser
     node test/bloom4.test.js --no-browser
     node test/door5.test.js --no-browser
+    node test/weather6.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -53,12 +55,14 @@ thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door h
     NODE_PATH=$(npm root -g) node test/sun3.test.js
     NODE_PATH=$(npm root -g) node test/bloom4.test.js
     NODE_PATH=$(npm root -g) node test/door5.test.js
+    NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
     NODE_PATH=$(npm root -g) node tools/bloomshots.js docs/screenshots    # the walking bloom, posed
     NODE_PATH=$(npm root -g) node tools/bloomgifs.js docs/screenshots     # and played, as clips (needs ffmpeg)
     NODE_PATH=$(npm root -g) node tools/doorshots.js docs/screenshots     # the door: stills and played clips
+    NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -90,6 +94,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/sun3.js            Phase 3: the sun crosses the sky; coal, coin and clear days
     js/bloom4.js          Phase 4: the walking bloom: a pure think() step, a boned body drawn by one pass
     js/door5.js           Phase 5: the bar on the bothy's door; the doors the bloom can go through (BLOOM4.DOORS)
+    js/weather6.js        Phase 6: ashfall and sleet, by day number; a pass that stops at roofs (EAVES78.shelter)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -131,6 +136,12 @@ Useful facts, all checked in this repository:
 - To let the bloom use a door, push `{ from, at, to, out, barred(), onBarred(S), waitAt }` onto `BLOOM4.DOORS` and
   give the far map an entity with `BLOOM4.addMap(map)`. `transfer(portal)` and `useDeco(e)` in `js/game.js` are the
   hooks for a door that will not open and a thing you use.
+- Anything that falls (ash, sleet) should stop at roofs: read `EAVES78.shelter(map)` (heights in game units, times
+  `R3D.ZK`), place each flake in the world along the view ray, skip it under a roof, and write `gl_FragDepth` so walls
+  hide it. `js/weather6.js` does all three. `R3D.passes()` returns copies; to wrap a pass, use `R3D.getPass(name)`.
+- The weather on this game's maps is `WEATHER6`, not the engine's `Weather` (held 'clear' since Phase 1). It reaches
+  the light through `Engine.setWeather`, the fog through `R3D.on('frame')`, walking through `playerMove` and the
+  bloom through `BLOOM4.setSenses`.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
