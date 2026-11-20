@@ -44,13 +44,15 @@ const BLOOM4 = (() => {
     hearAt: 3.0,                                       // the engine's noise value it cannot hear under (standing 1.0, walking 2.4 and a little for what you wear, running 4.2)
     hearPer: 8 / (4.2 - 3.0),                          // so that a run is heard at 8 m
     see: 8, seeCone: Math.PI * 2 / 3,                  // 8 m, 120 degrees, and only what moves
+    litSee: 1.5,                                       // a lantern burning in the dark: seen standing still, and 12 m off (Phase 7)
     reach: 0.62, claw: 16, windup: 0.7, rest: 1.5, choke: 2,
     turn: 0.8, listen: 7, waitFor: 22, giveUp: 14, radius: 0.26, stride: 3.4,
   };
   const hearRange = (noise) => Math.max(0, (noise - R.hearAt) * R.hearPer);
   const hears = (noise, dist) => dist <= hearRange(noise);
-  function sees(S, px, py, moving, k) {
-    if (!moving) return false; const dx = px - S.x, dy = py - S.y, d = Math.hypot(dx, dy); if (d > R.see * (k == null ? 1 : k) || d < 1e-6) return false;
+  // lit (Phase 7): a lantern burning in the dark shows you standing still, and from further (R.litSee times as far)
+  function sees(S, px, py, moving, k, lit) {
+    if (!moving && !lit) return false; const dx = px - S.x, dy = py - S.y, d = Math.hypot(dx, dy); if (d > R.see * (k == null ? 1 : k) * (lit ? R.litSee : 1) || d < 1e-6) return false;
     let a = Math.atan2(dy, dx) - S.yaw; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.abs(a) <= R.seeCone / 2;
   }
   const fresh = () => ({ map: 'la_ledge', x: R.post.x, y: R.post.y, yaw: R.post.yaw, state: 'post', t: 0, tx: R.post.x, ty: R.post.y, phase: 0, walk: 0, reach: 0, alert: 0, heard: 0, clawed: 0, choke: 0 });
@@ -59,7 +61,7 @@ const BLOOM4 = (() => {
   function think(S, env, dt) {
     const ev = { heard: false, claw: false, door: false }, d = Math.hypot(env.px - S.x, env.py - S.y);
     // the weather can shorten both (Phase 6): env.hearK and env.seeK scale how far a sound carries and how far it sees
-    const aware = env.here && (hearRange(env.noise) * (env.hearK == null ? 1 : env.hearK) >= d || sees(S, env.px, env.py, env.moving, env.seeK));
+    const aware = env.here && (hearRange(env.noise) * (env.hearK == null ? 1 : env.hearK) >= d || sees(S, env.px, env.py, env.moving, env.seeK, env.lit));
     const face = (x, y, rate) => { let a = Math.atan2(y - S.y, x - S.x) - S.yaw; a = Math.atan2(Math.sin(a), Math.cos(a)); const m = rate * dt; S.yaw += clamp(a, -m, m); return Math.abs(a); };
     const go = (state) => { S.state = state; S.t = 0; };
     S.t += dt;
@@ -393,6 +395,7 @@ void main() {
   const DOORS = [], ents = {};
   // what the air does to its senses on a map: a later phase (js/weather6.js) replaces this
   let senses = () => ({ hear: 1, see: 1 });
+  let light = () => 0;                                                           // Phase 7: is the player's lantern showing them on this map
   const groundOf = (id) => (id === L1.LEDGE ? L1.landH : () => 0);
   const doorFrom = (id) => DOORS.find((d) => d.from === id) || null;
   function blockedOn(m) {
@@ -417,7 +420,7 @@ void main() {
     const m = G.maps[S.map], c = Engine.cam, here = G.map === m, moving = here && Math.hypot(c.x - last.x, c.y - last.y) > dt * 0.4; last = { x: c.x, y: c.y };
     const door = doorFrom(S.map), homeIsDoor = S.map !== L1.LEDGE && !!door;
     const sk = senses(S.map);
-    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, home: homeIsDoor ? door.at : R.post, homeIsDoor };
+    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, home: homeIsDoor ? door.at : R.post, homeIsDoor, lit: here ? light(S.map) : 0 };
     const ev = S.held ? { heard: false, claw: false, door: false } : think(S, env, Math.min(dt, 0.1));
     if (ev.door && door) through(door);
     if (ev.heard && G.time - saidHeard > 12) { saidHeard = G.time; msg(S.map === L1.LEDGE ? TX.heard : TX.heardIn, 'bad', 3500); }
@@ -449,6 +452,6 @@ void main() {
     return true;
   }
   const wired = wire();
-  return { R, TX, B, NB, STRIDE, hearRange, hears, sees, fresh, think, rig, sculpt: getMesh, paintFlat, state: () => S, reset, pose, modelled, entity: (id) => ents[id || L1.LEDGE], addMap, DOORS, setSenses: (fn) => { senses = fn; }, gl: () => GLS, pass, wired };
+  return { R, TX, B, NB, STRIDE, hearRange, hears, sees, fresh, think, rig, sculpt: getMesh, paintFlat, state: () => S, reset, pose, modelled, entity: (id) => ents[id || L1.LEDGE], addMap, DOORS, setSenses: (fn) => { senses = fn; }, setLight: (fn) => { light = fn; }, gl: () => GLS, pass, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BLOOM4;

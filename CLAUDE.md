@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`).
 
 ## The owner's rules
 
@@ -46,6 +46,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`).
     node test/bloom4.test.js --no-browser
     node test/door5.test.js --no-browser
     node test/weather6.test.js --no-browser
+    node test/lantern7.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -56,6 +57,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`).
     NODE_PATH=$(npm root -g) node test/bloom4.test.js
     NODE_PATH=$(npm root -g) node test/door5.test.js
     NODE_PATH=$(npm root -g) node test/weather6.test.js
+    NODE_PATH=$(npm root -g) node test/lantern7.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -63,6 +65,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`).
     NODE_PATH=$(npm root -g) node tools/bloomgifs.js docs/screenshots     # and played, as clips (needs ffmpeg)
     NODE_PATH=$(npm root -g) node tools/doorshots.js docs/screenshots     # the door: stills and played clips
     NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -95,6 +98,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/bloom4.js          Phase 4: the walking bloom: a pure think() step, a boned body drawn by one pass
     js/door5.js           Phase 5: the bar on the bothy's door; the doors the bloom can go through (BLOOM4.DOORS)
     js/weather6.js        Phase 6: ashfall and sleet, by day number; a pass that stops at roofs (EAVES78.shelter)
+    js/lantern7.js        Phase 7: the lantern in the left hand; its oil (G.flags.la_oil, la_flasks); its light (LIGHTING.lanternLight)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -142,6 +146,13 @@ Useful facts, all checked in this repository:
 - The weather on this game's maps is `WEATHER6`, not the engine's `Weather` (held 'clear' since Phase 1). It reaches
   the light through `Engine.setWeather`, the fog through `R3D.on('frame')`, walking through `playerMove` and the
   bloom through `BLOOM4.setSenses`.
+- The player's light is `LIGHTING.lanternLight()` (js/lighting.js), read once a frame; `js/lantern7.js` replaces it on this
+  game's maps. Lit or not is the engine's `UPG.lantern`; the oil is `G.flags.la_oil` (seconds), saved with the game.
+  Point lights in the 3D renderer are multiplied, not added (`js/light21.js`): warm light on blue frost turns it
+  white, so a light that must read warm needs little blue and a strong red.
+- The 3D renderer shades your own body (pass `body`) at a point 0.3 cells in front of your eye. Any light there burns the
+  sword arm white; `js/lantern7.js` turns its own light down for that one pass (the lights buffer is binding 1).
+- Things drawn on `Engine.ctx` after `drawHUD` show over the 3D view in the 320 x 150 view's own units; clip to the view.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
