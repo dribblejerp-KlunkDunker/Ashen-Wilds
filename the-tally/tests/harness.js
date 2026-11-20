@@ -1,5 +1,5 @@
-// A test harness with no dependencies: `node tests/unit.js`. The design is the specification,
-// so every number in these tests is a number from a design section, quoted where it is used.
+// A tiny no-dependency runner, the repo's own pattern: one file per feature, run with
+// `node tests/unit.js`. No browser, no framework.
 
 const tests = [];
 
@@ -7,35 +7,33 @@ export function test(name, fn) {
   tests.push({ name, fn });
 }
 
-export function assert(cond, message) {
-  if (!cond) throw new Error(message || 'assertion failed');
+export function assert(condition, message) {
+  if (!condition) throw new Error(message || 'assertion failed');
 }
 
-export function near(got, want, tol, label) {
-  assert(Math.abs(got - want) <= tol, `${label}: got ${got}, expected ${want} +/- ${tol}`);
+export function near(actual, expected, tolerance, message) {
+  if (!(Math.abs(actual - expected) <= tolerance)) {
+    throw new Error(`${message || 'not near'}: got ${actual}, expected ${expected} +/- ${tolerance}`);
+  }
 }
 
-export async function run() {
+export function run() {
   let passed = 0;
-  const failed = [];
+  const failures = [];
   for (const t of tests) {
     try {
-      await t.fn();
+      t.fn();
       passed++;
       console.log(`  ok   ${t.name}`);
     } catch (err) {
-      failed.push({ name: t.name, err });
+      failures.push({ name: t.name, err });
       console.log(`  FAIL ${t.name}`);
+      console.log(`       ${err.message}`);
     }
   }
-  if (failed.length) {
-    console.log('');
-    for (const f of failed) {
-      console.log(`${f.name}`);
-      console.log(`      ${f.err.message}`);
-    }
+  console.log(`\n${passed} passed, ${failures.length} failed, ${tests.length} total`);
+  if (failures.length) {
+    for (const f of failures) console.log(`\n${f.name}\n${f.err.stack}`);
+    process.exitCode = 1;
   }
-  console.log('');
-  console.log(`${passed} passed, ${failed.length} failed, ${tests.length} total`);
-  return failed.length === 0;
 }

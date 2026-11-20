@@ -1,116 +1,109 @@
-// Glue: input, fixed-step simulation, drawing and the page. This is the M1 feel rig; it carries
-// no stage, no roster and no Tally Room, because those are M3 and M4.
+// The glue both M1 pages share. The feel gate and the bare page differ only in their options:
+// dummies for the gate, chasing goblins and a trickle of embers for the page.
 
-import { DT, MAX_SPEED_PX, STEP } from './sim/tuning.js';
 import { createWorld, stepWorld, queueDodge, spawnGoblin, spawnEmber, resetWorld } from './sim/world.js';
 import { createLoop } from './core/loop.js';
 import { createInput } from './core/input.js';
-import { createDraw } from './render/draw.js';
+import { draw } from './render/draw.js';
 import { createPage } from './ui/page.js';
 import { softBell } from './core/bell.js';
-
-function readNumber(el, attr, fallback) {
-  if (!el) return fallback;
-  const v = el.getAttribute(attr);
-  const n = v === null ? NaN : Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
+import { STEP, TILE } from './sim/tuning.js';
 
 export function createGame(canvas, opts = {}) {
-  const host = canvas.parentElement || document.body;
+  const ctx = canvas.getContext('2d', { alpha: false });
   const world = createWorld({
-    goblins: readNumber(canvas, 'data-goblins', opts.goblins ?? 0),
-    dummies: canvas.hasAttribute('data-dummies') || !!opts.dummies,
+    goblins: opts.goblins === undefined ? 3 : opts.goblins,
+    dummies: opts.dummies !== false,
   });
-  for (let i = 0; i < (opts.embers ?? 0); i++) {
-    spawnEmber(world, 17 * 64 + (i % 6) * 80, 9 * 64 + Math.floor(i / 6) * 80, 1);
+  const input = createInput(canvas);
+  const page = createPage(document.getElementById('page'), () => { world.page = false; });
+
+  let latency = -1;
+  let perfectUntil = 0;
+  let emberTimer = 0;
+  let frames = 0;
+  let fpsAt = performance.now();
+  let fps = 0;
+
+  function fit() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    canvas.height = Math.max(1, Math.round(canvas.clientHeight * dpr));
   }
+  fit();
+  window.addEventListener('resize', fit);
 
-  const input = createInput(host);
-  const view = createDraw(canvas, world);
-  const pageEl = document.getElementById('page');
-  const page = pageEl ? createPage(pageEl) : null;
-  const loop = createLoop({ step, draw });
-
-  let slow = 0;          // seconds left of the perfect-step slow motion
-  let wasDashing = false;
-  let lastPerfect = false;
-
-  if (page) pageEl.addEventListener('transitionend', () => {});
+  // The perfect step's reward, design 3.2. NOTE: the design gives the reward but not the
+  // condition, so for now it is fired by hand with F to judge the feel of the reward itself.
+  function perfectStep() {
+    world.flash = 1;
+    perfectUntil = performance.now() + STEP.perfectSlow * 1000;
+    softBell();
+  }
 
   input.onKey((code) => {
     if (code === 'KeyR') resetWorld(world);
-    if (code === 'KeyF') togglePerfect();
+    if (code === 'KeyF') perfectStep();
   });
 
-  // F is a reward-only debug flag: the design does not define the perfect-step condition yet.
-  let perfectOnly = false;
-  function togglePerfect() { perfectOnly = !perfectOnly; }
+  const loop = createLoop({
+    step(dt) {
+      if (world.page) return;
 
-  function step(dt) {
-    if (world.page) {
-      world.flash = Math.min(1, world.flash + dt * 6);
-      return;
-    }
-    const intent = input.intent();
-    if (input.takeDodge()) queueDodge(world);
+      if (input.takeDodge()) queueDodge(world);
+      const intent = input.intent();
 
-    const p = world.player;
-    const before = Math.hypot(p.vx, p.vy);
-    stepWorld(world, intent, dt);
-    const after = Math.hypot(p.vx, p.vy);
+      const before = Math.hypot(world.player.vx, world.player.vy);
+      stepWorld(world, intent, dt);
+      const after = Math.hypot(world.player.vx, world.player.vy);
 
-    // input to first motion, measured on the step that starts the move from a true rest
-    if (before === 0 && after > 0 && input.pendingSince >= 0) {
-      world.stats.latencies.push(performance.now() - input.pendingSince);
-      if (world.stats.latencies.length > 6) world.stats.latencies.shift();
-      input.clearPending();
-    }
-
-    // A perfect step: a Watch Step started within 40 ms of the press. Reward only, for now.
-    if (p.dash.active && !wasDashing) {
-      lastPerfect = perfectOnly || world.player.perfectStep === true;
-      if (lastPerfect) {
-        slow = STEP.perfectSlow;
-        softBell();
-        world.flash = Math.min(1, world.flash + 0.35);
+      // input to first motion, measured on the step that starts the move from a true rest
+      if (before === 0 && after > 0 && input.pendingSince >= 0) {
+        latency = performance.now() - input.pendingSince;
+        world.stats.latencies.push(latency);
+        if (world.stats.latencies.length > 12) world.stats.latencies.shift();
+        input.clearPending();
       }
-    }
-    wasDashing = p.dash.active;
 
-    if (slow > 0) {
-      slow -= dt;
-      loop.setTimeScale(STEP.perfectScale);
-    } else {
-      loop.setTimeScale(1);
-    }
+      if (performance.now() < perfectUntil) loop.setTimeScale(STEP.perfectScale);
+      else loop.setTimeScale(1);
 
-    // The bare page holds the game; xp is what opens it.
-    if (world.page && page) {
-      page.show();
-      if (opts.onPage) opts.onPage(world);
-    }
+      if (opts.embers) {
+        emberTimer -= dt;
+        if (emberTimer <= 0) {
+          emberTimer = 0.9;
+          const a = Math.random() * Math.PI * 2;
+          const r = (2 + Math.random() * 3) * TILE;
+          spawnEmber(world, world.player.x + Math.cos(a) * r, world.player.y + Math.sin(a) * r, 1);
+        }
+      }
+    },
+    draw(alpha) {
+      draw(ctx, canvas, world, alpha);
 
-    if (opts.onFrame) opts.onFrame(world, dt);
-  }
+      frames++;
+      const now = performance.now();
+      if (now - fpsAt >= 500) {
+        fps = (frames * 1000) / (now - fpsAt);
+        frames = 0;
+        fpsAt = now;
+      }
 
-  function draw(alpha) {
-    view.draw(alpha);
-    if (page && !world.page && page.open) page.hide();
-  }
+      if (world.page && !page.open) page.show(world.player.level);
+      else if (!world.page && page.open) page.hide();
+
+      if (opts.onFrame) opts.onFrame(world, { alpha, latency, fps });
+    },
+  });
 
   return {
     world,
     input,
     loop,
+    perfectStep,
     start() { loop.start(); },
-    stop() { loop.stop(); input.dispose(); },
-    spawnGoblin: (x, y, o) => spawnGoblin(world, x, y, o),
-    spawnEmber: (x, y, v) => spawnEmber(world, x, y, v),
-    reset: () => resetWorld(world),
-    get perfectOnly() { return perfectOnly; },
-    get lastPerfect() { return lastPerfect; },
-    get maxSpeedPx() { return MAX_SPEED_PX; },
-    get dt() { return DT; },
+    stop() { loop.stop(); },
   };
 }
+
+export { spawnGoblin };

@@ -1,9 +1,8 @@
-// `npm test`, or `node tests/unit.js`. The suite is imported for its side effects; each test
-// registers itself with the harness.
+// The browserless half of the house test pattern (design 23.8): `node tests/unit.js`.
+// One file per feature; the feel and stress pages are the other half and are played by a person.
 
+import { run } from './harness.js';
 import './movement.test.js';
 import './world.test.js';
-import { run } from './harness.js';
 
-const ok = await run();
-process.exitCode = ok ? 0 : 1;
+run();
