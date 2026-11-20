@@ -1063,6 +1063,7 @@ Ruled 2026-11-20.
 | --- | --- | --- |
 | Stages | 1 Outside Fire, 2 Old Causeway, 3 Halwen House | 4-9, and the six secret stages |
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
+| Creatures | 13 modelled, named below, and 2 painted | the other 9 in section 13, and one unique painting per boss from 4 on |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
 | Evolutions | 8: The Cold Edge, Held the Gate, The Limed Road, The Nailhouse, The Bell-Tender's Toll, Deserted: None, Grisel's Hedge, Aud's Lesson | 8, and both unions |
@@ -1075,6 +1076,22 @@ Ruled 2026-11-20.
 **What is not cut:** the Order and its two answers, the four book lines, the naming at the graves, the
 Grey Hour, the fire, and the Silent. Cutting any of those would make a different game rather than a
 smaller one.
+
+**The v1 creatures, counted.** Thirteen modelled creatures, each an 8-direction sheet at 2x, and two
+painted people:
+
+- **All three stages:** goblin scavenger (the "gutter goblins" at Halwen are these), walking bloom,
+  corpse-cap, spore drift.
+- **Stage 1:** goblin nest-runt, the Silent, the Ogre.
+- **Stage 2:** ork shield, ork cleaver, ork thrower, ork pack-leader (the band is three of these), and
+  the hulk-conger in the water either side.
+- **Stage 3:** the Halwen Remnant crossbowman, modelled; the Garden Hands and the siege captain, who
+  are people and so are painted.
+
+**Not art:** the seven elite affixes are the same sheets, scaled and tinted; the Causeway banner is a
+prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, quarry-troll,
+gallery-crawler, reed-jaw, cutwarden, plate-reaver, grey-rag raider, the Unpaid - and the unique art
+of bosses 4 to 9.
 
 Each milestone ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
 a stop for sleeves.
