@@ -3,6 +3,29 @@
 **One page. M0, for sleeves.** The design is `design.md`; every departure from the brief is
 `lore-deltas.md`. This page is what I would do next, in what order, and what could stop it.
 
+## What v1 is
+
+**Three nights, and nothing that is not needed to prove them.** Ruled 2026-11-20:
+
+- **Stages 1-3**: the Outside Fire, the Old Causeway, Halwen House, with their three bosses.
+- **8 weapons, 8 kit, 8 evolutions**, no unions; **8 of the 12 workings**.
+- **6 characters**: Rafe, Merrick, Edda, Pim, Margery, Aud.
+- **The Tally Room, saves, and the relics found in stages 1-3.**
+- **One mode**: the Watch Rota, local. **No co-op.**
+
+Stage 1 already holds every idea the game has, and stages 1-3 are the three map types the engine has
+(open, lane, bounded). The other six stages are content, not capability.
+
+**Cut from v1, deliberately:** stages 4-9 and the six secret stages; the Weight Gate and the billman;
+eight weapons, eight kit, eight evolutions and both unions; nine characters including all three secret
+ones; the Naming Stone's long arc and the collection; the Long Account and the Approved Load; all of
+co-op.
+
+**What this buys is not the three stages but the milestones either side of them.** M1-M4 no longer
+assume shared embers, a pause for every player, revive, interest management, fifteen painted
+characters or nine bosses' art. Those were the costs making every earlier milestone expensive, and
+they are now gone from the work in front of us.
+
 ## Where the work lives
 
 `the-tally/` in `dribblejerp-KlunkDunker/Ashen-Wilds`, served by the existing Pages workflow at
@@ -16,7 +39,7 @@ branch, one PR per milestone, never straight to `main`.
   echo bus, procedural SFX, a per-family voice limiter, a duck-to-silence and a streaming score. Dead
   Calm, the heartbeat and the thinning mix are nearly free.
 - **Networking** (`js/net19.js`) is a working host/guest transport with join codes, typed messages,
-  rate limits and stats. We add a 4-player star above it, not a new transport.
+  rate limits and stats. It is not v1 work, but it is what v1.1's star is built on.
 - **The sun's day** (`js/sun3.js`, `js/ledge1.js`): coal, coin and clear days fixed by the day's
   number, the coal sun, the dither ramp. That is this game's stage lighting, already written.
 - **The house test pattern**: one test file per feature, half `--no-browser`, half headless Chromium,
@@ -31,14 +54,23 @@ and `tests/stress.html` running. **Nothing else until the movement is right**, b
 this is built on how it feels.
 
 **M2, the horde.** The WebGL2 instancer, the pools, the spatial hash, flow fields, 1,500 enemies, the
-effect limiter, the light pass. The gate is a frame-time capture.
+effect limiter, the light pass. The gate is a frame-time capture. One player's snapshot budget only:
+no interest management until v1.1.
 
-**M3, the build.** All 16 weapons, 16 kit, evolutions, boxes, workings, the Debt, the cough, and the
+**M3, the build.** The 8 weapons, 8 kit and 8 evolutions, boxes, workings, the Debt, the cough, and the
 first modelled goblin and ork rendered to sheets.
 
 **M4, stage 1.** The complete night. This is the milestone that decides whether the game is good,
 because stage 1 holds every one of the game's ideas: the fire, the naming, the rot, the Order, the
 Grey Hour, a wonder, a boss and a book line.
+
+**M5, meta and roster.** The Tally Room, saves with export, the relics of stages 1-3, and characters
+1-6 with their unlocks.
+
+**M6, the road so far.** Stages 2 and 3, their bosses and pages, and the Watch Rota. Three stages,
+start to finish, with no dead ends.
+
+**M7, ship.** The bot, accessibility, Chromebook performance, README, Pages, a trailer capture.
 
 ## What I think is risky
 
@@ -47,11 +79,13 @@ Grey Hour, a wonder, a boss and a book line.
    per enemy per step (stagger steering across 4 frames) and a coarser flow field, not a smaller horde.
 2. **The art.** The repository's rule is that every picture is made here: creatures modelled and
    rendered, people painted. That is a real production cost and the biggest unknown in the schedule.
+   Three stages and six characters is the cut that keeps it payable; it is still the number to watch.
 3. **The naming at the graves.** It is the best idea in the game and the easiest to make annoying. A
    three-second stationary loud action, during a horde, will feel either brave or unfair. It needs
    sleeves at the controls in M4, not a spreadsheet.
-4. **Four-player co-op on top of a two-player transport.** Doable, but it is M8 work and it should not
-   leak into M1-M4's design decisions.
+4. **Ninety minutes of content.** Three stages is a short game. Retention rests on the Tally Room, the
+   Watch Rota and the muster book, and on nothing else. If M5's meta feels thin in the hand, the
+   honest fix is a fourth stage, not a bigger shop.
 
 ## What I would build first if only one thing were possible
 
