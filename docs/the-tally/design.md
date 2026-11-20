@@ -133,6 +133,18 @@ World unit: **1 tile = 64 px** at the 1920x1080 reference view. The camera shows
 | Input buffer | 120 ms |
 | Direction | movement direction, else facing |
 | Perfect step | a 40 ms time slow, a white edge flash, a soft bell. No other reward |
+| Perfect step, when | **proposal:** a telegraphed strike resolves through the space you occupy while the step's i-frames are live - you take the hit on the invulnerability instead of stepping out of it |
+
+**The perfect step's trigger (proposal).** Every other number here has a condition; this one had only a
+reward, and until it has a trigger the flourish is fired by hand. The step is perfect when **it is the
+reason a strike did not land**: at the frame a telegraphed attack resolves - a boss ring, a charge, a
+volley line, an elite's blow - the attack's shape contains your body, and you are unhurt only because
+the step's i-frames are still running. Stepping *out* of the shape is an ordinary dodge and earns
+nothing; stepping *through* it, so the band passes over you and finds nothing, is the perfect one.
+Ordinary contact damage never counts, so a wall of goblins cannot farm it, and the 2.4 s cooldown caps
+it besides. In the hand it is a small impossible moment: the ring closes, the world hushes for 40 ms,
+the screen edges go white, and you are still standing inside what should have hit you. The first place
+most players meet it is the Ogre's stomp.
 
 ### 3.3 Collision
 
@@ -155,8 +167,9 @@ mouse/right stick when **Aimed Watch** is on (off by default).
 
 ### 3.6 The feel gate
 
-`tests/feel.html`: a flat yard, three dummy goblins, an overlay of speed, acceleration, and
-input-to-motion latency. Target: **<= 1 frame** from input read to first motion. The gate for M1 is
+`tests/feel.html`: a flat yard, three dummy goblins, an overlay of speed, acceleration,
+input-to-motion latency, and a count of perfect steps that names the strike which triggered each, so
+the trigger can be checked without a debug key. Target: **<= 1 frame** from input read to first motion. The gate for M1 is
 sleeves at the controls saying the movement is right.
 
 ---
