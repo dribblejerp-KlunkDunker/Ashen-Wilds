@@ -10,6 +10,10 @@ Ashen Wilds. It is a sister to **The Long Account**, which is first person and s
 game's last night. This game is **the winter of S.30**: the tower has fallen, the fen is awake, and
 the road north ends at a gate nobody finished.
 
+**v1 is three of the nine stages.** The whole road is designed here because the design has to be
+whole; the first release builds the first three nights. Section 26 is the cut, and it is the section
+to read first if you are costing this.
+
 ---
 
 ## 0. The framing that makes the cast possible
@@ -236,6 +240,9 @@ Every weapon has a sound signature, a hit spark, and a kill effect in its own ma
 iron clanks, lime hisses, fire crackles, cold light chimes. A weapon's cooldown is a ring on its slot
 icon. Nothing the player fires is red or sulphur green.
 
+**v1 ships eight of these, one per weapon slot and each with an evolution. Which eight is in 26.**
+The other eight are the same table, later.
+
 | # | Weapon | Role and shape | Path (short) | Starter |
 | --- | --- | --- | --- | --- |
 | 1 | **Watch Sword** (glim-marked issue blade) | a fast crescent cut in the facing direction, alternating sides | +damage, +1 cut behind, +area, cut leaves a 0.3 s glim trail | Rafe Sedley |
@@ -265,6 +272,8 @@ Coldbarrow warehouse hoist, peat, miners' brass tags, reed-cutting, and Aud's co
 
 ## 8. Kit (16 passives)
 
+**v1 ships eight, chosen so that every shipped weapon has its partner. Which eight is in 26.**
+
 Five levels each.
 
 | Kit | Per level | Canon root |
@@ -290,6 +299,8 @@ Five levels each.
 
 ## 9. Evolutions (16, and two unions)
 
+**v1 ships eight, one per weapon, and no unions. Which eight is in 26.**
+
 A weapon at 8 plus its partner kit at any level evolves at the next strongbox, with a ceremony.
 
 | Weapon + Kit | Becomes | What changes |
@@ -311,7 +322,7 @@ A weapon at 8 plus its partner kit at any level evolves at the next strongbox, w
 | Reed Spear + Carter's Hitch | **The Cutters' Bank** | thrusts become a row of spears coming up out of the ground along a line |
 | Cold Light + Watch Cloak | **Aud's Lesson** | the beam becomes a slow full circle; you take -15% damage inside it |
 
-**Unions** (two evolved weapons fuse, freeing a slot; rare, late):
+**Unions** (two evolved weapons fuse, freeing a slot; rare, late; not in v1):
 
 - **The Cold Edge + Aud's Lesson -> The Glim Road**
 - **Held the Gate + The Weight Gate's Chain -> The Last Gate**
@@ -330,6 +341,8 @@ names, shows or predicts. The three workings of the novel are the core of the se
 salt**, **the naming at the graves**, and **cold light**.
 
 ### 10.1 The twelve
+
+**v1 ships eight of the twelve. Which eight is in 26.**
 
 | Working | Craft | Gift | Price |
 | --- | --- | --- | --- |
@@ -389,7 +402,8 @@ rag, one stick, in a low box).
 ### 11.4 Relics (16+)
 
 Permanent, found once, each tied to a place. **The warning book is not one of them**: it never leaves
-the fire, so what you find and carry are its pages (17.4).
+the fire, so what you find and carry are its pages (17.4). **v1 has the nine of these that stand in
+stages 1-3**; the rest wait for the road north.
 
 | Relic | Where | Unlocks |
 | --- | --- | --- |
@@ -399,7 +413,7 @@ the fire, so what you find and carry are its pages (17.4).
 | **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
 | **A Witness Token** | Halwen's chapel, the chaplain's cupboard | the Kept Hand working |
 | **A Bent Spoon from Darnel Cross** | Darnel Cross | Hard Bargain shop items |
-| **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying |
+| **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying (**post-1.0**) |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
 | **Osric Brayne's Sheet** | the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
 | **T. Gale's Kettle Hat** | the ogre's bone heap | a Watch helm; the refuge asks for it back |
@@ -420,19 +434,23 @@ thin pale-blue outline on their icon.
 **Twelve, plus three secret.** Every one is human (O1). Each has a starting weapon, a trait, small
 stat differences, a unique dodge, and a line of their own in the muster book.
 
+**v1 ships six: Rafe, Merrick, Edda, Pim, Margery and Aud.** The other nine are written below and
+built after the first release. The six are the four who are already at the fire in the first three
+stages, plus the listener whose cold light the game teaches.
+
 | # | Character | Starts with | Trait | Unlock |
 | --- | --- | --- | --- | --- |
 | 1 | **Rafe Sedley**, the Watch Deserter | Watch Sword | **Heard the Order:** +20% Move Speed below half health; at the Order he has a third answer, **Go back** (+3 levels, rewards x2, no extract). Carries a targe: +1 Armour. | start |
 | 2 | **Merrick Thwaite**, billman | Billhook | **The Grey Cough:** the ladder advances on the clock, not on spores: crust at 10:00 (+3 Armour, -10% speed), silence at 20:00 (+40% Might, pickups heal half, his barks stop) | finish a stage as Rafe |
 | 3 | **Margery Reeve** | The Ward | **First Working:** begins each run with one working already spoken (your pick), and her workings' prices are halved | survive 15:00 |
-| 4 | **Aud**, a listener | Cold Light | **The Lesson:** her cold light lingers 50% longer; darkness never shrinks her light radius | reach Greystair |
+| 4 | **Aud**, a listener | Cold Light | **The Lesson:** her cold light lingers 50% longer; darkness never shrinks her light radius | reach Greystair (**post-1.0**) |
 | 5 | **Tobin Crane**, of the Bloomery Company | Bloomery Hammer | **Hammers:** each consecutive hammer hit is +2% damage to +40%; reset when he is hurt | open 25 strongboxes |
 | 6 | **Edda Wray** | Nails | **The Assize Corner:** +1 Armour per wall or obstacle within 2 tiles (max +4) | survive 60 s below 10% health |
 | 7 | **Pim Haddow** | Muster Book | **Carried the Book:** +15% Growth; Named kills give double embers | write 100 lines in the book |
 | 8 | **Grisel**, hedge-priest of no chapel | Salt Pouch | **Hedge-Lore:** blooms take +30% from her; spores do not stack the cough on her | Name 1,000 enemies |
 | 9 | **Winna** | Peat Fire | **The Pot:** all healing pickups heal double; her fires warm allies in co-op | heal 5,000 health in total |
 | 10 | **[name]**, a hand from the Split Kiln | Lime Sack | **Kiln-Burned:** immune to lime and burn; her lime patches are 25% larger | lime 10,000 enemies |
-| 11 | **Marget Sayle** | Lantern | **Highland Eyes:** sees elites and strongboxes on the minimap from anywhere | finish The Ledge |
+| 11 | **Marget Sayle** | Lantern | **Highland Eyes:** sees elites and strongboxes on the minimap from anywhere | finish The Ledge (**post-1.0**) |
 | 12 | **Col Wray** | Watch Crossbow | **The Band's Ways:** humans he kills drop double salt; he walks 10% faster in the dark | desert at the Order 10 times |
 | S1 | **The Ledge's Deserter** (unnamed) | Watch Sword + Crossbow | **Sent North:** two weapons; cannot take workings | hold through the Order on every main stage |
 | S2 | **Wat Corley**, bell-keeper of Hob's Height | Hand Bell | **The Quiet Kept:** his sound weapons are silent and weaker; he sees the Silent and the Unnamed outlined in the dark; his cold light lasts half again as long; his bell does not ring, it **carries**: its note reaches the next bell and returns, and what it touches is Rung | find all 16 relics |
@@ -502,7 +520,7 @@ ambushers at Halwen are goblins.
 them. Enemies drag them away. Standing near one for 3 s while it is grabbed saves it: brass, and at
 six, a hidden reward. **Ringing a bell near a listener costs their trust**: they leave, and the run's
 kindness closes. Some will not be saved and walk into the dark of their own accord; you cannot stop
-them.
+them. The listeners arrive with stage 8; v1 has their craft (Aud) but not their galleries.
 
 ### 13.6 Elites
 
@@ -518,6 +536,9 @@ Affixes: **Limed** (immune to lime), **Banner** (buffs neighbours), **Hollow** (
 Every boss: an arrival (music drops, a sound, a warning-book line on screen), a health bar with its
 name in the warning book's hand, 2-3 patterns with clear telegraphs, a phase at 50%, and a death that
 matters.
+
+**v1 has the first three.** The other six wait for the road north, and the Weight Gate is the last
+thing the game does, not the first release's.
 
 | Stage | Boss | The fight |
 | --- | --- | --- |
@@ -560,6 +581,11 @@ and cold light push it back. **The player's own light is tallow yellow.**
 
 Nine on the road north, six secret. Map types: **open** (infinite, seeded), **lane** (infinite on one
 axis, bounded on the other), **bounded** (hand-built), **rising** (the map changes).
+
+**v1 ships three of them: 1, 2 and 3.** They are three of the four map types — open, lane, bounded —
+so the remaining six stages are content rather than capability. Rising is the one map type v1 does
+not exercise, and it belongs to stage 5. Stages 4-9, the six secret stages and the Weight Gate are
+written here because the design has to be whole, not because the first release builds them.
 
 ### 16.1 Stage 1 - The Outside Fire
 
@@ -683,6 +709,9 @@ speed, fewer heals, no dodging, the dark never lifts, elites everywhere, the Ord
 Each tier adds salt and a mark on the muster book's line. **The Watch Rota** (daily): one seeded run a day,
 fixed character, stage and workings.
 
+**v1 ships the Watch Rota only.** The Long Account and the Approved Load need stages 4-9 to be worth
+playing and arrive with them.
+
 ---
 
 ## 17. Meta-progression
@@ -695,6 +724,9 @@ Reach, Luck, Growth, Measure, Turn-the-page uses, Strike-it-out uses, an extra W
 Prices rise with each purchase. **A refund button returns all salt**, so builds can be re-planned.
 
 ### 17.2 The Naming Stone
+
+**post-1.0.** In v1 the stone is a place in the yard where the dead were named, and a tag pickup; the
+long arc below waits for the second release, because a three-stage game cannot fill a hundred tags.
 
 Brass tags come back here. Every 100 returned, the stone takes a name and you choose one of three
 small permanent boons. It fills slowly over the whole game: the long arc.
@@ -890,6 +922,10 @@ stats, options, and **Deserted** (quit, written as deserting).
 
 ## 22. Co-op
 
+**Post-1.0.** v1 has no co-op, and nothing in sections 3-21 assumes a second player: no shared embers,
+no pause-for-everyone at a level-up, no revive, no interest management. The design below is kept whole
+so that v1.1 does not have to redesign the simulation to add it.
+
 1-4 players, host-authoritative star. Shared world, separate builds. Embers are shared, so nobody
 falls behind. A level-up pauses everyone; each levelling player chooses on their own page and the
 others see a small "choosing" mark. Enemy health x(1 + 0.6 x extra players); spawn rate x(1 + 0.4 x
@@ -921,7 +957,7 @@ textures. Light map at quarter resolution. No Canvas 2D fallback: if WebGL2 is m
 | Module | What it is | Verdict for the Tally |
 | --- | --- | --- |
 | `js/audio.js` | a full Web Audio engine: master chain, low-pass muffler (deafness/Hush), a routed echo bus, procedural `noiseBurst`/`tone` SFX, a family/voice limiter, a duck-to-silence `quiet()`, and a streaming score with crossfade | **Reuse outright.** Dead Calm, the heartbeat, the thinning mix and the one hopeful theme all land on what is already here |
-| `js/net19.js` | host/guest WebRTC transport, six-letter join codes, typed message specs with size/rate/sender validation, reliable and unordered channels, RTT and stats, a lobby and a URL-join flow | **Reuse the transport and the spec layer.** Extend to a 4-player star above it; do not change it |
+| `js/net19.js` | host/guest WebRTC transport, six-letter join codes, typed message specs with size/rate/sender validation, reliable and unordered channels, RTT and stats, a lobby and a URL-join flow | **Reuse at v1.1.** The transport and the spec layer are sound; the 4-player star goes above them, and v1 does not touch either |
 | `js/ledge1.js` | the sun's day, the coal sun, the light reading, the pixel-art colour ramp and dithering, the "nothing visual uses live random numbers" hash | **Reuse the ideas and the ramp.** The sun path, the coal/coin/clear day logic and the dither are exactly this game's look |
 | `js/sun3.js` | the sun crossing the sky, coal, coin and clear days fixed by day number | **Reuse.** It is the Tally's stage lighting model already written |
 | `js/bloom4.js` | a pure `think(S, env, dt)` hunter that hears by noise, tested step by step in Node | **Reuse the pattern.** Every Tally enemy behaviour should be a pure step testable without a browser |
@@ -1006,22 +1042,50 @@ remappable controls.
 
 ## 26. Milestones
 
-Each ends with tests passing on the exact commit, a stress capture, pictures in the PR, and a stop for
-sleeves.
+**This section is the scope.** v1 is three stages, and the cut is what makes the milestones affordable.
+Ruled 2026-11-20.
+
+| | In v1 | Post-1.0 |
+| --- | --- | --- |
+| Stages | 1 Outside Fire, 2 Old Causeway, 3 Halwen House | 4-9, and the six secret stages |
+| Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
+| Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
+| Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
+| Evolutions | 8, one per weapon, no unions | 8, and both unions |
+| Workings | 8 of the 12 | 4 |
+| Characters | 6: Rafe, Merrick, Edda, Pim, Margery, Aud | 6, and all three secret |
+| Meta | the Tally Room, saves, the relics that stand in stages 1-3 | the Naming Stone's long arc, the collection |
+| Modes | the Watch Rota | the Long Account, the Approved Load |
+| Co-op | none | v1.1 |
+
+**What is not cut:** the Order and its two answers, the four book lines, the naming at the graves, the
+Grey Hour, the fire, and the Silent. Cutting any of those would make a different game rather than a
+smaller one.
+
+Each milestone ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
+a stop for sleeves.
 
 | # | What | Gate |
 | --- | --- | --- |
-| **M0** | Read and plan. This file, `lore-deltas.md`, `plan.md`. No code. | sleeves rules the deltas |
+| **M0** | Read and plan. `design.md`, `lore-deltas.md`, `plan.md`. No code. | sleeves rules the deltas |
 | **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
-| **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. | a frame-time capture in the PR |
-| **M3** | The build: all 16 weapons, 16 kit, evolutions, strongboxes and the ceremony, pickups, breakables, workings, the Debt, the cough, and the first modelled goblin and ork rendered to sheets. | the build is a game |
+| **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. One player's snapshot budget only. | a frame-time capture in the PR |
+| **M3** | The build: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and the first modelled goblin and ork rendered to sheets. | the build is a game |
 | **M4** | Stage 1 complete: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish |
-| **M5** | Meta: the Tally Room, the Naming Stone, the collection, saves with export, characters 1-4 and their unlocks. | |
-| **M6** | The road: stages 2-6, characters 5-8. | |
-| **M7** | The north: stages 7-9, the Weight Gate, the billman; characters 9-12; the Silent, the listeners, Dead Calm, the Bright Hour. | |
-| **M8** | Co-op: host and join, local, scaling, revive, the gate. | |
-| **M9** | Secrets and modes: stages A-F, secret characters, the Long Account, the Approved Load, the Watch Rota. | |
-| **M10** | Polish and ship: the bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | |
+| **M5** | Meta and roster: the Tally Room, saves with export, the relics of stages 1-3, characters 1-6 and their unlocks. | a run survives a reload and the roster is playable |
+| **M6** | The road so far: stages 2 and 3, their bosses and pages, and the Watch Rota. | three stages, start to finish, with no dead ends |
+| **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | it runs on the worst machine and reads on the smallest screen |
+
+**Post-1.0, in this order.**
+
+1. **v1.1, co-op.** The host-authoritative star above `net19`, as designed in 22. Interest management
+   and shared embers arrive here and nowhere earlier.
+2. **v1.2, the road.** Stages 4-6, their bosses and pages, characters 7-12, the other eight weapons
+   and kit, and the Long Account.
+3. **v1.3, the north.** Stages 7-9, the Weight Gate, the billman, the three secret characters, the
+   Approved Load.
+4. **v1.4, the secrets.** The six secret stages, the unions, the Naming Stone's long arc, the
+   collection, and whatever the bot says needs tuning.
 
 ---
 
