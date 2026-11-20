@@ -344,7 +344,7 @@ salt**, **the naming at the graves**, and **cold light**.
 | **Lime the Road** | Keeping | the ground you walk stays limed for 20 s | **salt:** healing pickups heal half |
 | **The Third Arch** | Holding | every 60 s stones fall on the busiest spot on screen | **sound:** it can hit you |
 | **Kept Hand** | Keeping | you cannot die once; at zero you stand up at 50% | **warmth:** your Recovery becomes zero |
-| **Seam Roll** | Marking | elites drop two glim sparks | **time:** each elite answers with a second elite |
+| **Call the Roll** | Marking | elites drop two glim sparks | **time:** each elite answers with a second elite |
 
 **Rules.** A working is spoken aloud: the character's mouth moves, the sound is in the mix, and the
 listeners will hear it. No working is ever a passive icon with no cost shown. The price is applied the
@@ -395,9 +395,9 @@ the fire, so what you find and carry are its pages (17.4).
 | --- | --- | --- |
 | **The Muster Book's Clasp** | the Watchhouse, the tally room | **Turn the page** |
 | **Gytha Marrin's Seal** | the Causeway toll house | **Strike it out** |
-| **A Tally Stick** | Darnel Cross | the minute-by-minute kill graph on the end screen |
+| **A Tally Stick** | the Outside Fire, the second one out of Joan Tallis's belt | the minute-by-minute kill graph on the end screen |
 | **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
-| **The Kept Hand** | Halwen's chapel | the Kept Hand working |
+| **A Witness Token** | Halwen's chapel, the chaplain's cupboard | the Kept Hand working |
 | **A Bent Spoon from Darnel Cross** | Darnel Cross | Hard Bargain shop items |
 | **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
@@ -408,7 +408,7 @@ the fire, so what you find and carry are its pages (17.4).
 | **The Seam Roll** | the Slagcrown counting house | names for the brass tags |
 | **The Tower's Key-Ring** | nowhere yet | Kemble's fate stays a shut door |
 | **Cerrin Vane's Cloak** | the Slagcrown hall | nothing says where he went |
-| **The Bell's Tongue** | the tower's bell-loft, wrapped in a Watch cloak | the bell lying in the yard can be rung once (**proposal**) |
+| **The Bell's Tongue** | the tower's bell-loft, wrapped in a Watch cloak | the bell on its side in the yard can be struck once, with its tongue hung back in it (**proposal**) |
 
 **Rarity is material,** never a colour scale: iron, brass, silver, glim-blue. Evolved weapons get a
 thin pale-blue outline on their icon.
@@ -788,9 +788,13 @@ drawing of where they held. The end screen shows the whole map with every lime l
 burned patch. **It is the run's portrait, and it can be saved as an image.**
 
 ### 18.12 The Kept Hand's chapel
-At Halwen, the chapel's altar takes one weapon out of your slots (it is gone) and gives back one
-evolution of your choosing, immediately, ignoring the rules. Once per run. The sacrifice is real and
-the game does not soften it.
+At Halwen, the chapel's **covenant recess** takes one weapon out of your slots (it is gone) and gives
+back one evolution of your choosing, immediately, ignoring the rules. Once per run. The sacrifice is
+real and the game does not soften it, and it is spoken aloud, because the covenant's own rule is cut
+under it: *let each obligation be spoken in the hearing of those it binds.*
+
+The altar is not involved. Canon says it holds no treasury and was broken open and crudely patched
+long before the player arrives. What the chapel answers through is the promise beside it.
 
 ### 18.13 Bell-ringing combos
 Every ring of any bell adds to a hidden count. **13 rings in 13 seconds** and a deep bell sounds from

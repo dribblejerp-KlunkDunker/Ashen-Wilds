@@ -67,7 +67,7 @@ All ten questions in PR #49 were ruled on **2026-11-20**, every one as recommend
 4. **The Weight Gate:** Merrick drops it and the player hears the one knock; in co-op, standing below
    is a volunteer choice with no default.
 5. **Merrick:** on by default, and only for Rafe.
-6. **Secret character S3:** **Wat Corley**, not the Kept Hand.
+6. **Secret character:** **Wat Corley**, not the Kept Hand (S2 in the roster; Gise Marrable keeps S3).
 7. **Two names:** character 10 and the Halwen siege captain stay `[name]` until M4.
 8. **The Watch Rota:** local only. No online board.
 9. **Co-op:** a four-player host-authoritative star above `net19`; the transport is not rewritten.
@@ -77,7 +77,7 @@ The four that change code rather than text are therefore settled: the currency (
 the player's colour (**pale blue**, never teal), Edda's weapon (**Nails**), and the roster's shape.
 **Nothing in `design.md` changes**: every ruling confirmed what it already specifies.
 
-Thirteen proposals in `lore-deltas.md` are still open (P1-P6 and P9-P15). None of them blocks M1.
+Fifteen proposals in `lore-deltas.md` are still open (P1-P6, P9-P15, P16 and P17). None of them blocks M1.
 They are the ones that alter the design's text rather than its framing, and they need a second pass.
 
 ## What is not in this plan
