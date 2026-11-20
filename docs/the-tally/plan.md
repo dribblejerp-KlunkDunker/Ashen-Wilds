@@ -89,7 +89,7 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 | **M1** | Feel: fixed step, movement, the Watch Step, collision, one enemy, embers, the level curve | 13-19 |
 | **M2** | The horde: instancer, pools, spatial hash, flow fields, the light pass, 1,500 at 60 fps | 25-37 |
 | **M3** | The build as data: 24 items, 8 workings, the Debt, the cough, the goblin scavenger and ork shield sheets | 30-45 |
-| **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves | 30-44 |
+| **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves, and six of the thirteen sheets | 30-44 |
 | **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
 | **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
 | **M6** | Stages 2 and 3: two maps, two bosses, two pages, five more creature sheets and the siege captain's portrait | 32-48 |
@@ -98,7 +98,8 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 
 **What balloons.** M4 is the largest block by far - 51-78 as one, about 28% of the total - and it is
 split in `design.md` section 26 because its halves fail differently: 4a can be finished and dull, 4b
-can be tuned and unplayable. M3 (30-45) is next: 24 items of behaviour, 8 workings, and a test for
+can be tuned and unplayable. M4a also carries six of the thirteen sheets, which is the other half of
+why it does not shrink. M3 (30-45) is next: 24 items of behaviour, 8 workings, and a test for
 each. M6 (32-48) is two stages through a pipeline that is by then proven, so it is roughly 4a plus
 part of 4b, twice; art is linear per stage, which is why it does not fall even though the engine work
 is done.
