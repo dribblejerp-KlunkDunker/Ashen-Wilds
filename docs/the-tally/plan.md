@@ -48,10 +48,11 @@ branch, one PR per milestone, never straight to `main`.
 ## The order
 
 **M1, feel (the one that matters).** Fixed 120 Hz step, four input kinds, the camera, movement and the
-Watch Step to the exact numbers in `design.md` section 3, circle-vs-segment collision, the Watch Sword,
-one goblin type with steering and separation, embers, the level curve, a bare page. `tests/feel.html`
-and `tests/stress.html` running. **Nothing else until the movement is right**, because everything after
-this is built on how it feels.
+Watch Step to the exact numbers in `design.md` section 3, circle-vs-segment collision, one goblin type
+with steering and separation, embers, the level curve, a bare page, `tests/feel.html` running, and a
+minimal `tests/stress.html` that graphs frame time. M1 is movement only: the Watch Sword is one of M3's
+eight weapons, and the full target-count stress scene and its capture are M2's. **Nothing else until
+the movement is right**, because everything after this is built on how it feels.
 
 **M2, the horde.** The WebGL2 instancer, the pools, the spatial hash, flow fields, 1,500 enemies, the
 effect limiter, the light pass. The gate is a frame-time capture. One player's snapshot budget only:
@@ -65,8 +66,9 @@ sheets load through `data/enemies.js`. Nothing in M3 is tuned.
 
 **M4, stage 1.** The complete night, in two halves. **4a** is the night whole - the fire, the naming,
 the rot, the Order, the Grey Hour, a wonder, a boss, a book line, thieves - and its gate is that the
-script fires from 0 to 30, rough allowed. **4b** is the night good: the tuning pass in section 24, 50
-seeded games a character, music and sound, the book line and the map portrait. Stage 1 holds every one
+script fires from 0 to 30, rough allowed. **4b** is the night good: the measuring bot
+(`tests/bot.html`), the tuning pass in section 24, 50 seeded games a character, music and sound,
+the book line and the map portrait. Stage 1 holds every one
 of the game's ideas, so these two halves are where the game is decided.
 
 **M5, meta and roster.** The Tally Room, saves with export, the relics of stages 1-3, and characters
@@ -75,7 +77,7 @@ of the game's ideas, so these two halves are where the game is decided.
 **M6, the road so far.** Stages 2 and 3, their bosses and pages, and the Watch Rota. Three stages,
 start to finish, with no dead ends.
 
-**M7, ship.** The bot, accessibility, Chromebook performance, README, Pages, a trailer capture.
+**M7, ship.** The full ship bot, accessibility, Chromebook performance, README, Pages, a trailer capture.
 
 ## What it costs
 
@@ -90,10 +92,10 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 | **M2** | The horde: instancer, pools, spatial hash, flow fields, the light pass, 1,500 at 60 fps | 25-37 |
 | **M3** | The build as data: 16 items, 8 evolutions, 8 workings, the Debt, the cough, the goblin scavenger and ork shield sheets | 30-45 |
 | **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves, and six of the thirteen sheets | 30-44 |
-| **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
+| **M4b** | Stage 1, good: the measuring bot, tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
 | **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
 | **M6** | Stages 2 and 3: two maps, two bosses, two pages, five more creature sheets and the siege captain's portrait | 32-48 |
-| **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, the trailer | 13-19 |
+| **M7** | Ship: the full ship bot, accessibility, Chromebook performance, README, Pages, the trailer | 13-19 |
 | | **Total** | **185-278** |
 
 **What balloons.** M4 is the largest block by far - 51-78 as one, about 28% of the total - and it is
