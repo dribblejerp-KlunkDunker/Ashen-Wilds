@@ -11,6 +11,13 @@ disagree, those win.
 Each entry is: **what the brief said**, **what the lore says**, **the change**. Entries marked
 **proposal** add something to the world and need a ruling even where there is no conflict.
 
+**Every entry ends with its sources**, as `file:line` where a line will do, and as `file` plus a
+section where a line would mislead (a table, a whole entry, a file the atlas rewrites). Line numbers
+are against `main`; if one has moved, search the quoted words. `CANON.md`'s owner decisions O1 to O11
+are a table at `CANON.md:24-36`; its twenty facts are `CANON.md:95-196`. Two sources are outside
+`docs/worldbuilding/` and are marked as such where they appear: `CLAUDE.md` (the art rule) and
+`js/net19.js` (the transport).
+
 ---
 
 ## 1. Money
@@ -29,6 +36,11 @@ as a small, rare find worth 10 measures, with their own sound. No groats, no nob
 
 *Why it is better:* salt is the thing everyone in the Blackfen is short of, it ties the meta-shop
 to the fiction, and "every measure's somebody" (Joan Tallis) is the exact note the Tally Room wants.
+
+*Sources: `CANON.md:157` (fact 15: salt is the money, prices in measures); `items-and-texts.md:246`
+(iron priced in measures); `atlas/9-the-wilds-between.md` (Crown pennies at a drover's camp);
+`atlas/8-the-wider-round.md` (silver marks on the quays). No groat or noble anywhere in
+`docs/worldbuilding/`.*
 
 ---
 
@@ -50,6 +62,10 @@ something that hurts them. In canon the colour that hurts you is teal. Now the s
 dangerous colour is spent on the thing that is most dangerous, and the player's own light can never
 be mistaken for it.
 
+*Sources: `CLAUDE.md:185-186` (repo root, not `docs/worldbuilding/`: "Four lights, never confused"),
+`atlas/0-how-to-read.md:22` (no beast works magic); `the-round-and-the-long-account.md:253` (workings
+and marks), `atlas/4-the-citadels.md:30` (all six crafts practised at the Citadels).*
+
 ---
 
 ## 3. How beasts are made
@@ -69,6 +85,8 @@ painted alternative is produced.
 *Note.* This is the ruling the brief itself deferred to. Building both ways would spend the M3
 budget proving something sleeves has already decided.
 
+*Sources: `CANON.md:34` (O9, beasts are modelled; D8 stands).*
+
 ---
 
 ## 4. Rafe Sedley is two different men
@@ -85,6 +103,9 @@ carried glim marks (`people/the-novel.md`).
 the Causeway tower**: about 34, lean, the grey cloak worn to the weave, a **wooden targe** on his
 back (a trait hook the brief missed), the issued sword with its glim mark. S1 is the **unnamed older
 Watch man** of the ledge, and his line in the muster book stays nameless.
+
+*Sources: `CANON.md:36` (O11); `people/the-novel.md:20` ("He is not the deserter on The Long
+Account's ledge"); `people/the-watchhouse.md` (Kemble's order; the ledge man sent north by Gytha).*
 
 ---
 
@@ -112,6 +133,10 @@ voice under it. The prompt reads the same. The two answers are unchanged. Three 
   travels. The warning book is already at the Watchhouse and never leaves the fire. Say it once, in
   the text, so nobody later swaps them.
 
+*Sources: `people/the-novel.md` N2; `the-warning-book-s30.md` entry 7 (the order, and the squall);
+`atlas/2-the-blackfen.md:110` (markers "cut with its number and a wayfarer's horn", passing places);
+`the-smothering.md:325` (the six weathers).*
+
 ---
 
 ## 6. The muster book has four lines, not three
@@ -135,6 +160,11 @@ against any name, and it is the Watchhouse's word for the Ashbound: the bestiary
 "Deserted" replaces "ran" everywhere, because it is the word the muster book uses. "Did not answer" is the
 fourth line and it is the one that will hurt, which is the point of it.
 
+*Sources: `acts-two-and-three.md:202` (the Seam Roll's last entries; no payment against any name);
+`acts-two-and-three.md:221` ("the same verdict the Watchhouse uses for the Ashbound");
+`atlas/4-the-citadels.md:58` (the Seam Roll in the counting house); `bestiary.md:550` (Ashbound's two
+senses).*
+
 ---
 
 ## 7. The Silent do not hurt you
@@ -151,6 +181,9 @@ something to have killed.
 
 *Why it matters:* the brief's own rule is that humans are the only ones who are cruel on purpose.
 Making the sick into a damage source would have broken it.
+
+*Sources: `CANON.md:26` (O1, only humans are people); `CANON.md:163` (fact 17, ash-lung);
+`bestiary.md:563` (the far-gone sick: grey crust, a wet cough, no words).*
 
 ---
 
@@ -180,6 +213,11 @@ Saint Vey's Fold, the Bent Span, Coldbarrow, the upper road (`atlas/3`). The Dro
 Boss order, unlock order and the warning book's page order move with it. The Roofed Mile's crawler
 is now stage 6 and Rook's Stair's troll is stage 4.
 
+*Sources: `atlas/3-the-bell-road.md:22` ("Layout (south to north)": the Last Gardens, Halwen House,
+the Old Charcoal Lodge, the Split Kiln, the Bell-Tender's House, Rook's Stair, the Roofed Mile...);
+`atlas/6-the-drowned-measures.md:12` ("reached from the Bell Road's quarry branch past Rook's
+Stair"); `atlas/3-the-bell-road.md:238` (Rook's Stair, the Held Benches).*
+
 ---
 
 ## 9. The Constance is not in the Drowned Measures
@@ -196,6 +234,10 @@ reeds, seen as a head-and-ridge shape that could be floating timber.
 **Change.** Stage 5's boss is **the Reed-Jaw of the Long Cut**. The hulk-conger keeps its canon home;
 it appears in secret stage C (Gull's Throat), and as a rare elite in a drowned barge in the Measures
 if wanted. Never the *Constance*.
+
+*Sources: `atlas/7-orlen-beyond-the-fen.md:76` (The Constance, in Wexhaven's inlet);
+`the-round-and-the-long-account.md:775` (the *Constance* at the first landing);
+`atlas/6-the-drowned-measures.md:34` (Reed-jaws: "the lore names them and leaves them undescribed").*
 
 ---
 
@@ -221,6 +263,11 @@ anything.
 until the next fire and must be paid for again. Canon already says a mark holds for hours, then fades
 and must be renewed at a fire, so this costs nothing new to the world.
 
+*Sources: `atlas/0-how-to-read.md:32-45` (the six trades and the Older Work);
+`the-round-and-the-long-account.md:253` (workings and marks), `:278` (Cold light, the Hewers' Lodge);
+`CANON.md:29` (O4, small magic); `atlas/5-the-deep.md:54` (cold light spoken aloud: "the quietest
+sound a person makes").*
+
 ---
 
 ## 11. The Bright Hour is a clear day
@@ -237,6 +284,9 @@ not a per-run roll. The Tally Room's board shows the coming day's face, because 
 and everyone in the fen can count. A coal day makes the run genuinely darker, and an Approved Load
 tier can force one.
 
+*Sources: `CANON.md:33` (O8, the sun's day: five coal, eleven coin, four clear in twenty);
+`atlas/2-the-blackfen.md:30` (the fen's names for the weathers); `the-smothering.md:325`.*
+
 ---
 
 ## 12. The weathers are canon's six
@@ -249,6 +299,9 @@ dry.
 
 **Change.** The six by name and by rule. "Squall" is always **cinder-squall**. The Bright Hour is not
 a weather; it is a clear noon on a clear day.
+
+*Sources: `atlas/2-the-blackfen.md:30` ("All six of the Smothering's weathers, and the fen has its own
+names for them"); `the-smothering.md:325-333` (the cycle and what each does); `CANON.md:231`.*
 
 ---
 
@@ -263,6 +316,9 @@ dreadful and never cartoonish.
 **Change.** The reservation is kept, the hues are narrowed. Threat **red** is coal-sun red at full
 saturation. Threat **green** is a **sulphur-yellow-green used only inside telegraph shapes and spore
 clouds, never on a body**. Bodies keep the painted palette. Acid green is never a fill colour.
+
+*Sources: `CLAUDE.md:185-186` (four lights; teal belongs to the bloom, pale blue to workings);
+`atlas/0-how-to-read.md:22` (no beast works magic).*
 
 ---
 
@@ -282,6 +338,11 @@ takes **time** (a working's fourth price), it is loud, and it can only be done a
 what the Muster Book weapon and the "Named" status were always reaching for, and it gives the muster book,
 the fire and the yard one job.
 
+*Sources: `atlas/2-the-blackfen.md:58` (zone 8, the Drowned Graves: "Three Unnamed stand here",
+`atlas/2-the-blackfen.md:44` for "three figures standing in the flooded south-east corner");
+`act-one-the-outskirts.md:561` (the graves), `:580` ("kneels at its stone and speaks a name over it");
+`bestiary.md:643` (how long the naming takes, and a blow breaks it off); `CANON.md:183-185`.*
+
 ---
 
 ## 15. Non-final runs must not end in the thaw
@@ -295,6 +356,9 @@ everyone is trying to last until. A run is one night. Eight stages cannot each e
 going pale, the horde tripling for sixty seconds, and first light on the reeds. It is mechanically
 identical to the brief's thaw. **The Thaw** is reserved for the true end of stage 9 and for the
 game's ending screen.
+
+*Sources: `CANON.md:127` (fact 9: "Spring still comes, barely: a few grey weeks of thaw when the ash
+turns to mud"); `the-smothering.md` (the six weathers, for what a night is).*
 
 ---
 
@@ -318,6 +382,10 @@ woman: **Gise Marrable**, whose husband was in the Slagcrown's workings when the
 The Kept Hand stays exactly what it is: a relic, a chapel, and the sacrifice at the altar
 (`design.md` section 19.12).
 
+*Sources: `CANON.md:26` and `:196` (O1; the eight human backgrounds);
+`halwen-house-private-chapel.md:1` and `:23` (the Chapel of the Kept Hand, Saint Edras of the Kept
+Hand).*
+
 ---
 
 ## 17. Gytha Marrin should not fight
@@ -337,6 +405,10 @@ hand**, as canon has them: Pim's last entry, then Rafe's line for Merrick with M
 under it. If sleeves wants a chair-borne character, the lore-native candidate is **Marget Sayle**
 (62, the witness, the bothy under the ledge), though she walks in the novel; or a new carried
 character from the fen, which needs a name.
+
+*Sources: `people/the-round.md:8` (Gytha Marrin, the Receipt-Wife);
+`atlas/7-orlen-beyond-the-fen.md:56` and `:62` (the Burned Quay, her chair, twenty-eight years);
+`the-round-and-the-long-account.md:728` (the receipts she took).*
 
 ---
 
@@ -358,6 +430,12 @@ and the Seam Roll makes the tags mean something. What is new is that the stone *
 has the warden write down **what a nameless body carried**, and a brass tag is exactly that, so the
 mechanic is that practice repeated a hundred times.
 
+*Sources: `act-one-the-outskirts.md:240` (the Naming Stone at (6.0, 12.5), "on the road out"; the
+names spoken into their mouths; "the warden wrote down what it carried"); `:252` (the three names,
+"none of the dead limed"); `atlas/2-the-blackfen.md:57` (zone 7, "on the road out of the yard");
+`acts-two-and-three.md:352` and `atlas/4-the-citadels.md:213` (brass tags on the miners' dead),
+`:226` (the find); `items-and-texts.md:472` (Name-Token).*
+
 ---
 
 ## 19. Merrick as the Deserter's companion
@@ -373,6 +451,9 @@ for a few breaths at the Mouth, signs the passage rule and *go*, and drops the g
 a companion found on stage 1. His cough follows the canon ladder. His bark set stops at the silence
 stage, and the mix thins with it.
 
+*Sources: `people/the-novel.md:31-32` (the ladder, N15, and "look at that"); `CANON.md:163` (fact 17);
+`acts-two-and-three.md` (the scaffold, the Mouth).*
+
 ---
 
 ## 20. One Grey Cough, not two
@@ -385,6 +466,9 @@ moment that may be a return**.
 
 **Change.** Both use one ladder, section 19.3's: cough at 5, crust at 10, silence at 15. Merrick's trait is
 that the ladder advances on the clock rather than on spores, which is what makes watching him worse.
+
+*Sources: `people/the-novel.md:31` (N15: cough, crust, silence, a moment that may be a return);
+`CANON.md:163` (fact 17, the stages).*
 
 ---
 
@@ -403,6 +487,10 @@ closed gate. Co-op: the gate is worked by the company (hoist, chain, hands on th
 **whoever stands below does so by their own choice**, with a volunteer prompt and no default. The
 rarest book line, *Held the gate*, goes to that player. Nobody is ever assigned it.
 
+*Sources: `acts-two-and-three.md:199` and `:204` (the Weight Gate and its unused machinery);
+`people/the-novel.md:32` (Merrick below the gate, and the one knock);
+`the-round-and-the-long-account.md:896`.*
+
 ---
 
 ## 22. The three workings a run may hold
@@ -416,6 +504,10 @@ rule that a working costs warmth, salt, sound or time.
 **Change.** Kept, with one addition: the three are found **at the three places the novel puts them**,
 where the stage allows: a hearth or a door (the ward), a grave (the naming), and a dark place with
 bad air (cold light). Stage 1 has all three, which is why stage 1 teaches the whole game.
+
+*Sources: `CANON.md:29` (O4, small magic); `the-round-and-the-long-account.md:278` (cold light, made
+for bad air); `atlas/2-the-blackfen.md:67` (the ward over salt; the naming; the workings at the
+house). Three in the novel: the ward, the naming, cold light in chapter 26.*
 
 ---
 
@@ -431,6 +523,10 @@ trust.** They leave, the kindness is lost for the run, and at six listeners lost
 reward closes. The Hand Bell is the best weapon in the Low Galleries and it is the wrong one to
 carry there. That tension is free and it is the point of the stage.
 
+*Sources: `people/the-citadels-and-the-kingdom.md:159` (Aud: *Wants.* The Quiet kept. *Fears.* Noise);
+`the-kingdom-and-the-breaking.md:292` ("who keep silence and wrap bells");
+`bestiary.md:690` (silences, wrapped bells, the Dead Calm); `atlas/5-the-deep.md:54`.*
+
 ---
 
 ## 24. Co-op and the netcode
@@ -445,6 +541,9 @@ unordered channels, RTT and stats. It is **two players**, one host and one guest
 **host-authoritative star**: the host runs one `net19` session per guest, relays between guests, and
 sends quantised snapshots with interest management (only entities near each player). Four players is
 a new transport layer above net19, not a change to it. Details in `design.md` section 23.
+
+*Sources: `js/net19.js:1-20` (repo root, not `docs/worldbuilding/`: the v1 API contract, "Sessions are
+two players: one HOST and one GUEST"); `js/audio.js` for the reused mix.*
 
 ---
 
@@ -471,6 +570,12 @@ Recorded so nobody "fixes" them later.
 - **Knockback, weight classes, hurt-grace, telegraphs, the effect limiter, the fixed 120 Hz step**:
   no lore touches any of it, and all of it is good.
 
+*Sources for the list above: `CANON.md:146` (fact 13, the Watchhouse), `:160` (fact 16, lime),
+`:157` (salt); `atlas/2-the-blackfen.md:36-60` (the thirteen zones), `:67` (the old magic);
+`act-one-the-outskirts.md:240` (the Naming Stone), `:561` (the graves), `:601` (the graves and the
+stone as "the same custom at two ends"); `items-and-texts.md:242` (a bent nail at a roadside shrine);
+`the-warning-book-s30.md:19` (pages of 0.01 kg).*
+
 ---
 
 ## 26. Edda's weapon
@@ -485,6 +590,9 @@ drove stakes with a **beetle**, the trade's two-handed wooden maul.
 the nail shrine and the Nailhouse, and it keeps her cudgel in her hand as her model and her melee
 animation. The **Watch Crossbow** goes to **Col Wray**, the band's youngest, where a coward's brave
 weapon belongs.
+
+*Sources: `items-and-texts.md:334` ("Edda's cudgel is not an item. It is part of her model and her
+attack"); `godot-people.md:93` (the cudgel); `CANON.md:193` (fact 19, Edda).*
 
 ---
 
@@ -501,6 +609,10 @@ negotiated evacuation, not a drain monster.
 **Change.** **The Gutter Kin are not enemies.** At Halwen you can drive them off, trade with them or
 leave them, and the Remnant wants what they hold. The drain-and-culvert ambushers are **goblins**,
 which is what canon puts in the drains.
+
+*Sources: `gutter-kin.md:27` ("They are road waifs... children when they found one another under the
+Roofed Mile"); `CANON.md:205` (Q1 settled by O1: the Gutter-kin are human road waifs);
+`act-one-the-outskirts.md:147` (the goblins' nest).*
 
 ---
 
@@ -537,6 +649,12 @@ working and relic found ... and a page for every place visited".
 **Also fixed in passing:** Pim's trait was called "Kept the Book", which is Margery's phrase about the
 warning book. It is now "Carried the Book".
 
+*Sources: `the-warning-book-s30.md:19` ("Pages 0.01 kg each. The book itself does not leave the
+fire"); `the-warning-book-s30.md:28` (where each page is found); `people/the-watchhouse.md:203`
+(Pim: "brought the muster book to the Watchhouse about nine weeks before Rafe, wrote its last entry");
+`people/the-watchhouse.md:222` (the four dead in that last entry); `atlas/2-the-blackfen.md:126`
+(the tower's finds).*
+
 ---
 
 ## 29. Nine canon creatures the brief left out
@@ -550,6 +668,10 @@ come to your fire), and **corpse-caps** (the growth that a body becomes).
 
 **Change.** Add Greymaw, corpse-caps, harrow eels, bloodwicks and rustlings to the first pass. The
 rest are spare parts for later stages.
+
+*Sources: `bestiary.md:92` ("Seventeen entries, from beetles to the thing below"); the entries
+themselves in `bestiary.md`; `acts-two-and-three.md:183` (the venting slopes, for the brass-tagged
+blooms).*
 
 ---
 
@@ -578,6 +700,9 @@ in Rafe's. They are already mapped to places along the road.
 The blank page at stage 5 is the best use of the file: it tells the player the warning book is a real object
 with holes in it, and it tells them where they are without a word.
 
+*Sources: `the-warning-book-s30.md:28` ("Where each page is found"); `:152` (page found at Halwen
+House, "the cistern vault"); `the-warning-book-s30.md:3` (approved under O10); `CANON.md:35` (O10).*
+
 ---
 
 ## 31. Halwen's two sealed places
@@ -592,6 +717,10 @@ carved hand closed round a flame over it.
 **Change.** The sealed room is the **cistern vault**; the altar that takes a weapon is in the
 **private chapel**. Both already exist in the atlas, and the vault's black water gives the empty room
 something to reflect.
+
+*Sources: `atlas/3-the-bell-road.md:87` (zone 13: "The cistern vault (new as a site), a brick vault the
+size of a chapel, still black water, old coins on the floor"); `halwen-house-private-chapel.md:1`
+(the chapel); `atlas/5-the-deep.md:152` (the service passage, cistern vault and lower culvert).*
 
 ---
 
@@ -608,6 +737,9 @@ winter.** A run does not correct the muster book and the muster book does not co
 be played and still be at the gate, and it is why Winna can stand at the fire without settling
 anything. **proposal**, but it is the same move canon already makes, and it is the only way to have
 this cast.
+
+*Sources: `CANON.md:54` (the acts "are kept as what may have happened that winter");
+`acts-two-and-three.md:3` (same wording); `people/the-novel.md` (Winna's fate left unsettled).*
 
 ---
 
@@ -631,6 +763,10 @@ this cast.
 | P14 | **The tower bell rung once**, its tongue returned | the bell lies on its side in the yard with its tongue gone; the tongue is in the loft, wrapped in a Watch cloak |
 | P15 | **Kell Tor's tarn seen from Greystair** | the tarn is at the crag's foot, furthest east, and the lights on it are canon |
 
+*Sources: each P is sourced in the delta that argues for it: P1 in 1, P2 in 6, P3 and P4 in 5, P5 in
+9, P6 in 15, P7 in 16, P8 in 17, P9 in 18, P10 in 23, P11 in 10, P12 in 14, P13 and P14 in 35, P15 in
+16.7 of `design.md` and in 35.*
+
 ---
 
 ## 34. Names this design must not invent without a ruling
@@ -644,6 +780,9 @@ The brief leaves these `[name]` or `[OPEN]`, and the lore does not answer them. 
   Watchhouse's own words: *The third would not say.*).
 - Whether the daily board is online.
 - The working title: **The Tally**.
+
+*Sources: `act-one-the-outskirts.md:252` ("The third would not say"); `people/the-watchhouse.md:203`
+(Pim dies in chapter 21); `people/the-citadels-and-the-kingdom.md:159` (Wat Corley's bell).*
 
 ---
 
@@ -665,3 +804,9 @@ reading. Each is now checked against the file named, and four of the five needed
 enough to mislead an artist: a stone on the road turned into a stone in the yard, three names turned
 into anonymous graffiti, bread made into a charm, a tongue separated from its bell. None of it changes
 a number. All of it changes what a stage looks like.
+
+*Sources, in order of the table: `atlas/2-the-blackfen.md:57` and `act-one-the-outskirts.md:240`,
+`:252`; `acts-two-and-three.md:221` and `bestiary.md:550`; `atlas/4-the-citadels.md:186` (the tarn)
+and `:196` ("Kell Tor is never entered in the novel"); `atlas/2-the-blackfen.md:639-660` (Reedwake, the
+return-bread, "works no magic"); `atlas/2-the-blackfen.md:96` and `:122` (the bell, its tongue, the
+bell-loft).*
