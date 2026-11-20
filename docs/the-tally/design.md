@@ -583,7 +583,7 @@ and cold light push it back. **The player's own light is tallow yellow.**
 Nine on the road north, six secret. Map types: **open** (infinite, seeded), **lane** (infinite on one
 axis, bounded on the other), **bounded** (hand-built), **rising** (the map changes).
 
-**v1 ships three of them: 1, 2 and 3.** They are three of the four map types — open, lane, bounded —
+**v1 ships three of them: 1, 2 and 3.** They are three of the four map types (open, lane, bounded),
 so the remaining six stages are content rather than capability. Rising is the one map type v1 does
 not exercise, and it belongs to stage 5. Stages 4-9, the six secret stages and the Weight Gate are
 written here because the design has to be whole, not because the first release builds them.
