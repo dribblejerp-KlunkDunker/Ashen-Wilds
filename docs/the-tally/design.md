@@ -95,7 +95,7 @@ Salt and brass tags are kept at **100%**. Strongbox contents not yet opened are 
 | **The dead** | died |
 | **Held** | survived to first light |
 | **Deserted** | took the Order and left |
-| **Did not answer** | the ash's own: the Silent put down, the Unnamed laid, a companion lost |
+| **Did not answer** | the Ashbound: the Silent put down, and any who stopped answering |
 
 Each is a real line in the muster book. Patterns in it unlock characters and stages: ten
 **Deserted** lines, a full page of **Held**, a page of **Did not answer** that is longer than you
@@ -276,7 +276,7 @@ Five levels each.
 | **Good Boots** | +8% Move Speed | the Corpseway's miles |
 | **Watch Cloak** | +1 Armour | the Watch's grey cloak |
 | **Carter's Hitch** | +25% Reach | the carter's-hitch rope the grey rags carry |
-| **Return-Bread** | +0.2 Recovery | Reedwake's return-bread |
+| **Return-Bread** | +0.2 Recovery | a loaf left on a mooring post for someone who came back; food, not a charm |
 | **Warning-Book Page** | +10% Duration | a page of the warning book, found where its entry happened |
 | **Brass Tag** | +10% Luck | the tags on the miners' dead |
 | **Muster Roll** | +8% Growth | the muster book's list of names |
@@ -361,7 +361,7 @@ fire and must be paid again there. Canon already says a mark holds for hours, th
 
 | Pickup | Effect |
 | --- | --- |
-| **Return-bread** / **full pot** | heal 30 / heal 100, rare, from braziers and some elites |
+| **Return-bread** / **full pot** | heal 30 / heal 100; food, not a charm; rare, from braziers, some elites and one loaf on a post (**proposal**) |
 | **Lime barrel** | kills every non-elite in a wide radius in a white blast |
 | **Bell clapper** | Rings every enemy on screen for 2 s |
 | **Hoist hook** | pulls every ember on the map to you |
@@ -408,7 +408,7 @@ the fire, so what you find and carry are its pages (17.4).
 | **The Seam Roll** | the Slagcrown counting house | names for the brass tags |
 | **The Tower's Key-Ring** | nowhere yet | Kemble's fate stays a shut door |
 | **Cerrin Vane's Cloak** | the Slagcrown hall | nothing says where he went |
-| **The Bell's Tongue** | the Causeway tower yard | the bell can be rung again, once |
+| **The Bell's Tongue** | the tower's bell-loft, wrapped in a Watch cloak | the bell lying in the yard can be rung once (**proposal**) |
 
 **Rarity is material,** never a colour scale: iron, brass, silver, glim-blue. Evolved weapons get a
 thin pale-blue outline on their icon.
@@ -631,8 +631,10 @@ roof where the snow comes down in a column of grey light. **Page:** entry 15, *T
 
 Open, with the fallen Citadel hand-built. **Mechanic: warm ground.** The venting slopes heal slowly
 and grow blooms fastest. Blooms here wear brass tags worth triple. **Boss:** the furnace night, 15:00:
-keep the furnace lit or the trolls stop burning. **Wonder:** Kell Tor's tarn lighting on the horizon
-at 22:00. **Page:** entry 25, *The Venting Slopes*.
+keep the furnace lit or the trolls stop burning. **Wonder:** at 22:00, far east, the small pale lights
+on Kell Tor's tarn, drifting across the black water and going out one by one. Kell Tor has been
+sealed since S.1 and nobody has been inside; the lights are most likely marsh gas at warm vents.
+(A sightline from Greystair: **proposal**.) **Page:** entry 25, *The Venting Slopes*.
 
 ### 16.8 Stage 8 - The Low Galleries
 
@@ -696,6 +698,11 @@ Prices rise with each purchase. **A refund button returns all salt**, so builds 
 
 Brass tags come back here. Every 100 returned, the stone takes a name and you choose one of three
 small permanent boons. It fills slowly over the whole game: the long arc.
+
+**proposal:** in canon the stone takes nothing. The Watch laid its dead on it so their names could be
+spoken into their mouths before the lime, and when a body had no name **the warden wrote down what it
+carried**. A miner's brass tag is exactly what a nameless body carried, so the mechanic is that
+practice, done a hundred times.
 
 ### 17.3 The Muster Book
 
@@ -797,8 +804,9 @@ book: **"[Name], carried to the fire."** No reward beyond the line.
 ### 18.15 The naming at the graves
 Stage 1's mechanic, and the game's first real choice. An Unnamed cannot be killed: cut it down and it
 rises whole. To lay one you must **kneel at its grave and speak a name**: three seconds, stationary,
-loud, and it draws the horde. Doing it is worth brass and a line in the muster book. Doing it during the Grey
-Hour is how the best runs end. The game never says whether the name has to be true, because canon
+loud, and it draws the horde. Doing it is worth brass, and a line of its own in the muster book: not
+the **did not answer** line, which is for the ones who stopped answering. Doing it during the
+Grey Hour is how the best runs end. The game never says whether the name has to be true, because canon
 never says either.
 
 ---
