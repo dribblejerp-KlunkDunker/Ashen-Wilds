@@ -548,7 +548,7 @@ thing the game does, not the first release's.
 | --- | --- | --- |
 | 1 | **The Ogre of the Long Stable** | stomps (rings), a charge that breaks the stable piers, picks up and throws carts; at half health it starts eating corpses to heal, so burn them |
 | 2 | **The Causeway Tower band** | three ork pack-leaders round a war-banner; kill the banner-bearer first or the others enrage |
-| 3 | **The Halwen siege** | waves of Remnant crossbowmen, Garden Hands and gutter goblins under one captain who moves between windows; break the doors to reach her. **[name needed]** |
+| 3 | **The Halwen siege** | waves of Remnant crossbowmen and gutter goblins under one captain who moves between windows; break the doors to reach her. The Garden Hands are not enemies and do not appear in the waves: canon has them as Halwen's labour faction, negotiating with the Remnant. **[name needed]** |
 | 4 | **The blind troll of Rook's Stair** | rolls boulders down the benches; regenerates; the winch can drop a load on it if the rope goes at the right moment |
 | 5 | **The Reed-Jaw of the Long Cut** | ambushes from the reeds; a ridge shape you must read; drags what it takes into the water |
 | 6 | **The crawler at the third arch** | drops from arch to arch; between drops the corridor goes dark and only its claws tell you which arch |
@@ -1063,7 +1063,7 @@ Ruled 2026-11-20.
 | --- | --- | --- |
 | Stages | 1 Outside Fire, 2 Old Causeway, 3 Halwen House | 4-9, and the six secret stages |
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
-| Creatures | 13 modelled - twelve creatures and the Ogre - and 2 painted, all named below | the other 9 in section 13, and one unique painting per boss from 4 on |
+| Creatures | 13 modelled - twelve creatures and the Ogre - and 1 painted, all named below | the other 9 in section 13, and one unique painting per boss from 4 on |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
 | Evolutions | 8: The Cold Edge, Held the Gate, The Limed Road, The Nailhouse, The Bell-Tender's Toll, Deserted: None, Grisel's Hedge, Aud's Lesson | 8, and both unions |
@@ -1078,7 +1078,7 @@ Grey Hour, the fire, and the Silent. Cutting any of those would make a different
 smaller one.
 
 **The v1 creatures, counted.** Twelve creature sheets and one boss sheet, each an 8-direction model
-rendered at 2x, plus two painted people. The section each one comes from is named, so a sheet can be
+rendered at 2x, plus one painted person. The section each one comes from is named, so a sheet can be
 checked against the behaviour it has to telegraph. A builder needs exactly this list and no more.
 
 | # | Creature | Section | Where in v1 | Sheet by |
@@ -1101,9 +1101,11 @@ checked against the behaviour it has to telegraph. A builder needs exactly this 
 appear in every stage, the nest-runt, the Silent, the Ogre), five in M6 (the other three of the band,
 the hulk-conger, the crossbowman). Thirteen sheets, and no sheet built twice.
 
-**Painted, not modelled:** the Garden Hands and the Halwen siege captain, stage 3, because they are
-people with faces to read. **The Silent are people too and are modelled anyway**, because their whole
-design is a silhouette that blocks at distance and they never speak.
+**Painted, not modelled:** the Halwen siege captain, stage 3, because she is a person with a face to
+read. **The Silent are people too and are modelled anyway**, because their whole design is a
+silhouette that blocks at distance and they never speak. **The Garden Hands are neither**: canon has
+them as Halwen's labour faction, negotiating with the Remnant, so they are not in the siege and
+nothing in v1 draws them.
 
 **Not art:** the seven elite affixes are the same sheets, scaled and tinted; the Causeway banner is a
 prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, quarry-troll,
