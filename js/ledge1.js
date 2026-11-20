@@ -1,7 +1,7 @@
 // ============================================================
 //  ledge1 - Phase 1, "the ledge": The Long Account's first place, and the way into it.
 //
-//  The prologue of docs/worldbuilding/the-round-and-the-long-account.md: the first week of the thaw, S.31, on
+//  The prologue of docs/worldbuilding/the-round-and-the-long-account.md: the first week of the thaw, S.30, on
 //  Orlen's highland edge. You stand on frosted rock above a broken, burning country, with the Slagcrown under a
 //  sun that has gone dark, and Marget Sayle's bothy is under the ledge.
 //
@@ -302,7 +302,7 @@ const LEDGE1 = (() => {
     crack: 'Fire in the ground. The heat reaches you from here.',
     bloom: 'Corpse-caps, in a hollow where something died and was not limed. They give their own light. Do not go down wind of them.',
     intro: [
-      'The first week of the thaw, S.31.',
+      'The first week of the thaw, S.30.',
       'Thirty years since the Slagcrown broke the Vaults open. The sun went dark that year and has not come back.',
       'Gytha Marrin, who keeps the receipts at the Burned Quay, has sent you north for one of the four who came back from the first survey.',
       'Her name is Marget Sayle. She has never said what she saw.',
@@ -315,7 +315,7 @@ const LEDGE1 = (() => {
   const TOPICS_LA = {
     'The Slagcrown': { low: 'The greatest of the five Citadels. It broke the Vaults open, and the sun went dark that year. Nobody lives there.', high: 'The Slagcrown followed the Black Seam down to worked stone that was not ours, and broke it on a lord\'s order. Who made that stone, nobody knows.' },
     'The sun': { low: 'It went dark the year of the Breaking. Thirty years. Spring still comes, barely.', high: 'Some say the ash is thinning. No one can prove it.' },
-    'The Smothering': { low: 'The ash, and what came up with it. We count the years from it. This is the thirty-first.', high: 'Ash, then goblins, then the ork packs running from something deeper, then the big things. Then the lords went south and burned the ships.' },
+    'The Smothering': { low: 'The ash, and what came up with it. We count the years from it. This is the thirtieth.', high: 'Ash, then goblins, then the ork packs running from something deeper, then the big things. Then the lords went south and burned the ships.' },
     'Marget Sayle': { low: 'One of the four who came back from the first survey. She has never said what she saw.', high: 'One of the four who came back from the first survey. She has never said what she saw.' },
     'Gytha Marrin': { low: 'The Receipt-Wife, at the Burned Quay. She takes a receipt from everyone who walks down the Salt Trace, and writes them a line for it.', high: 'She was a tallywoman at Wexhaven when the fleet sailed. She has eleven thousand of the Crown\'s receipts, and she wants an answer.' },
     'The survey': { low: 'Ebba Cray took a survey through the breach, the year it was made. Four came back. Ebba Cray did not.', high: 'Ebba Cray took a survey through the breach, the year it was made. Four came back. They would not say what they saw, then or later.' },
@@ -526,6 +526,9 @@ void main() {
     const attrs = Object.assign({}, CLASSES[ci].attrs);
     for (let i = 0; i < CREATE.bio.length; i++) { const a = BIOGRAPHY[i].a[CREATE.bio[i]]; for (const k in a.mod) attrs[k] += a.mod[k]; }
     CREATE.attrs = attrs;
+    // the Shattered Octave's opening film (js/cinematic24.js) is its story, not this one: it never plays here, and the
+    // intro is this game's own five lines
+    if (typeof CINEMATIC24 !== 'undefined' && CINEMATIC24.set) CINEMATIC24.set.play = false;
     startGame();
   }
   function arrive() {
@@ -578,6 +581,8 @@ void main() {
       const r = _acc.apply(this, arguments);
       try {
         const grid = document.querySelector('#modal-panel .ctl-grid');
+        // the Octave's opening film has no place here, so neither do its switch and its replay
+        for (const id of ['cine24-play', 'cine24-play-label', 'cine24-replay']) { const el = document.getElementById(id); if (el) { const lab = id === 'cine24-replay' ? el.previousElementSibling : null; el.remove(); if (lab) lab.remove(); } }
         for (const [key, name, what] of SWITCHES) {
           const id = 'gfx-' + key.toLowerCase();
           if (!grid || document.getElementById(id)) continue;

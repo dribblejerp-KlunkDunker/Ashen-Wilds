@@ -1,6 +1,6 @@
-# People: the novel of the winter of S.30
+# People: *Held the Gate*, the novel of the winter of S.30
 
-The novel (a Claude Doc, "Ashen Wilds: the novel (the winter of S.30)") follows the Watch Deserter from the Watchhouse
+The novel, titled *Held the Gate* (O11; drafted in a Claude Doc, "Ashen Wilds: the novel (the winter of S.30)"), follows the Watch Deserter from the Watchhouse
 door to the Weight Gate. Its proposals N1 to N20 were accepted on 2026-11-19 (ruling O10), so its two leads are canon.
 Everyone else in its cast already has an entry: see `README.md` in this folder.
 
@@ -17,8 +17,9 @@ Held the gate.* on the line for the dead, and his own name on the line for those
 **Wants.** To be told he was ordered; to keep the road, since he can no longer keep the tower.
 **Voice.** Little. Orders in a level voice. No when he is lying.
 **Carries.** The arming sword with its faded glim mark; a wooden targe; a torch; two rags.
-**Hooks.** Whether he is the deserter on The Long Account's ledge, whom the game calls old and who has a glim-marked
-blade: still the owner's question.
+**Hooks.** He is not the deserter on The Long Account's ledge (O11): at the thaw he is at the Watchhouse, writing in the
+muster book, and the ledge's deserter is an older Watch man sent north by Gytha Marrin. Watch issue swords carried glim
+marks, so both have one.
 
 *Sources: the novel's Bible and plan; `godot-people.md` §2 (Watch Deserter).*
 

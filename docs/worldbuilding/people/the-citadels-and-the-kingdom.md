@@ -139,7 +139,7 @@ galleries already old when the Citadel was young. A shepherd saw smoke from the 
 
 ---
 
-## The highland edge, S.30 to S.31
+## The highland edge, the thaw of S.30
 
 ### Marget Sayle
 *One of the four who came back · her bothy under the ledge · alive · 62*

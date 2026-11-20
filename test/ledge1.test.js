@@ -87,7 +87,7 @@ const said = src.match(/'(?:[^'\\\n]|\\.)*'/g) || [];
 const nonAscii = strings.filter((s) => /[^\x20-\x7e]/.test(s));
 check(strings.length > 30 && nonAscii.length === 0, 'every line of in-game text is plain ASCII (canon rule): ' + strings.length + ' lines');
 check(said.filter((s) => /[^\x20-\x7e]/.test(s)).length === 0, 'and so is every quoted string in the file');
-check(L.TX.intro.length === 5 && /S\.31/.test(L.TX.intro[0]), 'the opening is five lines and names the year S.31');
+check(L.TX.intro.length === 5 && /S\.30/.test(L.TX.intro[0]), 'the opening is five lines and names the year S.30');
 // canon: these must agree with docs/worldbuilding/CANON.md and the design document
 const canon = fs.readFileSync(path.join(ROOT, 'docs', 'worldbuilding', 'CANON.md'), 'utf8') + fs.readFileSync(path.join(ROOT, 'docs', 'worldbuilding', 'the-round-and-the-long-account.md'), 'utf8');
 for (const name of ['Marget Sayle', 'Gytha Marrin', 'Slagcrown', 'Ebba Cray', 'Burned Quay', 'Salt Trace', 'Bell Road', 'Wexhaven', 'Black Seam', 'Receipt-Wife']) {
@@ -108,6 +108,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
     const r = await s.page.evaluate(async () => {
       const out = {}, c = Engine.cam;
       const walk = (tx, ty, secs) => { for (let i = 0; i < secs * 10; i++) { c.dir = Math.atan2(ty - c.y, tx - c.x); G.keys = { w: true }; advanceTime(100); if (Math.hypot(tx - c.x, ty - c.y) < 0.35) break; } G.keys = {}; return { x: c.x, y: c.y, feet: G.player.feet || 0, state: G.state }; };
+      out.cine = typeof CINEMATIC24 === 'undefined' ? null : { play: CINEMATIC24.set.play, shots: CINEMATIC24.trace().length };
       out.map = G.map.id; out.maps = Object.keys(G.maps).sort(); out.active = R3D.active(); out.failed = LEDGE1.gl().failed;
       out.passes = R3D.passes().map((p) => p.name);
       out.journal = G.journal.map((j) => j.text); out.day = typeof DAYS !== 'undefined' ? DAYS[0] : null; out.tod0 = G.tod;
@@ -138,7 +139,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
 
       // ---- the Options rows
       GFX.laSky = true; GFX.laAsh = true;
-      try { renderAccessibilityMenu(); out.rows = LEDGE1.SWITCHES.map(([k]) => { const b = document.getElementById('gfx-' + k.toLowerCase()); return b ? b.textContent : null; }); if (typeof closeModal === 'function') closeModal(); } catch (e) { out.rows = String(e); }
+      try { renderAccessibilityMenu(); out.cineRows = ['cine24-play', 'cine24-replay'].filter((id) => document.getElementById(id)); out.rows = LEDGE1.SWITCHES.map(([k]) => { const b = document.getElementById('gfx-' + k.toLowerCase()); return b ? b.textContent : null; }); if (typeof closeModal === 'function') closeModal(); } catch (e) { out.rows = String(e); }
       GFX.laSky = true; GFX.laAsh = true; G.state = 'play'; if (R3D.camera && R3D.camera.setAngle) R3D.camera.setAngle(0);
       loadMap(LEDGE1.LEDGE); advanceTime(300);
 
@@ -157,6 +158,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
       return out;
     });
     const TOP = Object.keys(L.TOPICS);
+    check(r.cine && r.cine.play === false && r.cine.shots === 0 && Array.isArray(r.cineRows) && r.cineRows.length === 0, 'the Shattered Octave\'s opening film never plays here, and Options has no switch or replay for it: ' + JSON.stringify([r.cine, r.cineRows]));
     check(r.map === L.LEDGE && r.maps.join() === [L.BOTHY, L.LEDGE].sort().join(), 'Begin opens on the highland edge, and only this game\'s two maps exist: ' + r.maps.join(', '));
     check(r.active && !r.failed && r.passes.includes('la-coalsun') && r.passes.includes('la-ash'), 'the 3D renderer draws it, with the coal sun and the ash as passes of their own');
     check(r.passes.indexOf('la-coalsun') === r.passes.indexOf('sky') + 1 && r.passes.indexOf('la-ash') > r.passes.indexOf('transparent') && r.passes.indexOf('la-ash') < r.passes.indexOf('post'), 'the sun is painted straight after the engine\'s sky; the ash after the world and before the grade');

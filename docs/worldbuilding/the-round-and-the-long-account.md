@@ -47,7 +47,7 @@ Schematic, not to scale. Lines join lands that touch. The Lazaret Rocks lie in t
 
 The story opens on Orlen's highland edge, the voyage begins at Wexhaven, and it ends at the White Deeps.
 
-| Land | Where it lies | What it was | What it is in S.31 |
+| Land | Where it lies | What it was | What it is in S.30 |
 | --- | --- | --- | --- |
 | **Orlen** (outsiders say *the Smother*) | North shore | The slag-iron kingdom | Ash. The fen holding on, the Citadels empty. |
 | **The Scald and the Hoar** | North of the highlands | Moor, then ice and herd country | Venting ground. Herders walking south without herds. |
@@ -167,7 +167,7 @@ The Saltback mountains hold the oldest rock-salt mines on the Round: white galle
 - **The ore.** In S.27 a sump crew broke through the salt floor into dark, heavy, greasy stone. Fired, it holds heat for hours. Assayers argue over whether it is slag-iron or a poorer cousin.
 - **The Deeps Company.** Chartered at Port Sable in S.29, with shares held in all three southern realms. It is the first thing the three have agreed on in thirty years.
 - **The hewers.** Nobody in the south knows how to work the ore, so the Company bonds the grandchildren of Orlen's Hewers' Lodges. They know exactly what they are looking at.
-- **The wall.** In the autumn of S.31 the seam runs into close-fitted stone. The rest is in *The deep places* and in the story.
+- **The wall.** In the autumn of S.30 the seam runs into close-fitted stone. The rest is in *The deep places* and in the story.
 
 ### Past the edges
 
@@ -239,12 +239,12 @@ The Keeping names the dead by speaking into the mouth. The Weald carves the name
 
 ### Calendars
 
-| Count | Used by | S.31 is |
+| Count | Used by | S.30 is |
 | --- | --- | --- |
-| S-dating, from the Breaking | Orlen and the Greys | S.31 |
-| Years of the Compact | The quays | Year 412 |
-| Regnal years | Vauclere | The 22nd of Ysabeau |
-| Years of the Lessened Day | Sephar | L.31 |
+| S-dating, from the Breaking | Orlen and the Greys | S.30 |
+| Years of the Compact | The quays | Year 411 |
+| Regnal years | Vauclere | The 21st of Ysabeau |
+| Years of the Lessened Day | Sephar | L.30 |
 
 Sephar and Orlen count from the same year without having agreed to. Only those two start their calendars at the wound.
 
@@ -361,16 +361,16 @@ Orlen's own dates are in `the-kingdom-and-the-breaking.md`. These are the dates 
 | S.24 | The register at Qesh reports brightening. Marrah's does not. |
 | S.27 | Dark ore found under the salt floor of the White Deeps |
 | S.29 | The Deeps Company chartered. Orlen hewers bonded to work it. |
-| S.30, winter | Ashen Wilds |
-| S.31, thaw | **The Long Account begins** |
-| S.31, autumn | The seam at the White Deeps meets the wall |
-| S.32, thaw | Fire-setting is scheduled to begin |
+| S.30, winter | Ashen Wilds (the novel, *Held the Gate*) |
+| S.30, thaw | **The Long Account begins**, a week after the novel ends (O11) |
+| S.30, autumn | The seam at the White Deeps meets the wall |
+| S.31, thaw | Fire-setting is scheduled to begin |
 
 ## Part Two: The Long Account
 
 ### The game in one paragraph
 
-One to four players are a small carrying company. In the thaw of S.31 they take eleven thousand unpaid royal receipts, and one old woman who was inside the Vaults, out of Wexhaven and around the Slate Sea. They are looking for anyone who will answer for the Crown. They find a south that is about to break its own wall. The game ends at the next thaw, back where it started, with the company writing down what was paid.
+One to four players are a small carrying company. In the thaw of S.30 they take eleven thousand unpaid royal receipts, and one old woman who was inside the Vaults, out of Wexhaven and around the Slate Sea. They are looking for anyone who will answer for the Crown. They find a south that is about to break its own wall. The game ends at the next thaw, back where it started, with the company writing down what was paid.
 
 |  |  |
 | --- | --- |
@@ -753,11 +753,11 @@ Nobody on this list is a villain. Each of them has a ledger.
 
 ### Prologue: the ledge
 
-*The first week of the thaw, S.31. About forty minutes. It puts the key painting in the game, in first person.*
+*The first week of the thaw, S.30. About forty minutes. It puts the key painting in the game, in first person.*
 
 The game opens on the ledge in the painting. The players stand on frosted rock at Orlen's highland edge, and the first thing the game asks of them is to look.
 
-1. **The view.** The coal sun, the Slagcrown beneath it, the venting fires, a teal hollow below. No prompt appears until every player has looked at the Citadel.
+1. **The view.** The coal sun, the Slagcrown beneath it, the venting fires, a teal hollow below. No prompt appears until every player has looked at the Citadel: the Slagcrown held near the middle of the view for about two seconds, added up, the same alone or in company (O11). Anyone who has not looked is nudged by the line *Look west.*
 2. **The errand.** Gytha Marrin has sent them north for one of the four who came back. Marget Sayle's bothy is under the ledge.
 3. **The way down.** Hoarfrost footing. Cold light beside a lantern, if anyone has the working. One walking bloom in the teal hollow, which the path skirts. It teaches distance and wind, not fighting.
 4. **The asking.** Marget does not want to come. What the players promise her is the first entry in the Account, with a name on it.
@@ -766,11 +766,11 @@ The game opens on the ledge in the painting. The players stand on frosted rock a
 
 The walk south to Wexhaven is then the first leg on the Chart: down the Bell Road, across the fen and down the Salt Trace. It teaches days, food and weather. What state the Causeway is in is left to Ashen Wilds.
 
-**The default pair.** With no choices made, the two on the ledge are the painting's two: an old Watch deserter with a glim-marked blade, and a young causeway carter with a spear and the company's shield.
+**The default pair.** With no choices made, the two on the ledge are the painting's two: an old Watch deserter with a glim-marked blade (not Rafe Sedley of the novel, O11), and a young causeway carter with a spear and the company's shield.
 
 ### Act I: the Burned Quay
 
-*The thaw of S.31. About six hours. The question: what does the world owe the people it shut out?*
+*The thaw of S.30. About six hours. The question: what does the world owe the people it shut out?*
 
 1. **The stove.** The first landing at Wexhaven is the drowned hull of the royal ship *Constance* in Wexhaven's inlet. The company lifts her slag-iron galley stove at low water. It teaches the two-person load, the tide as a clock, and the hulk-conger.
 2. **The reavers.** Corvin Hale's crew is stripping the upper town. The company can fight them, trade with them (they sell a chart of the harbour chains), or sail in their wake and say nothing.
@@ -806,7 +806,7 @@ Three places answer for the Crown. Each offers something different for the recei
 
 ### Act III: the eleven days
 
-*Winter into the thaw of S.32. About eight hours. The question: what do the living owe people they will never meet?*
+*Winter into the thaw of S.31. About eight hours. The question: what do the living owe people they will never meet?*
 
 **The case for breaking the wall** is Ines Corrant's, and it is made in numbers. Forty thousand people in the valley towns heat with wood, and the wood went to the terraces for rye. Last winter's dead are in her ledger by parish. The ore holds heat for hours. She is not in debt and she is not proud. She has counted.
 
@@ -828,7 +828,7 @@ None of them saves the world. Each one decides who pays for a winter.
 | **Sell and sail** | Sell the receipts at the Exchange before the thaw | Grain ships go north. The fen eats for a winter, and Daw and Sturry hold its land claims. The company was not at Halsing. | Answer Gytha's question |
 | **Go home** | Only the voyage back | Whatever the company was paid goes north: a signature, a sealed paper, or nothing, with lime and seed rye bought on the way. | Stop anything |
 
-**The last scene** is the same in every ending. The Burned Quay, the thaw of S.32, and Gytha Marrin's chair, with her in it or not. The players write the Account's last line themselves, in three blanks:
+**The last scene** is the same in every ending. The Burned Quay, the thaw of S.31, and Gytha Marrin's chair, with her in it or not. The players write the Account's last line themselves, in three blanks:
 
 *Paid: \_\_\_\_. Owing: \_\_\_\_. Refused by: \_\_\_\_.*
 

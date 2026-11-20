@@ -5,7 +5,7 @@
 > says *(new)* or *proposed*, that records where it came from, not that it waits for a ruling. Maps are in the
 > Chart of the Round (https://claude.ai/artifact/7Y4ERUJAC19mHBcDMwm19k); the atlas's own map widgets do not export.
 
-*The lands around the Slate Sea, as they stand in the winter of S.30 and the thaw of S.31. Orlen's own regions are in the tabs before this one. Distances follow the Scale and distances tab.*
+*The lands around the Slate Sea, as they stand in the winter and the thaw of S.30. Orlen's own regions are in the tabs before this one. Distances follow the Scale and distances tab.*
 
 ## The Round as a whole
 
@@ -13,7 +13,7 @@
 
 **At a glance.** *The Round* was the old one-season trading circuit of the Slate Sea, made possible when Osbert III's slag-iron fleet learned to winter at sea (S.-82 to S.-44). Under the Dim it is the road of the voyage in *The Long Account*: from Wexhaven to the Sable Shore, the courts of Vauclere and Sephar, and the White Deeps. As a working figure, Wexhaven to the Sable Shore is about a week under sail in fair weather.
 
-| Land | Where | In S.31 |
+| Land | Where | In S.30 |
 |---|---|---|
 | Orlen (the Smother) | North shore | Ash. The fen holding on, the Citadels empty. |
 | The Scald and the Hoar | North of the highlands | Venting ground; herders walking south without herds |
@@ -35,7 +35,7 @@
 
 **Tongues.** Orlen speech and Quay speech are cousins. **Quay-talk** is the pidgin of every sailor. Vauclere's court tongue and Sepharine are learned. The Hoarfolk share no words with anyone south of the Scald. **Hewers' hand**, the miners' signing, went south with refugee hewers, and the Greys now use it as a language the quays cannot overhear.
 
-**Calendars.** S.31 is Year 412 of the Compact, the 22nd of Ysabeau, and L.31 in Sephar. Only Orlen and Sephar start their count at the wound.
+**Calendars.** S.30 is Year 411 of the Compact, the 21st of Ysabeau, and L.30 in Sephar. Only Orlen and Sephar start their count at the wound.
 
 ## The Slate Sea
 
@@ -413,7 +413,7 @@ Every port keeps a chain across its harbour (raised for northern hulls since S.6
 
 *River empire · the far south-east, where the sea narrows and a great river comes down to it* *· held by the Throne and the temples · danger II in the cities, III on the canals at dawn · lore, with new details marked*
 
-**At a glance.** Canals, mud-brick cities and the faith of **the Unconquered Day**: light is lent, and every harvest repays it. To Sephar the Dim was not weather. Its sun was lessened in the sight of everyone, and the river has flooded low every year since S.1. The doctrine now taught is **the Debt of Light**: the sun was robbed, the robber is the north, and the debt will be collected. In S.9 the **Embassy of Lamps**, six ships, sailed north to demand restitution. None came back, and nobody on any coast knows what became of them. Sephar counts its years from the wound: S.31 is L.31, the thirty-first Year of the Lessened Day.
+**At a glance.** Canals, mud-brick cities and the faith of **the Unconquered Day**: light is lent, and every harvest repays it. To Sephar the Dim was not weather. Its sun was lessened in the sight of everyone, and the river has flooded low every year since S.1. The doctrine now taught is **the Debt of Light**: the sun was robbed, the robber is the north, and the debt will be collected. In S.9 the **Embassy of Lamps**, six ships, sailed north to demand restitution. None came back, and nobody on any coast knows what became of them. Sephar counts its years from the wound: S.30 is L.30, the thirtieth Year of the Lessened Day.
 
 **How it looks.** A brown river a mile wide between green strips, and beyond them desert. Cities of mud brick, whitewashed, with stepped temples whose roofs carry bronze sun-discs. Canals everywhere, low and stinking because the flood has failed. Every temple roof has a smoked-glass sighting-house on it.
 
@@ -439,7 +439,7 @@ Every port keeps a chain across its harbour (raised for northern hulls since S.6
 
 *Mountain range, salt mine and mine town · the Saltback mountains between Vauclere and Sephar; white galleries six hundred years deep · held by the Deeps Company · danger II in Halsing, III in the galleries, V at the wall · lore, with new layout marked*
 
-**At a glance.** The oldest rock-salt mines on the Round, first cut about S.-600, under the mine town of **Halsing**. In S.27 a sump crew broke through the salt floor into dark, heavy, greasy stone that, fired, holds heat for hours. Assayers argue whether it is slag-iron or a poorer cousin. The **Deeps Company** was chartered at Port Sable in S.29, with shares in all three southern realms, the first thing the three have agreed on in thirty years. Nobody in the south knows how to work the ore, so the Company bonds the grandchildren of Orlen's Hewers' Lodges. They know exactly what they are looking at. In the autumn of S.31 the seam runs into close-fitted stone. The story ends here.
+**At a glance.** The oldest rock-salt mines on the Round, first cut about S.-600, under the mine town of **Halsing**. In S.27 a sump crew broke through the salt floor into dark, heavy, greasy stone that, fired, holds heat for hours. Assayers argue whether it is slag-iron or a poorer cousin. The **Deeps Company** was chartered at Port Sable in S.29, with shares in all three southern realms, the first thing the three have agreed on in thirty years. Nobody in the south knows how to work the ore, so the Company bonds the grandchildren of Orlen's Hewers' Lodges. They know exactly what they are looking at. In the autumn of S.30 the seam runs into close-fitted stone. The story ends here.
 
 **How it looks.** Grey mountains with white scars where the salt is quarried, and Halsing in a high valley below: a town of stone and salt-block houses, chapels, bunkhouses, carting yards, and the Company's new pumping house steaming beside the old pit-heads. Below ground, galleries of white salt so large a church would fit in them, the walls glittering in lamplight, the floors worn smooth by six centuries of feet.
 
@@ -465,7 +465,7 @@ granddaughter of Ancel Brode, who wants the right of refusal that no southern la
 
 **Dangers.** Collapse (III). The Company's law (III). The wall (V, and unknown).
 
-**Hooks.** Fire-setting is planned to begin at the thaw of S.32. It took eleven days to break the wall at the Slagcrown, and the Company's engineers have planned for the same.
+**Hooks.** Fire-setting is planned to begin at the thaw of S.31. It took eleven days to break the wall at the Slagcrown, and the Company's engineers have planned for the same.
 
 ## Past the edges
 

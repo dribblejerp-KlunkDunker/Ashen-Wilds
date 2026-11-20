@@ -170,9 +170,8 @@ fragment and insisted that Harl's widow's cart claim be deferred, not discharged
 **Find her.** In the chapel's record room.
 **Hooks.** The Revised Register (II.l): she can read the hand and date of the Causeway leaf.
 
-*Sources: `keeping-and-merewick.md`; the atlas (Merewick). New: looks, carries. This is the Merewick Mara Venn; the
-lost faction bible also names a Mara Venn who was a Cinder Factor road carrier. Whether they are one person, two, or
-one renamed is still open (CANON Q2).*
+*Sources: `keeping-and-merewick.md`; the atlas (Merewick). New: looks, carries. She is the only Mara Venn: the lost
+faction bible's road carrier of that name is retired (O11).*
 
 ### Eda
 *The orphan who keeps her reed grant in two copies · Merewick · alive*
@@ -215,8 +214,8 @@ debts be read when the register was cut. His daughter's naming strip was lost ov
 name without the proof. His widow's cart claim was deferred, not discharged, and the deferral was written.
 **Hooks.** A living witness to the requisition would settle her claim. The Grain March took carts north in S.2.
 
-*Sources: `keeping-and-merewick.md`; the atlas. This Harl is distinct from the faction bible's elderly Harl the
-Toll-Keeper, or unresolved (CANON Q2).*
+*Sources: `keeping-and-merewick.md`; the atlas. He is the only Harl: the lost faction bible's elderly Harl the
+Toll-Keeper is retired (O11).*
 
 ### Collector Brannick
 *A collector of the Tithe · named only*

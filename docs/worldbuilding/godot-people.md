@@ -482,7 +482,7 @@ with a bow nobody else can draw.
 
 ### Col Wray, the youngest
 
-Seventeen. Edda's sister's boy. Joined in the spring of S.30 because the band fed him and Stakeby was starving.
+Seventeen. Edda's sister's boy. Joined at the start of the winter of S.30 because the band fed him and Stakeby was starving.
 Told the Doleman his aunt knew the dry ways, argued for her life afterwards, and chose to stay. Not a monster
 and not a victim: a boy fed for the first time by people who want something for it, who has decided he does
 not mind. He has started wrapping his face like the others.

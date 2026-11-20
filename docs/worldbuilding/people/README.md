@@ -1,7 +1,7 @@
 # Who is who
 
 Every named person in the Ashen Wilds lore, the atlas and the novel, with where to find their full entry. States are
-as of the winter of S.30 (the novel) or the thaw of S.31 (The Long Account). Compiled 2026-11-19, when the owner accepted
+as of the winter of S.30 (the novel) or the thaw of S.30 that follows it (The Long Account). Compiled 2026-11-19, when the owner accepted
 all proposals and asked for every character to have a full entry (ruling O10 in `../CANON.md`).
 
 New full entries are in this folder, by where people are found:
@@ -15,8 +15,8 @@ New full entries are in this folder, by where people are found:
 
 Older full entries stay where they were written, and the table points to them.
 
-**Still open:** two Mara Venns and two Harls (CANON Q2): the lost faction bible's road carrier and toll-keeper, and
-Merewick's copyist and carter. The entries keep them apart until the owner rules.
+**Settled (O11):** the Merewick Mara Venn and Harl are the only ones; the lost faction bible's road carrier and
+toll-keeper are retired with it.
 
 **169 entries.** A row may name a household or a group.
 
@@ -96,7 +96,7 @@ Merewick's copyist and carter. The entries keep them apart until the owner rules
 | Hessa Pell | Kitchen servant who covered the saint's face | Halwen House | Gone | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Hesta and Corren Marr | The Reed Yard household | The Drowned Measures | Alive | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Hilde Brennock, Mother | Leader of the Keepers of the Steps | Saint Orra's Steps | Alive | [`the-fen.md`](the-fen.md) |
-| Hildy Coyle | Fen healer | The Spore Hollow | Dead, S.30 | [`the-watchhouse.md`](the-watchhouse.md) |
+| Hildy Coyle | Fen healer | The Spore Hollow | Dead, autumn S.29 | [`the-watchhouse.md`](the-watchhouse.md) |
 | Hugh Ardern | Harbour-marshal who fired the harbour | Wexhaven | Not recorded after S.3 | [`the-citadels-and-the-kingdom.md`](the-citadels-and-the-kingdom.md) |
 | Hulda, Ware and Agna Haskett | Smiths | The Nailhouse | Alive | [`the-fen.md`](the-fen.md) |
 | Ines Corrant | Steward of the Deeps Company | Halsing | Alive | [`the-round.md`](the-round.md) |
@@ -117,7 +117,7 @@ Merewick's copyist and carter. The entries keep them apart until the owner rules
 | Maelin Voss | Named only | The Drowned Measures |  | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Mara Holt, Osric Dane, Fenna Wale, Tollen Pike | The Low Rack Four | The Drowned Measures | Alive | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Mara Sorn | Bench caller | Rook's Stair | Alive | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
-| Mara Venn of Merewick | Copyist (CANON Q2 open) | Merewick | Alive | [`the-fen.md`](the-fen.md) |
+| Mara Venn of Merewick | Copyist | Merewick | Alive | [`the-fen.md`](the-fen.md) |
 | Marda Cale | Bargain-maker of the Grey Lash | The Bell Road | Alive | [`grey-lash.md`](../grey-lash.md) |
 | Margery Reeve | Keeper of the warning book | The Watchhouse | Alive | [`the-watchhouse.md`](the-watchhouse.md) |
 | Marget Sayle | One of the four who came back | Her bothy under the ledge | Alive | [`the-citadels-and-the-kingdom.md`](the-citadels-and-the-kingdom.md) |
@@ -133,7 +133,7 @@ Merewick's copyist and carter. The entries keep them apart until the owner rules
 | Neris Kett | Silt Reader: field observations | The Dry Table | Alive | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Nessa Lowde | Of the Bloomery Company | Greystair | Dies in the novel | [`the-citadels-and-the-kingdom.md`](the-citadels-and-the-kingdom.md) |
 | Noll Fen | Young repair hand of the Garden Hands | Halwen House | Alive | [`garden-hands.md`](../garden-hands.md) |
-| Odo Starke | Peat-cutter of the Nine Stakes | The Spore Hollow | Dead, S.30 | [`the-watchhouse.md`](the-watchhouse.md) |
+| Odo Starke | Peat-cutter of the Nine Stakes | The Spore Hollow | Dead, autumn S.29 | [`the-watchhouse.md`](the-watchhouse.md) |
 | Old Edrin | Bell-tender | The Bell-Tender's House | Alive | [`the-bell-road-and-the-measures.md`](the-bell-road-and-the-measures.md) |
 | Oren Vale, Serjeant | Leader of the Halwen Remnant | Halwen House | Alive | [`halwen-remnant.md`](../halwen-remnant.md) |
 | Oren Vey | Garran's son, missing on the charcoal path | Alder Fold | Missing | [`dunmere-first-arrivals.md`](../dunmere-first-arrivals.md) |
