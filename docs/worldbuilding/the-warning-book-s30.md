@@ -1,6 +1,6 @@
 # The warning book: the winter of S.30
 
-**[PROPOSED], awaiting a ruling.** Written 2026-11-15 from the novel's beats (*Ashen Wilds: the novel
+**Approved 2026-11-19 (O10 in `CANON.md`).** Written 2026-11-15 from the novel's beats (*Ashen Wilds: the novel
 (the winter of S.30)*). The novel opens every chapter with one entry from the Watchhouse's warning
 book. Collected in order, those thirty entries are the book's record of the winter that ends at the
 thaw where *The Long Account* begins. This file sets them out as an item for the game.
@@ -25,7 +25,7 @@ whole Blackfen is that what is known is kept apart from what is guessed. Every e
 was seen, and most of them say what nobody knows. A player who reads it learns the world the way the
 house did: one dated, signed line at a time.
 
-**Proposed where each page is found.** Places use the atlas and floor plans (see *Ashen Wilds atlas*
+**Where each page is found** (approved under O10). Places use the atlas and floor plans (see *Ashen Wilds atlas*
 and *Ashen Wilds floor plans*).
 
 ## The entries
@@ -354,8 +354,8 @@ M. Reeve, fair copy.
 - **The book and the bestiary.** `bestiary.md` is the warning book's beast pages. These thirty are its
   daybook for one winter. They sit side by side at the fire.
 
-## What needs a ruling
+## Still open
 
-- The whole file: the thirty entries come from the novel's beats, which are themselves proposed.
-- Where each page is found.
+The file and the placement of its pages were approved under O10. One question remains:
+
 - Whether entry 30 should carry Rafe's name in a game whose player is not Rafe.

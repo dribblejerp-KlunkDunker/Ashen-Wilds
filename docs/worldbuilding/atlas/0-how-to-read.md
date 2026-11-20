@@ -7,7 +7,7 @@
 
 Nov 14, 2026 · @sleeves
 
-Every place in Orlen and the Round, written up in depth: its history, its look, its layout zone by zone, who lives there, and what old magic still acts in it. It is built so each place can be laid out before any art is made. Everything here is proposed until you rule on it, and it goes into the Ashen-Wilds repo once approved.
+Every place in Orlen and the Round, written up in depth: its history, its look, its layout zone by zone, who lives there, and what old magic still acts in it. It is built so each place can be laid out before any art is made. Everything here was approved on 2026-11-19 (O10) and is kept in the Ashen-Wilds repo.
 
 ## The ruling: old magic, half-understood
 
