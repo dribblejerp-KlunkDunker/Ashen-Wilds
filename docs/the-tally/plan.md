@@ -59,9 +59,9 @@ no interest management until v1.1.
 
 **M3, the build.** The 8 weapons, 8 kit and 8 evolutions as data, boxes, workings, the Debt, the cough,
 and two creature sheets rendered to prove the art pipeline, the **goblin scavenger** and the **ork
-shield**; the other eleven v1 sheets land with M4a and M6. The gate is a test, not a feeling: all 24
-items exist, are data-driven and are unit-tested, and both sheets load through `data/enemies.js`.
-Nothing in M3 is tuned.
+shield**; the other eleven v1 sheets land with M4a and M6. The gate is a test, not a feeling: all 16
+items exist and are data-driven and unit-tested, all 8 evolutions resolve from their pairs, and both
+sheets load through `data/enemies.js`. Nothing in M3 is tuned.
 
 **M4, stage 1.** The complete night, in two halves. **4a** is the night whole - the fire, the naming,
 the rot, the Order, the Grey Hour, a wonder, a boss, a book line, thieves - and its gate is that the
@@ -88,7 +88,7 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 | --- | --- | --- |
 | **M1** | Feel: fixed step, movement, the Watch Step, collision, one enemy, embers, the level curve | 13-19 |
 | **M2** | The horde: instancer, pools, spatial hash, flow fields, the light pass, 1,500 at 60 fps | 25-37 |
-| **M3** | The build as data: 24 items, 8 workings, the Debt, the cough, the goblin scavenger and ork shield sheets | 30-45 |
+| **M3** | The build as data: 16 items, 8 evolutions, 8 workings, the Debt, the cough, the goblin scavenger and ork shield sheets | 30-45 |
 | **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves, and six of the thirteen sheets | 30-44 |
 | **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
 | **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
@@ -99,10 +99,10 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 **What balloons.** M4 is the largest block by far - 51-78 as one, about 28% of the total - and it is
 split in `design.md` section 26 because its halves fail differently: 4a can be finished and dull, 4b
 can be tuned and unplayable. M4a also carries six of the thirteen sheets, which is the other half of
-why it does not shrink. M3 (30-45) is next: 24 items of behaviour, 8 workings, and a test for
-each. M6 (32-48) is two stages through a pipeline that is by then proven, so it is roughly 4a plus
-part of 4b, twice; art is linear per stage, which is why it does not fall even though the engine work
-is done.
+why it does not shrink. M3 (30-45) is next: 16 items of behaviour, 8 evolutions and 8 workings, and a
+test for each. M6 (32-48) is two stages through a pipeline that is by then proven, so it is roughly 4a
+plus part of 4b, twice; art is linear per stage, which is why it does not fall even though the engine
+work is done.
 
 **What I could not verify.** These numbers assume The Long Account's parts port: `js/audio.js` for
 the mix and the streaming score, `js/net19.js` for v1.1, the sun and light modules, `test/` and
