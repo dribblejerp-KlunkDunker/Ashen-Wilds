@@ -1,8 +1,11 @@
 # The Tally: lore deltas
 
-**Status: proposal, needs sleeves' ruling.** Every place where the build brief for *The Tally* and
-the lore of Ashen Wilds disagree, what the lore says, what this design does instead, and every new
-thing the design adds to canon. Nothing in this file is canon until sleeves rules it.
+**Status: proposal, partly ruled.** The ten framing questions in PR #49 were ruled on 2026-11-20; see
+*Rulings* below. Thirteen proposals are still open: P1-P6 and P9-P15.
+
+Every place where the build brief for *The Tally* and the lore of Ashen Wilds disagree, what the lore
+says, what this design does instead, and every new thing the design adds to canon. Nothing here is
+canon until sleeves rules it, and the rulings below are only a start.
 
 Read with `docs/worldbuilding/CANON.md` (owner decisions O1 to O11), `atlas/`, `people/`,
 `the-warning-book-s30.md`, `bestiary.md` and `ROADMAP.md`. Where this file and any of those
@@ -17,6 +20,30 @@ are against `main`; if one has moved, search the quoted words. `CANON.md`'s owne
 are a table at `CANON.md:24-36`; its twenty facts are `CANON.md:95-196`. Two sources are outside
 `docs/worldbuilding/` and are marked as such where they appear: `CLAUDE.md` (the art rule) and
 `js/net19.js` (the transport).
+
+## Rulings
+
+**Ruled by sleeves, 2026-11-20, on the ten questions in PR #49. All ten as recommended.** Where a
+ruling settles a delta, that delta stands as written and its **proposal** mark is discharged for the
+part named here. Where it does not, the entry stays open.
+
+| # | Question | Ruling | Settles |
+| --- | --- | --- | --- |
+| 1 | Title | ***The Tally*** stands | the folder name and the `/the-tally/` path |
+| 2 | Home | this repo, `the-tally/`, served at `/the-tally/` | `plan.md` |
+| 3 | Beasts | modelled and rendered to sheets per O9; the two-way test is dropped | 3 |
+| 4 | The Weight Gate | Merrick drops it and the player hears the one knock; in co-op, standing below is a volunteer choice with no default | 21 |
+| 5 | Merrick | on by default, and only for Rafe | 19 |
+| 6 | Secret character S3 | **Wat Corley**, not the Kept Hand | 16, and **P7** |
+| 7 | Two names | left open to M4: character 10 and the Halwen captain stay `[name]` | 34, by ruling rather than by default |
+| 8 | The Watch Rota | local only; no online board | 16.11 of `design.md` |
+| 9 | Co-op | a four-player host-authoritative star above `net19`; the transport is not rewritten | 24 |
+| 10 | Gytha Marrin | patron and narrator, not playable | 17, and **P8** |
+
+**What this does not settle.** Thirteen proposals remain open: **P1**, **P2**, **P3**, **P4**, **P5**,
+**P6**, and **P9** to **P15**. None of them was among the ten questions, and none of them blocks M1.
+They change the design's text rather than its framing, so they want one pass of their own. Two names
+in 34 also stay open, deliberately.
 
 ---
 
@@ -763,6 +790,8 @@ this cast.
 | P14 | **The tower bell rung once**, its tongue returned | the bell lies on its side in the yard with its tongue gone; the tongue is in the loft, wrapped in a Watch cloak |
 | P15 | **Kell Tor's tarn seen from Greystair** | the tarn is at the crag's foot, furthest east, and the lights on it are canon |
 
+**Ruled on 2026-11-20:** P7 (Wat Corley) and P8 (Gytha as patron). The other thirteen are still open.
+
 *Sources: each P is sourced in the delta that argues for it: P1 in 1, P2 in 6, P3 and P4 in 5, P5 in
 9, P6 in 15, P7 in 16, P8 in 17, P9 in 18, P10 in 23, P11 in 10, P12 in 14, P13 and P14 in 35, P15 in
 16.7 of `design.md` and in 35.*
@@ -774,12 +803,13 @@ this cast.
 The brief leaves these `[name]` or `[OPEN]`, and the lore does not answer them. They are in
 `plan.md`'s question list, not in the build.
 
-- Character 10, the hand from the Split Kiln.
-- The Halwen siege captain (stage 3's boss is "one captain who moves between windows").
+- Character 10, the hand from the Split Kiln. **Ruled 2026-11-20: stays open to M4.**
+- The Halwen siege captain (stage 3's boss is "one captain who moves between windows"). **Ruled
+  2026-11-20: stays open to M4.**
 - The third traveller at the Spore-Choked Cart (the lore says nobody knows, and says so in the
   Watchhouse's own words: *The third would not say.*).
-- Whether the daily board is online.
-- The working title: **The Tally**.
+- Whether the daily board is online. **Ruled 2026-11-20: local only, no online board.**
+- The working title: **The Tally**. **Ruled 2026-11-20: it stands.**
 
 *Sources: `act-one-the-outskirts.md:252` ("The third would not say"); `people/the-watchhouse.md:203`
 (Pim dies in chapter 21); `people/the-citadels-and-the-kingdom.md:159` (Wat Corley's bell).*

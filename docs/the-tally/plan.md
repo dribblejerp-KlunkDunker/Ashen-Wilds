@@ -57,11 +57,28 @@ Grey Hour, a wonder, a boss and a book line.
 
 The Watch Step. It is the whole feel of the game in 0.18 s.
 
-## The decisions I need before M1
+## The decisions, ruled
 
-Listed in the PR. The ones that change code rather than text: the currency (**salt**, not coin), the
-player's colour (**pale blue**, never teal), Edda's weapon (**Nails**), and the roster's shape
-(**Gytha Marrin as patron, not a body**; **Wat Corley** in place of the Kept Hand).
+All ten questions in PR #49 were ruled on **2026-11-20**, every one as recommended:
+
+1. **Title:** *The Tally* stands.
+2. **Home:** `the-tally/` in this repo, served at `/the-tally/`.
+3. **Beasts:** modelled and rendered to sheets per O9; the two-way painted/modelled test is dropped.
+4. **The Weight Gate:** Merrick drops it and the player hears the one knock; in co-op, standing below
+   is a volunteer choice with no default.
+5. **Merrick:** on by default, and only for Rafe.
+6. **Secret character S3:** **Wat Corley**, not the Kept Hand.
+7. **Two names:** character 10 and the Halwen siege captain stay `[name]` until M4.
+8. **The Watch Rota:** local only. No online board.
+9. **Co-op:** a four-player host-authoritative star above `net19`; the transport is not rewritten.
+10. **Gytha Marrin:** patron and narrator, not a body.
+
+The four that change code rather than text are therefore settled: the currency (**salt**, not coin),
+the player's colour (**pale blue**, never teal), Edda's weapon (**Nails**), and the roster's shape.
+**Nothing in `design.md` changes**: every ruling confirmed what it already specifies.
+
+Thirteen proposals in `lore-deltas.md` are still open (P1-P6 and P9-P15). None of them blocks M1.
+They are the ones that alter the design's text rather than its framing, and they need a second pass.
 
 ## What is not in this plan
 
