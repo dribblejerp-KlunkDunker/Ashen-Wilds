@@ -240,8 +240,8 @@ Every weapon has a sound signature, a hit spark, and a kill effect in its own ma
 iron clanks, lime hisses, fire crackles, cold light chimes. A weapon's cooldown is a ring on its slot
 icon. Nothing the player fires is red or sulphur green.
 
-**v1 ships eight of these, one per weapon slot and each with an evolution. Which eight is in 26.**
-The other eight are the same table, later.
+**v1 ships eight of these, chosen so that each has an evolution partner. Which eight is in 26.** The
+other eight are the same table, later.
 
 | # | Weapon | Role and shape | Path (short) | Starter |
 | --- | --- | --- | --- | --- |
@@ -402,8 +402,9 @@ rag, one stick, in a low box).
 ### 11.4 Relics (16+)
 
 Permanent, found once, each tied to a place. **The warning book is not one of them**: it never leaves
-the fire, so what you find and carry are its pages (17.4). **v1 has the nine of these that stand in
-stages 1-3**; the rest wait for the road north.
+the fire, so what you find and carry are its pages (17.4). **v1 has the ones that stand in stages
+1-3**; the rest wait for the road north. The Watch Whistle is a collectible there whose effect
+arrives with co-op.
 
 | Relic | Where | Unlocks |
 | --- | --- | --- |
@@ -443,7 +444,7 @@ stages, plus the listener whose cold light the game teaches.
 | 1 | **Rafe Sedley**, the Watch Deserter | Watch Sword | **Heard the Order:** +20% Move Speed below half health; at the Order he has a third answer, **Go back** (+3 levels, rewards x2, no extract). Carries a targe: +1 Armour. | start |
 | 2 | **Merrick Thwaite**, billman | Billhook | **The Grey Cough:** the ladder advances on the clock, not on spores: crust at 10:00 (+3 Armour, -10% speed), silence at 20:00 (+40% Might, pickups heal half, his barks stop) | finish a stage as Rafe |
 | 3 | **Margery Reeve** | The Ward | **First Working:** begins each run with one working already spoken (your pick), and her workings' prices are halved | survive 15:00 |
-| 4 | **Aud**, a listener | Cold Light | **The Lesson:** her cold light lingers 50% longer; darkness never shrinks her light radius | reach Greystair (**post-1.0**) |
+| 4 | **Aud**, a listener | Cold Light | **The Lesson:** her cold light lingers 50% longer; darkness never shrinks her light radius | lay the three Unnamed in one run (**proposal**; "reach Greystair" was a post-1.0 gate) |
 | 5 | **Tobin Crane**, of the Bloomery Company | Bloomery Hammer | **Hammers:** each consecutive hammer hit is +2% damage to +40%; reset when he is hurt | open 25 strongboxes |
 | 6 | **Edda Wray** | Nails | **The Assize Corner:** +1 Armour per wall or obstacle within 2 tiles (max +4) | survive 60 s below 10% health |
 | 7 | **Pim Haddow** | Muster Book | **Carried the Book:** +15% Growth; Named kills give double embers | write 100 lines in the book |
