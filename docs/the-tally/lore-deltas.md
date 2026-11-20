@@ -1,7 +1,7 @@
 # The Tally: lore deltas
 
 **Status: proposal, partly ruled.** The ten framing questions in PR #49 were ruled on 2026-11-20; see
-*Rulings* below. Thirteen proposals are still open: P1-P6 and P9-P15.
+*Rulings* below. Fifteen proposals are still open: P1-P6, P9-P15, P16 and P17.
 
 Every place where the build brief for *The Tally* and the lore of Ashen Wilds disagree, what the lore
 says, what this design does instead, and every new thing the design adds to canon. Nothing here is
@@ -34,16 +34,21 @@ part named here. Where it does not, the entry stays open.
 | 3 | Beasts | modelled and rendered to sheets per O9; the two-way test is dropped | 3 |
 | 4 | The Weight Gate | Merrick drops it and the player hears the one knock; in co-op, standing below is a volunteer choice with no default | 21 |
 | 5 | Merrick | on by default, and only for Rafe | 19 |
-| 6 | Secret character S3 | **Wat Corley**, not the Kept Hand | 16, and **P7** |
+| 6 | Secret character | **Wat Corley** in the roster; the Kept Hand is out. Gise Marrable keeps S3 | 16, and **P7** |
 | 7 | Two names | left open to M4: character 10 and the Halwen captain stay `[name]` | 34, by ruling rather than by default |
 | 8 | The Watch Rota | local only; no online board | 16.11 of `design.md` |
 | 9 | Co-op | a four-player host-authoritative star above `net19`; the transport is not rewritten | 24 |
 | 10 | Gytha Marrin | patron and narrator, not playable | 17, and **P8** |
 
-**What this does not settle.** Thirteen proposals remain open: **P1**, **P2**, **P3**, **P4**, **P5**,
-**P6**, and **P9** to **P15**. None of them was among the ten questions, and none of them blocks M1.
-They change the design's text rather than its framing, so they want one pass of their own. Two names
-in 34 also stay open, deliberately.
+**On the slot number.** The question said S3, because the brief's S3 was the Kept Hand. `design.md`
+had already given Wat Corley **S2**, the slot Gytha's chair vacated when she became the patron, and
+put Gise Marrable in S3. The ruling's substance is untouched: the Kept Hand is out of the roster and
+Wat Corley is in it. But the label in 16 and P7 was wrong. See 36.
+
+**What this does not settle.** Fifteen proposals remain open: **P1** to **P6**, **P9** to **P15**, and
+**P16** and **P17**. None of them was among the ten questions, and none of them blocks M1. They change
+the design's text rather than its framing, so they want one pass of their own. Two names in 34 also
+stay open, deliberately.
 
 ---
 
@@ -282,7 +287,7 @@ in chapter 26. A living person can do only small things: nothing a working does 
 a wall, and the great works still standing were made by trades that died in S.1 and S.2.
 
 **Change.** All workings are recast into the six crafts, and every price is stated in one of the four
-canon currencies. The twelve are in `design.md` section 11. Three of them are the novel's three, unchanged.
+canon currencies. The twelve are in `design.md` section 10. Three of them are the novel's three, unchanged.
 No working may do anything a living hand could not do, and no working names, shows or predicts
 anything.
 
@@ -360,7 +365,7 @@ down for good only when someone kneels at its grave and **speaks a name**. Why t
 the three shut doors and stays unsettled. The naming is a working of the Keeping craft.
 
 **Change.** The Unnamed are **stage 1's signature enemy** and the game's first moral mechanic (see
-`design.md` section 19.15). Standing at a grave and speaking a name is a real action with a real cost: it
+`design.md` section 18.15). Standing at a grave and speaking a name is a real action with a real cost: it
 takes **time** (a working's fourth price), it is loud, and it can only be done at the grave. This is
 what the Muster Book weapon and the "Named" status were always reaching for, and it gives the muster book,
 the fire and the yard one job.
@@ -398,16 +403,18 @@ itself as a canon check.
 (**Saint Edras of the Kept Hand**) and a carved hand closed round a flame over the chapel door at
 Halwen House. It is a relic and a chapel, not a person.
 
-**Change.** S3 is replaced by a human. **proposal.** The recommended replacement is **Wat Corley**,
-the old bell-keeper of Hob's Height who lives alone on the Spiral and keeps the bells wrapped: human,
-canon, strange, and mechanically unlike anyone else. His trait: **the Quiet kept.** Sound-making
-weapons are silent and weaker for him; he sees the Silent and the Unnamed outlined in the dark; his
-cold light lasts half again as long; and the Hand Bell in his hands does not ring, it only carries
-(its sound reaches the next bell, eight miles off, and returns). Alternative if sleeves prefers a
-woman: **Gise Marrable**, whose husband was in the Slagcrown's workings when the Vaults were broken.
+**Change.** The Kept Hand is out of the roster and its slot goes to a human. **proposal.** The
+replacement is **Wat Corley**, the old bell-keeper of Hob's Height who lives alone on the Spiral and
+keeps the bells wrapped: human, canon, strange, and mechanically unlike anyone else. His trait: **the
+Quiet kept.** Sound-making weapons are silent and weaker for him; he sees the Silent and the Unnamed
+outlined in the dark; his cold light lasts half again as long; and the Hand Bell in his hands does
+not ring, it only carries (its sound reaches the next bell, eight miles off, and returns). Alternative
+if sleeves prefers a woman: **Gise Marrable**, whose husband was in the Slagcrown's workings when the
+Vaults were broken. In `design.md` he sits in **S2**, the slot the brief gave Gytha, since she became
+the patron; **Gise Marrable** keeps S3. See 36 for why the label moved.
 
-The Kept Hand stays exactly what it is: a relic, a chapel, and the sacrifice at the altar
-(`design.md` section 19.12).
+The Kept Hand stays exactly what it is: a saint, a carved hand over a chapel door, and the covenant
+that answers for it (`design.md` 18.12).
 
 *Sources: `CANON.md:26` and `:196` (O1; the eight human backgrounds);
 `halwen-house-private-chapel.md:1` and `:23` (the Chapel of the Kept Hand, Saint Edras of the Kept
@@ -741,9 +748,9 @@ Kept Hand's altar.
 coins on the floor) and a **private chapel** joined to the family passage by a narrow door, with the
 carved hand closed round a flame over it.
 
-**Change.** The sealed room is the **cistern vault**; the altar that takes a weapon is in the
-**private chapel**. Both already exist in the atlas, and the vault's black water gives the empty room
-something to reflect.
+**Change.** The sealed room is the **cistern vault**; the covenant recess the chapel answers through is
+in the **private chapel** (18.12). Both already exist in the atlas, and the vault's black water gives
+the empty room something to reflect.
 
 *Sources: `atlas/3-the-bell-road.md:87` (zone 13: "The cistern vault (new as a site), a brick vault the
 size of a chapel, still black water, old coins on the floor"); `halwen-house-private-chapel.md:1`
@@ -780,21 +787,24 @@ this cast.
 | P4 | Rafe's third choice at the Order, **Go back** | N2 and the novel's ending both point north |
 | P5 | The **Reed-Jaw of the Long Cut** is stage 5's boss | the atlas names the animal and leaves it undescribed |
 | P6 | The **Grey Hour** replaces "the Thaw" on non-final stages | eight springs in one winter is not a thing |
-| P7 | **Wat Corley** as secret character S3 | canon, human, and mechanically strange in a way no other character is |
+| P7 | **Wat Corley** in the roster, in the slot the brief gave Gytha | canon, human, and mechanically strange in a way no other character is |
 | P8 | **Gytha Marrin as patron and narrator**, not a playable body | she is 315 miles away and her function is the receipt |
 | P9 | **Brass tags at the Naming Stone** | a tag is a name; the Seam Roll makes it mean something |
 | P10 | **Ringing a bell near a listener costs their trust** | the Low Galleries' best weapon is the wrong one to carry |
 | P11 | **Marks fade and are renewed at a fire** (the Marking craft) | canon already, and it gives every stage a fire to come back to |
 | P12 | The **naming at a grave** is a timed, noisy action | it is the Working's price, and it makes the yard a place you return to |
 | P13 | **Return-bread on the Causeway**, as road food | the custom is Reedwake's, in the west fen, and canon says it works no magic: it is eaten, never worn |
-| P14 | **The tower bell rung once**, its tongue returned | the bell lies on its side in the yard with its tongue gone; the tongue is in the loft, wrapped in a Watch cloak |
+| P14 | **The tower bell struck once**, its tongue returned | the bell lies on its side in the yard with its tongue gone; the tongue is in the loft, wrapped in a Watch cloak |
 | P15 | **Kell Tor's tarn seen from Greystair** | the tarn is at the crag's foot, furthest east, and the lights on it are canon |
+| P16 | The chapel's bargain is spoken at the **covenant recess**, and the altar stays empty | canon says the altar holds no treasury and was broken open long before the player arrives; the recess is the room's own subject |
+| P17 | The Marking working is called **Call the Roll**, not **Seam Roll** | the canon object keeps its name; the invented thing moves |
 
-**Ruled on 2026-11-20:** P7 (Wat Corley) and P8 (Gytha as patron). The other thirteen are still open.
+**Ruled on 2026-11-20:** P7 (Wat Corley) and P8 (Gytha as patron). **Open:** P1-P6, P9-P15, P16 and
+P17.
 
 *Sources: each P is sourced in the delta that argues for it: P1 in 1, P2 in 6, P3 and P4 in 5, P5 in
 9, P6 in 15, P7 in 16, P8 in 17, P9 in 18, P10 in 23, P11 in 10, P12 in 14, P13 and P14 in 35, P15 in
-16.7 of `design.md` and in 35.*
+16.7 of `design.md` and in 35, P16 and P17 in 36.*
 
 ---
 
@@ -840,3 +850,40 @@ a number. All of it changes what a stage looks like.
 and `:196` ("Kell Tor is never entered in the novel"); `atlas/2-the-blackfen.md:639-660` (Reedwake, the
 return-bread, "works no magic"); `atlas/2-the-blackfen.md:96` and `:122` (the bell, its tongue, the
 bell-loft).*
+
+---
+
+## 36. Five canon objects, checked
+
+The Kept Hand, the Tally Stick, the Bell's Tongue, the Seam Roll and the Nailhouse were all reused in
+`design.md` as though their canon meaning were settled. Each is now checked against the file that
+defines it. **Three had drifted. Two had not.**
+
+| Object | What `design.md` had | What canon says | Change |
+| --- | --- | --- | --- |
+| **The Kept Hand** | a relic called *The Kept Hand*, out of Halwen's chapel, unlocking the Kept Hand working; and 18.12: the chapel's **altar** takes a weapon and gives back an evolution | `halwen-house-private-chapel.md`: the Kept Hand is a **carved hand closed round a flame over the chapel door**, fingers polished by touching, the flame chipped. The chapel is Saint Edras's, a local saint of the Keeping, who held a burning storehouse door open until the people inside got out. **"There is no concealed treasury inside the altar."** Someone has already broken the base open and crudely replaced it. The chaplain's cupboard holds **wooden witness tokens marked with the open hand**, held during agreements and returned after, and the file says plainly that someone could carry one south and claim to have witnessed an agreement here | the relic is **a witness token** out of the cupboard: canon's tokens travel and the carved hand does not. The bargain moves from the altar to the **covenant recess** beside it, where the room's own rule is cut into the plaster: *let each obligation be spoken in the hearing of those it binds.* The altar stays empty and already robbed, as canon has it |
+| **The Tally Stick** | a relic at **Darnel Cross**, unlocking the end screen's kill graph | the only tally stick in the lore is **Joan Tallis's**: the keeper of the stores carries "a notched tally stick through her belt and a second one behind her ear", notches it as she talks, and is found "in the tally room, or at the Outside Fire counting what the turned-away have". Darnel Cross is an inn with a split beam, a failed well and a custom of paying for a bed with news. No stick | the relic is **Joan's second stick**, found **at the Outside Fire**, and it still unlocks the graph: her stick counts measures in, the graph counts what the night cost. Darnel Cross keeps the bent spoon |
+| **The Bell's Tongue** | the tower's bell-loft, wrapped in a Watch cloak; "the bell lying in the yard can be **rung** once" | `atlas/2-the-blackfen.md`: the bell "lies on its side in the mud with its tongue gone"; the tongue "turns up hidden in the bell-loft, wrapped in a Watch cloak" | the place is right and the verb is wrong. **A bell on its side cannot be swung.** It is struck, and the tongue has to be hung back in it first, which is a piece of business the relic should own rather than skip |
+| **The Seam Roll** | a relic at the Slagcrown counting house (right), **and** a Marking working of the same name that makes elites drop two glim sparks | `atlas/4-the-citadels.md`: the Seam Roll is the counting house's register of the crews sent down the Black Seam, with each miner's covenant; it is **heavy**; *did not answer* is written in a dozen hands with no payment against any name. `acts-two-and-three.md`: the last crew is the one that broke the Vaults | the relic stays and keeps the name. **The working is renamed**, because a canon object keeps its name and an invented thing moves: **Call the Roll**. You mark a name on the roll, and something answers |
+| **The Nailhouse** | an evolution, Nails + Strong Corner: nails pin enemies into rows | `atlas/2-the-blackfen.md`: a real place in the drowned middle, with bog-iron furnaces and a **nail-loft where every nail is counted and tallied by the hundred: "At the Nailhouse a nail is money."** `CANON.md` fact 12 lists it among the places held in archive | **no change.** The design names an evolution after a place and never moves the place, claims the player visits it, or gives the name to a character. Rows and counting by the hundred are the forge's own idiom |
+
+**proposal:** two things here are new rather than corrected, and are now listed as **P16** (the bargain
+spoken at the covenant recess) and **P17** (the working renamed Call the Roll).
+
+**What this turned up that was not a canon question.** `design.md`'s roster already puts **Wat Corley**
+in **S2**, the slot the brief gave Gytha, and **Gise Marrable** in S3. Delta 16 and P7 called Wat
+Corley "S3" because the brief's S3 was the Kept Hand. The ruling is unaffected: the Kept Hand is out
+and Wat Corley is in. But the label was wrong in three places and is corrected in those three. The
+traits sit the right way round (the bell goes with the bell-keeper, the roll with the woman looking
+for a name in it), so no swap was needed, only honest numbering.
+
+*Sources: `halwen-house-private-chapel.md:9` (the carved hand), `:23` (Saint Edras, of the Keeping),
+`:170` (the spoken obligation), `:184` ("no concealed treasury inside the altar"), `:186` (already
+broken open and crudely replaced), `:295` and `:305` (the witness tokens, and carrying one south);
+`people/the-watchhouse.md:66` (Joan's two sticks), `:68` (she notches it as she talks), `:71` (the
+tally room, the Outside Fire); `atlas/2-the-blackfen.md:96` (the bell on its side), `:122` (the tongue
+in the loft, the Watch cloak); `atlas/3-the-bell-road.md:114` (Darnel Cross) and `items-and-texts.md:414`
+(news for a bed at Darnel Cross); `atlas/4-the-citadels.md:58` (the Seam Roll at the counting house),
+`:72` ("The Seam Roll, heavy"), `acts-two-and-three.md:202` (the register and the covenants), `:373`
+(the Slagcrown's register); `atlas/2-the-blackfen.md:670-687` (the Nailhouse), `:687` (the nail-loft,
+"a nail is money"), `CANON.md:140` (fact 12).*
