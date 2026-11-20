@@ -485,7 +485,13 @@ and only there.**
 Built from data (`data/enemies.js`): sprite set, weight class, health, speed, contact damage,
 behaviour, attacks, drops, sound. Health scales with time. One clear silhouette at 24 px tall.
 
-The bestiary gives **17 canon creatures**. Use them before inventing any.
+The bestiary has **seventeen entries**, and they are not seventeen creatures. **Fifteen are beasts**,
+one is **people** (the Ashbound), and one is **the thing the book cannot name** - what the orks fled,
+below the Vaults - which stays off-page and is never drawn. Use the beasts before inventing anything.
+The **sixteen non-human kinds** in 13.1-13.3 are kinds, not entries: goblins are one entry split into
+three, orks one split into four, and some of the rest are this design's reading of a beast rather than
+its entry's name. The ledger's seventeen and this list's sixteen therefore count different things, and
+neither number is a gap to be filled with a new animal.
 
 ### 13.1 The surf
 
