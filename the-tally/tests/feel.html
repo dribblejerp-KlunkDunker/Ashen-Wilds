@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tally - feel gate (M1)</title>
+<style>
+  :root { --bone: #e9e1c9; --ink: #0b0e0c; --tallow: #f2c26b; --dim: #8d8a7c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); }
+  body { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  #panel {
+    position: fixed; top: 14px; left: 14px; padding: 12px 14px;
+    background: rgba(8, 11, 9, 0.78); border: 1px solid rgba(233, 225, 201, 0.12);
+    border-radius: 3px; pointer-events: none; min-width: 340px;
+  }
+  #panel h1 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 2px 0; text-align: left; font-weight: 400; }
+  th { color: var(--dim); padding-right: 12px; width: 47%; }
+  td.target { color: var(--dim); width: 24%; }
+  td.now { color: var(--tallow); }
+  tr.good td.now { color: #a9d69a; }
+  tr.bad td.now { color: #e08b6a; }
+  #keys {
+    position: fixed; bottom: 12px; left: 14px; opacity: 0.45; pointer-events: none;
+  }
+  #note {
+    position: fixed; bottom: 12px; right: 14px; text-align: right; opacity: 0.4;
+    max-width: 40ch; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="panel">
+  <h1>Feel gate &middot; design.md 3</h1>
+  <table>
+    <tr><th>Top speed</th><td class="target">4.00 t/s</td><td class="now" id="m-speed">--</td></tr>
+    <tr><th>Peak speed</th><td class="target">4.00 t/s</td><td class="now" id="m-peak">--</td></tr>
+    <tr><th>Acceleration to top</th><td class="target">70 ms</td><td class="now" id="m-accel">--</td></tr>
+    <tr><th>Input to first motion</th><td class="target">&lt;= 1 frame</td><td class="now" id="m-lat">--</td></tr>
+    <tr><th>Watch Step distance</th><td class="target">3.00 tiles</td><td class="now" id="m-dash">--</td></tr>
+    <tr><th>Watch Step time</th><td class="target">180 ms</td><td class="now" id="m-dasht">--</td></tr>
+    <tr><th>Invulnerability left</th><td class="target">220 ms</td><td class="now" id="m-iframes">--</td></tr>
+    <tr><th>Cooldown left</th><td class="target">2400 ms</td><td class="now" id="m-cd">--</td></tr>
+    <tr><th>Frame rate</th><td class="target">60 fps</td><td class="now" id="m-fps">--</td></tr>
+  </table>
+</div>
+
+<div id="keys">WASD / arrows walk &middot; Space the Watch Step &middot; R reset</div>
+<div id="note">
+  Three dummy goblins, a flat yard, and nothing else: the gate is whether the movement is right
+  before anything is built on it. F fires the perfect-step reward by hand, because the design gives
+  its reward but not its condition.
+</div>
+
+<script type="module">
+  import { createGame } from '../js/game.js';
+  import { TILE, STEP, MOVE } from '../js/sim/tuning.js';
+
+  const canvas = document.getElementById('game');
+  const $ = (id) => document.getElementById(id);
+
+  function row(id, text, ok) {
+    const td = $(id);
+    td.textContent = text;
+    const tr = td.parentElement;
+    tr.classList.toggle('good', ok === true);
+    tr.classList.toggle('bad', ok === false);
+  }
+
+  const game = createGame(canvas, {
+    goblins: 3,
+    dummies: true,
+    embers: false,
+    onFrame(world, { latency, fps }) {
+      const p = world.player;
+      const speed = Math.hypot(p.vx, p.vy) / TILE;
+      row('m-speed', speed.toFixed(2) + ' t/s', Math.abs(speed - MOVE.maxSpeed) < 0.02 || speed < 0.05);
+      row('m-peak', world.stats.topSpeedTiles.toFixed(2) + ' t/s',
+        world.stats.topSpeedTiles >= MOVE.maxSpeed - 0.02);
+
+      const accel = world.stats.accelMs;
+      row('m-accel', accel > 0 ? accel.toFixed(0) + ' ms' : 'walk to measure',
+        accel > 0 ? Math.abs(accel - MOVE.accelTime * 1000) <= 1000 / 120 * 1.5 : null);
+
+      row('m-lat', latency >= 0 ? latency.toFixed(1) + ' ms (' + (latency / 16.7).toFixed(2) + ' frames)' : 'stand still, then move',
+        latency >= 0 ? latency <= 16.7 : null);
+
+      row('m-dash', world.stats.dashTiles > 0 ? world.stats.dashTiles.toFixed(2) + ' tiles' : 'press Space',
+        world.stats.dashTiles > 0 ? Math.abs(world.stats.dashTiles - STEP.distance) < 0.06 : null);
+      row('m-dasht', world.stats.dashMs > 0 ? world.stats.dashMs.toFixed(0) + ' ms' : '--',
+        world.stats.dashMs > 0 ? Math.abs(world.stats.dashMs - STEP.duration * 1000) < 8 : null);
+
+      row('m-iframes', (p.iframes * 1000).toFixed(0) + ' ms', p.iframes > 0 ? true : null);
+      row('m-cd', (p.cooldown * 1000).toFixed(0) + ' ms', null);
+      row('m-fps', fps ? fps.toFixed(0) + ' fps' : '--', fps ? fps >= 58 : null);
+    },
+  });
+
+  game.start();
+  window.tally = game;
+</script>
+</body>
+</html>

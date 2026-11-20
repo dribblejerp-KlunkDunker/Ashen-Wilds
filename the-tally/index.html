@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tally - M1 bare page</title>
+<style>
+  :root {
+    --bone: #e9e1c9;
+    --ink: #0b0e0c;
+    --tallow: #f2c26b;
+    --glim: #9ec9d8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); }
+  body { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  #hud {
+    position: fixed; top: 10px; left: 12px; pointer-events: none;
+    color: var(--bone); opacity: 0.75; text-shadow: 0 1px 2px #000;
+  }
+  #hud b { color: var(--tallow); font-weight: 600; }
+  #keys {
+    position: fixed; bottom: 10px; left: 12px; opacity: 0.45; pointer-events: none;
+  }
+  #page {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: rgba(4, 6, 5, 0.72); padding: 24px;
+  }
+  #page[hidden] { display: none; }
+  #page .leaf {
+    width: min(680px, 92vw); background: #e7dfc6; color: #1a1a17;
+    border-radius: 3px; padding: 28px 30px 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  #page h1 { margin: 0 0 2px; font: 600 22px/1.2 Georgia, serif; letter-spacing: 0.02em; }
+  #page .sub { margin: 0 0 18px; font-size: 12px; opacity: 0.6; }
+  #page .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+  #page .card {
+    border: 1px dashed rgba(26, 26, 23, 0.35); border-radius: 2px; height: 120px;
+    display: grid; place-items: center; font-size: 11px; opacity: 0.5;
+  }
+  #page button {
+    font: inherit; padding: 8px 14px; background: #1a1a17; color: #e7dfc6;
+    border: 0; border-radius: 2px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div><b id="h-speed">0.00</b> t/s &middot; peak <span id="h-peak">0.00</span> &middot; <span id="h-fps">--</span> fps</div>
+  <div>level <span id="h-level">1</span> &middot; xp <span id="h-xp">0</span> / <span id="h-need">15</span> &middot; embers <span id="h-embers">0</span></div>
+</div>
+
+<div id="keys">WASD / arrows walk &middot; Space the Watch Step &middot; F perfect-step flash &middot; R reset</div>
+
+<div id="page" hidden>
+  <div class="leaf">
+    <h1>The muster book</h1>
+    <p class="sub"><span data-level>Level 1</span>. The page is bare: the three cards are M3.</p>
+    <div class="cards">
+      <div class="card">card</div>
+      <div class="card">card</div>
+      <div class="card">card</div>
+    </div>
+    <button data-close>Turn the page</button>
+  </div>
+</div>
+
+<script type="module">
+  import { createGame } from './js/game.js';
+  import { TILE, xpNeed } from './js/sim/tuning.js';
+
+  const canvas = document.getElementById('game');
+  const $ = (id) => document.getElementById(id);
+
+  const game = createGame(canvas, {
+    goblins: 6,
+    dummies: false,
+    embers: true,
+    onFrame(world) {
+      const p = world.player;
+      const speed = Math.hypot(p.vx, p.vy) / TILE;
+      $('h-speed').textContent = speed.toFixed(2);
+      $('h-peak').textContent = world.stats.topSpeedTiles.toFixed(2);
+      $('h-level').textContent = String(p.level);
+      $('h-xp').textContent = String(Math.floor(p.xp));
+      $('h-need').textContent = String(xpNeed(p.level));
+      $('h-embers').textContent = String(world.embers.length);
+    },
+  });
+
+  game.start();
+
+  // exposed for the console and for the smoke test
+  window.tally = game;
+</script>
+</body>
+</html>

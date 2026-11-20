@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "The Tally. Plain ES modules, no dependencies, no build step. This file exists only so Node reads tests/ and js/ as ES modules.",
+  "scripts": {
+    "test": "node tests/unit.js"
+  }
+}
