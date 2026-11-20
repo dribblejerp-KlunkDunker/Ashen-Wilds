@@ -49,10 +49,10 @@ branch, one PR per milestone, never straight to `main`.
 
 **M1, feel (the one that matters).** Fixed 120 Hz step, four input kinds, the camera, movement and the
 Watch Step to the exact numbers in `design.md` section 3, circle-vs-segment collision, one goblin type
-with steering and separation, embers, the level curve, a bare page, and `tests/feel.html` running. M1 is
-movement only: the Watch Sword is one of M3's eight weapons, and the stress page is M2's frame-time
-capture. **Nothing else until the movement is right**, because everything after this is built on how it
-feels.
+with steering and separation, embers, the level curve, a bare page, `tests/feel.html` running, and a
+minimal `tests/stress.html` that graphs frame time. M1 is movement only: the Watch Sword is one of M3's
+eight weapons, and the full target-count stress scene and its capture are M2's. **Nothing else until
+the movement is right**, because everything after this is built on how it feels.
 
 **M2, the horde.** The WebGL2 instancer, the pools, the spatial hash, flow fields, 1,500 enemies, the
 effect limiter, the light pass. The gate is a frame-time capture. One player's snapshot budget only:
