@@ -90,7 +90,7 @@ the spread is the honest width of the ignorance. Five days a week, about 21 a mo
 | **M4a** | Stage 1, whole: map, script, the Ogre, the Order, the Grey Hour, the naming, thieves | 30-44 |
 | **M4b** | Stage 1, good: tuning to 24, 50 seeded games a character, music and sound, the book line, the portrait | 21-34 |
 | **M5** | Meta and roster: the Tally Room, saves, eleven relics, six characters and their unlocks | 21-32 |
-| **M6** | Stages 2 and 3: two maps, two bosses, two pages, six more creatures | 32-48 |
+| **M6** | Stages 2 and 3: two maps, two bosses, two pages, five more creature sheets and the two paintings | 32-48 |
 | **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, the trailer | 13-19 |
 | | **Total** | **185-278** |
 
