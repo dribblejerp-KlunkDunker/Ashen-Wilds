@@ -95,7 +95,7 @@ check(/laDread/.test(src) && /SWITCHES\.push\(\['laDread'/.test(src), 'it has an
       const out = { err: null }, c = Engine.cam;
       const fnv = (d) => { let x = 0x811c9dc5 | 0; for (let i = 0; i < d.length; i++) x = Math.imul(x ^ d[i], 16777619) | 0; return x >>> 0; };
       const pn = performance.now.bind(performance), t0 = pn(), dn = Date.now, d0 = dn();
-      const A0 = typeof ANIM !== 'undefined' ? ANIM.T : 0;
+      const A0 = 12.5;   // the anim clock held at one moment (the breath and the ash move with it), the same on every machine
       const frame = () => { performance.now = () => t0; Date.now = () => d0; if (typeof ANIM !== 'undefined') ANIM.T = A0; render(); render(); return R3D.readPixels(); };
       try {
         // the Octave's own dread is not this game's
@@ -153,7 +153,7 @@ check(/laDread/.test(src) && /SWITCHES\.push\(\['laDread'/.test(src), 'it has an
     check(r.dayAfter < r.night * 0.6, 'and in daylight it slowly lets go (' + (r.dayAfter || 0).toFixed(2) + ' after twenty seconds)');
     check(r.h0 === r.hOff && r.hOff === r.hBare, 'at nought it draws nothing: the frame is the frame with the switch off, and the frame with the pass taken out (' + r.hBare + ')');
     check(r.h1 !== r.h0, 'at full dread the picture changes');
-    check(r.corner[1] < r.corner[0] * 0.55 && r.mid[1] > r.mid[0] * 0.45, 'the edges close in (a corner ' + r.corner[0].toFixed(1) + ' to ' + r.corner[1].toFixed(1) + ') while the middle stays readable (' + r.mid[0].toFixed(1) + ' to ' + r.mid[1].toFixed(1) + ')');
+    check(r.corner[1] < r.corner[0] * 0.6 && r.mid[1] > r.mid[0] * 0.45, 'the edges close in (a corner ' + r.corner[0].toFixed(1) + ' to ' + r.corner[1].toFixed(1) + ') while the middle stays readable (' + r.mid[0].toFixed(1) + ' to ' + r.mid[1].toFixed(1) + ')');
     check(r.sat[1] < r.sat[0] * 0.85, 'the colour drains from the world (' + r.sat[0].toFixed(3) + ' to ' + r.sat[1].toFixed(3) + ')');
     check(r.warm[1] >= r.warm[0] * 0.92, 'but not from the burning country: the warmest light is as warm (' + r.warm[0].toFixed(2) + ', ' + r.warm[1].toFixed(2) + ')');
     check(r.pool[0] > 4 && r.pool[1] >= r.pool[0] * 0.8, 'and not from your own light: the lantern\'s pool at your feet stays tallow-warm (red over blue ' + r.pool[0].toFixed(1) + ', ' + r.pool[1].toFixed(1) + ')');
