@@ -342,7 +342,8 @@ salt**, **the naming at the graves**, and **cold light**.
 
 ### 10.1 The twelve
 
-**v1 ships eight of the twelve. Which eight is in 26.**
+**v1 ships eight of the twelve: the ward, the naming, cold light, the passage rule, the carter's
+hitch, the Kept Hand, the third arch and Call the Roll. The four that wait are in 26.**
 
 | Working | Craft | Gift | Price |
 | --- | --- | --- | --- |
@@ -359,9 +360,9 @@ salt**, **the naming at the graves**, and **cold light**.
 | **Kept Hand** | Keeping | you cannot die once; at zero you stand up at 50% | **warmth:** your Recovery becomes zero |
 | **Call the Roll** | Marking | elites drop two glim sparks | **time:** each elite answers with a second elite |
 
-**Rules.** A working is spoken aloud: the character's mouth moves, the sound is in the mix, and the
-listeners will hear it. No working is ever a passive icon with no cost shown. The price is applied the
-instant you take it and is never refunded, including on death.
+**Rules.** A working is spoken aloud: the character's mouth moves, the sound is in the mix, and there
+is no quiet way to take one. No working is ever a passive icon with no cost shown. The price is applied
+the instant you take it and is never refunded, including on death.
 
 **The Marking craft's own price**, for any working that cuts a mark: the mark lasts until the next
 fire and must be paid again there. Canon already says a mark holds for hours, then fades.
@@ -382,7 +383,7 @@ fire and must be paid again there. Canon already says a mark holds for hours, th
 | **Glim candle** | for 6 s enemies are held in cold light and take double |
 | **Salt** (measures) | the currency: a handful, a measure, rarely a **salt block** |
 | **Crown penny** | rare, 10 measures, its own small ring |
-| **Brass tag** | the Naming Stone's currency |
+| **Brass tag** | the Naming Stone's currency; banked from the first run, spent when the stone's counter opens (**post-1.0**) |
 | **Relic** | permanent, found once |
 | **Peat brick** | fuel, in stages that use fires |
 
@@ -403,8 +404,8 @@ rag, one stick, in a low box).
 
 Permanent, found once, each tied to a place. **The warning book is not one of them**: it never leaves
 the fire, so what you find and carry are its pages (17.4). **v1 has the ones that stand in stages
-1-3**; the rest wait for the road north. The Watch Whistle is a collectible there whose effect
-arrives with co-op.
+1-3**; the rest are marked **post-1.0** and wait for the road north. The Watch Whistle is a
+collectible there whose effect arrives with co-op.
 
 | Relic | Where | Unlocks |
 | --- | --- | --- |
@@ -413,16 +414,16 @@ arrives with co-op.
 | **A Tally Stick** | the Outside Fire, the second one out of Joan Tallis's belt | the minute-by-minute kill graph on the end screen |
 | **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
 | **A Witness Token** | Halwen's chapel, the chaplain's cupboard | the Kept Hand working |
-| **A Bent Spoon from Darnel Cross** | Darnel Cross | Hard Bargain shop items |
+| **A Bent Spoon from Darnel Cross** | Halwen's gatehouse, in the bowl by the door | the Tally Room charges 5% less |
 | **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying (**post-1.0**) |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
 | **Osric Brayne's Sheet** | the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
 | **T. Gale's Kettle Hat** | the ogre's bone heap | a Watch helm; the refuge asks for it back |
 | **Winna's Pot** | the ogre's bone heap | the pot returns to the children; a book line |
-| **Odo Starke's Name-Strip** | the Spore-Choked Cart | carry it to Dowsett at the Nine Stakes |
-| **The Seam Roll** | the Slagcrown counting house | names for the brass tags |
-| **The Tower's Key-Ring** | nowhere yet | Kemble's fate stays a shut door |
-| **Cerrin Vane's Cloak** | the Slagcrown hall | nothing says where he went |
+| **Odo Starke's Name-Strip** | the Spore-Choked Cart | back at the fire it writes Odo's line in the book; Dowsett's is a delivery for the road south (**post-1.0**) |
+| **The Seam Roll** | the Slagcrown counting house (**post-1.0**) | names for the brass tags |
+| **The Tower's Key-Ring** | nowhere yet (**post-1.0**) | Kemble's fate stays a shut door |
+| **Cerrin Vane's Cloak** | the Slagcrown hall (**post-1.0**) | nothing says where he went |
 | **The Bell's Tongue** | the tower's bell-loft, wrapped in a Watch cloak | the bell on its side in the yard can be struck once, with its tongue hung back in it (**proposal**) |
 
 **Rarity is material,** never a colour scale: iron, brass, silver, glim-blue. Evolved weapons get a
@@ -435,9 +436,9 @@ thin pale-blue outline on their icon.
 **Twelve, plus three secret.** Every one is human (O1). Each has a starting weapon, a trait, small
 stat differences, a unique dodge, and a line of their own in the muster book.
 
-**v1 ships six: Rafe, Merrick, Edda, Pim, Margery and Aud.** The other nine are written below and
-built after the first release. The six are the four who are already at the fire in the first three
-stages, plus the listener whose cold light the game teaches.
+**v1 ships six: Rafe, Merrick, Edda, Pim, Margery and Aud.** Every one of those six is unlocked by
+something a player can do inside three stages. The other nine are written below and built after the
+first release; where an unlock needs stages 4-9 or co-op, the row says **post-1.0**.
 
 | # | Character | Starts with | Trait | Unlock |
 | --- | --- | --- | --- | --- |
@@ -453,9 +454,9 @@ stages, plus the listener whose cold light the game teaches.
 | 10 | **[name]**, a hand from the Split Kiln | Lime Sack | **Kiln-Burned:** immune to lime and burn; her lime patches are 25% larger | lime 10,000 enemies |
 | 11 | **Marget Sayle** | Lantern | **Highland Eyes:** sees elites and strongboxes on the minimap from anywhere | finish The Ledge (**post-1.0**) |
 | 12 | **Col Wray** | Watch Crossbow | **The Band's Ways:** humans he kills drop double salt; he walks 10% faster in the dark | desert at the Order 10 times |
-| S1 | **The Ledge's Deserter** (unnamed) | Watch Sword + Crossbow | **Sent North:** two weapons; cannot take workings | hold through the Order on every main stage |
-| S2 | **Wat Corley**, bell-keeper of Hob's Height | Hand Bell | **The Quiet Kept:** his sound weapons are silent and weaker; he sees the Silent and the Unnamed outlined in the dark; his cold light lasts half again as long; his bell does not ring, it **carries**: its note reaches the next bell and returns, and what it touches is Rung | find all 16 relics |
-| S3 | **Gise Marrable** | Brass Tags | **The Roll:** every level-up offers one more card; Named kills drop double brass; she is looking for a name in the Seam Roll | hold through the Weight Gate as every main character |
+| S1 | **The Ledge's Deserter** (unnamed) | Watch Sword + Crossbow | **Sent North:** two weapons; cannot take workings | hold through the Order on every main stage (**post-1.0**) |
+| S2 | **Wat Corley**, bell-keeper of Hob's Height | Hand Bell | **The Quiet Kept:** his sound weapons are silent and weaker; he sees the Silent and the Unnamed outlined in the dark; his cold light lasts half again as long; his bell does not ring, it **carries**: its note reaches the next bell and returns, and what it touches is Rung | find all 16 relics (**post-1.0**) |
+| S3 | **Gise Marrable** | Brass Tags | **The Roll:** every level-up offers one more card; Named kills drop double brass; she is looking for a name in the Seam Roll | hold through the Weight Gate as every main character (**post-1.0**) |
 
 **Character rules.** Idle, walk (8 directions), dodge, hurt and fall. A portrait. A bark set of 6-10
 lines, said rarely: on a boss's arrival, on low health, at the Order, on a perfect step. Merrick's go
@@ -729,6 +730,7 @@ Prices rise with each purchase. **A refund button returns all salt**, so builds 
 
 **post-1.0.** In v1 the stone is a place in the yard where the dead were named, and a tag pickup; the
 long arc below waits for the second release, because a three-stage game cannot fill a hundred tags.
+Brass tags are banked from the first run and kept, so nothing a player collects in v1 is wasted.
 
 Brass tags come back here. Every 100 returned, the stone takes a name and you choose one of three
 small permanent boons. It fills slowly over the whole game: the long arc.
@@ -813,8 +815,8 @@ the haul and its laugh echoes. A small, funny, tense game inside the big one.
 
 ### 18.10 The friend who walks with you
 On by default **for Rafe**, and only for Rafe. Merrick follows at a short distance, fights with the
-bill, and coughs on the canon ladder. He is never stronger than you. He leaves at stage 9, and becomes
-the billman on the scaffold.
+bill, and coughs on the canon ladder. He is never stronger than you. He leaves at stage 9
+(**post-1.0**), and becomes the billman on the scaffold.
 
 ### 18.11 Lime the road, keep the line
 Lime, salt and fire leave marks on the ground for the whole run. By minute 25 a good player's map is a
@@ -889,7 +891,8 @@ numbers, a period hand for headings. Readability is never sacrificed.
 
 **Key screens:** title (the key-painting view, coal sun, animated reeds, slow ember drift), the Tally
 Room, character select (portraits on a row of pegs), stage select (a painted map of the north with the
-road drawn on it), the level-up page, the strongbox ceremony, the end-of-run line, the map portrait.
+road drawn on it; the stages past v1's third are unlit and **post-1.0**), the level-up page, the
+strongbox ceremony, the end-of-run line, the map portrait.
 
 ---
 
@@ -915,7 +918,8 @@ already exist in `js/audio.js` and are reused.
 
 Title -> (first time: a 60-second playable opening at the Outside Fire with no UI but the health cord,
 teaching move, auto-fire, embers and the first level-up) -> Tally Room -> character select -> stage
-select -> (optional) Approved Load -> run -> the book's line -> the map portrait -> the Tally Room.
+select -> (optional) Approved Load (**post-1.0**) -> run -> the book's line -> the map portrait -> the
+Tally Room.
 
 The pause menu shows the build (every weapon and kit, its level, and what it evolves with), the run's
 stats, options, and **Deserted** (quit, written as deserting).
@@ -1053,8 +1057,8 @@ Ruled 2026-11-20.
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
-| Evolutions | 8, one per weapon, no unions | 8, and both unions |
-| Workings | 8 of the 12 | 4 |
+| Evolutions | 8, one per weapon; every v1 weapon's partner kit is in the v1 eight | 8, and both unions |
+| Workings | 8: the ward, the naming, cold light, the passage rule, the carter's hitch, the Kept Hand, the third arch, Call the Roll | 4: the Bright Hour called, take nothing you cannot carry, the bargain, lime the road |
 | Characters | 6: Rafe, Merrick, Edda, Pim, Margery, Aud | 6, and all three secret |
 | Meta | the Tally Room, saves, the relics that stand in stages 1-3 | the Naming Stone's long arc, the collection |
 | Modes | the Watch Rota | the Long Account, the Approved Load |
