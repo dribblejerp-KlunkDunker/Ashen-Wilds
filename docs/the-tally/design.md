@@ -1063,7 +1063,7 @@ Ruled 2026-11-20.
 | --- | --- | --- |
 | Stages | 1 Outside Fire, 2 Old Causeway, 3 Halwen House | 4-9, and the six secret stages |
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
-| Creatures | 13 modelled, named below, and 2 painted | the other 9 in section 13, and one unique painting per boss from 4 on |
+| Creatures | 13 modelled - twelve creatures and the Ogre - and 2 painted, all named below | the other 9 in section 13, and one unique painting per boss from 4 on |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
 | Evolutions | 8: The Cold Edge, Held the Gate, The Limed Road, The Nailhouse, The Bell-Tender's Toll, Deserted: None, Grisel's Hedge, Aud's Lesson | 8, and both unions |
@@ -1077,16 +1077,33 @@ Ruled 2026-11-20.
 Grey Hour, the fire, and the Silent. Cutting any of those would make a different game rather than a
 smaller one.
 
-**The v1 creatures, counted.** Thirteen modelled creatures, each an 8-direction sheet at 2x, and two
-painted people:
+**The v1 creatures, counted.** Twelve creature sheets and one boss sheet, each an 8-direction model
+rendered at 2x, plus two painted people. The section each one comes from is named, so a sheet can be
+checked against the behaviour it has to telegraph. A builder needs exactly this list and no more.
 
-- **All three stages:** goblin scavenger (the "gutter goblins" at Halwen are these), walking bloom,
-  corpse-cap, spore drift.
-- **Stage 1:** goblin nest-runt, the Silent, the Ogre.
-- **Stage 2:** ork shield, ork cleaver, ork thrower, ork pack-leader (the band is three of these), and
-  the hulk-conger in the water either side.
-- **Stage 3:** the Halwen Remnant crossbowman, modelled; the Garden Hands and the siege captain, who
-  are people and so are painted.
+| # | Creature | Section | Where in v1 | Sheet by |
+| --- | --- | --- | --- | --- |
+| 1 | Goblin scavenger (the "gutter goblins" at Halwen are these) | 13.1 surf | all three stages | M3 |
+| 2 | Walking bloom | 13.1 surf | all three stages | M4a |
+| 3 | Corpse-cap (the rot) | 13.1 surf | all three stages | M4a |
+| 4 | Spore drift | 13.1 surf | all three stages | M4a |
+| 5 | Goblin nest-runt | 13.1 surf | stage 1 | M4a |
+| 6 | The Silent | 13.4 people | stage 1 | M4a |
+| 7 | Ork shield | 13.2 line | stage 2 | M3 |
+| 8 | Ork cleaver | 13.2 line | stage 2 | M6 |
+| 9 | Ork thrower | 13.2 line | stage 2 | M6 |
+| 10 | Ork pack-leader (the band is three of these) | 13.2 line | stage 2 | M6 |
+| 11 | Hulk-conger (in the water either side) | 13.3 walls | stage 2 | M6 |
+| 12 | Halwen Remnant crossbowman | 13.4 people | stage 3 | M6 |
+| 13 | **The Ogre**, the only boss sheet in v1 | 13.3 walls, and 14 | stage 1 | M4a |
+
+**Counted per milestone:** two in M3 (the first goblin, the first ork), six in M4a (the three that
+appear in every stage, the nest-runt, the Silent, the Ogre), five in M6 (the other three of the band,
+the hulk-conger, the crossbowman). Thirteen sheets, and no sheet built twice.
+
+**Painted, not modelled:** the Garden Hands and the Halwen siege captain, stage 3, because they are
+people with faces to read. **The Silent are people too and are modelled anyway**, because their whole
+design is a silhouette that blocks at distance and they never speak.
 
 **Not art:** the seven elite affixes are the same sheets, scaled and tinted; the Causeway banner is a
 prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, quarry-troll,
