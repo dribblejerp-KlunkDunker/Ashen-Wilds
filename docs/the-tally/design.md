@@ -1097,9 +1097,10 @@ checked against the behaviour it has to telegraph. A builder needs exactly this 
 | 12 | Halwen Remnant crossbowman | 13.4 people | stage 3 | M6 |
 | 13 | **The Ogre**, the only boss sheet in v1 | 13.3 walls, and 14 | stage 1 | M4a |
 
-**Counted per milestone:** two in M3 (the first goblin, the first ork), six in M4a (the three that
-appear in every stage, the nest-runt, the Silent, the Ogre), five in M6 (the other three of the band,
-the hulk-conger, the crossbowman). Thirteen sheets, and no sheet built twice.
+**Counted per milestone:** two in M3 - the **goblin scavenger** and the **ork shield**, the two that
+prove the sheet pipeline - six in M4a (the three that appear in every stage, the nest-runt, the
+Silent, the Ogre), five in M6 (the other three of the band, the hulk-conger, the crossbowman).
+Thirteen sheets, and no sheet built twice.
 
 **Painted, not modelled:** the Halwen siege captain, stage 3, because she is a person with a face to
 read. **The Silent are people too and are modelled anyway**, because their whole design is a
@@ -1120,7 +1121,7 @@ a stop for sleeves.
 | **M0** | Read and plan. `design.md`, `lore-deltas.md`, `plan.md`. No code. | sleeves rules the deltas |
 | **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
 | **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. One player's snapshot budget only. | a frame-time capture in the PR |
-| **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and the first modelled goblin and ork rendered to sheets. Behaviour, not balance. | all 24 items exist, are data-driven and are unit-tested: every weapon and kit defined in `data/`, every evolution resolving from its pair, no item special-cased in code |
+| **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and **two** creature sheets rendered to prove the art pipeline: the **goblin scavenger** and the **ork shield**. The other eleven are M4a's and M6's. Behaviour, not balance. | all 24 items exist, are data-driven and are unit-tested: every weapon and kit defined in `data/`, every evolution resolving from its pair, no item special-cased in code; and both sheets load through `data/enemies.js` and render in the stress scene at 1x, so the remaining eleven are repetition and not discovery |
 | **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves. | the night runs 0 to 30 with every beat firing; rough is allowed |
 | **M4b** | Stage 1, good: the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
 | **M5** | Meta and roster: the Tally Room, saves with export, the relics of stages 1-3, characters 1-6 and their unlocks. | a run survives a reload and the roster is playable |
