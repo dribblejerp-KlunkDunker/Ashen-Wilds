@@ -7,8 +7,8 @@ lore wins and this file is wrong.
 
 *The Tally* is a top-down horde-survival game, in the shape of Vampire Survivors and in the world of
 Ashen Wilds. It is a sister to **The Long Account**, which is first person and set a week after this
-game's last night. This game is **the winter of S.30**: the tower has fallen, the fen is awake, and
-the road north ends at a gate nobody finished.
+game's last night. This game is **the winter of S.30**: the tower has fallen, the fen is awake, and the
+road north ends at a gate nobody finished.
 
 **v1 is three of the nine stages.** The whole road is designed here because the design has to be
 whole; the first release builds the first three nights. Section 26 is the cut, and it is the section
@@ -1106,7 +1106,9 @@ Thirteen sheets, and no sheet built twice.
 read. **The Silent are people too and are modelled anyway**, because their whole design is a
 silhouette that blocks at distance and they never speak. **The Garden Hands are neither**: canon has
 them as Halwen's labour faction, negotiating with the Remnant, so they are not in the siege and
-nothing in v1 draws them.
+nothing in v1 draws them. **The count is unaffected either way**, because they were never modelled:
+the only number their removal moved is the paintings, from two to one, so the thirteen and every
+milestone's share of it stand as written.
 
 **Not art:** the seven elite affixes are the same sheets, scaled and tinted; the Causeway banner is a
 prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, quarry-troll,
@@ -1122,7 +1124,7 @@ a stop for sleeves.
 | **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
 | **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. One player's snapshot budget only. | a frame-time capture in the PR |
 | **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and **two** creature sheets rendered to prove the art pipeline: the **goblin scavenger** and the **ork shield**. The other eleven are M4a's and M6's. Behaviour, not balance. | all 24 items exist, are data-driven and are unit-tested: every weapon and kit defined in `data/`, every evolution resolving from its pair, no item special-cased in code; and both sheets load through `data/enemies.js` and render in the stress scene at 1x, so the remaining eleven are repetition and not discovery |
-| **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves. | the night runs 0 to 30 with every beat firing; rough is allowed |
+| **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, and **six of the thirteen sheets** (walking bloom, corpse-cap, spore drift, goblin nest-runt, the Silent, the Ogre). | the night runs 0 to 30 with every beat firing; rough is allowed |
 | **M4b** | Stage 1, good: the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
 | **M5** | Meta and roster: the Tally Room, saves with export, the relics of stages 1-3, characters 1-6 and their unlocks. | a run survives a reload and the roster is playable |
 | **M6** | The road so far: stages 2 and 3, their bosses and pages, and the Watch Rota. | three stages, start to finish, with no dead ends |
