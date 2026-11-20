@@ -414,7 +414,7 @@ collectible there whose effect arrives with co-op.
 | **A Tally Stick** | the Outside Fire, the second one out of Joan Tallis's belt | the minute-by-minute kill graph on the end screen |
 | **Stott's whittling knife** | the Causeway tower's guardroom | Named kills drop an extra brass tag |
 | **A Witness Token** | Halwen's chapel, the chaplain's cupboard | the Kept Hand working |
-| **A Bent Spoon from Darnel Cross** | Halwen's gatehouse, in the bowl by the door | the Tally Room charges 5% less |
+| **A Bent Spoon from Darnel Cross** | Halwen's gatehouse, in the bowl by the door | **Measure** +5% for good: a free raise of the Tally Room's own Measure line, stacking with the ones bought there |
 | **A Watch Whistle** | the Causeway tower's guardroom | co-op revive by carrying (**post-1.0**) |
 | **The Glass Key** | Halwen's glasshouse range | the room nobody claims |
 | **Osric Brayne's Sheet** | the bricked hatch | a leaf of the house's admittance rolls, naming the turned away |
