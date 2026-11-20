@@ -1,7 +1,7 @@
 // ============================================================
 //  ledge1 - Phase 1, "the ledge": The Long Account's first place, and the way into it.
 //
-//  The prologue of docs/worldbuilding/the-round-and-the-long-account.md: the first week of the thaw, S.31, on
+//  The prologue of docs/worldbuilding/the-round-and-the-long-account.md: the first week of the thaw, S.30, on
 //  Orlen's highland edge. You stand on frosted rock above a broken, burning country, with the Slagcrown under a
 //  sun that has gone dark, and Marget Sayle's bothy is under the ledge.
 //
@@ -302,7 +302,7 @@ const LEDGE1 = (() => {
     crack: 'Fire in the ground. The heat reaches you from here.',
     bloom: 'Corpse-caps, in a hollow where something died and was not limed. They give their own light. Do not go down wind of them.',
     intro: [
-      'The first week of the thaw, S.31.',
+      'The first week of the thaw, S.30.',
       'Thirty years since the Slagcrown broke the Vaults open. The sun went dark that year and has not come back.',
       'Gytha Marrin, who keeps the receipts at the Burned Quay, has sent you north for one of the four who came back from the first survey.',
       'Her name is Marget Sayle. She has never said what she saw.',
@@ -526,6 +526,9 @@ void main() {
     const attrs = Object.assign({}, CLASSES[ci].attrs);
     for (let i = 0; i < CREATE.bio.length; i++) { const a = BIOGRAPHY[i].a[CREATE.bio[i]]; for (const k in a.mod) attrs[k] += a.mod[k]; }
     CREATE.attrs = attrs;
+    // the Shattered Octave's opening film (js/cinematic24.js) is its story, not this one: it never plays here, and the
+    // intro is this game's own five lines
+    if (typeof CINEMATIC24 !== 'undefined' && CINEMATIC24.set) CINEMATIC24.set.play = false;
     startGame();
   }
   function arrive() {
@@ -578,6 +581,8 @@ void main() {
       const r = _acc.apply(this, arguments);
       try {
         const grid = document.querySelector('#modal-panel .ctl-grid');
+        // the Octave's opening film has no place here, so neither do its switch and its replay
+        for (const id of ['cine24-play', 'cine24-play-label', 'cine24-replay']) { const el = document.getElementById(id); if (el) { const lab = id === 'cine24-replay' ? el.previousElementSibling : null; el.remove(); if (lab) lab.remove(); } }
         for (const [key, name, what] of SWITCHES) {
           const id = 'gfx-' + key.toLowerCase();
           if (!grid || document.getElementById(id)) continue;

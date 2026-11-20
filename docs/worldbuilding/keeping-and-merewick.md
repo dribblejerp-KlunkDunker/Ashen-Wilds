@@ -6,8 +6,8 @@ Compiled 2026-11-01 from the worldbuilding conversation dated 2026-10-28 through
 
 ### Continuity issues to resolve before canon integration
 
-- The established faction bible names Mara Venn as a veteran Cinder Factor road carrier. The Merewick scenes name Mara Venn as a former chapel cleaner who becomes a community record-keeper. Preserve both source histories; do not assume they are the same person. Rename the Merewick character or reconcile explicitly later.
-- The faction bible has a surviving elderly Harl the Toll-Keeper. The Merewick Harl loses a cart and son to requisition, later dies, and leaves a widow and daughter. Treat these as distinct or unresolved characters, not an established death of the toll-keeper.
+- **Settled by O11 (2026-11-19).** The faction bible this note drew on is lost: it is in no repository, branch or saved chat. Its Mara Venn, a Cinder Factor road carrier, is retired with it. The Merewick Mara Venn, the chapel cleaner who became the village's record-keeper, is the only Mara Venn.
+- **Settled by O11.** The faction bible's elderly Harl the Toll-Keeper is retired with it. The Merewick Harl, who lost a cart and son to requisition and left a widow and daughter, is the only Harl. The Causeway toll house is held by orks, and its keeper is not named.
 - Merewick's founding scenes occur just after the Smothering, with later scenes spanning years and generations. Exact dates relative to Year 30 are unset. The final miller scene is a future or undated vignette until ages are reconciled.
 - The collector is unnamed and his employer and jurisdiction are unspecified. Do not identify him with Collector Brannick or the Tithe without an explicit decision.
 - New religious proposals do not supersede Reedwake's local moorings and return-bread customs or prove supernatural rules.
@@ -120,4 +120,4 @@ In an undated later vignette, the elderly miller's son explains a thin shutter p
 - Local victories remain real: a bridge works, a right is recognized, and a collection is deferred, without healing the region.
 - Accusations and consequences require discoverable information; no collector has supernatural knowledge.
 - Religious claims are not verified cosmology or disease mechanics.
-- Resolve the Mara Venn and Harl name conflicts and the scene dates before canon integration.
+- ~~Resolve the Mara Venn and Harl name conflicts~~ (settled by O11). The scene dates before canon integration.

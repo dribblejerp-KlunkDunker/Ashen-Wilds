@@ -308,8 +308,9 @@ corpse-caps fruited, and the Bottom has been spore ground, the **Spore Hollow**,
 also where the silent sick go (`bestiary.md`), and the Hollow is the lowest ground within reach. It has had
 walking blooms for at least five years (`the-smothering.md`).
 
-**The cart.** This autumn three travellers came from the west with a cart, an ox and the grey in all their
-coughs. They were bound for the hospice at Saint Orra's Steps. The ox died at the Hollow's edge. They did what
+**The cart.** This autumn three travellers came up from the south with a cart, an ox and the grey in all their
+coughs. They were bound for the hospice at Saint Orra's Steps, and the road there for the sick is the Corpseway,
+which starts at the Watchhouse's parish end (O11). The ox died at the Hollow's edge. They did what
 the dying are taught to do: they wrote a note, left it under a fresh torch, and waited for whoever stopped
 answering first (note 13: *If we have stopped answering, do not come close. Burn the cart. The torch is fresh.
 That is what it is for.*). Two left names: **Hildy Coyle**, a healer, and **Odo Starke**, a peat-cutter of the

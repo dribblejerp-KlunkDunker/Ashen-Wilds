@@ -1,6 +1,6 @@
 # People: Wexhaven and the Round
 
-The people of The Long Account's voyage, from the Burned Quay to Halsing, as of the thaw of S.31. Each entry ends with
+The people of The Long Account's voyage, from the Burned Quay to Halsing, as of the thaw of S.30. Each entry ends with
 its sources and what was new on 2026-11-19 (ruling O10).
 
 ---

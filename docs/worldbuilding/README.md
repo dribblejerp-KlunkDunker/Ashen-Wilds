@@ -21,7 +21,7 @@ person and place have a full entry.
 
 ## Previously preserved
 
-- [Keeping and Merewick](keeping-and-merewick.md): structured consolidation, not a verbatim transcript; includes unresolved Mara Venn and Harl name conflicts.
+- [Keeping and Merewick](keeping-and-merewick.md): structured consolidation, not a verbatim transcript; its Mara Venn and Harl are the only ones (O11).
 - [The Last Gardens](the-last-gardens.md): full write-up.
 - [Halwen House](halwen-house.md): full write-up.
 - [Private chapel](halwen-house-private-chapel.md): full write-up.
@@ -74,7 +74,7 @@ The `quarry-recreated/` workshop package remains pending import and validation. 
 
 ## The wider world and The Long Account (2026-11-11)
 
-- [The Round and The Long Account](the-round-and-the-long-account.md): proposed. Part One sets out the world beyond Orlen: the Slate Sea and the eight other lands around it (the Scald and the Hoar, the Skerries, the Weald, the Sable Shore and the Compact of Quays, Vauclere, Sephar, the White Deeps), the Dim, what crossed the sea after S.0, faiths, money, tongues, calendars, beasts (all animals under O1), the deep places as evidence only, and a timeline. Part Two designs a separate first-person co-op game for one to four players in that world, set from the thaw of S.31 to the thaw of S.32: structure, the company, co-op systems, the Account, combat, the multiplayer model, the look, the story and its five endings. It also proposes the small magic the owner approved as O4 (spoken workings and marks on slag-iron blades) and a prologue on Orlen's highland edge. Its twelve owner decisions (D1 to D12) are approved and recorded as O3 and O4 in the canon sheet; the rest is proposed. Of the game, only a look test of the prologue's ledge is built. It leaves who made the Vaults, what the orks fled and why the Unnamed rise unsettled.
+- [The Round and The Long Account](the-round-and-the-long-account.md): proposed. Part One sets out the world beyond Orlen: the Slate Sea and the eight other lands around it (the Scald and the Hoar, the Skerries, the Weald, the Sable Shore and the Compact of Quays, Vauclere, Sephar, the White Deeps), the Dim, what crossed the sea after S.0, faiths, money, tongues, calendars, beasts (all animals under O1), the deep places as evidence only, and a timeline. Part Two designs a separate first-person co-op game for one to four players in that world, set from the thaw of S.30 to the thaw of S.31: structure, the company, co-op systems, the Account, combat, the multiplayer model, the look, the story and its five endings. It also proposes the small magic the owner approved as O4 (spoken workings and marks on slag-iron blades) and a prologue on Orlen's highland edge. Its twelve owner decisions (D1 to D12) are approved and recorded as O3 and O4 in the canon sheet; the rest is proposed. Of the game, only a look test of the prologue's ledge is built. It leaves who made the Vaults, what the orks fled and why the Unnamed rise unsettled.
 
 ## Continuity boundaries
 

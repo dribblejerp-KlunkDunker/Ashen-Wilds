@@ -275,10 +275,11 @@ is owed.
 *Sources: `items-and-texts.md`; `act-one-the-outskirts.md`. New: the debt hook.*
 
 ### Hildy Coyle, Odo Starke and the third
-*Travellers · dead at the Spore-Choked Cart in the Spore Hollow, autumn S.30*
+*Travellers · dead at the Spore-Choked Cart in the Spore Hollow, autumn S.29*
 
-**Who.** Three travellers came from the west with a cart, an ox and the grey in all their coughs, bound for the
-hospice at Saint Orra's Steps. The ox died at the Hollow's edge. They left a note under a fresh torch and waited.
+**Who.** Three travellers came up from the south with a cart, an ox and the grey in all their coughs, bound for the
+hospice at Saint Orra's Steps. They came by the Watchhouse because the Corpseway, the road the sick are carried
+along to the Steps, starts at its parish end. The ox died at the Hollow's edge. They left a note under a fresh torch and waited.
 **Hildy Coyle**, a fen healer, left a note on her own body: *Fire, not a blade.* **Odo Starke**, a peat-cutter of the
 Nine Stakes, sewed a name-strip in his cuff: *If I am silent, lime me.* The third would not say. No one lit the torch.
 Whether they came to the Watchhouse door first, nobody knows. Odo's village does not know he is dead (see the Nine
@@ -289,7 +290,7 @@ spade. The third left nothing with a name on it.
 Find out who the third was.
 
 *Sources: `act-one-the-outskirts.md`; `items-and-texts.md`; the atlas (the Nine Stakes). New: the cart's contents.
-Their route (from the west, to the Steps, by way of the Watchhouse) is not yet explained.*
+Their route (up from the south fen to the Watchhouse, then the Corpseway west to the Steps) was ruled in O11.*
 
 ### Grisel
 *Hedge-priest "of no chapel" · whereabouts unknown*

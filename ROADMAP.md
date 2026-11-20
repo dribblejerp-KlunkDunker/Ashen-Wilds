@@ -79,10 +79,14 @@ millisecond honestly. Feel, sound and how it reads on a real screen need a perso
 - The bothy's roof comes from the Octave's timber-house planner with a thatch tile. It has windows
   with shutters. The style table says it should have no window on the weather side; the planner does
   not read that yet. *(Done in Phase 8.)*
-- The view is not gated ("no prompt until every player has looked at the Citadel").
+- The view is not gated ("no prompt until every player has looked at the Citadel"). O11 rules what a look is:
+  the Slagcrown near the middle of the view for about two seconds, added up, for each player.
 - No walking bloom in the hollow. No carry. No Account. No title card at the look back.
 - The player is alone on the ledge unless a second joins; the default pair's carter is a person
   standing there, not a second player's body.
+- **Fixed 2026-11-19:** the Shattered Octave's opening film (`js/cinematic24.js`, its catechism and its fly-over)
+  still played after Begin, before this game's five lines. The tests skipped past it, so nothing saw it. `begin()` now
+  turns it off, Options no longer shows its switch or its replay, and `test/ledge1.test.js` checks both.
 
 ### Proposed in Phase 1: **approved 2026-11-12 (O6)**, except P17
 
@@ -614,20 +618,23 @@ proposals across the board"):
 | The sun's day (P27 to P32) | "Yes the days are perfect." Approved; recorded as O8 on the canon sheet. |
 | The second pass at the modelled beasts | "Thank you lets proceed." Taken as approval; the walking bloom went into the game as Phase 4. |
 | Everything still proposed: P33 to P70, the warning book, the chart's placements, the atlas and its scale, the novel's N1 to N20 | "I accept all proposals across the board" (2026-11-19). Recorded as O10 on the canon sheet. The owner also asked for a full entry for every person and place; written the same day (`docs/worldbuilding/people/`, `docs/worldbuilding/atlas/`). |
+| The open questions: Mara Venn and Harl, Odo's route, the opening view, the dates, the title, Rafe | "lets go with D ... I will go with your recommendations" (2026-11-19). Recorded as O11 on the canon sheet: the faction bible is lost and the Merewick pair are the only ones; the cart came up from the south for the Corpseway; a look is two seconds on the Slagcrown; The Long Account opens at the thaw of S.30; the novel is *Held the Gate*; Rafe is not the ledge deserter. |
+| Merging pull requests 44 to 47 | "merge everything please" (2026-11-19). Merged in order, with merge commits. |
 | Merging pull requests 38 to 40 | "Merge and proceed." The owner asked Claude to merge them. Each was squashed, so the Octave's pictures stay out of `main`'s history. The old Godot work that was on `main` is kept on `archive/isometric-prototype`. |
 
 ## Decisions I still need
 
-1. **The opening view.** The design says no prompt appears until every player has looked at the
-   Citadel. Alone, how long is a look?
-2. **Two Mara Venns and two Harls** (CANON Q2): keep both pairs as different people, or rename one of each.
-3. **The novel's open questions:** the date knot (the tower fell in the autumn of S.29, the winter is S.30, The Long
-   Account opens at the thaw of S.31); whether Rafe Sedley is the deserter on the ledge; the title.
-4. **Odo Starke's route.** Three travellers "from the west", bound for Saint Orra's Steps, died at the Watchhouse
-   yard; the Nine Stakes is 27 miles south of the Watchhouse and the Steps 23 miles west, so the route needs a reason.
+None from the list of 2026-11-19: all were ruled the same evening (O11, below). Still to do:
+
+1. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
+   player's view for about two seconds, added up, before any prompt. Not built yet.
+2. **The warning book's entry 30:** whether it carries Rafe's name in a game whose player is not Rafe.
+3. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
+   it is read against O11.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
-book of S.30.
+book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's route, the opening view, the dates,
+the novel's title, and Rafe Sedley.
 
 ## Next phases, in order
 
