@@ -488,8 +488,8 @@ closed gate. Co-op: the gate is worked by the company (hoist, chain, hands on th
 rarest book line, *Held the gate*, goes to that player. Nobody is ever assigned it.
 
 *Sources: `acts-two-and-three.md:199` and `:204` (the Weight Gate and its unused machinery);
-`people/the-novel.md:32` (Merrick below the gate, and the one knock);
-`the-round-and-the-long-account.md:896`.*
+`people/the-novel.md:32` (Merrick at the Weight Gate, silent and dying); `people/the-novel.md:34`
+("and *go*, and drops the gate from below. One knock. Rafe never sees what happens to him").*
 
 ---
 
