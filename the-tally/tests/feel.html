@@ -16,6 +16,9 @@
     border-radius: 3px; pointer-events: none; min-width: 340px;
   }
   #panel h1 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+  #state { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; color: var(--dim); font-size: 10px; }
+  #state .badge { flex: none; padding: 1px 5px; border: 1px solid rgba(242, 194, 107, 0.4); border-radius: 2px; color: var(--tallow); letter-spacing: 0.06em; }
+  #buffer { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   table { border-collapse: collapse; width: 100%; }
   th, td { padding: 2px 0; text-align: left; font-weight: 400; }
   th { color: var(--dim); padding-right: 12px; width: 47%; }
@@ -37,6 +40,7 @@
 
 <div id="panel">
   <h1>Feel gate &middot; design.md 3</h1>
+  <div id="state"><span id="mode" class="badge">webgl2</span><span id="buffer">buffer --</span></div>
   <table>
     <tr><th>Top speed</th><td class="target">4.00 t/s</td><td class="now" id="m-speed">--</td></tr>
     <tr><th>Peak speed</th><td class="target">4.00 t/s</td><td class="now" id="m-peak">--</td></tr>
@@ -53,8 +57,10 @@
 <div id="keys">WASD / arrows walk &middot; Space the Watch Step &middot; R reset</div>
 <div id="note">
   Three dummy goblins, a flat yard, and nothing else: the gate is whether the movement is right
-  before anything is built on it. F fires the perfect-step reward by hand, because the design gives
-  its reward but not its condition.
+  before anything is built on it. WebGL2 is the default path; ?renderer=canvas is the reference.
+  The resolution stepper is off (quality 1) so both paths draw the same buffer, and ?dpr= sets its
+  cap. F fires the perfect-step reward by hand, because the design gives its reward but not its
+  condition.
 </div>
 
 <script type="module">
@@ -63,6 +69,28 @@
 
   const canvas = document.getElementById('game');
   const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+
+  function readNumber(name, fallback, min, max) {
+    const raw = Number.parseFloat(params.get(name));
+    if (!Number.isFinite(raw)) return fallback;
+    return Math.max(min, Math.min(max, raw));
+  }
+
+  // WebGL2 is the product renderer (design 23.2), so it is what the gate measures by default;
+  // ?renderer=canvas keeps the Canvas 2D reference one query away.
+  const rendererMode = params.get('renderer') === 'canvas' ? 'canvas' : 'webgl';
+  // The stepper is pinned off and the dpr cap fixed, so the Canvas and WebGL2 runs draw the same
+  // buffer for the same window: only the renderer differs.
+  const dpr = readNumber('dpr', 2, 0.5, 2);
+  const quality = readNumber('quality', 1, 0.4, 1);
+
+  function describeBuffer(stats) {
+    const dprNow = stats.dpr === undefined ? 0 : stats.dpr;
+    const scale = stats.scale === undefined ? 1 : stats.scale;
+    return 'buffer ' + canvas.width + 'x' + canvas.height
+      + ' (dpr ' + dprNow.toFixed(2) + ', scale ' + scale.toFixed(2) + ')';
+  }
 
   function row(id, text, ok) {
     const td = $(id);
@@ -72,11 +100,14 @@
     tr.classList.toggle('bad', ok === false);
   }
 
-  const game = createGame(canvas, {
+  const options = {
+    renderer: rendererMode,
+    dpr,
+    quality,
     goblins: 3,
     dummies: true,
     embers: false,
-    onFrame(world, { latency, fps }) {
+    onFrame(world, { latency, fps, stats }) {
       const p = world.player;
       const speed = Math.hypot(p.vx, p.vy) / TILE;
       row('m-speed', speed.toFixed(2) + ' t/s', Math.abs(speed - MOVE.maxSpeed) < 0.02 || speed < 0.05);
@@ -98,11 +129,30 @@
       row('m-iframes', (p.iframes * 1000).toFixed(0) + ' ms', p.iframes > 0 ? true : null);
       row('m-cd', (p.cooldown * 1000).toFixed(0) + ' ms', null);
       row('m-fps', fps ? fps.toFixed(0) + ' fps' : '--', fps ? fps >= 58 : null);
+      $('buffer').textContent = describeBuffer(stats);
     },
-  });
+  };
 
-  game.start();
-  window.tally = game;
+  let game = null;
+  let startError = null;
+  try {
+    game = createGame(canvas, options);
+  } catch (err) {
+    startError = err && err.message ? err.message : String(err);
+  }
+
+  if (game) {
+    const info = game.renderer.info ? game.renderer.info() : {};
+    $('mode').textContent = info.context || rendererMode;
+    $('buffer').textContent = describeBuffer(game.renderer.stats);
+    game.start();
+    window.tally = game;
+  } else {
+    $('mode').textContent = 'not started';
+    $('buffer').textContent = '';
+    $('note').textContent = 'The game did not start: ' + startError
+      + '. Add ?renderer=canvas to measure the Canvas baseline.';
+  }
 </script>
 </body>
 </html>
