@@ -121,7 +121,7 @@ licensed, pays his crew, thinks of himself as a salvor, and wants stoves. His cr
 
 **At a glance.** The spine of the north-east: bare, cold, high country cut by deep valleys, where the old Citadel prospectors went and found little. The Weald believes the Long Marrow is burning inside and that the fire will come out east, and cuts its firebreaks every year on that belief.
 
-**History.** Prospectors from the Citadels worked its valleys for three centuries and found lesser seams, a hot spring and a great many ways to die. The Crown built one cart road through it, the Marrow Passes, to the Weald's timber. After S.0 the vents on its western slopes began to smoke. About S.6 ork packs took the passes, and no cart has crossed since.
+**History.** Prospectors from the Citadels worked its valleys for two centuries and found lesser seams, a hot spring and a great many ways to die. The Crown built one cart road through it, the Marrow Passes, to the Weald's timber. After S.0 the vents on its western slopes began to smoke. About S.6 ork packs took the passes, and no cart has crossed since.
 
 **How it looks.** Ridge after ridge of grey stone, white on top for most of the year, with vents smoking on the western slopes nearest the Citadels and fewer as you go east. Abandoned prospect pits and cairns mark the old trails. From any ridge you can see the next, and the next, to the dark line of the Weald.
 
