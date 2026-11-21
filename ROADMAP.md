@@ -671,7 +671,11 @@ What it does:
     button light and douse the lantern. The Octave's songs sing nothing here.
 - **The HUD.** Its line reads "The waif · 12 salt": salt, not levels and sovereigns (P85). The song lines are not
   drawn. The third bar, once the Octave's Voice, is the lantern's oil, in tallow.
-- **The credits** are this repository's, as `CREDITS.md` has them, and so is their first line.
+- **The credits** are this repository's, as `CREDITS.md` has them, and so is their first line. The engine's row no
+  longer claims all of `js/`: this repository's phase files have a row of their own. `CREDITS.md` had the same fault (it
+  named only fork0, art2 and ledge1 as this repository's) and is fixed.
+- **The panels keep the engine's names** (char, inv, log, ledger, help), so pressing C, I, L, K or H again closes them
+  as before; Tab closes the pack it opens.
 - No engine file was edited. It is not a picture effect, so there is no switch: off would only bring the Octave's
   words back.
 - **An earlier phase's test changed.** `test/lantern7.test.js` compares its switched-off frame with the frame drawn with

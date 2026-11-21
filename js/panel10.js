@@ -123,9 +123,12 @@ const PANEL10 = (() => {
 
   // ---------------------------------------------------------------- the credits: this repository's (CREDITS.md)
   const OFL = 'SIL Open Font License 1.1 (text in fonts/)';
+  // this repository's own code: a phase is one file js/<feature><phase>.js (CLAUDE.md)
+  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js'];
   const CREDITS = [
     { title: 'The engine', rows: [
-      ['Code in js/, css/, schemas/, locales/, sw.js', 'Copied on 2026-11-11 from Echoes of the Shattered Octave (same owner), commit f2b3990, at the owner\'s direction (D14). Written with AI assistance', 'That repository declares no open licence', []],
+      ['Code in js/ (but for this repository\'s phase files, below), css/, schemas/, locales/, sw.js', 'Copied on 2026-11-11 from Echoes of the Shattered Octave (same owner), commit f2b3990, at the owner\'s direction (D14). Written with AI assistance', 'That repository declares no open licence', []],
+      ['This game\'s phases', 'Written for this repository, with AI assistance, one file a phase', 'Part of this repository', PHASE_FILES],
     ] },
     { title: 'Art', rows: [
       ['Tiles, people, things, the hand and blade, the mark', 'Painted in code in js/art2.js', 'Part of this repository', ['js/art2.js']],
@@ -166,7 +169,7 @@ const PANEL10 = (() => {
   }
 
   // ---------------------------------------------------------------- in the game
-  const ST = { hud: [], bar: null, baseHp: null, err: null };
+  const ST = { hud: [], bar: null, baseHp: null, err: null, packT: -1 };
   const OIL = '#c8913a', VOICE_BLUE = '#3d6aa8';
   const here = () => typeof G !== 'undefined' && G && G.map && G.map._la;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -193,10 +196,11 @@ const PANEL10 = (() => {
     const b = current(), p = G.player;
     openModal(`<h2>${esc(p.name)}</h2>${closeBtn}<p><b style="color:var(--gold)">${esc(b.name)}</b></p><p>${esc(cap(b.life))}</p>
       <p><b>${TX.whoKnack}:</b> ${esc(b.knack.name)} (${esc(b.knack.what)}).<br><b>${TX.whoFlaw}:</b> ${esc(b.flaw.name)} (${esc(b.flaw.what)}).</p>
-      <p>${TX.youHealth} ${Math.round(p.hp)} / ${p.hpMax}</p><p class="muted">${esc(TX.youSent)}</p>`, 'la-you');
+      <p>${TX.youHealth} ${Math.round(p.hp)} / ${p.hpMax}</p><p class="muted">${esc(TX.youSent)}</p>`, 'char');
     wireClose();
   }
   function renderPack() {
+    ST.packT = typeof performance !== 'undefined' ? performance.now() : 0;
     const p = G.player, name = (id) => (typeof ITEMS !== 'undefined' && ITEMS[id] && ITEMS[id].name) || (typeof WEAPONS !== 'undefined' && WEAPONS[id] && WEAPONS[id].name) || id;
     const hands = (p.weapons || []).filter(Boolean).map((id) => esc(name(id)));
     const worn = Object.values(p.armor || {}).filter(Boolean).map((id) => esc(name(id)));
@@ -205,23 +209,23 @@ const PANEL10 = (() => {
     let lamp = TX.lampNone; try { lamp = TX.lamp(LANTERN7.words(LANTERN7.oil())); } catch (e) { /* no lantern */ }
     openModal(`<h2>${TX.packTitle}</h2>${closeBtn}
       <p><b>${TX.packHands}:</b> ${hands.join(', ') || '-'}</p><p><b>${TX.packWorn}:</b> ${worn.join(', ') || '-'}</p>
-      <p><b>${TX.packBag}:</b> ${bag.join(', ') || '-'}</p><p>${esc(lamp)}</p><p>${esc(TX.salt(p.gold | 0))}</p>`, 'la-pack');
+      <p><b>${TX.packBag}:</b> ${bag.join(', ') || '-'}</p><p>${esc(lamp)}</p><p>${esc(TX.salt(p.gold | 0))}</p>`, 'inv');
     wireClose();
   }
   function renderBook() {
     const day = Math.max(0, G.day | 0), part = typeof timeName === 'function' ? timeName() : '';
     const rows = (G.journal || []).filter((j) => j && j.text).map((j) => `<p>${esc(j.text)}</p>`).join('') || `<p class="muted">${TX.bookNone}</p>`;
-    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p>${rows}`, 'la-book');
+    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p>${rows}`, 'log');
     wireClose();
   }
   function renderFolk() {
     const T = (L1 && L1.TOPICS) || {}, line = (n) => (T[n] && T[n].low) || '';
     openModal(`<h2>${TX.folkTitle}</h2>${closeBtn}
-      <p><b>Marget Sayle.</b> ${esc(line('Marget Sayle'))}</p><p><b>Gytha Marrin.</b> ${esc(line('Gytha Marrin'))}</p><p>${esc(TX.carter)}</p>`, 'la-folk');
+      <p><b>Marget Sayle.</b> ${esc(line('Marget Sayle'))}</p><p><b>Gytha Marrin.</b> ${esc(line('Gytha Marrin'))}</p><p>${esc(TX.carter)}</p>`, 'ledger');
     wireClose();
   }
   function renderHelp10() {
-    openModal(`<h2>${TX.helpTitle}</h2>${closeBtn}<table>${TX.help.map(([a, b]) => `<tr><td class="n"><b>${esc(a)}</b></td><td>${esc(b)}</td></tr>`).join('')}</table>`, 'la-help');
+    openModal(`<h2>${TX.helpTitle}</h2>${closeBtn}<table>${TX.help.map(([a, b]) => `<tr><td class="n"><b>${esc(a)}</b></td><td>${esc(b)}</td></tr>`).join('')}</table>`, 'help');
     wireClose();
   }
   const lamp = () => { try { LANTERN7.toggle(); } catch (e) { /* no lantern */ } };
@@ -260,6 +264,15 @@ const PANEL10 = (() => {
         if ((ev.key || '').toLowerCase() === 'n') { ev.stopImmediatePropagation(); lamp(); }
       } catch (e) { /* a key press must never throw */ }
     }, true);
+    // the panels keep the engine's own names (char, inv, log, ledger, help), so a second press of C, I, L, K or H closes
+    // them as it always did; Tab, which the engine closes only on its song-book, closes the pack it now opens
+    window.addEventListener('keydown', (ev) => {
+      try {
+        if (ev.repeat || !here() || G.state !== 'panel' || G.openPanel !== 'inv' || (ev.key || '').toLowerCase() !== 'tab') return;
+        if (!(ST.packT < ev.timeStamp)) return;   // the engine's own listener runs first: this press is the one that opened it
+        ev.preventDefault(); ev.stopImmediatePropagation(); closeModal(); G.state = 'play';
+      } catch (e) { /* a key press must never throw */ }
+    }, true);
     // soft feet
     swap('armorNoise', function () { const n = ORIG.armorNoise.apply(this, arguments); const b = current(); return b && b.step ? Math.max(-0.8, n + b.step) : n; });
     // the HUD: its words, and its third bar as the lantern's oil
@@ -286,6 +299,6 @@ const PANEL10 = (() => {
   }
   const ORIG = { armorNoise: typeof armorNoise === 'function' ? armorNoise : null, openModal: typeof openModal === 'function' ? openModal : null };
   const wired = typeof window !== 'undefined' ? wire() : false;
-  return { BACKGROUNDS, DEFAULT, byId, BUTTONS, TX, CREDITS, hudText, texts, choose, renderWho, state: () => ST, current, ORIG, wrapHUD, wired };
+  return { PHASE_FILES, BACKGROUNDS, DEFAULT, byId, BUTTONS, TX, CREDITS, hudText, texts, choose, renderWho, state: () => ST, current, ORIG, wrapHUD, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = PANEL10;

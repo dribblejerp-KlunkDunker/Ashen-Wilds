@@ -48,6 +48,10 @@ const T = P10.texts();
 const OCTAVE = /Quarry|\bHz\b|sovereign|\bsov\b|Oakhaven|Synod|Carillon|\bHush\b|Cacophony|\bsongs?\b|\bSR\b|\bVoice\b|\blevel\b|\bLv\b|Legionnaire|pickpocket|disguise|Aethelgard|Murmur/i;
 check(T.length > 30 && !T.some((s) => OCTAVE.test(s)), 'nothing this phase writes uses the Octave\'s words (' + T.length + ' lines checked)' + (T.find((s) => OCTAVE.test(s)) ? ': ' + T.find((s) => OCTAVE.test(s)) : ''));
 check(T.every((s) => !/[^\x09\x0a\x0d\x20-\x7e]/.test(s.replace(/·/g, ''))), 'and all of it is plain ASCII (the HUD\'s middle dot aside, which the engine already draws)');
+{ const fs = require('fs'), pth = require('path'), md = fs.readFileSync(pth.join(__dirname, '..', 'CLAUDE.md'), 'utf8');
+  const named = [...md.matchAll(/(js\/[a-z]+\d+\.js) +Phase \d+/g)].map((m) => m[1]).sort();
+  check(named.length >= 11 && named.join(' ') === P10.PHASE_FILES.slice().sort().join(' ') && P10.PHASE_FILES.every((f) => fs.existsSync(pth.join(__dirname, '..', f))) && /but for this repository/.test(P10.CREDITS[0].rows[0][0]),
+    'the credits name every phase file CLAUDE.md lists as this repository\'s own, not the engine\'s: ' + P10.PHASE_FILES.join(' ')); }
 check(P10.CREDITS.every((s) => s.rows.every((r) => !/Kokoro|Canva|DreamShaper|music\/|voices\/|39 images|js\/assets\.js\. Origin/.test(r.join(' ')))) && P10.CREDITS.some((s) => s.rows.some((r) => /js\/art2\.js/.test(r.join(' ')))), 'the in-game credits are this repository\'s, as CREDITS.md has them: no Octave music, voices or paintings');
 check(!/Math\.random/.test(src), 'nothing in it uses a random number');
 
@@ -76,7 +80,13 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
         out.panels = {};
         for (const b of HUD_BTNS) if (!['LAMP', 'WEAPON', 'SAVE', 'MAP', 'REST'].includes(b.t)) { G.state = 'play'; b.f(); out.panels[b.t] = document.querySelector('#modal-panel').innerText; closeModal(); G.state = 'play'; }
         out.keys = {};
-        for (const k of ['c', 'i', 'l', 'k', 'h', 'tab']) { G.state = 'play'; window.dispatchEvent(new KeyboardEvent('keydown', { key: k === 'tab' ? 'Tab' : k })); out.keys[k] = G.openPanel; window.dispatchEvent(new KeyboardEvent('keyup', { key: k === 'tab' ? 'Tab' : k })); closeModal(); G.state = 'play'; }
+        out.shut = {};
+        const press = (k) => { const key = k === 'tab' ? 'Tab' : k; window.dispatchEvent(new KeyboardEvent('keydown', { key })); window.dispatchEvent(new KeyboardEvent('keyup', { key })); };
+        for (const k of ['c', 'i', 'l', 'k', 'h', 'tab']) {
+          G.state = 'play'; press(k); out.keys[k] = G.openPanel;
+          press(k); out.shut[k] = G.state === 'play' && !G.openPanel;   // the same key again closes it, as in the engine
+          if (G.state !== 'play') { closeModal(); G.state = 'play'; }
+        }
         // N, once the Murmur, and the LAMP button light the lantern; F1 sings nothing
         G.flags.la_oil = 600; UPG.lantern = false; LANTERN7.state().prev = false;
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' })); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'n' })); out.lampN = UPG.lantern;
@@ -102,7 +112,8 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
     check(/S\.30/.test(r.panels.BOOK) && /Gytha Marrin sent us north/.test(r.panels.BOOK), 'BOOK is dated by this game\'s year and holds the errand');
     check(/Marget Sayle/.test(r.panels.FOLK) && /Gytha Marrin/.test(r.panels.FOLK) && /carter/i.test(r.panels.FOLK), 'FOLK is who you know here: Marget Sayle, Gytha Marrin, the carter');
     check(/\bU\b/.test(r.panels.HELP) && /bar/i.test(r.panels.HELP) && /Shift/.test(r.panels.HELP), 'HELP is this game\'s: the lantern on U, the bar on the door, Shift runs and is loud');
-    check(r.keys.c === 'la-you' && r.keys.i === 'la-pack' && r.keys.l === 'la-book' && r.keys.k === 'la-folk' && r.keys.h === 'la-help' && r.keys.tab === 'la-pack', 'and the keys open them: C, I, L, K, H, and Tab (once the song-book) the pack');
+    check(r.keys.c === 'char' && r.keys.i === 'inv' && r.keys.l === 'log' && r.keys.k === 'ledger' && r.keys.h === 'help' && r.keys.tab === 'inv', 'and the keys open them, under the engine\'s own panel names: C, I, L, K, H, and Tab (once the song-book) the pack ' + JSON.stringify(r.keys));
+    check(Object.keys(r.shut).length === 6 && Object.values(r.shut).every(Boolean), 'and the same key again closes each, as it always did (' + JSON.stringify(r.shut) + ')');
     check(r.lampN === true && r.lampBtn === false, 'N (once the Murmur) lights the lantern, and LAMP douses it');
     check(r.f1.voice[0] === r.f1.voice[1] && !r.f1.murmur, 'F1 sings nothing: the Octave\'s songs are not this game\'s');
     check(r.hud.length > 3 && !r.hud.some((t) => /sov\.|\bLv\b|fragments/.test(t)) && r.hud.some((t) => /The waif · \d+ salt|The waif · no salt/.test(t)), 'the HUD draws "' + (r.hud.find((t) => /The waif/.test(t)) || '') + '", not levels and sovereigns');
