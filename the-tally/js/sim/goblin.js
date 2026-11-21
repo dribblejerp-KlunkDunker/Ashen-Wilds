@@ -1,6 +1,10 @@
-// One goblin type: seek the player, separate softly from up to 8 neighbours from a pooled
-// 2-tile spatial hash (design 23.1), and slide along walls (design 3.3, 13.1). Dummies stand
-// still, for the feel gate.
+// The enemy step. M1 shipped one goblin type; the M3 vertical reads three from
+// data/enemies.js. Each kind still seeks the player and separates softly from up to 8
+// neighbours from a pooled 2-tile spatial hash (design 23.1), and slides along walls
+// (design 3.3). Blooms add a lateral sway; orks advance along a shield facing that turns at a
+// limited rate, which is what makes a cut from the side land full damage.
+//
+// Dummies stand still, for the feel gate.
 
 import { TILE, MOVE, GOBLIN } from './tuning.js';
 import { ENEMIES } from '../../data/enemies.js';
@@ -8,20 +12,39 @@ import { resolveWalls, separate } from './collide.js';
 
 const CELL = GOBLIN.hashCell * TILE;
 
-export function makeGoblin(x, y, opts = {}) {
-  const data = ENEMIES.goblin;
+export function makeEnemy(kind, x, y, opts = {}) {
+  const data = ENEMIES[kind] || ENEMIES.goblin;
   return {
-    type: data.id,
+    kind: data.id,
     x,
     y,
     px: x,
     py: y,
     vx: 0,
     vy: 0,
+    kx: 0,             // knockback impulse, px/s; decays every step
+    ky: 0,
     radius: data.radius,
     speed: data.speed,
+    damage: data.damage,
+    hp: data.health,
+    maxHp: data.health,
+    weight: data.weight,
+    steering: data.steering,
+    swayAmp: data.swayAmp,
+    swayRate: data.swayRate,
+    turnRate: data.turnRate,
+    blockArc: data.blockArc,
+    blockScale: data.blockScale,
+    flash: 0,          // hit flash, 1 down to 0
+    aim: 0,            // the ork's shield facing, radians
+    sway: opts.sway === undefined ? Math.random() * Math.PI * 2 : opts.sway,
     dummy: !!opts.dummy,
   };
+}
+
+export function makeGoblin(x, y, opts = {}) {
+  return makeEnemy('goblin', x, y, opts);
 }
 
 function clampCell(v, max) {
@@ -80,6 +103,15 @@ function ensureHash(world) {
   return hash;
 }
 
+function turnToward(current, target, maxStep) {
+  let diff = target - current;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  if (diff > maxStep) diff = maxStep;
+  if (diff < -maxStep) diff = -maxStep;
+  return current + diff;
+}
+
 export function stepGoblins(world, dt) {
   const goblins = world.goblins;
   const hash = ensureHash(world);
@@ -94,6 +126,7 @@ export function stepGoblins(world, dt) {
   const cellSize = hash.cellSize;
   const bx = hash.bounds.x0;
   const by = hash.bounds.y0;
+  const drag = Math.exp(-4.5 * dt);
 
   for (let i = 0; i < goblins.length; i++) {
     const g = goblins[i];
@@ -106,8 +139,21 @@ export function stepGoblins(world, dt) {
       const dx = player.x - g.x;
       const dy = player.y - g.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      vx = (dx / d) * g.speed * TILE;
-      vy = (dy / d) * g.speed * TILE;
+      if (g.steering === 'sway') {
+        // A slow sway: the heading leans left and right around the straight line to the player.
+        const aim = Math.atan2(dy, dx) + Math.sin(world.t * g.swayRate + g.sway) * g.swayAmp;
+        vx = Math.cos(aim) * g.speed * TILE;
+        vy = Math.sin(aim) * g.speed * TILE;
+      } else if (g.steering === 'shield') {
+        // The shield turns toward the player at a limited rate; a player who circles faster
+        // than that reaches its side, where the cut lands full damage.
+        g.aim = turnToward(g.aim, Math.atan2(dy, dx), g.turnRate * dt);
+        vx = Math.cos(g.aim) * g.speed * TILE;
+        vy = Math.sin(g.aim) * g.speed * TILE;
+      } else {
+        vx = (dx / d) * g.speed * TILE;
+        vy = (dy / d) * g.speed * TILE;
+      }
     }
 
     let seen = 0;
@@ -146,8 +192,12 @@ export function stepGoblins(world, dt) {
     }
     g.vx = vx;
     g.vy = vy;
-    g.x += vx * dt;
-    g.y += vy * dt;
+    // Knockback rides on top of steering and is never capped by walk speed.
+    g.x += (vx + g.kx) * dt;
+    g.y += (vy + g.ky) * dt;
+    g.kx *= drag;
+    g.ky *= drag;
+    g.flash = Math.max(0, g.flash - dt * 5);
     // Soft bodies: the goblin takes most of a goblin-player overlap, the player very little.
     // Walls resolve last, so neither the move nor the overlap can leave a goblin inside one.
     separate(g, g.radius, player, MOVE.hurtRadius, 1 - GOBLIN.bodyPush);
