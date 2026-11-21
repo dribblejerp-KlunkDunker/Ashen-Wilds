@@ -20,12 +20,31 @@ export function yardWalls() {
   ];
 }
 
+function boundsOf(walls) {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (let i = 0; i < walls.length; i++) {
+    const w = walls[i];
+    if (w.x1 < x0) x0 = w.x1;
+    if (w.y1 < y0) y0 = w.y1;
+    if (w.x2 > x1) x1 = w.x2;
+    if (w.y2 > y1) y1 = w.y2;
+  }
+  if (!Number.isFinite(x0)) return { x0: 0, y0: 0, x1: 40 * TILE, y1: 24 * TILE };
+  return { x0, y0, x1, y1 };
+}
+
 export function createWorld(opts = {}) {
   const walls = opts.walls || yardWalls();
+  const bounds = boundsOf(walls);
   const start = opts.start || { x: 20 * TILE, y: 12 * TILE };
   const world = {
     t: 0,
     walls,
+    bounds,
+    goblinHash: null,
     player: {
       x: start.x, y: start.y, px: start.x, py: start.y,
       vx: 0, vy: 0,
