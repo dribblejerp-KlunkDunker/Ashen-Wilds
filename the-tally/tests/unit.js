@@ -5,6 +5,7 @@ import { run } from './harness.js';
 import './movement.test.js';
 import './world.test.js';
 import './horde.test.js';
+import './scene.test.js';
 import './resolution.test.js';
 
 run();
