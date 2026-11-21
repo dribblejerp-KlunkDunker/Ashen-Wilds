@@ -212,7 +212,7 @@ vignette, his son, grown old, takes a new boy to the chapel to read the mark in 
 **Who.** Soldiers took Harl's cart north with his son; neither returned and no discharge was recorded. He demanded his
 debts be read when the register was cut. His daughter's naming strip was lost overnight; the child knew her own
 name without the proof. His widow's cart claim was deferred, not discharged, and the deferral was written.
-**Hooks.** A living witness to the requisition would settle her claim. The Grain March took carts north in S.2.
+**Hooks.** A living witness to the requisition would settle her claim. The Crown's requisitions of S.1 took carts and gave receipts; the Grain March followed in S.2.
 
 *Sources: `keeping-and-merewick.md`; the atlas. He is the only Harl: the lost faction bible's elderly Harl the
 Toll-Keeper is retired (O11).*
