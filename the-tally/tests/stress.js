@@ -38,6 +38,8 @@ const sampleSeconds = readNumber('sample', 60, 1, 180);
 const dpr = readNumber('dpr', 2, 1, 2);
 const qualityParam = Number.parseFloat(params.get('quality'));
 const quality = Number.isFinite(qualityParam) ? Math.max(0.4, Math.min(1, qualityParam)) : undefined;
+// The capture URL carries the sha it measured, so a downloaded report names its own commit.
+const commit = (params.get('commit') || '').trim().slice(0, 64) || null;
 const rendererMode = params.get('renderer') === 'canvas' ? 'canvas' : 'webgl';
 const sceneMode = params.get('mode') === 'horde' ? 'horde' : 'full';
 const drawTarget = sceneMode === 'full' ? 6 : 2;
@@ -364,6 +366,7 @@ function buildReport() {
     capturedAt: new Date().toISOString(),
     startedAt: state.startedAt,
     url: location.href,
+    commit,
     count,
     seed,
     method: 'RAF-to-RAF wall time; stepWorld and CPU render submission wrapped in performance.now; '
