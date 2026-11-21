@@ -38,6 +38,9 @@ async function open(opts) {
 // press Begin, pass the opening lines, and wait for the ledge under the 3D renderer
 async function begin(page) {
   await page.locator('#btn-new').first().dispatchEvent('click');
+  // Phase 10: Begin first asks who walks north; the tests walk as the default, the deserter
+  await page.waitForFunction(() => G.state === 'intro' || G.state === 'play' || !!document.querySelector('#la-who'), null, { timeout: 20000 });
+  if (await page.evaluate(() => !!document.querySelector('#la-who'))) await page.locator('#la-who [data-bg="deserter"]').first().dispatchEvent('click');
   await page.waitForFunction(() => G.state === 'intro' || G.state === 'play', null, { timeout: 20000 });
   if (await page.evaluate(() => G.state === 'intro')) await page.locator('#btn-intro-skip').first().dispatchEvent('click');
   await page.waitForFunction(() => G.state === 'play', null, { timeout: 20000 });

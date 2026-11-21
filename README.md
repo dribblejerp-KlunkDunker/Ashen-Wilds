@@ -37,7 +37,8 @@ From source there is nothing to build or install. Serve the folder and open it:
 | W A S D | Walk |
 | Mouse | Look (click the view first) |
 | E or Space | Open a door, speak, read what is in front of you |
-| U | Light or douse your lantern |
+| U or N | Light or douse your lantern |
+| C, I, L, K, H | Who you are, your pack, the book, who you know, how to play |
 | Esc | Controls and Options |
 
 Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
@@ -45,6 +46,12 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
 
 ## What is in the build
 
+- **Who walks north.** Begin asks which of the eight walks of life you are, quoted from the lore:
+  the Watch deserter Gytha Marrin sent, or a carrier, a chapel cleaner, a peat-cutter, a gutter-kin, a
+  hedge-priest, a fen healer or a causeway carter. It sets your name, your health and how loud your
+  feet are; the rest of each card waits for the systems it needs.
+- **This game's panel:** YOU, PACK, BOOK, FOLK and HELP in this game's words; salt, not sovereigns; the
+  lantern's oil as a tallow bar; and this repository's credits.
 - **The ledge** on Orlen's highland edge: frosted rock fourteen up, a cliff you cannot step off, a
   ramp down to a shelf.
 - **The country of the key painting, as a map you could walk:** the cracked highland with fire in the
@@ -96,11 +103,12 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/lantern7.js` | Phase 7: your lantern, its light and its oil, and Marget Sayle's flasks |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
+| `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -120,6 +128,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/lantern7.test.js --no-browser
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
+    node test/panel10.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -134,6 +143,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
     NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node test/dread9.test.js
+    NODE_PATH=$(npm root -g) node test/panel10.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
