@@ -22,7 +22,10 @@ function makeRenderer(canvas, mode) {
     pollGpu() { return null; },
     draw(world, alpha) {
       drawCanvas(ctx, canvas, world, alpha);
-      stats.instances = world.goblins.length;
+      const fx = world.fx;
+      // The reference path draws the same scene, so its count has to match what it drew.
+      stats.instances = world.goblins.length + 1
+        + (fx ? fx.shots.count + fx.particles.count + fx.embers.count + fx.lights.count : 0);
     },
     info() { return { context: 'canvas2d' }; },
   };
@@ -49,7 +52,6 @@ export function createGame(canvas, opts = {}) {
     fps: 0,
     submitMs: 0,
     gpuMs: null,
-    gpuSupported: !!(renderer.gpuTiming && renderer.gpuTiming.supported),
     stats: renderer.stats,
   };
 
@@ -61,7 +63,6 @@ export function createGame(canvas, opts = {}) {
   const pinnedQuality = opts.quality === undefined ? null : Math.min(1, Math.max(0.4, opts.quality));
   const qualityStepper = pinnedQuality === null ? createQualityStepper(opts.minQuality) : null;
   let quality = pinnedQuality === null ? 1 : pinnedQuality;
-  let qualityChanges = 0;
   let lastDrawAt = 0;
 
   function fit() {
@@ -78,10 +79,6 @@ export function createGame(canvas, opts = {}) {
     stats.scale = scale;
     stats.quality = quality;
     stats.maxPixels = maxPixels;
-    stats.minQuality = qualityStepper ? qualityStepper.min : quality;
-    stats.qualityChanges = qualityChanges;
-    stats.bufferWidth = canvas.width;
-    stats.bufferHeight = canvas.height;
   }
   fit();
   window.addEventListener('resize', () => {
@@ -112,6 +109,8 @@ export function createGame(canvas, opts = {}) {
       const before = Math.hypot(world.player.vx, world.player.vy);
       const stepStart = performance.now();
       stepWorld(world, intent, dt);
+      // Extra load steps inside the timed region, so the simulation gate measures it too.
+      if (opts.stepExtras) opts.stepExtras(world, dt);
       const stepMs = performance.now() - stepStart;
       if (opts.onStep) opts.onStep(stepMs);
       const after = Math.hypot(world.player.vx, world.player.vy);
@@ -143,7 +142,6 @@ export function createGame(canvas, opts = {}) {
         const next = qualityStepper.sample(renderStart - lastDrawAt, quality);
         if (next !== quality) {
           quality = next;
-          qualityChanges++;
           fit();
         }
       }
