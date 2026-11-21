@@ -291,7 +291,7 @@ function gateLine(label, value, ok) {
 function showResult(report) {
   $('result').hidden = false;
   const where = report.environment.chromeOS ? 'ChromeOS machine' : 'non-ChromeOS machine (smoke test only)';
-  $('summary').textContent = (report.passed ? 'All proposed targets met' : 'One or more targets missed') + ' - ' + where + '.';
+  $('summary').textContent = (report.gates.passed ? 'All proposed targets met' : 'One or more targets missed') + ' - ' + where + '.';
 
   const lines = [
     gateLine('frame budget p95', report.frame.p95Ms.toFixed(2) + ' ms (target <= ' + GATES.frameP95 + ')', report.gates.frameP95),
