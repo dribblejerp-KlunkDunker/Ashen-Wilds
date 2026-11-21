@@ -23,18 +23,19 @@
   #keys {
     position: fixed; bottom: 10px; left: 12px; opacity: 0.45; pointer-events: none;
   }
-  #page {
+  #page, #error {
     position: fixed; inset: 0; display: grid; place-items: center;
     background: rgba(4, 6, 5, 0.72); padding: 24px;
   }
-  #page[hidden] { display: none; }
-  #page .leaf {
+  #page[hidden], #error[hidden] { display: none; }
+  #page .leaf, #error .leaf {
     width: min(680px, 92vw); background: #e7dfc6; color: #1a1a17;
     border-radius: 3px; padding: 28px 30px 22px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
   }
-  #page h1 { margin: 0 0 2px; font: 600 22px/1.2 Georgia, serif; letter-spacing: 0.02em; }
+  #page h1, #error h1 { margin: 0 0 2px; font: 600 22px/1.2 Georgia, serif; letter-spacing: 0.02em; }
   #page .sub { margin: 0 0 18px; font-size: 12px; opacity: 0.6; }
+  #error p { margin: 8px 0 0; font-size: 13px; line-height: 1.5; }
   #page .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
   #page .card {
     border: 1px dashed rgba(26, 26, 23, 0.35); border-radius: 2px; height: 120px;
@@ -69,6 +70,13 @@
   </div>
 </div>
 
+<div id="error" hidden>
+  <div class="leaf">
+    <h1>The Tally needs WebGL2</h1>
+    <p id="error-line"></p>
+  </div>
+</div>
+
 <script type="module">
   import { createGame } from './js/game.js';
   import { TILE, xpNeed } from './js/sim/tuning.js';
@@ -76,7 +84,8 @@
   const canvas = document.getElementById('game');
   const $ = (id) => document.getElementById(id);
 
-  const game = createGame(canvas, {
+  const options = {
+    renderer: 'webgl',
     goblins: 6,
     dummies: false,
     embers: true,
@@ -90,12 +99,21 @@
       $('h-need').textContent = String(xpNeed(p.level));
       $('h-embers').textContent = String(world.embers.length);
     },
-  });
+  };
 
-  game.start();
+  let game = null;
+  try {
+    game = createGame(canvas, options);
+    game.start();
 
-  // exposed for the console and for the smoke test
-  window.tally = game;
+    // exposed for the console and for the smoke test
+    window.tally = game;
+  } catch (err) {
+    $('error-line').textContent = err && err.message ? err.message : String(err);
+    $('error').hidden = false;
+    $('hud').hidden = true;
+    $('keys').hidden = true;
+  }
 </script>
 </body>
 </html>
