@@ -354,8 +354,7 @@ M. Reeve, fair copy.
 - **The book and the bestiary.** `bestiary.md` is the warning book's beast pages. These thirty are its
   daybook for one winter. They sit side by side at the fire.
 
-## Still open
+## Settled
 
-The file and the placement of its pages were approved under O10. One question remains:
-
-- Whether entry 30 should carry Rafe's name in a game whose player is not Rafe.
+The file and the placement of its pages were approved under O10. Entry 30 carries Rafe Sedley's name, in the
+game as in the novel, though the game's player is not Rafe (O12, 2026-11-21).
