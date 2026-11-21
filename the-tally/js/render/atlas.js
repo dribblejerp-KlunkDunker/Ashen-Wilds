@@ -2,12 +2,17 @@
 // art and no build step. Each cell is white where the tint should show; the dark marks stay
 // dark after the tint multiply. The real 8-direction sheets arrive in M3.
 
-export const FRAME_COUNT = 3;
+export const FRAME_COUNT = 8;
 const CELL = 64;
 export const FRAMES = {
   goblin: 0,
   player: 1,
   wall: 2,
+  shot: 3,
+  shard: 4,
+  spark: 5,
+  ember: 6,
+  glow: 7,
 };
 
 export function createAtlas(gl) {
@@ -72,6 +77,73 @@ export function createAtlas(gl) {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.fillRect(0, 0, CELL, 6);
   ctx.fillRect(0, CELL - 6, CELL, 6);
+  ctx.restore();
+
+  // Player shot: a tallow ball with a dark rim.
+  ctx.save();
+  ctx.translate(CELL * 3, 0);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(32, 32, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // Enemy shard: a pale splinter, narrow so the tint reads at a glance.
+  ctx.save();
+  ctx.translate(CELL * 4, 0);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(32, 12);
+  ctx.lineTo(44, 32);
+  ctx.lineTo(32, 52);
+  ctx.lineTo(20, 32);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // Spark: a soft dot for the particle layer. The instance tint picks the colour.
+  ctx.save();
+  ctx.translate(CELL * 5, 0);
+  const spark = ctx.createRadialGradient(32, 32, 2, 32, 32, 22);
+  spark.addColorStop(0, 'rgba(255,255,255,1)');
+  spark.addColorStop(0.45, 'rgba(255,255,255,0.55)');
+  spark.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = spark;
+  ctx.fillRect(6, 6, 52, 52);
+  ctx.restore();
+
+  // Ember: a faceted pebble with a bright core.
+  ctx.save();
+  ctx.translate(CELL * 6, 0);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(32, 18);
+  ctx.lineTo(44, 28);
+  ctx.lineTo(41, 44);
+  ctx.lineTo(24, 46);
+  ctx.lineTo(19, 30);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // Glow: the light pass's radial falloff. White, so the instance tint decides the colour.
+  ctx.save();
+  ctx.translate(CELL * 7, 0);
+  const glow = ctx.createRadialGradient(32, 32, 2, 32, 32, 31);
+  glow.addColorStop(0, 'rgba(255,255,255,0.9)');
+  glow.addColorStop(0.35, 'rgba(255,255,255,0.35)');
+  glow.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, CELL, CELL);
   ctx.restore();
 
   const texture = gl.createTexture();
