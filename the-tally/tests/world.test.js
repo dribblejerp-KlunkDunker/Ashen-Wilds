@@ -5,6 +5,7 @@ import {
   createWorld, stepWorld, queueDodge, spawnEmber, addXp, spawnGoblin,
 } from '../js/sim/world.js';
 import { DT, TILE, MOVE, MAX_SPEED_PX, xpNeed, isSecondWind } from '../js/sim/tuning.js';
+import { resolveWalls } from '../js/sim/collide.js';
 
 const REST = { x: 0, y: 0 };
 const LEFT = { x: -1, y: 0 };
@@ -26,6 +27,21 @@ test('a wall stops one axis and leaves the other free', () => {
   const w = createWorld({ goblins: 0 });
   advance(w, { x: -0.7071, y: -0.7071 }, 8);
   assert(w.player.y > 1, 'the player should have slid north while held by the west wall');
+});
+
+test('a body centred on a wall is pushed a full radius clear', () => {
+  const body = { x: 80, y: 80 };
+  resolveWalls(body, 12, [{ x1: 0, y1: 80, x2: 200, y2: 80 }]);
+  near(body.y, 68, 1e-9, 'degenerate contact push');
+});
+
+test('the player push cannot leave a goblin inside a wall', () => {
+  const w = createWorld({ goblins: 0 });
+  const g = spawnGoblin(w, 12, 12 * TILE);   // resting on the west wall
+  w.player.x = 16;
+  w.player.y = g.y;
+  stepWorld(w, REST, DT);
+  assert(g.x >= 11.5, `the player push left the goblin at x=${g.x.toFixed(2)}`);
 });
 
 test('goblins separate instead of stacking', () => {
