@@ -10,10 +10,11 @@
 export const MAX_PIXELS = 1920 * 1080;
 export const MIN_QUALITY = 0.6;
 
-const SLOW_MS = 23.4;       // 1.4 frames at 60 Hz: a frame was actually missed
-const FAST_MS = 16.9;       // a full frame at 60 Hz
+// The same 20 ms a capture counts as a missed frame (design 23.4), so the stepper and the gate
+// agree on what "slow" means.
+const SLOW_MS = 20;
 const SLOW_FRAMES = 30;     // about half a second of missed frames before giving ground
-const FAST_FRAMES = 240;    // four seconds of clean frames before taking any back
+const FAST_FRAMES = 240;    // about four seconds of clean frames before taking any back
 const DROP = 0.88;
 const RISE = 1.06;
 
@@ -36,7 +37,6 @@ export function createQualityStepper(minQuality = MIN_QUALITY) {
   let ceiling = 1;
 
   return {
-    min,
     // One call per rendered frame, with the interval since the previous draw.
     sample(frameMs, quality) {
       if (!(frameMs > 0)) return quality;
@@ -44,12 +44,12 @@ export function createQualityStepper(minQuality = MIN_QUALITY) {
       if (frameMs > SLOW_MS) {
         slow++;
         fast = 0;
-      } else if (frameMs < FAST_MS) {
+      } else {
+        // Every frame that is not a miss counts toward recovery. A band between "a full frame"
+        // and "1.4 frames" left a 50 Hz panel, or a scale given up for a one-off stall, stuck
+        // below full resolution for the rest of the session.
         fast++;
         slow = 0;
-      } else {
-        slow = 0;
-        fast = 0;
       }
 
       if (slow >= SLOW_FRAMES) {
@@ -69,9 +69,11 @@ export function createQualityStepper(minQuality = MIN_QUALITY) {
       }
       return quality;
     },
+    // A resize is a new workload: forget the failure and let the scene try full quality again.
     reset() {
       slow = 0;
       fast = 0;
+      ceiling = 1;
     },
   };
 }

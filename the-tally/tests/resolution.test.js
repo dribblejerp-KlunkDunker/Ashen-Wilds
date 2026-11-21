@@ -53,6 +53,29 @@ test('the stepper takes resolution back only after a long clean stretch, and not
   near(quality, 0.95, 1e-9, 'it never climbs back to the failing scale');
 });
 
+test('a scale given up for a stall comes back on a steady 55 fps machine', () => {
+  const stepper = createQualityStepper(0.6);
+  let quality = 1;
+  for (let i = 0; i < 30; i++) quality = stepper.sample(30, quality);
+  near(quality, 0.88, 1e-9, 'a real stall drops the scale');
+
+  // 18 ms is under the 20 ms miss line: a slower display must not hold a scale that was given up
+  // for a one-off stall.
+  for (let i = 0; i < 240; i++) quality = stepper.sample(18, quality);
+  near(quality, 0.9328, 1e-9, 'frames under 20 ms count toward recovery');
+});
+
+test('a resize gives the scene a fresh try at full quality', () => {
+  const stepper = createQualityStepper(0.6);
+  let quality = 1;
+  for (let i = 0; i < 30; i++) quality = stepper.sample(30, quality);
+  near(quality, 0.88, 1e-9, 'dropped once, ceiling below 1');
+
+  stepper.reset();
+  for (let i = 0; i < 240 * 4; i++) quality = stepper.sample(10, quality);
+  near(quality, 1, 1e-9, 'the ceiling is open again');
+});
+
 test('an even interval leaves the scale alone', () => {
   const stepper = createQualityStepper(0.6);
   let quality = 1;
