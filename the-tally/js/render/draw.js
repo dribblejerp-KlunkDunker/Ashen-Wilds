@@ -1,5 +1,6 @@
-// M1 renderer. Canvas 2D on purpose: the WebGL2 instancer is M2, and the feel gate does not
-// need it. Draw order follows design 4: ground, ground effects, pickups, enemies, player, UI.
+// The Canvas 2D baseline. The feel gate uses it, and the stress page can run it with
+// ?renderer=canvas as the before-WebGL reference; the M2 path is render/gl.js.
+// Draw order follows design 4: ground, ground effects, pickups, enemies, player, UI.
 
 import { TILE, VIEW, MOVE, EMBER, MAX_SPEED_PX } from '../sim/tuning.js';
 
