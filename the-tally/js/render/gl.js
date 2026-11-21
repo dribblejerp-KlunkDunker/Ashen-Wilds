@@ -8,6 +8,8 @@ import { INSTANCE_FLOATS, INSTANCE_BYTES, createInstanceBatch } from './instance
 const GROUND = [0.043, 0.055, 0.047];
 const WALL_TINT = [0.192, 0.220, 0.184];
 const GOBLIN_TINT = [0.275, 0.345, 0.227];
+const BLOOM_TINT = [0.30, 0.55, 0.50];
+const ORK_TINT = [0.46, 0.40, 0.30];
 const PLAYER_TINT = [0.914, 0.882, 0.788];
 const ACTOR_CAPACITY = 4096;
 const WALL_CAPACITY = 256;
@@ -22,7 +24,16 @@ const PARTICLE_TINTS = [
   [0.95, 0.58, 0.28],
   [0.72, 0.78, 0.66],
   [0.45, 0.62, 0.60],
+  [0.93, 0.88, 0.78],   // bone: the cut and the shield clank
 ];
+
+// The slice's three kinds share one atlas, one shader and one batch; only the cell, the tint
+// and the quad size differ. Every kind in data/enemies.js needs a style here.
+const KIND_STYLE = {
+  goblin: { frame: FRAMES.goblin, tint: GOBLIN_TINT, scale: 2.8 },
+  bloom: { frame: FRAMES.bloom, tint: BLOOM_TINT, scale: 3.0 },
+  ork: { frame: FRAMES.ork, tint: ORK_TINT, scale: 2.9 },
+};
 
 const VS = `#version 300 es
 layout(location = 0) in vec2 a_quad;
@@ -340,8 +351,9 @@ export function createGlRenderer(canvas) {
           continue;
         }
         const tint = PARTICLE_TINTS[particles.tint[i]];
+        const sparkAlpha = particles.alpha ? particles.alpha[i] : 0.85;
         particleBatch.push(x, y, size * 2, size * 2, FRAMES.spark,
-          tint[0], tint[1], tint[2], 0.85, 0);
+          tint[0], tint[1], tint[2], sparkAlpha, 0);
       }
     }
 
@@ -383,9 +395,10 @@ export function createGlRenderer(canvas) {
         culled++;
         continue;
       }
-      const size = g.radius * 2.8;
-      actorBatch.push(x, y, size, size, FRAMES.goblin,
-        GOBLIN_TINT[0], GOBLIN_TINT[1], GOBLIN_TINT[2], 1, 0);
+      const style = KIND_STYLE[g.kind];
+      const size = g.radius * style.scale;
+      actorBatch.push(x, y, size, size, style.frame,
+        style.tint[0], style.tint[1], style.tint[2], 1, g.flash || 0);
     }
 
     const p = world.player;

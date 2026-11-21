@@ -2,7 +2,7 @@
 // art and no build step. Each cell is white where the tint should show; the dark marks stay
 // dark after the tint multiply. The real 8-direction sheets arrive in M3.
 
-export const FRAME_COUNT = 8;
+export const FRAME_COUNT = 10;
 const CELL = 64;
 export const FRAMES = {
   goblin: 0,
@@ -13,6 +13,8 @@ export const FRAMES = {
   spark: 5,
   ember: 6,
   glow: 7,
+  bloom: 8,
+  ork: 9,
 };
 
 export function createAtlas(gl) {
@@ -144,6 +146,73 @@ export function createAtlas(gl) {
   glow.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, CELL, CELL);
+  ctx.restore();
+
+  // Walking bloom: a pale bulb on five reaching fronds. The tint decides the colour; the seeds
+  // and the rim stay dark, so the shape reads at 16 px.
+  ctx.save();
+  ctx.translate(CELL * 8, 0);
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI * 0.15 - i * (Math.PI * 0.175);
+    ctx.moveTo(32, 42);
+    ctx.lineTo(32 + Math.cos(a) * 24, 42 + Math.sin(a) * 24);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(32, 40, 15, 17, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.arc(26, 38, 2.2, 0, Math.PI * 2);
+  ctx.arc(36, 34, 2.2, 0, Math.PI * 2);
+  ctx.arc(33, 46, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Ork shield: a broad body behind a tall shield plate, so the front and the side read
+  // differently on a 52 px quad.
+  ctx.save();
+  ctx.translate(CELL * 9, 0);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(38, 34, 19, 21, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // A plate, not a second body: a tall rounded rectangle in front of the left side.
+  const px = 5;
+  const py = 12;
+  const pw = 21;
+  const ph = 44;
+  const pr = 7;
+  ctx.beginPath();
+  ctx.moveTo(px + pr, py);
+  ctx.lineTo(px + pw - pr, py);
+  ctx.quadraticCurveTo(px + pw, py, px + pw, py + pr);
+  ctx.lineTo(px + pw, py + ph - pr);
+  ctx.quadraticCurveTo(px + pw, py + ph, px + pw - pr, py + ph);
+  ctx.lineTo(px + pr, py + ph);
+  ctx.quadraticCurveTo(px, py + ph, px, py + ph - pr);
+  ctx.lineTo(px, py + pr);
+  ctx.quadraticCurveTo(px, py, px + pr, py);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.arc(px + pw * 0.5, 34, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.beginPath();
+  ctx.arc(42, 30, 2.4, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 
   const texture = gl.createTexture();
