@@ -11,6 +11,18 @@ const GOBLIN_TINT = [0.275, 0.345, 0.227];
 const PLAYER_TINT = [0.914, 0.882, 0.788];
 const ACTOR_CAPACITY = 4096;
 const WALL_CAPACITY = 256;
+const SHOT_CAPACITY = 1024;
+const PARTICLE_CAPACITY = 4096;
+const EMBER_CAPACITY = 1024;
+const LIGHT_CAPACITY = 64;
+const SHOT_TINT = [1.0, 0.80, 0.46];
+const SHARD_TINT = [0.62, 0.79, 0.85];
+const EMBER_TINT = [0.78, 0.40, 0.20];
+const PARTICLE_TINTS = [
+  [0.95, 0.58, 0.28],
+  [0.72, 0.78, 0.66],
+  [0.45, 0.62, 0.60],
+];
 
 const VS = `#version 300 es
 layout(location = 0) in vec2 a_quad;
@@ -231,6 +243,10 @@ export function createGlRenderer(canvas) {
 
   const wallBatch = makeBatch(WALL_CAPACITY);
   const actorBatch = makeBatch(ACTOR_CAPACITY);
+  const shotBatch = makeBatch(SHOT_CAPACITY);
+  const particleBatch = makeBatch(PARTICLE_CAPACITY);
+  const emberBatch = makeBatch(EMBER_CAPACITY);
+  const lightBatch = makeBatch(LIGHT_CAPACITY);
   const atlas = createAtlas(gl);
   const gpuTimer = createGpuTimer(gl);
   const stats = { instances: 0, drawCalls: 0, culled: 0, contextLost: false };
@@ -297,6 +313,10 @@ export function createGlRenderer(canvas) {
 
     wallBatch.begin();
     actorBatch.begin();
+    shotBatch.begin();
+    particleBatch.begin();
+    emberBatch.begin();
+    lightBatch.begin();
 
     let culled = 0;
     const wallList = world.walls;
@@ -304,6 +324,54 @@ export function createGlRenderer(canvas) {
       if (!addWall(wallBatch, wallList[i], viewX0, viewY0, viewX1, viewY1)) culled++;
     }
     const wallCount = wallBatch.count;
+
+    const fx = world.fx;
+
+    // Ground effects first (design 4). The stress scene's particles are the layer the real
+    // effects pass will draw, held at a constant 3,000 so the capture measures a steady load.
+    if (fx && fx.particles) {
+      const particles = fx.particles;
+      for (let i = 0; i < particles.count; i++) {
+        const size = particles.size[i];
+        const x = particles.x[i];
+        const y = particles.y[i];
+        if (x + size < viewX0 || x - size > viewX1 || y + size < viewY0 || y - size > viewY1) {
+          culled++;
+          continue;
+        }
+        const tint = PARTICLE_TINTS[particles.tint[i]];
+        particleBatch.push(x, y, size * 2, size * 2, FRAMES.spark,
+          tint[0], tint[1], tint[2], 0.85, 0);
+      }
+    }
+
+    // Pickups: the simulation's own embers, then the stress scene's. Both use the same frame and
+    // the same 12 px quad, so the half-extent in the test is 6.
+    const embers = world.embers;
+    for (let i = 0; i < embers.length; i++) {
+      const e = embers[i];
+      const x = e.px + (e.x - e.px) * alpha;
+      const y = e.py + (e.y - e.py) * alpha;
+      if (x + 6 < viewX0 || x - 6 > viewX1 || y + 6 < viewY0 || y - 6 > viewY1) {
+        culled++;
+        continue;
+      }
+      emberBatch.push(x, y, 12, 12, FRAMES.ember,
+        EMBER_TINT[0], EMBER_TINT[1], EMBER_TINT[2], 1, 0);
+    }
+    if (fx && fx.embers) {
+      const pool = fx.embers;
+      for (let i = 0; i < pool.count; i++) {
+        const x = pool.x[i];
+        const y = pool.y[i];
+        if (x + 6 < viewX0 || x - 6 > viewX1 || y + 6 < viewY0 || y - 6 > viewY1) {
+          culled++;
+          continue;
+        }
+        emberBatch.push(x, y, 12, 12, FRAMES.ember,
+          EMBER_TINT[0], EMBER_TINT[1], EMBER_TINT[2], 1, 0);
+      }
+    }
 
     const goblins = world.goblins;
     for (let i = 0; i < goblins.length; i++) {
@@ -328,8 +396,41 @@ export function createGlRenderer(canvas) {
       PLAYER_TINT[0], PLAYER_TINT[1], PLAYER_TINT[2], 1, playerFlash);
 
     const actorCount = actorBatch.count;
+
+    // Projectiles sit above the horde; the light pass is last and adds to the frame.
+    if (fx && fx.shots) {
+      const shots = fx.shots;
+      for (let i = 0; i < shots.count; i++) {
+        const x = shots.x[i];
+        const y = shots.y[i];
+        if (x < viewX0 || x > viewX1 || y < viewY0 || y > viewY1) {
+          culled++;
+          continue;
+        }
+        const player = shots.kind[i] === 0;
+        const tint = player ? SHOT_TINT : SHARD_TINT;
+        const size = player ? 16 : 12;
+        shotBatch.push(x, y, size, size, player ? FRAMES.shot : FRAMES.shard,
+          tint[0], tint[1], tint[2], 1, 0);
+      }
+    }
+
+    // Lights are never culled: a glow whose centre is off screen still reaches into it.
+    if (fx && fx.lights) {
+      const lights = fx.lights;
+      for (let i = 0; i < lights.count; i++) {
+        const radius = lights.radius[i];
+        lightBatch.push(lights.x[i], lights.y[i], radius * 2, radius * 2, FRAMES.glow,
+          lights.r[i], lights.g[i], lights.b[i], lights.intensity[i], 0);
+      }
+    }
+
     upload(wallBatch);
     upload(actorBatch);
+    upload(shotBatch);
+    upload(particleBatch);
+    upload(emberBatch);
+    upload(lightBatch);
 
     gl.useProgram(program);
     gl.uniform2f(uResolution, width, height);
@@ -342,11 +443,20 @@ export function createGlRenderer(canvas) {
 
     let draws = 0;
     draws += drawBatch(wallBatch);
+    draws += drawBatch(particleBatch);
+    draws += drawBatch(emberBatch);
     draws += drawBatch(actorBatch);
+    draws += drawBatch(shotBatch);
+    if (lightBatch.count > 0) {
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);       // lights add to the frame
+      draws += drawBatch(lightBatch);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    }
     gl.bindVertexArray(null);
     if (timed) gpuTimer.end();
 
-    stats.instances = wallCount + actorCount;
+    stats.instances = wallCount + actorCount + shotBatch.count
+      + particleBatch.count + emberBatch.count + lightBatch.count;
     stats.drawCalls = draws;
     stats.culled = culled;
   }
