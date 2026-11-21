@@ -7,5 +7,6 @@ import './world.test.js';
 import './horde.test.js';
 import './scene.test.js';
 import './resolution.test.js';
+import './run.test.js';
 
 run();
