@@ -716,6 +716,66 @@ word and nothing but plain ASCII (the HUD's middle dot aside) in anything this p
 | P85 | Salt counted in measures, and the engine's twelve sovereigns at the start become twelve measures | The fen's money is salt |
 | P86 | A card's health (on its 100) is a share of the engine's health: 90 is nine tenths | |
 
+## The Tally: phase T0 - read and plan
+
+`tally/docs/design.md` · no code, no test file, nothing the page loads
+
+A sister game, working title **The Tally**: top-down horde survival in the Blackfen in the winter of S.30, built from
+the owner's build prompt (version 2, 2026-11-21). Its phases are numbered T0 to T10 so they do not collide with this
+game's. T0 is reading and planning only.
+
+- **Written:** `tally/docs/design.md`: what was read, where the prompt and the lore disagree (C1 to C18), how the game
+  is put together, the phases, and fourteen questions for the owner.
+- **Found:** every person and place the prompt names is in the story folder. Eighteen points where the prompt differs
+  from the lore, each with what the build will do; the lore wins unless the owner rules otherwise.
+- **Found for the lore itself:** `CANON.md` O6 says Marget Sayle "is called the Receipt-Wife to her face". P6 above, the
+  atlas, `people/` and the game's own line (`js/ledge1.js`) all give that name to Gytha Marrin; Marget only hears it
+  said. Not changed here. It needs the owner's word.
+- **Not done:** the prompt asks for every file in its section 1.1 to be read in full. `the-smothering.md`,
+  `act-one-the-outskirts.md` and `acts-two-and-three.md` were searched, not read through; `items-and-texts.md`,
+  `godot-people.md`, most of `atlas/` and `people/` were read in part. The design file's first table says which, and
+  which phase needs each.
+- **Not run:** no suite covers a file this phase adds. Nothing was rendered, because nothing visible changed.
+
+### Proposed for The Tally: [PROPOSED], awaiting a ruling
+
+None of this is built. "The prompt" is the owner's build prompt; a section number in brackets is where it says so.
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P87 | A sister game in this world and this repository, in `tally/`, with the working title The Tally | "The Tally" is also the Compact's faith. Questions 1 and 2 |
+| P88 | Every beast's telegraph is a flat ember-red shape on the ground; every spore cloud is teal; nothing the player makes is either (5) | Question 3 |
+| P89 | Embers: tallow-yellow sparks left by kills, worth 1, 5, 25 and 100, are how a run's growth is counted (7.1) | |
+| P90 | A run is thirty minutes. At 30:00 the ground thaws and spawns triple for a minute. The book's words *Held.* and *Held, and fell at the thaw*. The phrase "hold the line" (3) | The phrase is not in the story folder |
+| P91 | The Order at 20:00: in a cinder-squall the game asks "Did you hear the order?", and a run may leave on the line for those who ran (3.3) | From the deserter's card: "Whether ordered, or before the order, nobody else alive saw" |
+| P92 | The Watch Step (a short untouchable step) and being still as an input that silences weapons and noise (4) | |
+| P93 | The Watch bill as a weapon that hooks and drags (8) | The bill itself is Merrick Thwaite's, in `people/` |
+| P94 | A "fen bow", and Col Wray carrying one (8, 13.2) | Bows are in the lore (Wynn Carrow's; the Remnant's short bow); this name and Col's are not |
+| P95 | The bloomery hammer as a weapon thrown out and back (8) | |
+| P96 | A hand bell as a weapon, and the condition Rung (6.4, 8) | No hand bell is in the story folder |
+| P97 | The hoist chain as a weapon (8) | The Coldbarrow hoist and chain are lore, as the tool that finishes the Weight Gate |
+| P98 | New uses for the lore's own things: the Whetstone gives crit; the Coil of Rope gives reach; tallow, the heat-stone and the Wet-Cloth Mask as kit and weapon; return-bread as something a run carries (9) | Return-bread is a Reedwake mooring custom, not a ration. Question 11 |
+| P99 | Marks are found only in a hunter's cache; a mark fades after about eight minutes; Dull-voice can sit on a bell (10) | The lore says a mark holds for hours, on a blade |
+| P100 | Eleven pairings and their names: Held the Gate, The Counting Passage, The Outside Fire, The Limed Road, The Sling, The Long Draw, The Nailhouse, The Plunder Pile, The Weight, Greystair Heat, The Burning Bank (10) | The Nailhouse and the Burning Bank are places. Question 13 |
+| P101 | Workings in play: one known at a time; three teachings a run; each speaking carries 12 m and adds one chill; the ward only at a door, a drain or a gap; cold light taught only by a listener in the north; who teaches kindle and the bound word (11) | Question 7 |
+| P102 | The debt: a second choice at a level-up taken on a bound word, which the band who take the name come to collect at 25:00 (19.7) | |
+| P103 | Thirteen bell rings inside a minute in the highlands bring a Dead Calm; nothing is shown or said (19.5) | Evidence only, as fact 7 requires |
+| P104 | A corpse left unlimed fruits after 20 seconds, at most one new fruiting every 2 seconds in view; the ogre will not feed on fruited ground (19.2) | The lore says "within days"; the ogre's refusal is the bestiary's |
+| P105 | What each card's trait and flaw does in this game, and each named person's lever and rule: Merrick's crust at 10:00 and silence at 20:00, Aud's refusal of bells, Alys Cope's refusal to go below ground, and the rest (13) | The cards' quoted lines are unchanged |
+| P106 | Old ones: the grey-muzzled goblin, the scarred pack leader and the collared Greymaw are larger and tougher (14.7) | All three are described in the bestiary |
+| P107 | Nine stages along the novel's road, each with a rule, a script by the minute and a hunter: the nest under Halwen, the Red Stitch failing, the furnace night, a troll pair in a Dead Calm (15, 17) | Places and beasts are the lore's; the scripts are not |
+| P108 | The last stage tells the Seal ending: the billman on the scaffold, the gate, one knock; in co-op one player stays below and gets the line *Held the gate.* (17.9) | A telling of what may have happened. Question 5 |
+| P109 | Merrick may walk with the Deserter as an ally (19.10) | Question 6 |
+| P110 | The hub: Joan Tallis sells small lasting gains for salt; the Naming Stone takes a name every hundred tags; Gil Rudd's door, where people helped in a run are admitted or refused; Ottor Blewitt's fire shows the winter (18) | Question 4 |
+| P111 | Tags returned at the Naming Stone: Name-Tokens in the fen, brass tags from Greystair north (12.1) | The prompt has brass tags everywhere. Question 12 |
+| P112 | The Bright Hour: on a clear day, once, 45 seconds of sun (19.9) | From O8's clear noon |
+| P113 | A wonder on each stage, and a small gain for standing still to look: the reeds going gold, Kell Tor's tarn lights, the blue light on the listeners' lintels (19.1) | Merrick's "look at that" is the novel's |
+| P114 | Modes: endless, weights chosen before a run, one seeded run a day by the day's number (17.11) | |
+| P115 | Co-op for one to four with separate builds and shared embers; beasts gain 60% health and 40% numbers a player; a downed player is lifted by another standing still for 4 seconds (23) | Question 9 |
+| P116 | The muster book's three lines (the dead, those who held, those who ran) and the run's portrait: the map with every mark left on it (3, 19.3) | |
+| P117 | How a reed-jaw behaves in play (14.3) | The atlas's description of it was approved under O10 |
+| P118 | Numbers for the conditions (Limed, Rung, Chill at 4% a point) and the stats Noise, Light and Chill (6) | |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
@@ -796,6 +856,8 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
    player's view for about two seconds, added up, before any prompt. Not built yet.
 4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
+5. **The Tally** (a sister game, phase T0): its proposals P87 to P118 above, and the fourteen questions in
+   `tally/docs/design.md`, the Receipt-Wife's name among them. No code is written until they are ruled.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
 book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's route, the opening view, the dates,
