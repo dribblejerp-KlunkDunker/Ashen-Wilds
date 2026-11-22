@@ -118,7 +118,7 @@ danger II, III · (new)*
 in the turf below Hob's Height. On a windy day some of them hum.
 
 **History.** Hob's Height cast the Bell Road's bells. Every casting was tested by ear at the foot of the scarp, and the
-ones that were not good enough were rolled into the field and left. Three hundred years of failures. When Adam Haddon
+ones that were not good enough were rolled into the field and left. Two hundred years of failures. When Adam Haddon
 led his people out in S.1, they left the field as it was.
 
 **How it looks.** A slope of turf studded with bronze: bells as big as a cart lying on their sides, blanks like
@@ -140,7 +140,7 @@ one by one, as his people swore to. Goblins from Hob's Height's shafts. Orks on 
 heard at the next tower eight miles off, and further in still air. The cracked ones carry wrong, and nobody knows where
 their sound goes. Striking one costs the striker warmth, as any working does.
 
-**Wonder and mystery.** The field humming in a west wind, a low chord from three hundred years of bronze. The cracked
+**Wonder and mystery.** The field humming in a west wind, a low chord from two hundred years of bronze. The cracked
 bells.
 
 **Dangers.** Goblins (I, II in a group). Orks (III, in hard winters). Noise, which brings both.
