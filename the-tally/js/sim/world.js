@@ -7,7 +7,7 @@ import {
   xpNeed, isSecondWind,
 } from './tuning.js';
 import { resolveWalls, rectWalls } from './collide.js';
-import { makeGoblin, stepGoblins } from './goblin.js';
+import { makeEnemy, stepGoblins } from './goblin.js';
 
 // The flat yard: a walled rectangle with two blocks to slide around. 40 x 24 tiles.
 export function yardWalls() {
@@ -83,10 +83,17 @@ export function createWorld(opts = {}) {
   return world;
 }
 
+export function spawnEnemy(world, kind, x, y, opts = {}) {
+  const e = makeEnemy(kind, x, y, opts);
+  // A shield arrives facing the player. Orks spawned on the far side of the yard would
+  // otherwise present their back and be free kills, which the positional puzzle cannot afford.
+  if (e.steering === 'shield') e.aim = Math.atan2(world.player.y - y, world.player.x - x);
+  world.goblins.push(e);
+  return e;
+}
+
 export function spawnGoblin(world, x, y, opts = {}) {
-  const g = makeGoblin(x, y, opts);
-  world.goblins.push(g);
-  return g;
+  return spawnEnemy(world, 'goblin', x, y, opts);
 }
 
 export function resetWorld(world) {

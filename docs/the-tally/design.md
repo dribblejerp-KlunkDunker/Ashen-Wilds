@@ -7,8 +7,8 @@ lore wins and this file is wrong.
 
 *The Tally* is a top-down horde-survival game, in the shape of Vampire Survivors and in the world of
 Ashen Wilds. It is a sister to **The Long Account**, which is first person and set a week after this
-game's last night. This game is **the winter of S.30**: the tower has fallen, the fen is awake, and
-the road north ends at a gate nobody finished.
+game's last night. This game is **the winter of S.30**: the tower has fallen, the fen is awake, and the
+road north ends at a gate nobody finished.
 
 **v1 is three of the nine stages.** The whole road is designed here because the design has to be
 whole; the first release builds the first three nights. Section 26 is the cut, and it is the section
@@ -133,6 +133,18 @@ World unit: **1 tile = 64 px** at the 1920x1080 reference view. The camera shows
 | Input buffer | 120 ms |
 | Direction | movement direction, else facing |
 | Perfect step | a 40 ms time slow, a white edge flash, a soft bell. No other reward |
+| Perfect step, when | **proposal:** a telegraphed strike resolves through the space you occupy while the step's i-frames are live - you take the hit on the invulnerability instead of stepping out of it |
+
+**The perfect step's trigger (proposal).** Every other number here has a condition; this one had only a
+reward, and until it has a trigger the flourish is fired by hand. The step is perfect when **it is the
+reason a strike did not land**: at the frame a telegraphed attack resolves - a boss ring, a charge, a
+volley line, an elite's blow - the attack's shape contains your body, and you are unhurt only because
+the step's i-frames are still running. Stepping *out* of the shape is an ordinary dodge and earns
+nothing; stepping *through* it, so the band passes over you and finds nothing, is the perfect one.
+Ordinary contact damage never counts, so a wall of goblins cannot farm it, and the 2.4 s cooldown caps
+it besides. In the hand it is a small impossible moment: the ring closes, the world hushes for 40 ms,
+the screen edges go white, and you are still standing inside what should have hit you. The first place
+most players meet it is the Ogre's stomp.
 
 ### 3.3 Collision
 
@@ -155,8 +167,9 @@ mouse/right stick when **Aimed Watch** is on (off by default).
 
 ### 3.6 The feel gate
 
-`tests/feel.html`: a flat yard, three dummy goblins, an overlay of speed, acceleration, and
-input-to-motion latency. Target: **<= 1 frame** from input read to first motion. The gate for M1 is
+`tests/feel.html`: a flat yard, three dummy goblins, an overlay of speed, acceleration,
+input-to-motion latency, and a count of perfect steps that names the strike which triggered each, so
+the trigger can be checked without a debug key. Target: **<= 1 frame** from input read to first motion. The gate for M1 is
 sleeves at the controls saying the movement is right.
 
 ---
@@ -472,7 +485,13 @@ and only there.**
 Built from data (`data/enemies.js`): sprite set, weight class, health, speed, contact damage,
 behaviour, attacks, drops, sound. Health scales with time. One clear silhouette at 24 px tall.
 
-The bestiary gives **17 canon creatures**. Use them before inventing any.
+The bestiary has **seventeen entries**, and they are not seventeen creatures. **Fifteen are beasts**,
+one is **people** (the Ashbound), and one is **the thing the book cannot name** - what the orks fled,
+below the Vaults - which stays off-page and is never drawn. Use the beasts before inventing anything.
+The **sixteen non-human kinds** in 13.1-13.3 are kinds, not entries: goblins are one entry split into
+three, orks one split into four, and some of the rest are this design's reading of a beast rather than
+its entry's name. The ledger's seventeen and this list's sixteen therefore count different things, and
+neither number is a gap to be filled with a new animal.
 
 ### 13.1 The surf
 
@@ -548,7 +567,7 @@ thing the game does, not the first release's.
 | --- | --- | --- |
 | 1 | **The Ogre of the Long Stable** | stomps (rings), a charge that breaks the stable piers, picks up and throws carts; at half health it starts eating corpses to heal, so burn them |
 | 2 | **The Causeway Tower band** | three ork pack-leaders round a war-banner; kill the banner-bearer first or the others enrage |
-| 3 | **The Halwen siege** | waves of Remnant crossbowmen, Garden Hands and gutter goblins under one captain who moves between windows; break the doors to reach her. **[name needed]** |
+| 3 | **The Halwen siege** | waves of Remnant crossbowmen and gutter goblins under one captain who moves between windows; break the doors to reach her. The Garden Hands are not enemies and do not appear in the waves: canon has them as Halwen's labour faction, negotiating with the Remnant. **[name needed]** |
 | 4 | **The blind troll of Rook's Stair** | rolls boulders down the benches; regenerates; the winch can drop a load on it if the rope goes at the right moment |
 | 5 | **The Reed-Jaw of the Long Cut** | ambushes from the reeds; a ridge shape you must read; drags what it takes into the water |
 | 6 | **The crawler at the third arch** | drops from arch to arch; between drops the corridor goes dark and only its claws tell you which arch |
@@ -987,9 +1006,27 @@ weather-as-shader system. The Tally is top-down and its world is a horde field.
 ### 23.4 Performance targets (measured, never assumed)
 
 60 fps locked on an Intel Chromebook in Chrome at **1,500 enemies, 600 player projectiles, 200 enemy
-projectiles, 3,000 particles, 400 embers, 30 lights**. Simulation step **<= 4 ms**, render **<= 6 ms**.
-Memory **< 600 MB**. First load **< 15 MB** before the title screen; stages stream. `tests/stress.html`
-spawns the target horde with a frame-time graph and runs at every milestone.
+projectiles, 3,000 particles, 400 embers, 30 lights**. Simulation step **<= 4 ms**, render **<= 6 ms**
+timed on the GPU (`EXT_disjoint_timer_query_webgl2`), never by wrapping CPU submission; where a
+browser cannot time the GPU, the **16.7 ms frame budget** is the render gate. Memory **< 600 MB**. First load **< 15 MB** before the title screen; stages stream. `tests/stress.html`
+spawns the target scene - the horde with 600 player projectiles, 200 enemy projectiles, 3,000
+particles, 400 embers and 30 lights - with a frame-time graph, and runs at every milestone from M2;
+`?mode=horde` keeps the 1,500-goblin baseline alone for a quick check. A capture also
+has to hold **120 simulation steps per second**: a run that dilates the fixed step is a failure,
+not a pass.
+
+**The drawing buffer is budgeted.** A 2D horde is fill-bound, and a Chromebook panel can be 2x or 4K
+for a picture that is already soft. The buffer is capped at **1080p worth of pixels** (a 2x 1080p
+panel is drawn at 1920x1080, and so is a 4K panel) and the compositor stretches it back; the UI is
+DOM, so text never loses resolution. If even that misses the frame, the buffer shrinks in steps to
+60% and recovers slowly, stopping just below a scale that failed so it cannot oscillate; a resize or
+a reload gives it a fresh try, and `tests/stress.html` records the scale it used. Only pixels are
+traded: the simulation and the gate are unchanged.
+
+**Quality tiers, later.** The Chromebook is v1's floor, not its ceiling. Phones and stronger hardware
+are a later tier with the same simulation and the same gate: a higher pixel budget, the full light and
+effect pass, more particles, lights and enemies, and touch controls. The budget and the effects are
+numbers to raise, not an architecture to rewrite.
 
 ### 23.5 Saves
 
@@ -1063,7 +1100,7 @@ Ruled 2026-11-20.
 | --- | --- | --- |
 | Stages | 1 Outside Fire, 2 Old Causeway, 3 Halwen House | 4-9, and the six secret stages |
 | Bosses | the Ogre, the Causeway band, the Halwen siege | six, including the billman and the Weight Gate |
-| Creatures | 13 modelled, named below, and 2 painted | the other 9 in section 13, and one unique painting per boss from 4 on |
+| Creatures | 13 modelled - twelve creatures and the Ogre - and 1 painted, all named below | the other 9 in section 13, and one unique painting per boss from 4 on |
 | Weapons | 8: Watch Sword, Billhook, Nails, Lime Sack, Muster Book, Hand Bell, Cold Light, The Ward | 8 |
 | Kit | 8: Glim Mark, Kiln Ash, Watch Cloak, Warning-Book Page, Muster Roll, Strong Corner, Passage Rule, Return-Bread | 8 |
 | Evolutions | 8: The Cold Edge, Held the Gate, The Limed Road, The Nailhouse, The Bell-Tender's Toll, Deserted: None, Grisel's Hedge, Aud's Lesson | 8, and both unions |
@@ -1077,40 +1114,63 @@ Ruled 2026-11-20.
 Grey Hour, the fire, and the Silent. Cutting any of those would make a different game rather than a
 smaller one.
 
-**The v1 creatures, counted.** Thirteen modelled creatures, each an 8-direction sheet at 2x, and two
-painted people:
+**The v1 creatures, counted.** Twelve creature sheets and one boss sheet, each an 8-direction model
+rendered at 2x, plus one painted person. The section each one comes from is named, so a sheet can be
+checked against the behaviour it has to telegraph. A builder needs exactly this list and no more.
 
-- **All three stages:** goblin scavenger (the "gutter goblins" at Halwen are these), walking bloom,
-  corpse-cap, spore drift.
-- **Stage 1:** goblin nest-runt, the Silent, the Ogre.
-- **Stage 2:** ork shield, ork cleaver, ork thrower, ork pack-leader (the band is three of these), and
-  the hulk-conger in the water either side.
-- **Stage 3:** the Halwen Remnant crossbowman, modelled; the Garden Hands and the siege captain, who
-  are people and so are painted.
+| # | Creature | Section | Where in v1 | Sheet by |
+| --- | --- | --- | --- | --- |
+| 1 | Goblin scavenger (the "gutter goblins" at Halwen are these) | 13.1 surf | all three stages | M3 |
+| 2 | Walking bloom | 13.1 surf | all three stages | M4a |
+| 3 | Corpse-cap (the rot) | 13.1 surf | all three stages | M4a |
+| 4 | Spore drift | 13.1 surf | all three stages | M4a |
+| 5 | Goblin nest-runt | 13.1 surf | stage 1 | M4a |
+| 6 | The Silent | 13.4 people | stage 1 | M4a |
+| 7 | Ork shield | 13.2 line | stage 2 | M3 |
+| 8 | Ork cleaver | 13.2 line | stage 2 | M6 |
+| 9 | Ork thrower | 13.2 line | stage 2 | M6 |
+| 10 | Ork pack-leader (the band is three of these) | 13.2 line | stage 2 | M6 |
+| 11 | Hulk-conger (in the water either side) | 13.3 walls | stage 2 | M6 |
+| 12 | Halwen Remnant crossbowman | 13.4 people | stage 3 | M6 |
+| 13 | **The Ogre**, the only boss sheet in v1 | 13.3 walls, and 14 | stage 1 | M4a |
+
+**Counted per milestone:** two in M3 - the **goblin scavenger** and the **ork shield**, the two that
+prove the sheet pipeline - six in M4a (the three that appear in every stage, the nest-runt, the
+Silent, the Ogre), five in M6 (the other three of the band, the hulk-conger, the crossbowman).
+Thirteen sheets, and no sheet built twice.
+
+**Painted, not modelled:** the Halwen siege captain, stage 3, because she is a person with a face to
+read. **The Silent are people too and are modelled anyway**, because their whole design is a
+silhouette that blocks at distance and they never speak. **The Garden Hands are neither**: canon has
+them as Halwen's labour faction, negotiating with the Remnant, so they are not in the siege and
+nothing in v1 draws them. **The count is unaffected either way**, because they were never modelled:
+the only number their removal moved is the paintings, from two to one, so the thirteen and every
+milestone's share of it stand as written.
 
 **Not art:** the seven elite affixes are the same sheets, scaled and tinted; the Causeway banner is a
 prop. **Not in v1:** the other nine in section 13 - greymaw, goblin lamp-thief, quarry-troll,
 gallery-crawler, reed-jaw, cutwarden, plate-reaver, grey-rag raider, the Unpaid - and the unique art
 of bosses 4 to 9.
 
-Each milestone ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
+Each milestone from M2 ends with tests passing on the exact commit, a stress capture, pictures in the PR, and
 a stop for sleeves.
 
 | # | What | Gate |
 | --- | --- | --- |
 | **M0** | Read and plan. `design.md`, `lore-deltas.md`, `plan.md`. No code. | sleeves rules the deltas |
-| **M1** | Feel: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, Watch Sword, goblins with steering and separation, embers, the level curve, a bare page. Feel and stress scenes running. | sleeves says the movement is right |
+| **M1** | Feel, movement only: fixed step, four inputs, camera, movement and the Watch Step to section 3, collision, goblins with steering and separation, embers, the level curve, a bare page, `tests/feel.html`, and a minimal `tests/stress.html` that graphs frame time on the movement scene. The Watch Sword is not in M1: it is one of M3's eight weapons. The full target-count stress scene and its capture are M2's. | sleeves says the movement is right |
 | **M2** | The horde: WebGL2 instancer, pools, spatial hash, flow fields, 1,500 enemies at 60 fps, effect limiter, damage numbers, knockback, statuses, the light pass. One player's snapshot budget only. | a frame-time capture in the PR |
-| **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and the first modelled goblin and ork rendered to sheets. Behaviour, not balance. | all 24 items exist, are data-driven and are unit-tested: every weapon and kit defined in `data/`, every evolution resolving from its pair, no item special-cased in code |
-| **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves. | the night runs 0 to 30 with every beat firing; rough is allowed |
-| **M4b** | Stage 1, good: the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
+| **M3** | The build, as data: the 8 weapons, 8 kit and 8 evolutions, strongboxes and the ceremony, pickups, breakables, 8 workings, the Debt, the cough, and **two** creature sheets rendered to prove the art pipeline: the **goblin scavenger** and the **ork shield**. The other eleven are M4a's and M6's. Behaviour, not balance. | all 16 items exist and are data-driven and unit-tested: every weapon and kit defined in `data/`, no item special-cased in code; all 8 evolutions resolve from their pairs; and both sheets load through `data/enemies.js` and render in the stress scene at 1x, so the remaining eleven are repetition and not discovery |
+| **M4a** | Stage 1, whole: the map, the fire, the full script, the Ogre, the Order, the Grey Hour, the wonders, the rot, the Unnamed and the naming, thieves, and **six of the thirteen sheets** (walking bloom, corpse-cap, spore drift, goblin nest-runt, the Silent, the Ogre). | the night runs 0 to 30 with every beat firing; rough is allowed |
+| **M4b** | Stage 1, good: the measuring bot (`tests/bot.html`), the tuning pass in section 24, 50 seeded games per character, music and sound, the book's line, the map portrait. | a full 30 minutes is fun start to finish, in sleeves' hands |
 | **M5** | Meta and roster: the Tally Room, saves with export, the relics of stages 1-3, characters 1-6 and their unlocks. | a run survives a reload and the roster is playable |
 | **M6** | The road so far: stages 2 and 3, their bosses and pages, and the Watch Rota. | three stages, start to finish, with no dead ends |
-| **M7** | Ship: the bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | it runs on the worst machine and reads on the smallest screen |
+| **M7** | Ship: the full ship bot, accessibility, Chromebook performance, README, Pages, a trailer capture. | it runs on the worst machine and reads on the smallest screen |
 
-**Why M3 and M4 are split.** M3 proves the data and is not a game: it is done when the 24 items exist
-and a test says so, and nothing in it is tuned. M4a is done when the night is whole; M4b when it is
-good, which is a hand on the controls and not a test. plan.md's "M4, stage 1" means both halves.
+**Why M3 and M4 are split.** M3 proves the data and is not a game: it is done when the 16 items exist,
+the 8 evolutions resolve, and a test says so; nothing in it is tuned. M4a is done when the night is
+whole; M4b when it is good, which is a hand on the controls and not a test. plan.md's "M4, stage 1"
+means both halves.
 
 **Post-1.0, in this order.**
 
@@ -1128,7 +1188,7 @@ good, which is a hand on the controls and not a test. plan.md's "M4, stage 1" me
 ## 27. Definition of done, every milestone
 
 1. All unit and sim tests pass **on the exact commit in the PR**.
-2. The stress scene holds 60 fps at the target counts on the Chromebook, with the capture attached.
+2. From M2, the stress scene holds 60 fps at the target counts on the Chromebook, with the capture attached.
 3. Pictures or a short clip of everything new, in the PR.
 4. `lore-deltas.md` updated; nothing new slipped into canon without a **proposal** mark.
 5. No console errors; **no allocation per frame** in the hot loop, checked in the profiler.
