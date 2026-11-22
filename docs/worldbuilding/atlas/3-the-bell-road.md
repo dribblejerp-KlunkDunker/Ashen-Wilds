@@ -149,7 +149,7 @@ The road north out of the fen, climbing through sheep country and quarry spoil t
 
 **At a glance.** A charcoal-burners' lodge deep in white birch, ringed by the burning floors: perfect black circles where the clamps stood, still bare of any growing thing after thirty years.
 
-**History.** For three centuries the Citadels' furnaces ate charcoal, and the burners' lodges along the lower Bell Road made it: birch cut in winter, stacked into clamps, covered with turf and burned slow for a week. The lodge emptied in S.1, when the Citadels stopped buying. After chapter 14 of the novel and Act II of the old game, the Gutter Kin move here.
+**History.** For two centuries the Citadels' furnaces ate charcoal, and the burners' lodges along the lower Bell Road made it: birch cut in winter, stacked into clamps, covered with turf and burned slow for a week. The lodge emptied in S.1, when the Citadels stopped buying. After chapter 14 of the novel and Act II of the old game, the Gutter Kin move here.
 
 **How it looks.** White trunks in every direction, close enough to touch two at once, and then a clearing: black earth in rings, a low stone lodge with a standing rear wall and a turf roof half fallen. Inside, a dry bay and a frame-wide door.
 
@@ -347,7 +347,7 @@ The road north out of the fen, climbing through sheep country and quarry spoil t
 
 **At a glance.** A stone bridge over a gorge where the stream runs warm off the venting slopes and steams in the frost: its central arch settled, one parapet gone, kept open by a household of four with a winch who really repair it and really overcharge.
 
-**History.** The bridge carried the Bell Road over the gorge for three hundred years. After S.0 the venting slopes upstream began warming the water, and the frost-and-thaw of warm water against cold stone began moving the central arch. The household came in S.11 (new), found the bridge failing, and made a living out of not letting it fail.
+**History.** The bridge carried the Bell Road over the gorge for two hundred years. After S.0 the venting slopes upstream began warming the water, and the frost-and-thaw of warm water against cold stone began moving the central arch. The household came in S.11 (new), found the bridge failing, and made a living out of not letting it fail.
 
 **How it looks.** A grey bridge with a sag in its back, timbers laid over the damaged paving in a lane just wide enough for a handcart. Below it, the gorge: walls green with moss and fern in midwinter, steam lifting off the water, small birds that live there all year. From the bridge, the warm gorge looks like a green crack in a white world.
 

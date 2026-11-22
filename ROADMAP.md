@@ -781,6 +781,7 @@ proposals across the board"):
 | The second pass at the modelled beasts | "Thank you lets proceed." Taken as approval; the walking bloom went into the game as Phase 4. |
 | Everything still proposed: P33 to P70, the warning book, the chart's placements, the atlas and its scale, the novel's N1 to N20 | "I accept all proposals across the board" (2026-11-19). Recorded as O10 on the canon sheet. The owner also asked for a full entry for every person and place; written the same day (`docs/worldbuilding/people/`, `docs/worldbuilding/atlas/`). |
 | The open questions: Mara Venn and Harl, Odo's route, the opening view, the dates, the title, Rafe | "lets go with D ... I will go with your recommendations" (2026-11-19). Recorded as O11 on the canon sheet: the faction bible is lost and the Merewick pair are the only ones; the cart came up from the south for the Corpseway; a look is two seconds on the Slagcrown; The Long Account opens at the thaw of S.30; the novel is *Held the Gate*; Rafe is not the ledge deserter. |
+| The lore review's two questions: the warning book's entry 30, the Kings' Barrows | "the book does carry his name. keep it as fact" (2026-11-21). Recorded as O12 on the canon sheet: entry 30 carries Rafe Sedley's name; the Unnamed walk at the fifth barrow because its name-stones were carried off. The review's corrections were accepted the same day ("you can merge"; pull request 58). |
 | Merging pull requests 44 to 47 | "merge everything please" (2026-11-19). Merged in order, with merge commits. |
 | Merging pull requests 38 to 40 | "Merge and proceed." The owner asked Claude to merge them. Each was squashed, so the Octave's pictures stay out of `main`'s history. The old Godot work that was on `main` is kept on `archive/isometric-prototype`. |
 
@@ -793,13 +794,13 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
 2. **Phase 10's proposals, P81 to P86** (creation and the panel). Stills 100 to 107 show them.
 3. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
    player's view for about two seconds, added up, before any prompt. Not built yet.
-4. **The warning book's entry 30:** whether it carries Rafe's name in a game whose player is not Rafe.
-5. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
+4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
 book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's route, the opening view, the dates,
-the novel's title, and Rafe Sedley.
+the novel's title, and Rafe Sedley. Settled on 2026-11-21 by O12: the warning book's entry 30 carries Rafe's name, and
+the Kings' Barrows' Unnamed are fact.
 
 ## Next phases, in order
 
