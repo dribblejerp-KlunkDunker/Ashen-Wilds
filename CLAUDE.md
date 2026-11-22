@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`).
 
 ## The owner's rules
 
@@ -48,6 +48,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/weather6.test.js --no-browser
     node test/lantern7.test.js --no-browser
     node test/building8.test.js --no-browser
+    node test/dread9.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -60,6 +61,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
     NODE_PATH=$(npm root -g) node test/building8.test.js
+    NODE_PATH=$(npm root -g) node test/dread9.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -69,6 +71,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
     NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -103,6 +106,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/weather6.js        Phase 6: ashfall and sleet, by day number; a pass that stops at roofs (EAVES78.shelter)
     js/lantern7.js        Phase 7: the lantern in the left hand; its oil (G.flags.la_oil, la_flasks); its light (LIGHTING.lanternLight)
     js/building8.js       Phase 8: EAVES78.STYLES.la_ledge.plan, the highland planner; turf, the smoke hole, the owner's drystone
+    js/dread9.js          Phase 9: dread (DREAD9.state().d, 0..1), a pure step(S, env, dt); its picture is pass 'la-dread' at order 88
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -165,6 +169,14 @@ Useful facts, all checked in this repository:
   renderer draws it with the engine's chimney smoke.
 - To hash two frames alike, hold `ANIM.T` as well as the clocks: set it back before each `render()`. The lantern's sway
   and the smoke read it.
+- To change what the whole frame looks like, run before the lighting's last pass (order 90), which reads the scene's colour:
+  `R3D.resolveScene`, draw from `scene.color` into a target of your own, then blit it back into `scene.fb` with
+  `drawBuffers([COLOR_ATTACHMENT0, NONE])` so the material target is left alone. Never sample a texture attached to the
+  framebuffer you draw into. `js/dread9.js` does this. Hash a frame only after one warm-up frame: the first frame after
+  any change differs while the sky settles.
+- The Shattered Octave's own `js/dread.js` and opening film (`js/cinematic24.js`) are held off on this game, and their
+  Options rows removed. Never call `DREAD.setOn` or save their settings: GitHub Pages serves this game and the Octave from
+  one site, so they share a browser's storage.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 

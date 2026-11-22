@@ -7,7 +7,7 @@ inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 **Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
 the coal sun, walk down past the walking bloom that stands on the shelf, and reach Marget Sayle's
 bothy and speak to her. Walk, do not run: it hunts by sound. Put the bar across her door, or it may
-follow you in. Nothing of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
+follow you in. Out in the dark, or with it coming at you, the picture closes in. Nothing of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
 
 ![The ledge](docs/screenshots/01_the_ledge.png)
 
@@ -19,6 +19,7 @@ follow you in. Nothing of the story past that door is built. `ROADMAP.md` says e
 | ![Noon on a clear day](docs/screenshots/12_noon_on_a_clear_day.png) | ![Sunset behind the Slagcrown](docs/screenshots/16_sunset_behind_the_slagcrown.png) |
 | ![Run, and it comes](docs/screenshots/42_run_and_it_comes.gif) | ![The claw](docs/screenshots/33_the_claw.png) |
 | ![The bar across Marget Sayle's door](docs/screenshots/51_the_bar_across.png) | ![Left open, it comes in](docs/screenshots/52_it_came_in.png) |
+| ![The walking bloom, no dread](docs/screenshots/93_the_bloom_no_dread.png) | ![The walking bloom, full dread](docs/screenshots/94_the_bloom_full_dread.png) |
 
 ## Play
 
@@ -94,11 +95,12 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/weather6.js` | Phase 6: ashfall and sleet, stopped by the bothy's roof |
 | `js/lantern7.js` | Phase 7: your lantern, its light and its oil, and Marget Sayle's flasks |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
+| `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -117,6 +119,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/weather6.test.js --no-browser
     node test/lantern7.test.js --no-browser
     node test/building8.test.js --no-browser
+    node test/dread9.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -130,10 +133,11 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
     NODE_PATH=$(npm root -g) node test/building8.test.js
+    NODE_PATH=$(npm root -g) node test/dread9.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
-barred door holds and the open one does not, the lantern burns its oil and goes out, and the switches change the picture. It says nothing about how the
+barred door holds and the open one does not, the lantern burns its oil and goes out, dread rises in the dark and leaves you behind a barred door, and the switches change the picture. It says nothing about how the
 game feels: that needs a person at the controls.
 
 ## The games this replaced

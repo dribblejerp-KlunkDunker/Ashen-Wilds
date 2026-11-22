@@ -38,7 +38,8 @@ noted, but all of it ships:
 - `js/game.js`: its creation screens (skipped), quest and law logic, logbook wording.
 - The panel: CHAR, INV, SONG, LOG, MAP, REST, NAMES, HELP, MURMUR, SAVE, WEAPON, and money in "sov."
   **Seen on screen.**
-- `js/dread.js`: its dread value and stalker, written for that game's songs. Off by default.
+- `js/dread.js`: its dread value and stalker, written for that game's songs. Off by default. *(Held off, and its row
+  removed from Options, in Phase 9.)*
 - The classic raycaster draws the ledge but not the coal sun, the ash or the burning ground.
 - The engine asks for about ten of the Octave's pictures and music files that are not here. The
   requests fail quietly. There is no music.
@@ -554,6 +555,85 @@ browser:
 | P69 | The weather side of a highland house is north | From "The ash comes on the wind, mostly from the north" |
 | P70 | The owner's highland drystone replaces Phase 1's coursed drystone, outside and in | The look test's own candidate mapping, "drystone -> t_house_la_drystone" |
 
+## Phase 9 - dread
+
+`js/dread9.js` · `test/dread9.test.js` · `tools/dreadshots.js` · stills 90 to 96 and clip 97 in `docs/screenshots/`
+
+The design asks for "dread as a value that changes the picture". The build brief's own section 3 is not in this
+repository or in any saved chat I could reach, so this is built on what the repository does say:
+- On the Ground, the dread comes from "light, noise, weight, and what you cannot see".
+- The eight rules of dread, first among them "The worst thing is never on screen" and "One knock, once".
+- "Black is the base colour".
+- "Four lights, never confused. Yours is tallow yellow and small. The land's is ember red and vast. Teal belongs to the
+  bloom alone. Pale blue belongs to workings".
+- The novel's "the only warmth is people".
+
+The lore gives no number for fear, so every number is mine (P71 to P80).
+
+- **A value you never see as a number.** It runs from 0 to 1.
+  - **The dark** raises it, and your lit lantern holds most of the dark off.
+  - **The walking bloom** raises it when it is near, and more when it is coming. It counts only where you could know it
+    is there: in front of you, or close enough behind you to hear it shuffle. It is not a radar.
+  - **Sleet and a bad wound** add a little.
+  - **Marget Sayle's roof** takes most of it away, and the bar across her door takes more.
+  - **A partner within five cells** lowers it.
+  - **How it moves.** It builds in about five seconds and takes about twenty to leave you. A claw sends it up at once,
+    once for each claw.
+- **The picture.** In the 3D renderer, one pass at order 88, before the lighting's last pass reads the scene.
+  - The edges close in toward the base black.
+  - The colour drains out of the world: rock, frost, skin and cloth.
+  - The four lights keep their colour: tallow, ember, the bloom's teal and a working's pale blue. So does what lies
+    within your lantern's reach, and a room's hearth light.
+  - The shadows deepen.
+  - The far country goes to shapes against the sky, from nearer as dread rises. The sky, which is the painting, stays.
+  - At its height the closing breathes slowly. It does not with Reduce motion or No flashes.
+  - At nought nothing is drawn at all. Nothing flashes, shakes or lunges, and nothing is shown that is not there.
+- **The Shattered Octave's own dread is held off here.** `js/dread.js` gave that game's songs a Dissonance, a stalker
+  and whispers. It was off by default, but its "Dread" row was still in Options. The row is removed and the module is
+  held off.
+  - Its saved setting is not touched. GitHub Pages serves both games from one site, so they share a browser's storage,
+    and saving it here would change the Octave.
+  - No engine file was edited.
+- **One Options switch, "Dread".** Off, the frame is exactly the frame before this phase. The test checks this by frame
+  hash.
+
+**Checked by the tests:** what raises dread and what does not; that the bloom behind you and out of hearing adds
+nothing; what lowers it; that it rises quicker than it falls; that a claw sends it up once; that the picture's measures
+are nothing at nought and grow with it; and the four lights, with a twin of the shader's rule run in Node. In a browser:
+- The Octave's dread is off and its row is gone, and this game's row is there.
+- Standing out at night with no light, dread builds of itself to 0.40, and in daylight it slowly lets go.
+- At nought the frame equals both the switch-off frame and the frame with the pass taken out.
+- At full dread a corner darkens from 19 to 11 out of 255 while the middle stays readable.
+- The world's colour falls by about a sixth, but the burning country keeps its warmth, and so does your lantern's pool.
+- In the bothy with the bar across, it leaves you.
+- There are no page errors.
+
+**Not done:**
+- **Only the picture.** Dread changes no number in play: not your aim, your pace, nor what hunts you. Sound is not
+  touched either: no heartbeat, no dulling of the world's sounds. Either could be a later phase, and each needs a
+  ruling.
+- **Not every source counts yet.** Noise, weight and the rest of "light, noise, weight" are not inputs. The carry does
+  not exist yet, and noise is what the bloom hunts by, so it already counts through the bloom.
+- **The classic renderer** draws none of it.
+- **Rule 4, "Silence is scheduled"** (the Dead Calm), is not built. When it is, it should raise dread.
+- **Frame cost on a real card** is not measured. Under software rendering the pass adds about a millisecond at full
+  dread, one full-screen pass and one copy.
+
+### Proposed in Phase 9: [PROPOSED], awaiting a ruling
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P71 | Night out of doors with no light raises dread to 0.4 of its height; your lantern burning full holds off 65% of that | From "light ... and what you cannot see" |
+| P72 | A full spell of sleet out of doors adds 0.1 | Sleet halves how far you see (Phase 6) |
+| P73 | The walking bloom adds dread from 14 cells in to 3, at its post up to 0.4, coming at you up to 0.75 | |
+| P74 | It counts only in front of you (60 degrees either side) or within 4 cells behind: dread is never a radar | From "The worst thing is never on screen" |
+| P75 | A wound past a third of your health adds up to 0.25 | |
+| P76 | Under a roof, dread is cut to 0.35 of itself; with the bar across the door, to 0.15; the night and the weather do not count there | From "one safe room" |
+| P77 | A partner within 5 cells cuts it to 0.7 of itself | From "the only warmth is people" |
+| P78 | It rises at most 0.2 a second and falls at most 0.05; a claw sends it to 0.85 at once, once for each claw | From "Loss is slow" and "One knock, once" |
+| P79 | The picture: the colour drains (up to 65%) from all but the four lights, your lantern's reach and a room's hearth; the edges close toward black (up to 80%); the shadows deepen (up to 35%); the far country goes to shapes from 22 cells in to 10 | From "Black is the base colour" and "Four lights, never confused" |
+| P80 | At its height the closing breathes, about thirteen times a minute, never with Reduce motion or No flashes | |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
@@ -625,11 +705,13 @@ proposals across the board"):
 
 ## Decisions I still need
 
-None from the list of 2026-11-19: all were ruled the same evening (O11, below). Still to do:
+The questions of 2026-11-19 were all ruled that evening (O11, below). What is open now:
 
-1. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
+1. **Phase 9's proposals, P71 to P80** (dread): the numbers, and whether dread should one day change sound or play
+   as well as the picture. Stills 90 to 96 and clip 97 show it.
+2. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
    player's view for about two seconds, added up, before any prompt. Not built yet.
-2. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
+3. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
@@ -646,7 +728,7 @@ the Kings' Barrows' Unnamed are fact.
 | 6 | **Built.** Sleet and Ashfall, stopped by the bothy's roof | "rain"; "stop at a shelter height map" |
 | 7 | **Built.** The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
 | 8 | **Built.** The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
-| 9 | Dread as a value that changes the picture, tuned for this world | section 3 |
+| 9 | **Built.** Dread as a value that changes the picture, tuned for this world | section 3 |
 | 10 | This game's panel words, credits and creation | |
 | 11 | Death and succession | "death means something" |
 | 12 | Four players | D7 |
