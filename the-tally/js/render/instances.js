@@ -1,7 +1,7 @@
 // A preallocated instance batch. The hot path writes floats; it never creates an object
 // per sprite or per frame (design 23.1). Layout:
-// x, y, w, h, frame, r, g, b, a, flash.
-export const INSTANCE_FLOATS = 10;
+// x, y, w, h, frame, r, g, b, a, flash, angle.
+export const INSTANCE_FLOATS = 11;
 export const INSTANCE_BYTES = INSTANCE_FLOATS * 4;
 
 export function createInstanceBatch(capacity) {
@@ -13,7 +13,7 @@ export function createInstanceBatch(capacity) {
     begin() {
       batch.count = 0;
     },
-    push(x, y, w, h, frame, r, g, b, a = 1, flash = 0) {
+    push(x, y, w, h, frame, r, g, b, a = 1, flash = 0, angle = 0) {
       if (batch.count >= capacity) return false;
       const o = batch.count * INSTANCE_FLOATS;
       data[o] = x;
@@ -26,6 +26,7 @@ export function createInstanceBatch(capacity) {
       data[o + 7] = b;
       data[o + 8] = a;
       data[o + 9] = flash;
+      data[o + 10] = angle;
       batch.count++;
       return true;
     },
