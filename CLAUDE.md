@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`).
 
 ## The owner's rules
 
@@ -49,6 +49,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/lantern7.test.js --no-browser
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
+    node test/panel10.test.js --no-browser
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -62,6 +63,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
     NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node test/dread9.test.js
+    NODE_PATH=$(npm root -g) node test/panel10.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -72,6 +74,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled
@@ -107,6 +110,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/lantern7.js        Phase 7: the lantern in the left hand; its oil (G.flags.la_oil, la_flasks); its light (LIGHTING.lanternLight)
     js/building8.js       Phase 8: EAVES78.STYLES.la_ledge.plan, the highland planner; turf, the smoke hole, the owner's drystone
     js/dread9.js          Phase 9: dread (DREAD9.state().d, 0..1), a pure step(S, env, dt); its picture is pass 'la-dread' at order 88
+    js/panel10.js         Phase 10: creation (G.flags.la_bg, PANEL10.BACKGROUNDS), the HUD's buttons and words, the panels, the credits
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -177,6 +181,11 @@ Useful facts, all checked in this repository:
 - The Shattered Octave's own `js/dread.js` and opening film (`js/cinematic24.js`) are held off on this game, and their
   Options rows removed. Never call `DREAD.setOn` or save their settings: GitHub Pages serves this game and the Octave from
   one site, so they share a browser's storage.
+- Begin asks who walks north first (`#la-who`); `test/harness.js` picks the deserter. `HUD_BTNS` (js/game.js) is a const
+  array that `hudClick` reads: Phase 10 refills it in place. `js/panel10.js` wraps `drawHUD` last, so a test that puts an
+  earlier phase's inner `drawHUD` back must put this layer back too: `PANEL10.wrapHUD(inner)`.
+- The in-game credits are `VOICES.CREDIT_SECTIONS`, refilled in place by Phase 10. The engine's panels are opened by name
+  (`renderCharacter`, `renderInventory`, ...); wrap the global to replace one on this game's maps.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 

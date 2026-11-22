@@ -30,6 +30,8 @@ const SHOTS = [
     await page.waitForTimeout(1200);
     await page.screenshot({ path: path.join(out, '00_title.png') });
     at = 'begin'; await page.locator('#btn-new').first().dispatchEvent('click');
+    at = 'who'; await page.waitForSelector('#la-who', { timeout: 20000 });   // Phase 10's creation (its still: tools/panelshots.js)
+    await page.locator('#la-who [data-bg="deserter"]').first().dispatchEvent('click');
     await page.waitForFunction(() => G.state === 'intro' || G.state === 'play', null, { timeout: 20000 });
     await page.waitForTimeout(600); await page.screenshot({ path: path.join(out, '00_intro.png') });
     at = 'skip'; await page.locator('#btn-intro-skip').first().dispatchEvent('click');

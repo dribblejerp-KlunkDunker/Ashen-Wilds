@@ -43,6 +43,8 @@ jobs:
         run: node test/building8.test.js --no-browser
       - name: Phase 9, dread (no browser)
         run: node test/dread9.test.js --no-browser
+      - name: Phase 10, the panel and creation (no browser)
+        run: node test/panel10.test.js --no-browser
       - name: The highland materials look test (no browser)
         run: node test/highland-materials.test.js
       - name: The offline list and the icons are current
@@ -70,6 +72,7 @@ jobs:
           - { name: 'Phase 7, the lantern', test: lantern7 }
           - { name: 'Phase 8, highland building', test: building8 }
           - { name: 'Phase 9, dread', test: dread9 }
+          - { name: 'Phase 10, the panel and creation', test: panel10 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0

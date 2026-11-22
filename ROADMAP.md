@@ -634,6 +634,88 @@ are nothing at nought and grow with it; and the four lights, with a twin of the 
 | P79 | The picture: the colour drains (up to 65%) from all but the four lights, your lantern's reach and a room's hearth; the edges close toward black (up to 80%); the shadows deepen (up to 35%); the far country goes to shapes from 22 cells in to 10 | From "Black is the base colour" and "Four lights, never confused" |
 | P80 | At its height the closing breathes, about thirteen times a minute, never with Reduce motion or No flashes | |
 
+## Phase 10 - this game's panel words, credits and creation
+
+`js/panel10.js` · `test/panel10.test.js` · `tools/panelshots.js` · stills 100 to 107 in `docs/screenshots/`
+
+Until now the panel, its keys and the in-game credits were still the Shattered Octave's: CHAR, INV, SONG, NAMES and
+MURMUR, "Lv 1 · 12 sov.", a Voice bar, and the Octave's music, voices and paintings in the credits. And Begin dropped
+you on the ledge without asking who you are.
+
+What the lore gives, all searched first:
+- The design's *The company*: "There are no classes." "Backgrounds. The eight from Ashen Wilds carry over unchanged."
+  The default pair is "an old Watch deserter with a glim-marked blade, and a young causeway carter", sent north by
+  Gytha Marrin.
+- `godot-people.md`, part 2: each walk of life, and its card's knack, flaw and kit.
+- The atlas: the fen's money is salt.
+- `CREDITS.md`: this repository's own sources.
+
+What it does:
+- **Who walks north.** Begin asks first. The eight cards quote each walk of life word for word, with its knack and
+  flaw. The deserter is first, marked as the one Gytha sent. The cards' own pasts at the Causeway tower are not shown:
+  the novel fixes the nine who were there, and O11 rules the ledge's deserter is not one of them.
+- **What the choice does now:**
+  - It names you on the HUD (P81).
+  - It sets your health where the card gives a number: the deserter's old wound 90, the gutter-kin frail 75, the
+    carter hardy 120, as shares of the engine's health (P86).
+  - It quietens your steps: the gutter-kin's "a third less" is the engine's floor for quiet feet; the chapel cleaner's
+    "quieter steps" have no number on the card (P82).
+  - It is kept in `G.flags.la_bg`, so a save keeps it.
+- **The panel's words** (P84). YOU, PACK, BOOK, MAP, REST, FOLK, HELP, SAVE, LAMP, WEAPON, each in the engine's own box.
+  - YOU: your walk of life, knack, flaw and health.
+  - PACK: what is in your hands, worn and in the pack, the lantern's oil in words, and your salt.
+  - BOOK: the errand, dated "The thaw of S.30, day N".
+  - FOLK: Marget Sayle, Gytha Marrin and the carter, in Phase 1's words.
+  - HELP: this game's keys.
+  - The same keys open them: C, I, L, K, H. Tab, once the song-book, opens the pack. N, once the Murmur, and the LAMP
+    button light and douse the lantern. The Octave's songs sing nothing here.
+- **The HUD.** Its line reads "The waif · 12 salt": salt, not levels and sovereigns (P85). The song lines are not
+  drawn. The third bar, once the Octave's Voice, is the lantern's oil, in tallow.
+- **The credits** are this repository's, as `CREDITS.md` has them, and so is their first line. The engine's row no
+  longer claims all of `js/`: this repository's phase files have a row of their own. `CREDITS.md` had the same fault (it
+  named only fork0, art2 and ledge1 as this repository's) and is fixed.
+- **The panels keep the engine's names** (char, inv, log, ledger, help), so pressing C, I, L, K or H again closes them
+  as before; Tab closes the pack it opens.
+- No engine file was edited. It is not a picture effect, so there is no switch: off would only bring the Octave's
+  words back.
+- **An earlier phase's test changed.** `test/lantern7.test.js` compares its switched-off frame with the frame drawn with
+  its own wrappers taken out. Panel10 wraps the HUD last, so taking lantern7's layer out took this one out too. The test
+  now puts this phase's layer back (`PANEL10.wrapHUD`). `test/harness.js` and `tools/shots.js` pick the deserter when
+  creation asks.
+
+**Checked by the tests:** each walk of life is the lore's text word for word, and each knack, flaw and kit is its card's;
+the health and step numbers; the buttons fit their boxes and do not overlap; the HUD's line and what it drops; no Octave
+word and nothing but plain ASCII (the HUD's middle dot aside) in anything this phase writes; the credits. In a browser:
+- Begin shows the eight.
+- Choosing the gutter-kin names you "The waif", with a quarter less health and the quietest feet.
+- The buttons are this game's, and C, I, L, K, H and Tab open this game's panels, with none of the Octave's words.
+- N lights the lantern, the LAMP button douses it, and F1 sings nothing.
+- The HUD draws salt and the oil bar.
+- The credits are this repository's, and the choice is saved.
+- There are no page errors.
+
+**Not done:**
+- **The kit is still the engine's:** a short sword, throwing knives, a tanner's jerkin, boots and gloves, for every
+  walk of life. The cards' kits need the weapons, the targe, the torch and the rags.
+- **Most knacks and flaws do nothing yet.** Blocks, carry weight, dodges, stamina, poise, sight, hearing, bleeding,
+  bandaging and searching do not exist on this game's maps. The cards say what each will do.
+- **The other three things a person is** (a dependant, lungs, a word) are not asked.
+- **The carter**, your companion, is not a player you can choose separately, and is not yet in the world as a person.
+- **Three panels still carry Octave words:** the map's key (Quest giver, Shop, Boss), the Options line "The deserter,
+  level 1", and its "Mod dungeons" row.
+- How it reads to a player choosing on a real screen needs a person at the controls.
+
+### Proposed in Phase 10: [PROPOSED], awaiting a ruling
+
+| # | Invented | Note |
+| --- | --- | --- |
+| P81 | What the HUD calls each: the deserter, the carrier, the cleaner, the cutter, the waif, the hedge-priest, the healer, the causeway carter | From each card's own words |
+| P82 | The chapel cleaner's quieter steps are 0.4 quieter, half the gutter-kin's | The card gives no number |
+| P83 | Any of the eight may walk north beside the carter; the deserter stays the default | "Gytha Marrin sends two north ... a young carter from the Causeway, and one more" |
+| P84 | The panel's names (YOU, PACK, BOOK, FOLK, LAMP), N for the lantern, Tab for the pack, and the help's words | |
+| P85 | Salt counted in measures, and the engine's twelve sovereigns at the start become twelve measures | The fen's money is salt |
+| P86 | A card's health (on its 100) is a share of the engine's health: 90 is nine tenths | |
+
 ## A look test: the beasts, modelled
 
 `tools/look/beasts.js` · `tools/beastshots.js` · stills 20 to 27 in `docs/screenshots/`
@@ -709,9 +791,10 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
 
 1. **Phase 9's proposals, P71 to P80** (dread): the numbers, and whether dread should one day change sound or play
    as well as the picture. Stills 90 to 96 and clip 97 show it.
-2. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
+2. **Phase 10's proposals, P81 to P86** (creation and the panel). Stills 100 to 107 show them.
+3. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
    player's view for about two seconds, added up, before any prompt. Not built yet.
-3. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
+4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
@@ -729,7 +812,7 @@ the Kings' Barrows' Unnamed are fact.
 | 7 | **Built.** The lantern as the one light, in the left hand, with a supply, and what it draws | "one light with a limited supply" |
 | 8 | **Built.** The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 9 | **Built.** Dread as a value that changes the picture, tuned for this world | section 3 |
-| 10 | This game's panel words, credits and creation | |
+| 10 | **Built.** This game's panel words, credits and creation | "There are no classes"; the eight backgrounds |
 | 11 | Death and succession | "death means something" |
 | 12 | Four players | D7 |
 

@@ -5,7 +5,9 @@ source or a licence, this file says **unverified** and does not guess.
 
 ## The engine
 
-The code in `js/` other than `js/fork0.js`, `js/art2.js` and `js/ledge1.js`, and `css/`, `schemas/`,
+The code in `js/` other than this repository's phase files (`js/fork0.js`, `js/ledge1.js`, `js/art2.js`,
+`js/sun3.js`, `js/bloom4.js`, `js/door5.js`, `js/weather6.js`, `js/lantern7.js`, `js/building8.js`,
+`js/dread9.js`, `js/panel10.js`: one file a phase, written for this game), and `css/`, `schemas/`,
 `locales/`, `sw.js`, `tools/pwa/precache.js` and the layout of `index.html`, were copied on
 2026-11-11 from *Echoes of the Shattered Octave*
 (`github.com/dribblejerp-KlunkDunker/echoes-of-the-shattered-octave`, branch `phase-75-pixel-folk`,
