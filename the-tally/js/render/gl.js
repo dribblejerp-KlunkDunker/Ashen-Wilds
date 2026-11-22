@@ -8,6 +8,8 @@ import { INSTANCE_FLOATS, INSTANCE_BYTES, createInstanceBatch } from './instance
 const GROUND = [0.043, 0.055, 0.047];
 const WALL_TINT = [0.192, 0.220, 0.184];
 const GOBLIN_TINT = [0.275, 0.345, 0.227];
+const BLOOM_TINT = [0.30, 0.55, 0.50];
+const ORK_TINT = [0.46, 0.40, 0.30];
 const PLAYER_TINT = [0.914, 0.882, 0.788];
 const ACTOR_CAPACITY = 4096;
 const WALL_CAPACITY = 256;
@@ -22,7 +24,16 @@ const PARTICLE_TINTS = [
   [0.95, 0.58, 0.28],
   [0.72, 0.78, 0.66],
   [0.45, 0.62, 0.60],
+  [0.93, 0.88, 0.78],   // bone: the cut and the shield clank
 ];
+
+// The slice's three kinds share one atlas, one shader and one batch; only the cell, the tint
+// and the quad size differ. Every kind in data/enemies.js needs a style here.
+const KIND_STYLE = {
+  goblin: { frame: FRAMES.goblin, tint: GOBLIN_TINT, scale: 2.8 },
+  bloom: { frame: FRAMES.bloom, tint: BLOOM_TINT, scale: 3.0 },
+  ork: { frame: FRAMES.ork, tint: ORK_TINT, scale: 2.9 },
+};
 
 const VS = `#version 300 es
 layout(location = 0) in vec2 a_quad;
@@ -30,6 +41,7 @@ layout(location = 1) in vec4 a_instance;
 layout(location = 2) in float a_frame;
 layout(location = 3) in vec4 a_tint;
 layout(location = 4) in float a_flash;
+layout(location = 5) in float a_angle;
 
 uniform vec2 u_resolution;
 uniform vec2 u_camera;
@@ -41,7 +53,10 @@ out vec4 v_tint;
 out float v_flash;
 
 void main() {
-  vec2 world = a_instance.xy + a_quad * a_instance.zw;
+  float c = cos(a_angle);
+  float s = sin(a_angle);
+  vec2 corner = vec2(a_quad.x * c - a_quad.y * s, a_quad.x * s + a_quad.y * c);
+  vec2 world = a_instance.xy + corner * a_instance.zw;
   vec2 screen = (world - u_camera) * u_scale + u_resolution * 0.5;
   gl_Position = vec4(
     screen.x / u_resolution.x * 2.0 - 1.0,
@@ -228,6 +243,10 @@ export function createGlRenderer(canvas) {
     gl.vertexAttribPointer(4, 1, gl.FLOAT, false, INSTANCE_BYTES, 36);
     gl.vertexAttribDivisor(4, 1);
 
+    gl.enableVertexAttribArray(5);
+    gl.vertexAttribPointer(5, 1, gl.FLOAT, false, INSTANCE_BYTES, 40);
+    gl.vertexAttribDivisor(5, 1);
+
     gl.bindVertexArray(null);
     return vao;
   }
@@ -340,8 +359,9 @@ export function createGlRenderer(canvas) {
           continue;
         }
         const tint = PARTICLE_TINTS[particles.tint[i]];
+        const sparkAlpha = particles.alpha ? particles.alpha[i] : 0.85;
         particleBatch.push(x, y, size * 2, size * 2, FRAMES.spark,
-          tint[0], tint[1], tint[2], 0.85, 0);
+          tint[0], tint[1], tint[2], sparkAlpha, 0);
       }
     }
 
@@ -376,16 +396,22 @@ export function createGlRenderer(canvas) {
     const goblins = world.goblins;
     for (let i = 0; i < goblins.length; i++) {
       const g = goblins[i];
-      const half = g.radius * 1.4;
+      const style = KIND_STYLE[g.kind];
+      const shield = g.steering === 'shield';
+      // A rotated square reaches sqrt(2) further than its edge; keeps an ork at the screen
+      // edge from popping as its shield turns.
+      const half = shield ? g.radius * style.scale * 0.71 : g.radius * 1.4;
       const x = g.px + (g.x - g.px) * alpha;
       const y = g.py + (g.y - g.py) * alpha;
       if (x + half < viewX0 || x - half > viewX1 || y + half < viewY0 || y - half > viewY1) {
         culled++;
         continue;
       }
-      const size = g.radius * 2.8;
-      actorBatch.push(x, y, size, size, FRAMES.goblin,
-        GOBLIN_TINT[0], GOBLIN_TINT[1], GOBLIN_TINT[2], 1, 0);
+      const size = g.radius * style.scale;
+      // The atlas's ork plate is on the sprite's left; aim + PI turns that plate to g.aim.
+      const angle = shield ? g.aim + Math.PI : 0;
+      actorBatch.push(x, y, size, size, style.frame,
+        style.tint[0], style.tint[1], style.tint[2], 1, g.flash || 0, angle);
     }
 
     const p = world.player;

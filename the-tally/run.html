@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Tally - M3 vertical</title>
+<style>
+  :root {
+    --bone: #e9e1c9;
+    --ink: #0b0e0c;
+    --tallow: #f2c26b;
+    --dim: #8d8a7c;
+    --good: #a9d69a;
+    --bad: #e08b6a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); }
+  body { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  [hidden] { display: none !important; }
+
+  #hud { position: fixed; top: 14px; left: 16px; pointer-events: none; text-shadow: 0 1px 3px #000; }
+  .clock { display: flex; align-items: baseline; gap: 10px; }
+  .clock b { font-size: 26px; font-weight: 600; color: var(--tallow); letter-spacing: 0.02em; }
+  .clock span { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+  body.grey .clock span { color: #d8d5c6; }
+  .hp { width: 220px; height: 6px; margin: 6px 0 5px; background: rgba(233, 225, 201, 0.14); border-radius: 2px; overflow: hidden; }
+  #hp-fill { display: block; height: 100%; width: 100%; background: var(--good); transition: width 0.12s linear; }
+  #hp-fill.low { background: var(--bad); }
+  .stats { font-size: 11px; color: var(--dim); }
+
+  #grey {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.2s ease;
+    background: radial-gradient(circle at 50% 45%, rgba(214, 214, 200, 0.05), rgba(150, 150, 140, 0.22));
+  }
+  body.grey #grey { opacity: 1; }
+
+  #banner { position: fixed; top: 15%; left: 0; right: 0; text-align: center; pointer-events: none; text-shadow: 0 2px 12px #000; }
+  #banner b { display: block; font-size: 20px; letter-spacing: 0.3em; color: #d8d5c6; }
+  #banner span { font-size: 11px; letter-spacing: 0.18em; color: var(--dim); }
+
+  #keys { position: fixed; bottom: 12px; left: 16px; opacity: 0.42; pointer-events: none; font-size: 11px; }
+
+  #end { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(4, 6, 5, 0.72); padding: 24px; }
+  .leaf {
+    width: min(560px, 92vw); background: #e7dfc6; color: #1a1a17;
+    border-radius: 3px; padding: 26px 28px 20px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  .leaf h1 { margin: 0 0 6px; font: 600 24px/1.2 Georgia, serif; letter-spacing: 0.01em; }
+  .leaf p { margin: 0 0 10px; font-size: 13px; }
+  .leaf .dim { opacity: 0.6; font-size: 11px; }
+  #end-report { display: grid; grid-template-columns: auto 1fr; gap: 3px 16px; margin: 0 0 10px; }
+  #end-report div { display: contents; }
+  #end-report dt { color: rgba(26, 26, 23, 0.55); }
+  #end-report dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .buttons { display: flex; gap: 8px; margin-top: 4px; }
+  .leaf button {
+    font: inherit; padding: 8px 14px; background: #1a1a17; color: #e7dfc6;
+    border: 0; border-radius: 2px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="grey"></div>
+
+<div id="hud">
+  <div class="clock"><b id="time">5:00</b><span id="phase">Night</span></div>
+  <div class="hp"><span id="hp-fill"></span></div>
+  <div class="stats"><span id="hp">120 / 120</span> health &middot; <span id="kills">0</span> kills &middot; seed <span id="seed">--</span> &middot; <span id="fps">--</span> fps</div>
+</div>
+
+<div id="banner" hidden><b>THE GREY HOUR</b><span>the ash goes pale</span></div>
+<div id="keys">WASD / arrows walk &middot; Space the Watch Step &middot; R run again</div>
+
+<div id="end" hidden>
+  <div class="leaf">
+    <h1 id="end-title">Held</h1>
+    <p id="end-line"></p>
+    <dl id="end-report">
+      <div><dt>Survived</dt><dd id="r-time">--</dd></div>
+      <div><dt>Ended in</dt><dd id="r-phase">--</dd></div>
+      <div><dt>Kills</dt><dd id="r-kills">--</dd></div>
+      <div><dt>Damage taken</dt><dd id="r-damage">--</dd></div>
+      <div><dt>Seed</dt><dd id="r-seed">--</dd></div>
+    </dl>
+    <p id="report-note" class="dim">The JSON carries the same report, with the commit when the page is opened with one.</p>
+    <div class="buttons">
+      <button id="download">Download JSON</button>
+      <button id="restart">Run again (R)</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { createGame } from './js/game.js';
+  import { createRun, stepRun, buildRunReport, RUN } from './js/sim/run.js';
+
+  const canvas = document.getElementById('game');
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const seedRaw = Number.parseInt(params.get('seed'), 10);
+  const seed = Number.isFinite(seedRaw) ? seedRaw >>> 0 : undefined;
+
+  let run = null;
+  let game = null;
+  let finished = false;
+
+  function clock(seconds) {
+    const left = Math.max(0, Math.ceil(seconds));
+    return Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  }
+
+  function byKind(run) {
+    return run.byKind.goblin + ' goblin, ' + run.byKind.bloom + ' bloom, ' + run.byKind.ork + ' ork';
+  }
+
+  function showEnd(run) {
+    const at = clock(run.t);
+    let title = 'The dead';
+    let line = 'The night took you at ' + at + '.';
+    if (run.result === 'held') {
+      title = 'Held';
+      line = 'The line held until first light.';
+    } else if (run.result === 'fell') {
+      title = 'Held, and fell at first light';
+      line = 'The Grey Hour took you at ' + at + '. The line held, and fell at first light.';
+    }
+    $('end-title').textContent = title;
+    $('end-line').textContent = line;
+    $('r-time').textContent = clock(run.t);
+    $('r-phase').textContent = run.grey ? 'The Grey Hour' : 'Night';
+    $('r-kills').textContent = run.kills + ' (' + byKind(run) + ')';
+    $('r-damage').textContent = String(run.damageTaken);
+    $('r-seed').textContent = String(run.seed);
+    $('end').hidden = false;
+  }
+
+  function downloadReport() {
+    const report = buildRunReport(run, {
+      capturedAt: new Date().toISOString(),
+      url: location.href,
+      commit: params.get('commit') || null,
+    });
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const stamp = report.capturedAt.replace(/[-:]/g, '').replace(/\..*/, '');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'the-tally-vertical-' + report.result + '-' + report.seed + '-' + stamp + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function update(world, info) {
+    if (!run) return;
+    const p = world.player;
+    $('time').textContent = clock(RUN.length - run.t);
+    $('phase').textContent = run.grey ? 'The Grey Hour' : 'Night';
+    $('hp').textContent = Math.ceil(p.hp) + ' / ' + p.maxHp;
+    $('hp-fill').style.width = Math.max(0, (p.hp / p.maxHp) * 100) + '%';
+    $('hp-fill').classList.toggle('low', p.hp <= 30);
+    $('kills').textContent = String(run.kills);
+    $('fps').textContent = info.fps ? info.fps.toFixed(0) : '--';
+
+    if (run.grey && !document.body.classList.contains('grey')) {
+      document.body.classList.add('grey');
+      $('banner').hidden = false;
+    }
+    if (run.ended && !finished) {
+      finished = true;
+      game.loop.stop();
+      showEnd(run);
+    }
+  }
+
+  function boot() {
+    try {
+      game = createGame(canvas, {
+        renderer: 'webgl',
+        goblins: 0,
+        dummies: false,
+        embers: false,
+        dpr: 2,
+        quality: 1,
+        reset: false,
+        perfect: false,
+        onWorld(world) { run = createRun(world, { seed }); },
+        stepSim(world, intent, dt) { stepRun(run, intent, dt); },
+        onFrame(world, info) { update(world, info); },
+      });
+      game.start();
+      $('seed').textContent = String(run.seed);
+      window.tally = game;
+      window.tallyRun = run;
+    } catch (err) {
+      $('end-title').textContent = 'The Tally needs WebGL2';
+      $('end-line').textContent = err && err.message ? err.message : String(err);
+      $('end-report').hidden = true;
+      $('report-note').hidden = true;
+      $('download').hidden = true;
+      $('restart').hidden = true;
+      $('end').hidden = false;
+    }
+  }
+
+  $('download').addEventListener('click', downloadReport);
+  $('restart').addEventListener('click', () => location.reload());
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyR') location.reload();
+  });
+
+  boot();
+</script>
+</body>
+</html>

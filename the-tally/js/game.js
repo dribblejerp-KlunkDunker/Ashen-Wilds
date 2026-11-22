@@ -38,6 +38,7 @@ export function createGame(canvas, opts = {}) {
     goblins: opts.goblins === undefined ? 3 : opts.goblins,
     dummies: opts.dummies !== false,
   });
+  if (opts.onWorld) opts.onWorld(world);
   const input = createInput(canvas);
   const page = createPage(document.getElementById('page'), () => { world.page = false; });
 
@@ -95,8 +96,10 @@ export function createGame(canvas, opts = {}) {
   }
 
   input.onKey((code) => {
-    if (code === 'KeyR') resetWorld(world);
-    if (code === 'KeyF') perfectStep();
+    if (code === 'KeyR' && opts.reset !== false) resetWorld(world);
+    // The feel pages fire the perfect step by hand; a page with no condition for it opts out,
+    // so an accidental F cannot slow the run.
+    if (code === 'KeyF' && opts.perfect !== false) perfectStep();
   });
 
   const loop = createLoop({
@@ -108,7 +111,10 @@ export function createGame(canvas, opts = {}) {
 
       const before = Math.hypot(world.player.vx, world.player.vy);
       const stepStart = performance.now();
-      stepWorld(world, intent, dt);
+      // The page may own the step (the M3 vertical adds combat and a director around it); the
+      // default is still the bare M1/M2 world.
+      if (opts.stepSim) opts.stepSim(world, intent, dt);
+      else stepWorld(world, intent, dt);
       // Extra load steps inside the timed region, so the simulation gate measures it too.
       if (opts.stepExtras) opts.stepExtras(world, dt);
       const stepMs = performance.now() - stepStart;
