@@ -48,6 +48,23 @@ jobs:
           node tools/pwa/precache.js --check
           node tools/icons.js --check
 
+  # The Tally was outside this workflow until M2, so its PRs were green on checks that never loaded
+  # a Tally file. This job is the no-browser half of its tests: everything parses, and the suite passes.
+  tally:
+    name: The Tally, syntax and unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+      - name: Every Tally script parses
+        run: find the-tally/js the-tally/tests -name '*.js' -print0 | xargs -0 -r -n1 node --check
+      - name: The Tally unit tests (no browser)
+        working-directory: the-tally
+        run: node tests/unit.js
+
   # One job per phase, run side by side: the whole set ran past 15 minutes in one job once Phase 6 came
   # (a slow runner took 5 minutes over Phase 4 alone). Each phase keeps its own 15 minute limit.
   phase:

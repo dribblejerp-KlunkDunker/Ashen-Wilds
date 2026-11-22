@@ -3,141 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Tally - M1 stress</title>
+<title>The Tally - M2 stress</title>
 <style>
-  :root { --bone: #e9e1c9; --ink: #0b0e0c; --tallow: #f2c26b; --dim: #8d8a7c; }
+  :root { --bone: #e9e1c9; --ink: #0b0e0c; --tallow: #f2c26b; --dim: #8d8a7c; --good: #a9d69a; --bad: #e08b6a; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); }
-  body { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; }
+  body { font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; }
   canvas#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
   #hud {
-    position: fixed; top: 12px; left: 14px; padding: 10px 12px;
-    background: rgba(8, 11, 9, 0.78); border: 1px solid rgba(233, 225, 201, 0.12);
-    border-radius: 3px; pointer-events: none; min-width: 300px;
+    position: fixed; top: 12px; left: 14px; width: 404px; max-width: calc(100vw - 28px);
+    max-height: calc(100vh - 28px); overflow-y: auto;
+    padding: 12px 14px; background: rgba(8, 11, 9, 0.82);
+    border: 1px solid rgba(233, 225, 201, 0.12); border-radius: 4px;
   }
-  #hud b { color: var(--tallow); font-weight: 600; }
-  #hud .row { display: flex; gap: 14px; }
-  #hud .k { color: var(--dim); }
+  #hud .title { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+  #hud .badge {
+    margin-left: 6px; padding: 1px 5px; border: 1px solid rgba(242, 194, 107, 0.4);
+    border-radius: 2px; color: var(--tallow); letter-spacing: 0.06em; text-transform: none;
+  }
+  #hud .sub { margin-top: 3px; color: var(--dim); }
+  #progress { height: 3px; margin: 9px 0 8px; background: rgba(233, 225, 201, 0.1); border-radius: 2px; overflow: hidden; }
+  #fill { width: 0%; height: 100%; background: var(--tallow); transition: width 0.1s linear; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 2px 0; text-align: left; font-weight: 400; }
+  th { width: 45%; color: var(--dim); padding-right: 8px; }
+  td.target { width: 25%; color: var(--dim); }
+  td.now { width: 30%; color: var(--tallow); }
+  tr.good td.now { color: var(--good); }
+  tr.bad td.now { color: var(--bad); }
+  #gpu { margin-top: 7px; color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #result { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(233, 225, 201, 0.12); }
+  #summary { color: var(--tallow); margin-bottom: 4px; }
+  #gates { color: var(--dim); font-size: 11px; }
+  #gates .ok { color: var(--good); }
+  #gates .bad { color: var(--bad); }
+  #actions { position: fixed; top: 12px; right: 14px; display: flex; gap: 8px; z-index: 3; }
+  button {
+    padding: 7px 10px; border: 1px solid rgba(233, 225, 201, 0.22); border-radius: 3px;
+    background: rgba(8, 11, 9, 0.82); color: var(--bone); font: inherit; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--tallow); color: var(--tallow); }
+  button:disabled { opacity: 0.4; cursor: default; }
   #graph {
     position: fixed; right: 14px; bottom: 14px; width: 360px; height: 96px;
-    background: rgba(8, 11, 9, 0.78); border: 1px solid rgba(233, 225, 201, 0.12);
-    border-radius: 3px; pointer-events: none;
-  }
-  #note {
-    position: fixed; left: 14px; bottom: 14px; max-width: 52ch; opacity: 0.45;
+    background: rgba(8, 11, 9, 0.82); border: 1px solid rgba(233, 225, 201, 0.12); border-radius: 3px;
     pointer-events: none;
   }
+  #note {
+    position: fixed; right: 14px; bottom: 122px; max-width: 46ch; text-align: right;
+    opacity: 0.42; pointer-events: none;
+  }
+  /* Narrow windows put the panel and the note in the same place; the panel is what matters. */
+  @media (max-width: 900px) { #note { display: none; } }
+  #error {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(540px, calc(100vw - 40px)); padding: 18px 20px; background: rgba(8, 11, 9, 0.96);
+    border: 1px solid rgba(224, 139, 106, 0.5); border-radius: 4px; pointer-events: auto;
+  }
+  #error b { color: var(--bad); }
+  #error p { color: var(--bone); overflow-wrap: anywhere; }
+  a { color: var(--tallow); }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 
 <div id="hud">
-  <div><b>M1 stress</b> &middot; <span id="n">0</span> goblins</div>
-  <div class="row"><span><span class="k">fps</span> <span id="fps">--</span></span>
-    <span><span class="k">avg</span> <span id="avg">--</span> ms</span>
-    <span><span class="k">p95</span> <span id="p95">--</span> ms</span></div>
+  <div class="title">M2 stress <span id="mode" class="badge">webgl2</span></div>
+  <div class="sub"><span id="count">0</span> goblins &middot; seed <span id="seed">0</span> &middot; <span id="phase">starting</span></div>
+  <div id="progress"><div id="fill"></div></div>
+  <table>
+    <tr><th>Frame mean</th><td class="target">--</td><td class="now" id="m-mean">--</td></tr>
+    <tr><th>Frame p95 (budget)</th><td class="target">&lt;= 16.7 ms</td><td class="now" id="m-p95">--</td></tr>
+    <tr><th>Frames over 20 ms</th><td class="target">&lt; 1%</td><td class="now" id="m-over">--</td></tr>
+    <tr><th>Mean frame rate</th><td class="target">&gt;= 59 fps</td><td class="now" id="m-fps">--</td></tr>
+    <tr><th>Step p95</th><td class="target">&lt;= 4 ms</td><td class="now" id="m-sim">--</td></tr>
+    <tr><th>Sim rate</th><td class="target">&gt;= 119 /s</td><td class="now" id="m-rate">--</td></tr>
+    <tr><th>GPU p95</th><td class="target">&lt;= 16.7 ms</td><td class="now" id="m-gpu">--</td></tr>
+    <tr><th>Render scale</th><td class="target">auto</td><td class="now" id="m-scale">--</td></tr>
+    <tr><th>Submit p95 (CPU)</th><td class="target">&lt;= 6 ms</td><td class="now" id="m-submit">--</td></tr>
+    <tr><th>Draw calls</th><td class="target" id="m-draws-target">--</td><td class="now" id="m-draws">--</td></tr>
+    <tr><th>Instances</th><td class="target">--</td><td class="now" id="m-instances">--</td></tr>
+    <tr><th>Scene load</th><td class="target" id="m-scene-target">--</td><td class="now" id="m-scene">--</td></tr>
+  </table>
+  <div id="gpu">GPU: detecting</div>
+  <div id="result" hidden>
+    <div id="summary"></div>
+    <div id="gates"></div>
+  </div>
+</div>
+
+<div id="actions">
+  <button id="download" disabled>Download JSON</button>
+  <button id="rerun">Rerun</button>
 </div>
 
 <canvas id="graph" width="360" height="96"></canvas>
 
 <div id="note">
-  Minimal M1 stress: Canvas 2D, one goblin type, no projectiles. The M2 target-count scene is
-  separate. WASD / arrows walk &middot; Space step &middot; R recenter &middot; reload with
-  <code>?n=1000</code> to change the horde.
+  The frame budget is the render gate; GPU p95 is a real timer breakdown only when the browser
+  exposes EXT_disjoint_timer_query_webgl2, and is never CPU submission time. The buffer is capped at
+  1080p worth of pixels and may shrink to 60% to hold the frame; the scale row and the report record
+  what was drawn. ?mode=horde runs the 1,500-goblin baseline. Add ?dpr=1 and ?quality=1 to compare
+  machines at a pinned buffer. Only three 60 s runs on the target Chromebook are the gate. Keep
+  this tab focused and visible.
 </div>
 
-<script type="module">
-  import { createGame, spawnGoblin } from '../js/game.js';
-  import { TILE } from '../js/sim/tuning.js';
+<div id="error" hidden>
+  <b>Stress scene did not start.</b>
+  <p id="error-text"></p>
+  <a id="canvas-link" href="#">Try the Canvas 2D baseline</a>
+</div>
 
-  const canvas = document.getElementById('game');
-  const graph = document.getElementById('graph');
-  const gctx = graph.getContext('2d');
-  const $ = (id) => document.getElementById(id);
-
-  const params = new URLSearchParams(location.search);
-  const asked = Number.parseInt(params.get('n') || '300', 10);
-  const count = Number.isFinite(asked) ? Math.max(0, Math.min(2000, asked)) : 300;
-
-  const samples = [];
-  const MAX_SAMPLES = 180;
-  let lastFrame = 0;
-  let tick = 0;
-
-  function drawGraph() {
-    const w = graph.width;
-    const h = graph.height;
-    gctx.clearRect(0, 0, w, h);
-    gctx.fillStyle = '#080b09';
-    gctx.fillRect(0, 0, w, h);
-
-    gctx.font = '10px ui-monospace, monospace';
-    for (const ms of [16.7, 33.3, 50]) {
-      const y = h - (ms / 50) * h;
-      gctx.strokeStyle = ms === 16.7 ? 'rgba(169, 214, 154, 0.35)' : 'rgba(233, 225, 201, 0.14)';
-      gctx.lineWidth = 1;
-      gctx.beginPath();
-      gctx.moveTo(0, y);
-      gctx.lineTo(w, y);
-      gctx.stroke();
-      gctx.fillStyle = 'rgba(141, 138, 124, 0.7)';
-      gctx.fillText(ms.toFixed(1), 4, Math.max(9, y - 2));
-    }
-
-    if (samples.length < 2) return;
-    gctx.strokeStyle = '#f2c26b';
-    gctx.lineWidth = 1.5;
-    gctx.beginPath();
-    for (let i = 0; i < samples.length; i++) {
-      const x = (i / (MAX_SAMPLES - 1)) * w;
-      const y = h - Math.min(1, samples[i] / 50) * h;
-      if (i === 0) gctx.moveTo(x, y);
-      else gctx.lineTo(x, y);
-    }
-    gctx.stroke();
-  }
-
-  function updateHud(fps) {
-    const n = samples.length;
-    if (!n) return;
-    const avg = samples.reduce((s, v) => s + v, 0) / n;
-    const sorted = [...samples].sort((a, b) => a - b);
-    const p95 = sorted[Math.min(n - 1, Math.floor(n * 0.95))];
-    $('fps').textContent = fps ? fps.toFixed(0) : '--';
-    $('avg').textContent = avg.toFixed(1);
-    $('p95').textContent = p95.toFixed(1);
-  }
-
-  const game = createGame(canvas, {
-    goblins: 0,
-    dummies: false,
-    embers: false,
-    onFrame(world, { fps }) {
-      const now = performance.now();
-      if (lastFrame) {
-        samples.push(now - lastFrame);
-        if (samples.length > MAX_SAMPLES) samples.shift();
-      }
-      lastFrame = now;
-      tick++;
-      if (tick % 6 === 0) updateHud(fps);
-      drawGraph();
-    },
-  });
-
-  const p = game.world.player;
-  for (let i = 0; i < count; i++) {
-    const angle = i * 2.399963229728653;                    // golden angle, even spread
-    const radius = (3 + 12 * Math.sqrt((i + 0.5) / Math.max(1, count))) * TILE;
-    const x = Math.max(TILE + 20, Math.min(39 * TILE - 20, p.x + Math.cos(angle) * radius));
-    const y = Math.max(TILE + 20, Math.min(23 * TILE - 20, p.y + Math.sin(angle) * radius));
-    spawnGoblin(game.world, x, y);
-  }
-  $('n').textContent = String(count);
-
-  game.start();
-  window.tally = game;
-</script>
+<script type="module" src="./stress.js"></script>
 </body>
 </html>

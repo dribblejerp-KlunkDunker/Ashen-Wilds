@@ -1,5 +1,6 @@
-// M1 renderer. Canvas 2D on purpose: the WebGL2 instancer is M2, and the feel gate does not
-// need it. Draw order follows design 4: ground, ground effects, pickups, enemies, player, UI.
+// The Canvas 2D baseline. The feel gate uses it, and the stress page can run it with
+// ?renderer=canvas as the before-WebGL reference; the M2 path is render/gl.js.
+// Draw order follows design 4: ground, ground effects, pickups, enemies, player, UI.
 
 import { TILE, VIEW, MOVE, EMBER, MAX_SPEED_PX } from '../sim/tuning.js';
 
@@ -34,6 +35,7 @@ export function draw(ctx, canvas, world, alpha) {
   ctx.setTransform(s, 0, 0, s, canvas.width / 2 - camX * s, canvas.height / 2 - camY * s);
 
   drawGround(ctx, canvas, s, camX, camY);
+  drawParticles(ctx, world);
   drawWalls(ctx, world);
   drawEmbers(ctx, world, alpha);
 
@@ -45,6 +47,8 @@ export function draw(ctx, canvas, world, alpha) {
     drawGoblin(ctx, lerp(g.px, g.x, alpha), lerp(g.py, g.y, alpha), g, px, py);
   }
   drawPlayer(ctx, p, px, py);
+  drawShots(ctx, world.fx);
+  drawLights(ctx, world.fx);
 
   if (world.flash > 0) {
     ctx.save();
@@ -100,6 +104,68 @@ function drawEmbers(ctx, world, alpha) {
     ctx.arc(x, y, hot ? EMBER.radius : 4, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  const fx = world.fx;
+  if (!fx || !fx.embers) return;
+  const pool = fx.embers;
+  ctx.fillStyle = COL.ember;
+  for (let i = 0; i < pool.count; i++) {
+    ctx.beginPath();
+    ctx.arc(pool.x[i], pool.y[i], 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// The stress scene's ground effects. Flat squares on purpose: the Canvas path is the reference,
+// not the picture, and per-particle gradients would measure the wrong thing.
+function drawParticles(ctx, world) {
+  const fx = world.fx;
+  if (!fx || !fx.particles) return;
+  const pool = fx.particles;
+  ctx.globalAlpha = 0.8;
+  for (let i = 0; i < pool.count; i++) {
+    const tint = pool.tint[i];
+    ctx.fillStyle = tint === 0 ? COL.ember : tint === 1 ? '#b9c3a8' : '#7fa3a0';
+    const size = pool.size[i];
+    ctx.fillRect(pool.x[i] - size, pool.y[i] - size, size * 2, size * 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawShots(ctx, fx) {
+  if (!fx || !fx.shots) return;
+  const shots = fx.shots;
+  for (let i = 0; i < shots.count; i++) {
+    const player = shots.kind[i] === 0;
+    ctx.fillStyle = player ? '#f2c26b' : '#9ec9d8';
+    ctx.beginPath();
+    ctx.arc(shots.x[i], shots.y[i], player ? 5 : 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// The light pass, additively. Thirty radial gradients is what the Canvas reference costs; the
+// WebGL path draws the same falloff from one atlas frame.
+function drawLights(ctx, fx) {
+  if (!fx || !fx.lights) return;
+  const lights = fx.lights;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < lights.count; i++) {
+    const x = lights.x[i];
+    const y = lights.y[i];
+    const r = lights.radius[i];
+    const tint = 'rgba(' + Math.round(lights.r[i] * 255) + ',' + Math.round(lights.g[i] * 255)
+      + ',' + Math.round(lights.b[i] * 255) + ',';
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, r);
+    glow.addColorStop(0, tint + lights.intensity[i].toFixed(3) + ')');
+    glow.addColorStop(1, tint + '0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawGoblin(ctx, x, y, g, px, py) {
