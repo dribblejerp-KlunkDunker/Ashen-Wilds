@@ -42,7 +42,7 @@ From source there is nothing to build or install. Serve the folder and open it:
 | Esc | Controls and Options |
 
 Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
-the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern, highland building.
+the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern, highland building, the chill.
 
 ## What is in the build
 
@@ -77,6 +77,10 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
   you bar the door: barred, the bloom leans on it once and goes away; left open, it comes in.
 - **Two people who can be spoken to:** the carter on the ledge, and Marget Sayle. Both are painted
   in code and move on the engine's rig.
+- **The warning book's beasts page.** The book's seventeen entries, with the book's own senses and
+  the exact quarry-troll and bloom distances, open from the book under The beasts.
+- **The chill.** A warmth pool you lose in sleet and at night and get back at the bothy's lit
+  hearth. Below half your hands slow; at zero you cannot run or fight. Options > The chill.
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
   code here.
 

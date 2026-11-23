@@ -7,7 +7,9 @@
 //    "A walking bloom is recognisable at a distance by the caps along its shoulders and scalp, its slow, swaying
 //     shamble, and a crust so thick over the eyes that it barely sees."
 //    "shambles at 1.9 m/s (slower than you walk), sees 8 m in a 120 degree cone, hears a sprint or a swing within
-//     8 m (scaled by your noise), claws for 16 and two seconds of choking."
+//     8 m (scaled by your noise), claws for 32 and two seconds of choking. (The bible's 16 is the Godot game's number,
+//     on its classes of about 43 health; this game's cards are on the 100 scale (Phase 10), so the blow is doubled to
+//     keep the same share of a walk of life's health: three claws kill the deserter, as 43 health died to three of 16.)"
 //
 //  HOW IT HUNTS
 //    It stands at its post and sways. It hears by the engine's own noise value: standing and walking are under its
@@ -45,7 +47,7 @@ const BLOOM4 = (() => {
     hearPer: 8 / (4.2 - 3.0),                          // so that a run is heard at 8 m
     see: 8, seeCone: Math.PI * 2 / 3,                  // 8 m, 120 degrees, and only what moves
     litSee: 1.5,                                       // a lantern burning in the dark: seen standing still, and 12 m off (Phase 7)
-    reach: 0.62, claw: 16, windup: 0.7, rest: 1.5, choke: 2,
+    reach: 0.62, claw: 32, windup: 0.7, rest: 1.5, choke: 2,   // 32: the bible's 16 doubled for the cards' 100 scale (P88)
     turn: 0.8, listen: 7, waitFor: 22, giveUp: 14, radius: 0.26, stride: 3.4,
   };
   const hearRange = (noise) => Math.max(0, (noise - R.hearAt) * R.hearPer);
@@ -55,7 +57,7 @@ const BLOOM4 = (() => {
     if (!moving && !lit) return false; const dx = px - S.x, dy = py - S.y, d = Math.hypot(dx, dy); if (d > R.see * (k == null ? 1 : k) * (lit ? R.litSee : 1) || d < 1e-6) return false;
     let a = Math.atan2(dy, dx) - S.yaw; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.abs(a) <= R.seeCone / 2;
   }
-  const fresh = () => ({ map: 'la_ledge', x: R.post.x, y: R.post.y, yaw: R.post.yaw, state: 'post', t: 0, tx: R.post.x, ty: R.post.y, phase: 0, walk: 0, reach: 0, alert: 0, heard: 0, clawed: 0, choke: 0 });
+  const fresh = () => ({ map: 'la_ledge', x: R.post.x, y: R.post.y, yaw: R.post.yaw, state: 'post', t: 0, tx: R.post.x, ty: R.post.y, phase: 0, walk: 0, reach: 0, alert: 0, heard: 0, clawed: 0, choke: 0, atDoor: 0 });
   // One step of its mind and body. env: { px, py, noise, moving, here (the player is on this map), blocked(x, y), ground(x, y) }.
   // Returns what happened this step: { heard, claw } (for messages and for hurting the player).
   function think(S, env, dt) {
@@ -68,7 +70,7 @@ const BLOOM4 = (() => {
     if (aware && S.state !== 'claw') { S.tx = env.px; S.ty = env.py; if (S.state === 'post' || S.state === 'back' || S.state === 'listen' || S.state === 'wait') { go('turn'); ev.heard = true; S.heard++; } }
     // you have gone out of its map. With no door known it makes for its waiting place (Phase 4); with a door (Phase 5)
     // it follows to the door you went through, and what happens there is the door's business (ev.door)
-    if (!env.here && (S.state === 'come' || S.state === 'turn' || S.state === 'claw')) { if (env.door) { S.tx = env.door.x; S.ty = env.door.y; go('toDoor'); } else { S.tx = R.wait.x; S.ty = R.wait.y; go('toWait'); } }
+    if (!env.here && (S.state === 'come' || S.state === 'turn' || S.state === 'claw')) { if (env.door) { S.tx = env.door.x; S.ty = env.door.y; S.atDoor = 0; go('toDoor'); } else { S.tx = R.wait.x; S.ty = R.wait.y; go('toWait'); } }
     const home = env.home || R.post;
     let moveTo = null;
     if (S.state === 'post') { face(S.x + Math.cos(R.post.yaw), S.y + Math.sin(R.post.yaw), 0.6); }
@@ -80,7 +82,16 @@ const BLOOM4 = (() => {
       if (S.t >= R.windup && !S._hit) { S._hit = true; if (env.here && d <= R.reach + 0.2) { ev.claw = true; S.clawed++; } }
       if (S.t >= R.windup + R.rest) { S._hit = false; S.tx = env.px; S.ty = env.py; go(env.here && d <= R.reach ? 'claw' : 'listen'); }
     } else if (S.state === 'listen') { if (S.t >= R.listen) { S.tx = home.x; S.ty = home.y; go('back'); } }
-    else if (S.state === 'toDoor') { if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.35) ev.door = true; else if (S.t > R.giveUp) go('listen'); else moveTo = [S.tx, S.ty]; }
+    else if (S.state === 'toDoor') {
+      // At the door it stands a moment before it tries it (a door may set "pause" in its entry). A player who has just
+      // come in is reading the room, not the test: without the stand it was inside before a hand found the bar, and a
+      // barred door never got its one knock.
+      if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.35) {
+        S.atDoor += dt;
+        if (S.atDoor >= (env.doorPause || 0)) ev.door = true;
+      } else if (S.t > R.giveUp) go('listen');
+      else moveTo = [S.tx, S.ty];
+    }
     else if (S.state === 'toWait') { if (env.here) go('listen'); else if (Math.hypot(S.tx - S.x, S.ty - S.y) < 0.3) go('wait'); else moveTo = [S.tx, S.ty]; }
     else if (S.state === 'wait') { if (S.t >= R.waitFor) { S.tx = home.x; S.ty = home.y; go('back'); } }
     else if (S.state === 'back') {
@@ -390,8 +401,9 @@ void main() {
   // ---------------------------------------------------------------- in the game
   // It lives on one map at a time (S.map). DOORS lists the doors it can go through, filled by a later phase
   // (js/door5.js): { from, at: {x, y} (where it stands to use the door), to, out: {x, y, yaw} (where it comes out),
-  // barred() (is the way shut), onBarred(S) (what happens when it finds it shut), waitAt: {x, y} }. With none, it
-  // waits off the bothy's door as Phase 4 made it.
+  // barred() (is the way shut), onBarred(S) (what happens when it finds it shut), waitAt: {x, y}, pause (seconds it
+  // stands at the door before it tries it; 0 when not given) }. With none, it waits off the bothy's door as Phase 4
+  // made it.
   const DOORS = [], ents = {};
   // what the air does to its senses on a map: a later phase (js/weather6.js) replaces this
   let senses = () => ({ hear: 1, see: 1 });
@@ -420,7 +432,7 @@ void main() {
     const m = G.maps[S.map], c = Engine.cam, here = G.map === m, moving = here && Math.hypot(c.x - last.x, c.y - last.y) > dt * 0.4; last = { x: c.x, y: c.y };
     const door = doorFrom(S.map), homeIsDoor = S.map !== L1.LEDGE && !!door;
     const sk = senses(S.map);
-    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, home: homeIsDoor ? door.at : R.post, homeIsDoor, lit: here ? light(S.map) : 0 };
+    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, doorPause: door ? Math.max(0, +door.pause || 0) : 0, home: homeIsDoor ? door.at : R.post, homeIsDoor, lit: here ? light(S.map) : 0 };
     const ev = S.held ? { heard: false, claw: false, door: false } : think(S, env, Math.min(dt, 0.1));
     if (ev.door && door) through(door);
     if (ev.heard && G.time - saidHeard > 12) { saidHeard = G.time; msg(S.map === L1.LEDGE ? TX.heard : TX.heardIn, 'bad', 3500); }
@@ -450,6 +462,14 @@ void main() {
     const _bm = buildAllMaps; buildAllMaps = function () { const maps = _bm.apply(this, arguments); try { for (const k in ents) delete ents[k]; addMap(maps && maps[L1.LEDGE]); reset(); } catch (e) { /* the ledge stands without it */ } return maps; };
     const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { tick(dt); } catch (e) { if (!GLS.tickErr) { GLS.tickErr = String(e && e.message); } } return r; };
     return true;
+  }
+  // Waking by the lamp. The engine's wake puts its own chasers back where they started (#btn-wake, js/game.js); this one is
+  // not an engine entity, so it is put back here. Without it, a player it has killed wakes at the ledge's spawn with it
+  // still hunting, and it kills them again before they can move. Wired here rather than in the copied engine. A hardcore
+  // run has no wake to hear: the engine hides the button and its own handler refuses.
+  if (typeof document !== 'undefined') {
+    const wake = document.getElementById('btn-wake');
+    if (wake) wake.addEventListener('click', reset);
   }
   const wired = wire();
   return { R, TX, B, NB, STRIDE, hearRange, hears, sees, fresh, think, rig, sculpt: getMesh, paintFlat, state: () => S, reset, pose, modelled, entity: (id) => ents[id || L1.LEDGE], addMap, DOORS, setSenses: (fn) => { senses = fn; }, setLight: (fn) => { light = fn; }, gl: () => GLS, pass, wired };

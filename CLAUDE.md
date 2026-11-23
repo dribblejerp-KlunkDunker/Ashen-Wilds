@@ -50,6 +50,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
     node test/panel10.test.js --no-browser
+    node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
 
@@ -111,6 +112,28 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/building8.js       Phase 8: EAVES78.STYLES.la_ledge.plan, the highland planner; turf, the smoke hole, the owner's drystone
     js/dread9.js          Phase 9: dread (DREAD9.state().d, 0..1), a pure step(S, env, dt); its picture is pass 'la-dread' at order 88
     js/panel10.js         Phase 10: creation (G.flags.la_bg, PANEL10.BACKGROUNDS), the HUD's buttons and words, the panels, the credits
+    js/opening11.js       Phase 11: the opening look; the Slagcrown held at the middle of the view for 2 s before the errand
+    js/company12.js       Phase 12: the two-person company, permanent death, succession at the hearth, the roll
+    js/carter13.js        Phase 13: the carter follows, holds and waits, goes down and dies; his two orders
+    js/account14.js       Phase 14: the Account (A), the ledger, the first promise, hearth marking, forsworn
+    js/carry15.js         Phase 15: Marget's arm, the 0.65 walk, both hands full, the look back and the title
+    js/book16.js          Phase 16: the thirty warning-book entries, generated from the Markdown; read marks and search
+    js/kit17.js           Phase 17: the item table in salt, the eight kits, burden, capacity, torch fuel, one light; drives the bag, hands, worn slots, pace, noise and old saves
+    js/cards18.js         Phase 18: the eight cards' exact effects, no levels, stamina, bleeding, sight and hearing; drives fatigue, fog, attack cost and pack noise
+    js/hearing19.js       Phase 19: the noise and hearing table, stone and surfaces, company noise
+    js/lungs20.js         Phase 20: exposure, the four stages, mask, fire and silence
+    js/weather21.js       Phase 21: six skies and their sight, sound, spore and ground
+    js/deadcalm22.js      Phase 22: cinder squall and the ninety-second Dead Calm
+    js/combat23.js        Phase 23: commitment clock, stamina at the start, formation, clang, lodge, stagger
+    js/bloom24.js         Phase 24: bloom wounds, clouds, burst and prologue invulnerability
+    js/coop25.js          Phase 25: co-op parity, one noise, one sighting, one fuel pool
+    js/chart26.js         Phase 26: five nodes, six roads, shortest path and supplies
+    js/hearth27.js        Phase 27: rest, store, the named dead and promises
+    js/people28.js        Phase 28: morale, memory and meetings
+    js/chill29.js         Phase 29: warmth, the cold stages and the lit hearth
+    js/workings30.js      Phase 30: eight workings, costs and prohibitions
+    js/marks31.js         Phase 31: glim, keen, rime, ember, dull-voice
+        js/bestiary32.js     Phase 32: the seventeen things in the ash; a page in the warning book
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:

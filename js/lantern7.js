@@ -53,9 +53,11 @@ const LANTERN7 = (() => {
 
   // ---------------------------------------------------------------- the rules, pure (Node runs these)
   const burnRate = (k) => L.burn.ashfall + (L.burn.sleet - L.burn.ashfall) * clamp(k || 0, 0, 1);   // k: how far into a spell of sleet, out of doors
+  // a kit's torch holds less than a lantern's night, so the words and the flame read against the fuel the kit set
+  const cap = (full) => +full > 0 ? +full : ((typeof G !== 'undefined' && G && G.flags && G.flags.la_kit && G.flags.la_kit.fuel) || L.fillS);
   // how big the flame is, 0..1: full above the last fifth, then down to a third, and out at nothing
-  function flame(oil) { if (oil <= 0) return 0; const f = oil / (L.fillS * L.lowAt); return f >= 1 ? 1 : 0.32 + 0.68 * f; }
-  const radius = (oil) => lerp(L.r[0], L.r[1], flame(oil));
+  function flame(oil, full) { if (oil <= 0) return 0; const f = oil / (cap(full) * L.lowAt); return f >= 1 ? 1 : 0.32 + 0.68 * f; }
+  const radius = (oil, full) => lerp(L.r[0], L.r[1], flame(oil, full));
   // the flicker: a steady flame breathes a little; the last half minute it gutters (a sine of the anim clock, not dice)
   function flicker(oil, t) {
     const breathe = 0.94 + 0.04 * Math.sin(t * 7.3) + 0.02 * Math.sin(t * 13.1 + 1.7);
@@ -63,16 +65,17 @@ const LANTERN7 = (() => {
     const g = 1 - oil / L.gutterS, dip = Math.max(0, Math.sin(t * 5.1) * Math.sin(t * 2.3 + 0.4));
     return breathe * (1 - 0.75 * g * dip * dip);
   }
-  function words(oil) {
-    const f = oil / L.fillS;
+  function words(oil, full) {
+    const f = oil / cap(full);
     return f >= 0.9 ? 'full' : f >= 0.6 ? 'more than half full' : f >= 0.4 ? 'about half full' : f >= L.lowAt ? 'less than half full' : f > 0 ? 'nearly dry' : 'dry';
   }
   // one step of the oil: { oil } burns dt seconds at `rate`. Returns what happened: 'low' once a filling, 'out' at the end.
-  function burnStep(st, dt, rate) {
+  function burnStep(st, dt, rate, full) {
     if (!st.lit || st.oil <= 0) return null;
     const was = st.oil; st.oil = Math.max(0, st.oil - dt * rate);
     if (st.oil <= 0) { st.lit = false; return 'out'; }
-    if (was > L.fillS * L.lowSay && st.oil <= L.fillS * L.lowSay) return 'low';
+    const capS = cap(full);
+    if (was > capS * L.lowSay && st.oil <= capS * L.lowSay) return 'low';
     return null;
   }
   // a flask into the lantern: refused while it burns, when it is already nearly full, and when there is none
@@ -299,6 +302,6 @@ const LANTERN7 = (() => {
     return true;
   }
   const wired = typeof window !== 'undefined' ? wire() : false;
-  return { L, TX, burnRate, flame, radius, flicker, words, burnStep, pour, paintLantern, paintOil, state: () => ST, oil: () => (typeof G !== 'undefined' && G ? oilNow() : null), lit, toggle, lampLight, ORIG, wired };
+  return { L, TX, cap, burnRate, flame, radius, flicker, words, burnStep, pour, paintLantern, paintOil, state: () => ST, oil: () => (typeof G !== 'undefined' && G ? oilNow() : null), lit, toggle, lampLight, ORIG, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LANTERN7;

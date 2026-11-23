@@ -28,6 +28,8 @@ for (const b of B) {
 const hp = (id) => P10.byId(id).hp;
 check(hp('deserter') === 0.9 && /Old wound \(90 health\)/.test(P) && hp('gutter') === 0.75 && /Frail \(75 health/.test(P) && hp('carter') === 1.2 && /Hardy \(120 health/.test(P), 'health from the cards, on their 100: the deserter 90, the gutter-kin 75, the carter 120');
 check(B.filter((b) => !['deserter', 'gutter', 'carter'].includes(b.id)).every((b) => b.hp === 1), 'every other background keeps its health');
+const healthOn = (b) => { const m = /(\d+) health/.exec(b.knack.what + ' ' + b.flaw.what); return m ? +m[1] : 100; };
+check(B.every((b) => healthOn(b) === Math.round(100 * b.hp)), 'the figure each card names is the health the game gives it, not a share of the engine\'s: ' + B.map((b) => b.name + ' ' + healthOn(b)).join(', '));
 check(P10.byId('gutter').step === -0.8 && /steps carry a third less/.test(P), 'the gutter-kin\'s soft feet: a third less, which is 0.8 of a walk\'s 2.4 (the engine\'s floor for quiet feet)');
 check(P10.byId('cleaner').step < 0 && P10.byId('cleaner').step > -0.8 && /quieter steps/.test(P) && /\[PROPOSED\][^\n]*quieter steps|quieter steps[^\n]*\[PROPOSED\]/.test(src), 'the chapel cleaner\'s quieter steps: the card gives no number, so the number is marked [PROPOSED]');
 check(P10.DEFAULT === 'deserter' && P10.byId('deserter').call === 'The deserter', 'by default you walk north as the deserter, as the default pair has it (P20)');
@@ -93,16 +95,55 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
         HUD_BTNS.find((b) => b.t === 'LAMP').f(); out.lampBtn = UPG.lantern;
         const v0 = p.voice; window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F1' })); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'F1' })); out.f1 = { voice: [v0, p.voice], murmur: G.murmurT || 0 };
         // the HUD as drawn: its words, and the third bar is your lantern's oil in tallow
-        UPG.lantern = true; G.flags.la_oil = 540; render(); out.hud = PANEL10.state().hud.slice(); out.bar = PANEL10.state().bar;
+        UPG.lantern = true; G.flags.la_oil = 120; render(); out.hud = PANEL10.state().hud.slice(); out.bar = PANEL10.state().bar;
         // the credits
         renderAccessibilityMenu(); VOICES.renderFullCredits(); out.credits = document.querySelector('#modal-panel').innerText; closeModal(); G.state = 'play';
         // saved and loaded, the choice stays
         out.saved = JSON.parse(JSON.stringify(G.flags)).la_bg;
+        // the card's figure, the player's health and the YOU panel: one number
+        out.hpAll = ['deserter', 'gutter', 'carter'].map((id) => {
+          PANEL10.choose(id);
+          const t = open(renderCharacter);
+          return { id, hp: G.player.hp, hpMax: G.player.hpMax, you: (t.match(/Health \d+ \/ \d+/) || [''])[0] };
+        });
+        PANEL10.choose('gutter');
+        // an old save stored the card's health as the engine's 43-scale share (the carter's 120 as 52, the deserter's
+        // 90 as 39). Loading one must bring the card, the player and the YOU panel back to one figure, and so the HUD's
+        // health bar (drawn from p.hp / p.hpMax) back to full.
+        const oldSave = (id, was, left) => {
+          PANEL10.choose(id);
+          const d = JSON.parse(JSON.stringify(snapshotGame()));
+          d.player.hpMax = was; d.player.hp = left;
+          return d;
+        };
+        const youLine = () => (open(renderCharacter).match(/Health \d+ \/ \d+/) || [''])[0];
+        restoreGame(oldSave('carter', 52, 52));
+        out.old = { hp: G.player.hp, hpMax: G.player.hpMax, you: youLine(), bar: G.player.hp / G.player.hpMax };
+        restoreGame(oldSave('deserter', 39, 13));
+        out.oldHurt = { hp: G.player.hp, hpMax: G.player.hpMax, you: youLine(), bar: G.player.hp / G.player.hpMax };
+        PANEL10.choose('gutter');
+        // co-op: the guest's chosen walk of life travels as an id; the host gives the partner that card's health
+        const clone = () => JSON.parse(JSON.stringify(G.player));
+        const cLive = PARTNER19.guest.card();
+        const cSave = PARTNER19.guest.card({ player: clone(), flags: { la_bg: 'carter' } });
+        const j1 = PARTNER19.join(cSave);
+        out.coop = { live: cLive && cLive.laBg, save: cSave && cSave.laBg, ok: !!(j1 && j1.ok), hpMax: PARTNER19.S && PARTNER19.S.pp ? PARTNER19.S.pp.hpMax : 0, snap: (PARTNER19.snapshot() || {}).hpMax || 0 };
+        try { PARTNER19.leave('silent'); } catch (e) { /* the test's join only */ }
+        const cNone = PARTNER19.guest.card({ player: clone(), flags: {} });
+        const j2 = PARTNER19.join(cNone);
+        out.coop.none = { bg: cNone && cNone.laBg, ok: !!(j2 && j2.ok), hpMax: PARTNER19.S && PARTNER19.S.pp ? PARTNER19.S.pp.hpMax : 0 };
+        try { PARTNER19.leave('silent'); } catch (e) { /* the test's join only */ }
       } catch (e) { out.err = String(e && e.stack || e); }
       return out;
     });
     check(r.bg === 'gutter' && r.name === 'The waif', 'the choice takes: you walk as the gutter-kin, called ' + r.name);
-    check(r.hp[1] === Math.round(r.hp[2] * 0.75) && r.hp[0] === r.hp[1], 'with the gutter-kin\'s health (' + r.hp[1] + ' of the engine\'s ' + r.hp[2] + ')');
+    check(r.coop && r.coop.live === 'gutter' && r.coop.save === 'carter' && r.coop.ok && r.coop.hpMax === 120 && r.coop.snap === 120 && r.coop.none.bg === 'deserter' && r.coop.none.ok && r.coop.none.hpMax === 90, 'co-op: the guest brings the walk of life they chose, and the host gives the partner that card\'s health (live ' + (r.coop && r.coop.live) + '; save ' + (r.coop && r.coop.save) + ' at ' + (r.coop && r.coop.hpMax) + '; no card ' + (r.coop && r.coop.none.bg) + ' at ' + (r.coop && r.coop.none.hpMax) + ')');
+    check(r.hp[1] === 75 && r.hp[0] === 75, 'with the gutter-kin\'s 75 health, the card\'s figure (the engine\'s base was ' + r.hp[2] + ')');
+    check(r.hpAll.map((x) => x.hpMax).join(',') === '90,75,120' && r.hpAll.every((x) => x.hp === x.hpMax && x.you === 'Health ' + x.hpMax + ' / ' + x.hpMax), 'and the card, the player and the YOU panel agree: ' + r.hpAll.map((x) => x.id + ' "' + x.you + '"').join(', '));
+    check(r.old && r.old.hpMax === 120 && r.old.hp === 120 && r.old.you === 'Health 120 / 120' && r.old.bar === 1,
+      'PLAYED: an old save\'s 43-scale health (the carter\'s 120 stored as 52) is brought up to the card on load, so the card, the YOU panel and the HUD bar agree: ' + JSON.stringify(r.old));
+    check(r.oldHurt && r.oldHurt.hpMax === 90 && r.oldHurt.hp === 30 && r.oldHurt.you === 'Health 30 / 90' && Math.abs(r.oldHurt.bar - 1 / 3) < 1e-9,
+      'and a hurt old save keeps its share of the bar (13 of 39 becomes 30 of 90), rather than being healed to full: ' + JSON.stringify(r.oldHurt));
     check(Math.abs(r.an[0] - Math.max(-0.8, r.an[1] - 0.8)) < 1e-9 && r.an[0] < r.an[1], 'and soft feet: your steps carry a third less (' + r.an.join(' from ') + ')');
     check(r.btns.join(' ') === P10.BUTTONS.map((b) => b.t).join(' '), 'the HUD\'s buttons are this game\'s: ' + r.btns.join(' '));
     const leak = Object.entries(r.panels).find(([, t]) => OCTAVE.test(t));

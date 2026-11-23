@@ -60,14 +60,16 @@ noted, but all of it ships:
 - The Slagcrown from one function, `citadelTop(x, y)`: curtain, towers, halls, keep, great tower.
 - The coal sun and the ash as two passes of the 3D renderer; burning ground through the mesh hook.
 - Three Options switches: the coal sun, ash and embers, burning ground.
-- The carter and Marget Sayle, with eight things anyone in the north can be asked about.
+- The carter and Marget Sayle, with eight things anyone in the north can be asked about. Asked about herself,
+  Marget answers in her own voice; the north's third-person line is for everyone else (P87).
 - The cliff holds with no wall in front of it. The way down can be walked.
 
 **Checked by the tests:** the shape of the land; the plan of the citadel; that every tile is 64 x 64
 and the frost leaves no bare lane to repeat from cell to cell; that nothing rolls dice;
 that every line is plain ASCII and every name is in the world bible; in a browser, that the game
 opens on the ledge, the edge refuses you at three places, the walk to the door works, the door opens,
-Marget answers, each switch changes the frame, and off equals the pass being absent.
+Marget answers (about herself in her own voice too), every speaker whose name can be asked about answers
+for themselves, each switch changes the frame, and off equals the pass being absent.
 
 **Not checked by anything:** frame cost. The tests run on software rendering, which cannot measure a
 millisecond honestly. Feel, sound and how it reads on a real screen need a person.
@@ -108,6 +110,7 @@ find; each was searched for in `docs/worldbuilding/` first.
 | P8 | "Do not go down wind of them", of corpse-caps | The bloom's label |
 | P9 | The carter was born after the sun went dark and has never seen it otherwise | The carter |
 | P10 | Every greeting and every other line spoken on the ledge | `TX` and `people()` in `js/ledge1.js` |
+| P87 | **[PROPOSED]** Marget, asked about herself: "That is my name on the door. I came back with the other three and I have been here since. What I saw is mine. Sit down and ask me something else." | Asked about "Marget Sayle" she used the north's third-person line ("She has never said what she saw"), which contradicted her own answer on the survey |
 
 **The place**
 
@@ -228,7 +231,7 @@ The owner ruled that the walking bloom hunts on the highland edge (O7) and that 
 One stands on the shelf by the foot of the ramp, its back to the way down. You must pass behind it
 to reach Marget Sayle's door. Its numbers are the bible's own (`the-smothering.md`, `bestiary.md`):
 it shambles at 1.9 m/s, slower than you walk; it sees 8 m in a 120 degree cone; it hears a run
-within 8 m, scaled by your noise; it claws for 16, with two seconds of choking.
+within 8 m, scaled by your noise; it claws for 32, with two seconds of choking (P88).
 
 - **It hunts by sound.** It hears through the engine's own noise value. Standing still and walking
   are under its hearing. A run is heard at 8 m, and louder noise from further off. It goes to *where
@@ -236,9 +239,13 @@ within 8 m, scaled by your noise; it claws for 16, with two seconds of choking.
   there a while, and goes back to its post.
 - **What little it sees is movement:** in front of it, within 8 m. Walk where it is looking and it
   follows you.
-- **In reach it claws**: it winds up, strikes for 16, and rests before the next strike. The dust sets you
+- **In reach it claws**: it winds up, strikes for 32, and rests before the next strike. The dust sets you
   coughing for two seconds, and coughing is loud, so a clawed player is easy to find again.
 - **It cannot follow you in at the bothy's door.** It waits a little way off the door, then goes back.
+- **Waking by the lamp sends it back to its post.** The engine's wake (`#btn-wake`, `js/game.js`) puts its own chasers
+  back where they started; the bloom is not an engine entity, so `js/bloom4.js` listens to the same button and resets
+  itself to its post. Before this, a player it had killed woke at the ledge's spawn with it still hunting, and it
+  killed them again before they could move.
 - **The carter warns you**, once, as you step onto the ramp: walk, do not run.
 - **Modelled, and fast.** The look test's body (approved) is built once, each part in the space of one
   of sixteen bones, and the bones are moved on the graphics card each frame. It has the same ink
@@ -249,12 +256,14 @@ within 8 m, scaled by your noise; it claws for 16, with two seconds of choking.
   model: a flat painted figure stands in its place. The test checks that off draws exactly what it
   draws with the modelled pass removed.
 
-**Checked by the tests:** the bible's numbers and the rules match. Hearing and sight work as described,
+**Checked by the tests:** the bible's numbers and the rules agree, the claw's 16 doubled for the cards' 100 scale
+(P88). Hearing and sight work as described,
 step by step without a browser. It goes to where the noise was. It never steps into a wall or up a
 cliff. Its post and waiting place are on the shelf. Its body is whole, every vertex is carried by a
 bone, and every triangle faces the right way. In a browser the tests *play* it: walk to the door and
-it never turns; run and it hears, comes and claws for 16, and the coughing is loud; go in at the
-door and it waits outside, then goes home; it never stands on a blocked cell. The switch is checked by
+it never turns; run and it hears, comes and claws for 32, and the coughing is loud; go in at the
+door and it waits outside, then goes home; it never stands on a blocked cell; die to it and wake by the lamp and it
+is back at its post, and twelve seconds later you are still standing. The switch is checked by
 frame hash. There are no page errors.
 
 **Not done:**
@@ -264,7 +273,7 @@ frame hash. There are no page errors.
 - Co-op does not sync it.
 - It is lit by its own light, not the engine's, so its own caps and the bothy's fire do not light the ground around it.
 - There is only one.
-- The player's health is the engine's (43): three claws kill. Health is Phase 11's business.
+- The player's health is the card's (90 for the deserter, Phase 10): three of its claws kill (32 each). A health system of its own is Phase 11's business.
 - Frame cost on a real graphics card is not measured.
 
 ### Proposed in Phase 4: **approved 2026-11-19 (O10)**
@@ -279,6 +288,7 @@ frame hash. There are no page errors.
 | P38 | Its post: the shelf by the foot of the ramp, its back to the way down, facing out over the drop | Marget Sayle's door is reached by passing behind it |
 | P39 | When you go in at the door it waits a little way off it for about twenty seconds, then goes back | Phase 5 makes the safe room real |
 | P40 | A wind-up of about 0.7 s before a claw, and a rest of 1.5 s after | |
+| P88 | The claw's 16 is doubled to **32** | The bible's numbers are the Godot game's, on classes of about 43 health; this game's cards are on the 100 scale (P86), so 16 took six blows and the bite lost half its weight. 32 keeps three blows for the deserter, as 43 health died to three. Owner's word, 23 Nov 2026: tune the claw or the health, keeping the cards and the HUD agreeing |
 | P41 | The carter's warning: "Walk. Do not run. There is one on the shelf, and it hears running." | |
 | P42 | What the game says of it: "A walking bloom. Caps along its shoulders and its scalp. A crust where the eyes were. It stands and sways."; "The walking bloom. It is going to where the noise was."; "On the shelf, something has turned its head."; "The dust is in your mouth and eyes. You cannot stop coughing." | |
 
@@ -357,7 +367,15 @@ the bar is across the door.
 - **The bar.** A bar of heavy timber leans by the door inside. Use it and it drops across the door, which makes a
   little noise. Use it again and it stands back by the door. A barred door will not open from outside ("The door is
   barred from inside"), and will not open from inside until you lift the bar.
-- **The bloom at the door.** If it was coming for you when you went in, it follows you to the door.
+- **The doorway answers with the door.** Standing inside the doorway and looking at the door, E opens it and leaves the
+  bothy, even when the bar's painting sits on the crosshair (it used to toggle the bar there, so a player could not get
+  out from the obvious spot). With the bar across, the first press lifts it and the next leaves. The prompt says the
+  same: in the doorway it names the door ("The door. Outside, the shelf..."), and at the edges, where the engine's own
+  crosshair missed the door cell and said nothing at all, it names it too. It never named the bar there.
+- **The bloom at the door.** If it was coming for you when you went in, it follows you to the door and stands four
+  seconds there before it tries it: long enough for a player who has just come in to find and drop the bar. (It used to
+  try at once. The test barred the door in the same breath as entering and so always passed; in play the bloom was
+  inside before a hand reached the bar, and the knock never fired. Owner's word, 23 Nov 2026: verify it in the browser.)
   - **Barred:** the door holds. It leans on the door once, waits a while off it, then goes back to its post.
   - **Not barred:** it comes in after you, and the room is as dangerous as the shelf. Move where it can see you and
     it claws. Stand still and it finds nothing: it listens, then goes back out the way it came.
@@ -374,10 +392,14 @@ bloom indoors is drawn by Phase 4's pass and covered by its switch, "Modelled bo
 **Checked by the tests:** the design's lines are in the bible; the bar's place and paintings; the bloom's mind at a
 door without a browser. In a browser the tests *play* it:
 - Bar the door and it leans once, you are told, Marget speaks, it goes home, and you are not touched.
+- A player's three seconds to find the bar still bars it in time: the bloom stands at the door before it tries it,
+  rather than being inside when the bar falls.
 - The second time, it leans in silence.
 - Leave the door open and it comes in and claws you.
 - Stand still in the room and it goes back out and home.
 - A barred door opens from neither side.
+- Standing in the doorway, E leaves the bothy; with the bar across, the first press lifts it and the next leaves.
+- The doorway's prompt names the door, not the bar, including where the crosshair misses the door cell.
 - It never stands in a wall, the table, the bed or Marget Sayle.
 - Inside, it is drawn by firelight, modelled or flat.
 
@@ -403,6 +425,7 @@ door without a browser. In a browser the tests *play* it:
 | P47 | A barred door is barred to a partner outside too: "The door is barred from inside." | Rule of dread 8: your partners are the uncertainty |
 | P48 | Indoors the bloom hunts as it does outside: a still player is not found, and it goes back out the way it came | |
 | P49 | The bar's words: "A bar of heavy timber, iron at both ends, leaning by the door. It goes across the door on two hooks."; "You drop the bar across the door. It sits in its hooks with a sound like a dropped plank."; "Something leans on the door from outside, once. The bar takes it." | |
+| P50 | The bloom stands four seconds at the door before it tries it | A player who has just come in needs longer than the 2.5 s it took to reach the door; in play the bloom was inside before the bar fell, so the knock never fired. Owner's word, 23 Nov 2026: verify the knock in the browser and fix it if it does not [PROPOSED] |
 
 ## Phase 7 - the lantern
 
@@ -656,11 +679,21 @@ What it does:
   the novel fixes the nine who were there, and O11 rules the ledge's deserter is not one of them.
 - **What the choice does now:**
   - It names you on the HUD (P81).
-  - It sets your health where the card gives a number: the deserter's old wound 90, the gutter-kin frail 75, the
-    carter hardy 120, as shares of the engine's health (P86).
+  - It sets your health to the card's own figure: the deserter's old wound 90, the gutter-kin frail 75, the carter
+    hardy 120, and 100 for a card that gives none (P86). The card, the player and the YOU panel now say the same number.
   - It quietens your steps: the gutter-kin's "a third less" is the engine's floor for quiet feet; the chapel cleaner's
     "quieter steps" have no number on the card (P82).
   - It is kept in `G.flags.la_bg`, so a save keeps it.
+  - **An old save is brought up to the card (23 Nov).** `choose()` runs once, at creation; `restoreGame()` puts a
+    saved player back exactly as stored. A save written under the earlier share-of-43 reading therefore still carried
+    39 for the deserter and 52 for the carter, and the YOU panel's card line and its Health line disagreed on load.
+    Loading one now raises a maximum below the card's figure to the card's figure, and scales what is left of the bar
+    with it (a full bar stays full, 13 of 39 becomes 30 of 90); a levelled or otherwise higher maximum is never lowered.
+  - **Co-op (23 Nov).** A guest's traveller is made on the host by PARTNER19, which knew only the engine's calling health
+    (about 43). The guest's card now carries the walk of life they chose, as its id; the host looks that id up in its own
+    table and gives the partner the card's health outright, the same reading as the host's own (P86). A guest walking
+    as the carter has 120, the gutter-kin 75, the deserter 90; a card with no id, or no figure, is the default card.
+    No number is taken from the wire.
 - **The panel's words** (P84). YOU, PACK, BOOK, MAP, REST, FOLK, HELP, SAVE, LAMP, WEAPON, each in the engine's own box.
   - YOU: your walk of life, knack, flaw and health.
   - PACK: what is in your hands, worn and in the pack, the lantern's oil in words, and your salt.
@@ -674,6 +707,10 @@ What it does:
 - **The credits** are this repository's, as `CREDITS.md` has them, and so is their first line. The engine's row no
   longer claims all of `js/`: this repository's phase files have a row of their own. `CREDITS.md` had the same fault (it
   named only fork0, art2 and ledge1 as this repository's) and is fixed.
+- **An earlier reading changed (23 Nov).** P86 first made a card's health a share of the engine's 43, which had the
+  deserter's card promise 90 health while the YOU panel showed 39 (and the gutter-kin's 75 showed as 32). The owner
+  had the card's figure and the HUD agree, so the card's health is now your health outright. Saving under that first
+  reading left the old figures in a save, which is why a load has its own reconciliation above.
 - **The panels keep the engine's names** (char, inv, log, ledger, help), so pressing C, I, L, K or H again closes them
   as before; Tab closes the pack it opens.
 - No engine file was edited. It is not a picture effect, so there is no switch: off would only bring the Octave's
@@ -684,14 +721,19 @@ What it does:
   creation asks.
 
 **Checked by the tests:** each walk of life is the lore's text word for word, and each knack, flaw and kit is its card's;
-the health and step numbers; the buttons fit their boxes and do not overlap; the HUD's line and what it drops; no Octave
+the health figures on the cards are the health the game gives; the buttons fit their boxes and do not overlap; the HUD's line and what it drops; no Octave
 word and nothing but plain ASCII (the HUD's middle dot aside) in anything this phase writes; the credits. In a browser:
 - Begin shows the eight.
-- Choosing the gutter-kin names you "The waif", with a quarter less health and the quietest feet.
+- Choosing the gutter-kin names you "The waif", with 75 health and the quietest feet; the deserter's 90, the
+  gutter-kin's 75 and the carter's 120 are what the YOU panel shows.
 - The buttons are this game's, and C, I, L, K, H and Tab open this game's panels, with none of the Octave's words.
 - N lights the lantern, the LAMP button douses it, and F1 sings nothing.
 - The HUD draws salt and the oil bar.
+- An old save's 43-scale health (the carter's 120 stored as 52, the deserter's 90 as 39) is brought up to the card's
+  figure on load, and a hurt one keeps its share of the bar.
 - The credits are this repository's, and the choice is saved.
+- A guest's chosen walk of life is carried to the host, and the partner's health is that card's figure (the carter's
+  120, the default deserter's 90), not the engine's 43.
 - There are no page errors.
 
 **Not done:**
@@ -714,7 +756,7 @@ word and nothing but plain ASCII (the HUD's middle dot aside) in anything this p
 | P83 | Any of the eight may walk north beside the carter; the deserter stays the default | "Gytha Marrin sends two north ... a young carter from the Causeway, and one more" |
 | P84 | The panel's names (YOU, PACK, BOOK, FOLK, LAMP), N for the lantern, Tab for the pack, and the help's words | |
 | P85 | Salt counted in measures, and the engine's twelve sovereigns at the start become twelve measures | The fen's money is salt |
-| P86 | A card's health (on its 100) is a share of the engine's health: 90 is nine tenths | |
+| P86 | A card's health is your health outright, on the 100 its cards are written on: 90 is 90, and a card with no figure is 100 | First a share of the engine's 43 (P86 as approved), which made the card promise 90 and the YOU panel show 39; changed 2026-11-23 at the owner's word |
 
 ## A look test: the beasts, modelled
 
@@ -792,8 +834,8 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
 1. **Phase 9's proposals, P71 to P80** (dread): the numbers, and whether dread should one day change sound or play
    as well as the picture. Stills 90 to 96 and clip 97 show it.
 2. **Phase 10's proposals, P81 to P86** (creation and the panel). Stills 100 to 107 show them.
-3. **Build the opening look** (O11) when the prologue is next worked on: the Slagcrown held near the middle of each
-   player's view for about two seconds, added up, before any prompt. Not built yet.
+3. **The opening look** (O11): built in Phase 11 (`js/opening11.js`). The Slagcrown is held near the middle of the
+   view for two seconds, added up, before the errand. The co-op half waits for the two-player phase.
 4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
 
@@ -802,7 +844,70 @@ book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's 
 the novel's title, and Rafe Sedley. Settled on 2026-11-21 by O12: the warning book's entry 30 carries Rafe's name, and
 the Kings' Barrows' Unnamed are fact.
 
-## Next phases, in order
+## The Flash roadmap, phases 11 to 18 (2026-11-23)
+
+The numbered phases below follow the kept Doc *The Long Account - the Flash roadmap*, which supersedes the old
+"phase 11 death, phase 12 four players" table. One phase is one file, one test and one entry here. Every phase was
+checked with `node test/<name>.test.js --no-browser` and the full no-browser suite was run between phases; the
+browser halves skip on this machine because Playwright is not installed.
+
+| Phase | Feature | Files | State |
+| --- | --- | --- | --- |
+| 11 | **Built.** The opening look: the Slagcrown held at the middle for two seconds, added up, before the errand | `js/opening11.js`, `test/opening11.test.js` | Pure rule and single-player wire. The co-op "every player" rule is ready (`combine`) but waits for Phase 25. |
+| 12 | **Built.** Death and succession: a two-person company, permanent death, the next card at the hearth, the roll, hardcore, the end of the company | `js/company12.js`, `test/company12.test.js` | Pure rules and wire; old saves get a one-person company. Browser half not run here. |
+| 13 | **Built.** The carter as a person: follows at 1.2 cells, holds and waits, goes down and bleeds, dies into the roll | `js/carter13.js`, `test/carter13.test.js` | Pure rules and wire. The spear and shield are not yet painted as separate look. |
+| 14 | **Built.** The Account: promises, surety and standing apart, the three pages, hearth marking, forsworn, the non-pausing `A` overlay | `js/account14.js`, `test/account14.test.js` | Pure rules and wire; the first promise is Marget's. Browser half not run here. |
+| 15 | **Built.** The carry and the title: 0.65 pace, both hands full, no sprint or attack, Marget at the carrier's side, the look back once | `js/carry15.js`, `test/carry15.test.js` | Pure rules and wire. The three carry stills are produced: `134_3d_carry_prompt.png`, `135_3d_carry_walk.png`, `136_3d_the_title.png`. The wire now places her forward and to the camera's side, not under the next step. |
+| 16 | **Built.** The warning book: thirty entries exported from the Markdown, read marks, search, the witness field, BOOK as the book | `tools/book.js`, `js/book16.js`, `test/book16.test.js` | Exporter, data and panel. `node tools/book.js --check` is clean. BOOK's list is one two-column scroll with the panel's own search field; stills `131_3d_book.png` and `132_3d_book_entry.png`. |
+| 17 | **Built.** Kit, weight and money: the eighteen-row table in salt, the eight kits, burden and capacity, torch fuel, one light, no field healing, no ranged weapon | `js/kit17.js`, `test/kit17.test.js` | The kit replaces the bag, weapon hand and worn slots; burden slows the walk and adds its noise step; the torch sets the one fuel pool and says torch in the panel; old saves rebuild the kit once. The copied inventory's own page still speaks of sovereigns. |
+| 18 | **Built.** The eight cards: exact effects, no levels or XP, stamina, bleeding, bandaging, sight, hearing, dodges, sprint, search, quiet pack | `js/cards18.js`, `test/cards18.test.js` | The card sets stamina, fog distance, attack fatigue and pack/step noise; no-level holds. There is no block, bleed, bandage, hearing, dodge or search system in the copied engine yet, so those figures stay on the card. |
+
+## The Flash roadmap, phases 19 to 32 (2026-11-23)
+
+The fourteen Flash-scope phases below were built as one file and one test each. Every file is loaded by `index.html`, named in `PANEL10.PHASE_FILES` and listed in `CLAUDE.md`. The first runtime wires now run in play: 19 hearing, 20 lungs, 23 combat, 24 bloom flesh/cloud, 29 the chill and 32 the beasts page; 21 contributes only its spore multiplier to the lungs. The co-op cut has its own two-tab browser test, `test/sync19.test.js`, in the browser matrix: a real left-drag is the engine's cut, the guest pays its 8 fatigue, the host records exactly one `sync.act` and its own fatigue is not charged. A fake-G wire test, `test/wires19-23.test.js`, covers Options, the HUD, the attack gate (including engine/card refusals and a co-op swing that spends no engine fatigue), the lung stages, the death reset and the new-card reset without a browser; `test/bloom24.test.js` covers the bloom's invulnerable hit, cloud and exposure wire. The no-browser suite, `tools/book.js --check`, `tools/icons.js --check` and `tools/pwa/precache.js --check` are current. Precache build: `931d29f93987`.
+
+| Phase | Feature | Files | State |
+| --- | --- | --- | --- |
+| 19 | **Built, wired.** Noise inputs 1.0/2.4/4.2, hearing 6/14/16 m sourced, stone half sourced, surfaces, company maximum, clang 16, human listeners, wall clang | `js/hearing19.js`, `test/hearing19.test.js` | Standing at 3 m, gear adding to the input, the ledge's rock/frost split, the 1.2 s listening hold, the 2.4 s clang hold and the wall textures that ring are `[PROPOSED]`; walk/sprint/clang and stone are the lore's. The HUD reads `G.noise`, the ground and CARDS18 hearing; Options > Hearing gauge turns it off. Wired: a human listener in reach turns toward a noise and holds that facing for 1.2 s after the last one; a slash or rising cut with a stone wall inside the weapon's reach adds clang 16 and turns listeners toward the wall, and a thrust or chop never clangs. Browser checked on the live ledge: `heard 3 m` at rest and 14.41 m at noise 6.6 on frost; a waiting carter turned toward a sprint, and a slash on the bothy drystone added the clang and turned him to the wall, while a thrust did not. A bloom feed remains absent; the bloom keeps its own ears. |
+| 20 | **Built, wired from bloom choke.** Exposure never down, stages 25/50/75/100, mask half, fire clean, silence refuses speech/workings, death at bloom, cough every 20 s | `js/lungs20.js`, `test/lungs20.test.js` | Thresholds, the 20 s cough, crust return, silence stamina and the choke rate of 2 exposure/s are `[PROPOSED]`; the lore gives the stages and 'cough is noise'. A claw's choke feeds `BLOOM4.state().choke` through the day's `WEATHER21` spore multiplier; the grey bar and Options > Lungs are live; the state saves in `G.flags.la_lungs`; a new card clears it through both `PANEL10.applyBg` and `PANEL10.choose`; a lung death clears the state when it is handed to the engine, so a co-op fall that is softened rather than fatal cannot re-down the host after a revive, and the next card (or a wake) starts clean. Coughs add 1.5 noise, silence returns no stamina, and bloom calls `die('ash-lung')`. No ambient exposure, mask system (nothing sets `la_mask`) or Marget flag. Browser: choke added 0.8 exposure, 80 exposure became silence and stamina 0, the bar drew; a forced bloom reaching 100 showed the death screen. The mask was not exercised. |
+| 21 | **Built, partly wired.** Six skies, sight/sound/spore/ground/torch/dread, fixed seven-day table | `js/weather21.js`, `test/weather21.test.js` | Sourced from the bestiary: miasma sight 7/spore 1.3; sleet torch 1.8/ground 0.85/spore 0.6; hoarfrost ground 0.8/sound 1.25/spore 0.9; cinder spore 0.4; Dead Calm sound/spore 1.6. Sight baselines, cinder torch 1.6, dread 0.2 and the day order are `[PROPOSED]`. One link is live: `forDay(G.day).spore` scales the lungs' choke dose. No renderer, fog hand-off, HUD line, switch or other consumer; replacing `WEATHER6`'s visuals is C work beyond the stop rule. |
+| 22 | **Built, pure.** Cinder torch 1.6/spore .4/sight .9; Dead Calm 90 s, unskippable, sound 1.6, dread .2 | `js/deadcalm22.js`, `test/deadcalm22.test.js` | Sound 1.6 is the bestiary's; 90 s, dread .2, cinder sight .9 and cinder torch 1.6 are `[PROPOSED]`. No ember art, real-time calm, dread feed or panel refusal. Browser: REST/menu cannot end it, embers and silence render, sound and dread feed. |
+| 23 | **Built, wired through the active window.** Windup/active/recovery, stamina at start, formation 1.7 m, clang 16, lodge 1.2, stagger .8 | `js/combat23.js`, `js/game.js`, `js/bloom24.js`, `test/combat23.test.js`, `test/wires19-23.test.js` | Sourced: commitment-melee shape, 1.7 m formation and 16 m clang. `[PROPOSED]`: every cut/thrust/heavy second and stamina cost, 1.2 s lodge and 0.8 s stagger; the code exposes `PROPOSED` and `SOURCES`. The attack wrapper classifies the blow, refuses under cost, takes the full cost at the start, and holds the engine's cooldown for the whole clock; a blow the engine or a card refuses before swinging spends no stamina and opens no clock. The remainder is charged from the fatigue the inner swing actually spent, so sync19's co-op swing, which marks the clock without taking the engine's one fatigue, still pays the full cost. The copied engine's `attack` now starts the swing and leaves target resolution in `G.attack.pendingHit`; `resolveAttack` is called at the windup-to-active boundary, so a blow cannot land during windup or recovery, and a step across the whole clock still resolves once. Bloom24 puts its own hit on the same pending clock. This is the copied-engine edit the rule allows only when there is no other way, and it is recorded here. The co-op partner's own attack, the optional floating damage numbers/crit stop and the Phase 19 wall clang still resolve on their own paths. No poise, durability, thrown-only gate or beast adoption. Browser: a hound went 100 to 96 only at the active frame, and the vulnerable bloom went 55 to 48 there; windup and recovery left both unchanged. |
+| 24 | **Built, wired into play.** 55 health, 1.2 m/3 s wound cloud, 2.4 m/8 s burst, fire within 2 m of the cloud's edge at ten times the rate, six cloud-life multipliers, prologue invulnerable (owner ruling) | `js/bloom24.js`, `test/bloom24.test.js` | Sourced: 55, the cloud sizes/times, fire's 2 m, and cloud life 1.6 calm / 1.3 miasma / 1.0 ash / 0.9 hoar / 0.6 sleet / 0.4 cinder. The prologue bloom is invulnerable by the owner's 2026-11-23 ruling. The wire takes the live state from `BLOOM4.state()`; a melee swing in its arc calls `BLOOM24.hit`, so the prologue blocks without a wound or cloud. A vulnerable state (for a later bloom) takes weapon damage, leaves the cloud where it was hit, bursts it at zero, decays it by the weather life, lets a lit lantern within 2 m of its edge burn it, and gives a player inside a `LUNGS20` spore dose with the mask applied. A new bloom state resets clean and invulnerable. The three hit/cloud lines are [PROPOSED]. No cloud billboard, health/sight/stamina choking, save, sound or teal light. Browser: not run here; the fake-G test covers the invulnerable block, vulnerable wound/burst, cloud life/fire and exposure. |
+| 25 | **Built, pure.** Loudest noise, shared sightings, worse bar, one fuel pool, 1.7 m formation, shared dread | `js/coop25.js`, `test/coop25.test.js` | No new proposed numbers. No `net19`/`partner19` wire, third/fourth player or panel/Account sync. Browser: two loopback clients share noise, sight, bar, fuel and bloom without a contract change. |
+| 26 | **Built, pure.** Five nodes/six roads, shortest path, food/fuel cost, refusal, 30-day month | `js/chart26.js`, `test/chart26.test.js` | Road days, supply costs, 30-day month and the six-day Wexhaven route are `[PROPOSED]`. No MAP panel, calendar, weather fronts, Reckoner, objection or save. Browser: chart opens and walks, refusal works, day/node/stores reload. |
+| 27 | **Built, pure.** Rest, mend wounds/frost never lungs, name dead, promises, store, roster join | `js/hearth27.js`, `test/hearth27.test.js` | One wound per 3 days and one frost per 2 are `[PROPOSED]`. No REST panel, lime/burn/leave, recruit, dependants or body-fruit wire. Browser: rest mends, naming updates FOLK, promise/roster reload. |
+| 28 | **Built, pure.** Morale/memory, help/rob/spare/threaten/kill/leave, trust/fear, meeting again, Account line | `js/people28.js`, `test/people28.test.js` | Morale 0-10, start 5 and action deltas are `[PROPOSED]`. No encounter, dialogue, yield/bargain/run/return, dependant or save; dialogue remains gated. Browser: a reaver yields, is spared, remembers and is met again. |
+| 29 | **Built, wired in play.** One per-player warmth pool, 0-100; four stages; visible sleet and night, shelter and the bothy's lit hearth; no run or attack at zero | `js/chill29.js`, `test/chill29.test.js` | Sourced: every working takes warmth (the fen's chill), marks renew at the hearth, and the bothy's `la_hearth` is lit. `[PROPOSED]`: the -0.08/-0.30/-0.12/+1.00 rates, 50/25/1/0 stages, 2.5 m fire radius, bar at x=40 and all four stage words; non-lethal at zero. The wire reads `G.map.entities` for a lit `la_hearth` or campfire, `WEATHER6.sleetAt` for sleet and the game's clock for night; it holds indoors, saves in `G.flags.la_chill`, resets through both `PANEL10` paths and registers Options > The chill. It wraps `needsRecovery` and holds `p.fat=0` at zero; the workings and marks stay pure, and `warmth()/spend()` are exposed for their later wires. No fire-lighting, fuel, NPC or co-op warmth. Node/fake-G: 34 checks. Browser: stood in the bothy by the lit hearth at 40 warmth, the bar drew, the `laChill` row and the phase credit were present, and there were no page errors; still `138_3d_the_chill.png`. |
+| 30 | **Built, pure.** The lore's eight: Cold light, Staunch, The stilling, Kindle, The ward, The naming, Wind-knot, The bound word; all spoken, all cost warmth; no ranged damage/healing/feeding/lung cure | `js/workings30.js`, `test/workings30.test.js` | Names, keepers and effects are sourced from the bible's workings table. No numeric loudness is invented; each is simply spoken and heard. No left-hand slot, spoken/heard wire, learning limit or pale-blue light. Browser: all eight speak/refuse when silent, are heard and cost, left hand swaps. |
+| 31 | **Built, pure.** Five lore marks (Glim, Keen, Rime, Ember, Dull-voice), one at a time, one landing, renew at the hearth fire; effects and catches are the bible's | `js/marks31.js`, `test/marks31.test.js` | Duration is the lore's 'one landing'; there are no invented damage bonuses. Glim lights, Keen ignores part of armour but wears the blade, Rime slows, Ember sears/burns spores, Dull-voice halves the clang but lodges more. No blade wire, rendered mark or damage application. Browser: one mark, landing ends it, renews at fire, visible on the blade. |
+| 32 | **Built, wired into the warning book.** The book's seventeen entries in order, qualitative sight/hearing/smell ratings, exact troll noise table and bloom 8 m senses | `js/bestiary32.js`, `test/bestiary32.test.js` | Senses are the book's ratings, not invented distances. The Unnamed has its own entry and the hulk-conger is wider-world, so neither is in the seventeen. The wire is a page in the warning book: L/LOG opens the book, The beasts opens the seventeen in the book's order with sight, hearing, smell, where and note, and Back to the book returns. No `think()` modules, models, encounters or combat adoption; models remain C work. Browser: the page opened from the book, listed all seventeen with the exact troll and bloom distances, and returned; no page errors. |
+
+**Lore audit, 23 November 2026.** The first close-out table was checked against `the-round-and-the-long-account.md`, `bestiary.md` and the book. It corrected the workings list (the eight were Cold light, Staunch, The stilling, Kindle, The ward, The naming, Wind-knot and The bound word, not an invented trade list); the five marks (one landing, effects/catches only, no invented damage); the bestiary (the book's seventeen in order, qualitative senses, exact troll and bloom distances, with the Unnamed and hulk-conger excluded); the weather multipliers (sleet, hoarfrost and Dead Calm now follow the bestiary); the cough (20 s, not 18); and bloom cloud life. Combat timings, stamina, lodge and stagger remain `[PROPOSED]` and are labelled in code; the 1.7 m formation and 16 m clang are sourced.
+
+**Not done in 19 to 32:** 22 and 25 to 28 and 30 to 31 remain pure tables or state machines with no HUD, renderer, save or engine wire. Phase 29 is now wired: the warmth pool, its bar, the cold and the hearth. Phase 32 is now a page in the warning book; its models, encounters and combat adoption remain C work. Phase 21 has only its spore link. Hearing has no bloom feed, and a wall clang has no separate sound or line, though human listeners turn and a stone wall rings the 16 m clang; lungs have no ambient exposure, mask source or working/speech consumer; combat now moves the player's engine hit and the bloom's own hit into the active window, but the co-op partner's own attack, the optional damage numbers/crit stop and the Phase 19 wall clang still resolve on their own paths; weather's four non-ash/sleet skies still have no picture. The Node browser halves of the older tests still skip (no Playwright). The new `test/wires19-23.test.js` runs the actual wrappers against fake G, update, attack and HUD objects: Options registration, gauge and grey bar, attack cost/refusal/recovery (including engine/card refusals and a co-op swing with no engine fatigue), the lung stages, cough, death reset (including a softened co-op fall) and the new-card reset. `test/bloom24.test.js` runs the bloom's invulnerable hit, cloud life/fire and exposure against its own fake page. Both are in the CI no-browser job, and so are `test/hearing19.test.js`, `test/combat23.test.js`, `test/bestiary32.test.js` and `test/chill29.test.js`. The cloud browser pass additionally covered the live ledge; it did not exercise the mask or the beast. That pass found the Options rows reading `L1` as a global; the wires now resolve `LEDGE1`, and both rows register. The no-browser suite is 37 files with 739 passing assertions and 21 skips; `fork0`, book, icons and precache are clean at build `931d29f93987`. Phase 25's `net19` contract, 27's roster names and 28's dialogue remain gated. Phases 33-37 still need their briefs; Phase 38 still needs hardware and ears.
+
+**Not done in 11 to 18:** the browser halves were not run locally (no Playwright); the painted spear and shield; the
+PACK/Inventory page still says "sovereigns" where Phase 17 says salt; the block, bleed, bandage, hearing, dodge and
+search figures have no engine system to drive yet. The UI screens were checked in the cloud browser; Phases 17 and 18
+were also checked by their no-browser tests. Phases 29 and 33 to 38 remain.
+
+**Stills, 23 November 2026.** `docs/screenshots/` now holds the first picture pass: `100_who_walks_north.png`,
+`108_title.png`, `109_opening_look_before.png`, `110_the_account.png`, `111_the_warning_book.png`,
+`112_you.png`, `113_the_title.png`, `114_options.png`, `115_folk.png`, `116_pack.png`, and the 3D renderer set
+`120_3d_opening.png`, `121_3d_the_account.png`, `122_3d_the_warning_book.png`, `123_3d_folk.png`,
+`124_3d_the_title.png`. The 100 to 116 set was taken before the 3D automation flag was set and shows the classic
+renderer. The 120 to 124 set is the real look: the coal sun, the ash and the Slagcrown. `116_pack.png` shows the
+engine's old inventory list, not the Phase 17 kits.
+
+The 23 November browser pass added `126_3d_title.png`, `127_3d_who_walks_north.png`, `128_3d_prologue.png`,
+`129_3d_opening_look.png`, `130_3d_account.png`, `131_3d_book.png`, `132_3d_book_entry.png`, `133_3d_kit.png`,
+`134_3d_carry_prompt.png`, `135_3d_carry_walk.png`, `136_3d_the_title.png`, `137_3d_hearing_lungs.png` and `138_3d_the_chill.png`.
+The last still shows the live hearing gauge at 3 m and the grey lungs bar at 80 exposure. That browser pass also
+found two layout faults and fixed them: BOOK had a browser-default search field and nested scrolling, and the carry wire placed Marget in
+front of the camera. The title still keeps the HUD below it, as `124_3d_the_title.png` did.
+
+## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
 | --- | --- | --- |
@@ -813,7 +918,5 @@ the Kings' Barrows' Unnamed are fact.
 | 8 | **Built.** The highland edge's building style honoured by the planner (P16, approved) | "every region builds differently" |
 | 9 | **Built.** Dread as a value that changes the picture, tuned for this world | section 3 |
 | 10 | **Built.** This game's panel words, credits and creation | "There are no classes"; the eight backgrounds |
-| 11 | Death and succession | "death means something" |
-| 12 | Four players | D7 |
 
-The order is a proposal. Phases 4 to 6 finish the brief's vertical slice.
+Phases 4 to 6 finish the brief's vertical slice. The later phases are in the Doc.

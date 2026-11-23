@@ -45,6 +45,16 @@ jobs:
         run: node test/dread9.test.js --no-browser
       - name: Phase 10, the panel and creation (no browser)
         run: node test/panel10.test.js --no-browser
+      - name: Phase 19, noise and hearing (no browser)
+        run: node test/hearing19.test.js --no-browser
+      - name: Phase 23, commitment (no browser)
+        run: node test/combat23.test.js --no-browser
+      - name: Phase 32, the bestiary (no browser)
+        run: node test/bestiary32.test.js --no-browser
+      - name: Phase 29, the chill (no browser)
+        run: node test/chill29.test.js --no-browser
+      - name: The phase 19-23 wires against fake G (no browser)
+        run: node test/wires19-23.test.js --no-browser
       - name: The highland materials look test (no browser)
         run: node test/highland-materials.test.js
       - name: The offline list and the icons are current
@@ -73,6 +83,8 @@ jobs:
           - { name: 'Phase 8, highland building', test: building8 }
           - { name: 'Phase 9, dread', test: dread9 }
           - { name: 'Phase 10, the panel and creation', test: panel10 }
+          - { name: 'Phase 19, the co-op cut (two tabs)', test: sync19 }
+          - { name: 'Phase 32, the bestiary', test: bestiary32 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
