@@ -10,9 +10,10 @@
 //  WHAT IT DOES
 //    * THE BAR. A bar of heavy timber leans by the door inside. Use it and it drops across the door; use it again and
 //      it stands back by the door. From outside, a barred door does not open: "The door is barred from inside."
-//    * THE BLOOM AT THE DOOR. If it was coming for you when you went in, it follows to the door. Barred, the door holds:
-//      it leans on it once and waits a while outside, then goes back to its post. Not barred, it comes in after you,
-//      and the room is as dangerous as the shelf. It goes back out the way it came when it has nothing to hunt.
+//    * THE BLOOM AT THE DOOR. If it was coming for you when you went in, it follows to the door and stands a few
+//      seconds there before it tries it, time for a hand to find the bar. Barred, the door holds: it leans on it once
+//      and waits a while outside, then goes back to its post. Not barred, it comes in after you, and the room is as
+//      dangerous as the shelf. It goes back out the way it came when it has nothing to hunt.
 //    * ONE KNOCK, ONCE. The first time it leans on a barred door with you inside, you hear it and are told so, and
 //      Marget Sayle says one thing. After that it leans in silence. Nothing on screen: you never see it at the door.
 //    * Marget tells you, the first time you come in, to put the bar across.
@@ -39,6 +40,8 @@ const DOOR5 = (() => {
     barSet: { x: 3.5, y: 4.9 },                 // the bar, across the door's inner face
   };
   const MARGET_LINE_DELAY = 2.5;                // seconds between the knock and what she says of it
+  const DOOR_PAUSE = 4;                         // seconds it stands at the door before it tries it: time for a player who
+                                                // has just come in to find the bar (a test bars at once; a person does not)
 
   // ---------------------------------------------------------------- the words (plain ASCII; [PROPOSED], see ROADMAP.md)
   const TX = {
@@ -136,7 +139,7 @@ const DOOR5 = (() => {
     Engine.addSprite('la_bar_lean', { w: lean.w, h: lean.h, data: lean.data, hs: lean.hs, cx: lean.cx, dy: lean.dy });
     // the two ways through Marget Sayle's door, for the bloom
     BLOOM4.DOORS.push(
-      { from: L1.LEDGE, at: PLACE.outside, to: L1.BOTHY, out: PLACE.outsideIn, barred, onBarred, waitAt: PLACE.waitOut },
+      { from: L1.LEDGE, at: PLACE.outside, to: L1.BOTHY, out: PLACE.outsideIn, barred, onBarred, waitAt: PLACE.waitOut, pause: DOOR_PAUSE },
       { from: L1.BOTHY, at: PLACE.inside, to: L1.LEDGE, out: PLACE.outsideOut, barred, waitAt: PLACE.waitIn },
     );
     // the bar in the bothy, and the bloom's place in it (hidden until it comes in)
@@ -146,12 +149,53 @@ const DOOR5 = (() => {
       return maps;
     };
     const _ud = useDeco; useDeco = function (e) { if (e && e.use === 'la_bar') { setBar(!barred()); return; } return _ud.apply(this, arguments); };
+    // In the bothy's doorway, E is for the door. The bar sits on the crosshair there, and the engine's own use found it
+    // from arm's length: E toggled the bar instead of leaving, and a player at the obvious spot could not get out. With
+    // the bar across, the first press lifts it (that is the only thing to do) and the next opens the door.
+    // The prompt reads the same rule, so what the crosshair names is what E does (the engine's own crosshair misses the
+    // door cell at the doorway's edges, where it used to say nothing at all).
+    const doorway = () => {
+      if (typeof G === 'undefined' || !G || G.mapId !== L1.BOTHY || !G.map) return null;
+      const c = Engine.cam;
+      for (const k in (G.map.doors || {})) {   // the bothy has one door, and the map's door cell is it
+        const cell = G.map.cells[+k]; if (!cell || !cell.door || !cell.portal) continue;
+        const ax = (+k % G.map.w) + 0.5 - c.x, ay = (((+k / G.map.w) | 0) + 0.5) - c.y;
+        const off = Math.abs(Math.atan2(Math.sin(Math.atan2(ay, ax) - c.dir), Math.cos(Math.atan2(ay, ax) - c.dir)));
+        const inDoor = Math.abs(c.x - PLACE.inside.x) < 0.9 && c.y > PLACE.inside.y - 0.75 && c.y < PLACE.inside.y + 0.65;
+        if (inDoor && off < 1.2) return { portal: cell.portal, cell, lift: barred() };   // looking at the door from its own doorway, even at its edge
+      }
+      return null;
+    };
+    const _interact = typeof interact === 'function' ? interact : null;
+    if (_interact) interact = function () {
+      try {
+        const d = doorway();
+        if (d) {
+          if (d.lift) { setBar(false); return; }   // it cannot open: the first press lifts the bar, the next leaves
+          if (typeof Audio_ !== 'undefined' && Audio_.sfx && Audio_.sfx.door) try { Audio_.sfx.door(); } catch (e) { /* the door is silent */ }
+          transfer(d.portal); return;
+        }
+      } catch (e) { /* the engine's own use is below */ }
+      return _interact.apply(this, arguments);
+    };
     // a barred door does not open, from either side
     const _tr = transfer; transfer = function (portal) {
       if (portal && barred() && ((portal.map === L1.BOTHY && G.mapId === L1.LEDGE) || (portal.map === L1.LEDGE && G.mapId === L1.BOTHY))) { msg(G.mapId === L1.BOTHY ? TX.barredIn : TX.barredOut, 'warn', 3500); return; }
       return _tr.apply(this, arguments);
     };
-    const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { tick(dt); } catch (e) { ST.err = ST.err || String(e && e.message); } return r; };
+    const _up = update; update = function (dt) {
+      const r = _up.apply(this, arguments);
+      try { tick(dt); } catch (e) { ST.err = ST.err || String(e && e.message); }
+      try {   // the prompt says what E will do: in the doorway, the door's name
+        const d = doorway();
+        if (d && !d.lift && G.state === 'play') {
+          const name = (d.cell && d.cell.label) || 'A door';
+          if (G.hint !== name) { G.hint = name; const el = document.querySelector('#hint'); if (el) el.textContent = name; }
+          G.hintKind = 'door';
+        }
+      } catch (e) { /* the prompt keeps what the engine set */ }
+      return r;
+    };
     return true;
   }
   const wired = wire();

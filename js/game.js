@@ -721,6 +721,17 @@ function attack(dirLabel) {
   exposeDisguise('A patrol witnesses your attack.');
   G.attack.t = w.speed; G.attack.dur = w.speed; G.attack.dirLabel = dirLabel; addNoise(w.noise);
   p.fat = Math.max(0, p.fat - 1);
+  G.attack.pendingHit = null;
+  // Melee commitments resolve at the active frame: Phase 23 opens the clock and calls the pending hit.
+  const map = G.mapId;
+  if (G.attack.deferHit && !w.ranged) {
+    G.attack.pendingHit = () => { if (!G || G.mapId !== map) return; resolveAttack(w, p, dirLabel); };
+    return;
+  }
+  resolveAttack(w, p, dirLabel);
+}
+function resolveAttack(w, p, dirLabel) {
+  if (!w || !p || !G || G.dead || G.player !== p || G.state !== 'play') return;
   // find target
   const c = Engine.cam; let best = null, bd = 1e9;
   for (const e of G.ents) {

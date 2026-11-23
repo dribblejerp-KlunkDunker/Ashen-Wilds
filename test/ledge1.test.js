@@ -111,6 +111,9 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
       out.cine = typeof CINEMATIC24 === 'undefined' ? null : { play: CINEMATIC24.set.play, shots: CINEMATIC24.trace().length };
       out.map = G.map.id; out.maps = Object.keys(G.maps).sort(); out.active = R3D.active(); out.failed = LEDGE1.gl().failed;
       out.passes = R3D.passes().map((p) => p.name);
+      out.journal0 = G.journal.map((j) => j.text);   // Phase 11: the errand waits for the look
+      advanceTime(2600);
+      out.looked = !!G.flags.la_looked;
       out.journal = G.journal.map((j) => j.text); out.day = typeof DAYS !== 'undefined' ? DAYS[0] : null; out.tod0 = G.tod;
       out.spawn = { x: c.x, y: c.y, feet: G.player.feet };
       const plan = EAVES78.plan(G.maps.la_ledge); out.houses = plan.houses.map((h) => [h.x0, h.y0, h.x1, h.y1, h.roofTex || '']);
@@ -155,6 +158,11 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
       renderDialogue('tell'); out.talk.topics = [...document.querySelectorAll('[data-topic]')].map((b) => b.dataset.topic);
       out.talk.places = (renderDialogue('where'), [...document.querySelectorAll('[data-place]')].length);
       askTopic('The survey'); renderDialogue('tell'); out.talk.survey = panel().slice(0, 4000);
+      askTopic('Marget Sayle'); renderDialogue('tell'); out.talk.self = panel().slice(0, 4000);
+      out.selves = Object.keys(NPCS).filter((k) => /^la_/.test(k)).map((k) => {
+        const n = NPCS[k], named = Object.prototype.hasOwnProperty.call(TOPICS, n.name);
+        return { name: n.name, named, own: !!(n.topics && n.topics[n.name]), shared: named ? TOPICS[n.name].low : null };
+      });
       return out;
     });
     const TOP = Object.keys(L.TOPICS);
@@ -163,6 +171,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
     check(r.active && !r.failed && r.passes.includes('la-coalsun') && r.passes.includes('la-ash'), 'the 3D renderer draws it, with the coal sun and the ash as passes of their own');
     check(r.passes.indexOf('la-coalsun') === r.passes.indexOf('sky') + 1 && r.passes.indexOf('la-ash') > r.passes.indexOf('transparent') && r.passes.indexOf('la-ash') < r.passes.indexOf('post'), 'the sun is painted straight after the engine\'s sky; the ash after the world and before the grade');
     check(r.spawn.feet === 14 && Math.abs(r.spawn.x - 89.5) < 1e-6, 'you begin on the ledge, fourteen up, your back to the rock');
+    check(r.journal0.length === 0 && r.looked, 'the errand is withheld until the Slagcrown has been looked at, then given');
     check(r.journal.length === 1 && r.journal[0] === L.TX.journal && r.day === 'The thaw' && Math.abs(r.tod0 - 0.735) < 0.02, 'the journal holds one line, Gytha Marrin\'s errand; it is the thaw, toward dusk');
     check(r.carter.length === 1 && r.carter[0] === L.TX.carter && r.lights >= 8, 'the carter stands on the ledge; ' + r.lights + ' fires and caps give light on the plain');
     check(r.houses.length === 1 && r.houses[0].slice(0, 4).join() === '82,27,85,29', 'the roof planner finds one building, the bothy: ' + JSON.stringify(r.houses));
@@ -183,6 +192,8 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
     check(r.talk.state !== 'play' && r.talk.greet.includes(L.TX.marget), 'she can be spoken to');
     check(r.talk.topics.join() === TOP.join() && r.talk.places === 0, 'what she can be asked about is this world\'s and nothing else: ' + r.talk.topics.join(', '));
     check(r.talk.survey.includes('I am one of the four') && !/Oakhaven|Octave|Cantabile|Aegis|Kaelen|Lyra|Legion/i.test(r.talk.survey), 'asked about the survey, she gives her own answer, and stops there');
+    check(/my name on the door/.test(r.talk.self) && /What I saw is mine/.test(r.talk.self) && !/She has never said|One of the four who came back/.test(r.talk.self), 'asked about herself, she answers in her own voice, not the north\'s third person');
+    check(r.selves.length >= 2 && r.selves.every((p) => !p.named || (p.own && p.own !== p.shared)), 'every speaker whose name can be asked about answers for themselves: ' + r.selves.map((p) => p.name + (p.named ? (p.own ? ' (own answer)' : ' (SHARED!)') : ' (no name-topic)')).join(', '));
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
     const bad = [...s.missing].filter((p) => /\.(js|css|html|woff2|webmanifest)$/.test(p));
     check(bad.length === 0, 'no script, style or font was asked for and not found: ' + (bad.join(' ') || 'none'));

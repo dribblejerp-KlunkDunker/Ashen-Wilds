@@ -359,3 +359,11 @@ pre.help { font-family: var(--font-body); white-space: pre-wrap; font-size: 2.1c
   .panel .fbtext { text-align: left; }
   .panel .fb-facts div { grid-template-columns: 10cqw 1fr; }
 }
+
+/* BOOK: one panel, one scrollbar. The search field is the panel's own input, not the browser's default. */
+#modal-panel:has(#book-list) { width: 88cqw; height: 88cqh; max-height: 92cqh; overflow: hidden; display: flex; flex-direction: column; }
+#modal-panel:has(#book-list) .book-search { box-sizing: border-box; width: 100%; margin: .5cqh 0; padding: .6cqh .8cqw; background: #0b0806; color: var(--parch); border: 1px solid #3a2f22; font-family: var(--font-body); font-size: 2.1cqw; line-height: 1.2; }
+#modal-panel:has(#book-list) .book-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5cqh 1.2cqw; align-content: start; flex: 1 1 auto; min-height: 0; overflow: auto; padding-right: .4cqw; }
+#modal-panel:has(#book-list) .book-list [data-book] { box-sizing: border-box; display: block; width: 100%; min-width: 0; margin: 0; padding: .55cqh 1cqw; min-height: 2.4em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.85cqw; line-height: 1.2; text-align: left; }
+#modal-panel:has(#book-list) .book-list [data-book] b { font-weight: 600; }
+

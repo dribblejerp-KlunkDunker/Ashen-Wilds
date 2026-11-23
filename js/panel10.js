@@ -18,8 +18,9 @@
 //  WHAT IT DOES
 //    * CREATION. Begin asks who walks north: the eight walks of life, the deserter first (the default pair). The choice
 //      names you on the HUD, and takes effect where the card gives a number and the game has the system: health (the
-//      deserter's old wound 90, the gutter-kin frail 75, the carter hardy 120, on the cards' 100) and soft feet (the
-//      gutter-kin's steps "carry a third less", 0.8 of a walk's 2.4, the engine's own floor for quiet feet). Every other
+//      deserter's old wound 90, the gutter-kin frail 75, the carter hardy 120, each your health outright; a card that
+//      gives no figure is 100) and soft feet (the gutter-kin's steps "carry a third less", 0.8 of a walk's 2.4, the
+//      engine's own floor for quiet feet). Every other
 //      knack and flaw waits for its system (blocks, carry weight, dodges, sight, hearing, bandaging): the card shows it.
 //      Kept in G.flags.la_bg, which is saved with the game.
 //    * THE PANEL'S WORDS. The Octave's buttons (CHAR INV SONG LOG MAP REST NAMES HELP MURMUR SAVE WEAPON) become this
@@ -38,8 +39,9 @@ const PANEL10 = (() => {
 
   // ---------------------------------------------------------------- the eight walks of life (godot-people.md, part 2)
   // life: "The life." word for word (markup dropped). knack and flaw: the card's names, and what the card says they do.
-  // call: what the HUD calls you [PROPOSED] P81. hp: the card's health on its 100. step: quieter feet (added to the
-  // engine's armour noise, which floors at -0.8).
+  // call: what the HUD calls you [PROPOSED] P81. hp: the card's health, on the 100 its cards are written on; choose()
+  // gives you that figure outright, so the card and the YOU panel agree. step: quieter feet (added to the engine's
+  // armour noise, which floors at -0.8).
   const BACKGROUNDS = [
     { id: 'deserter', name: 'Watch Deserter', call: 'The deserter', hp: 0.9, step: 0,
       life: 'The Causeway Watch, left without pay or orders in S.3, kept the road twenty-six years on tolls in salt and food; from S.12 it held only the tower and the toll house. Nothing was issued new after S.3. A Watch sword had always been someone\'s first.',
@@ -102,6 +104,7 @@ const PANEL10 = (() => {
     packTitle: 'What you carry', packHands: 'In your hands', packWorn: 'Worn', packBag: 'In the pack',
     salt: (n) => (n > 0 ? n + (n === 1 ? ' measure of salt.' : ' measures of salt.') : 'No salt.'),
     lamp: (w) => 'The lantern: ' + (w === 'dry' ? 'dry, no oil' : w + ' of oil') + '.', lampNone: 'No lantern.',
+    torch: (w) => 'The torch: ' + (w === 'dry' ? 'dry, no fuel' : w + ' of fuel') + '.',
     bookTitle: 'The book',
     bookDate: (day, part) => 'The thaw of S.30, day ' + (day + 1) + ', ' + part + '.',
     bookNone: 'Nothing written yet.',
@@ -124,7 +127,7 @@ const PANEL10 = (() => {
   // ---------------------------------------------------------------- the credits: this repository's (CREDITS.md)
   const OFL = 'SIL Open Font License 1.1 (text in fonts/)';
   // this repository's own code: a phase is one file js/<feature><phase>.js (CLAUDE.md)
-  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js'];
+  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js', 'js/opening11.js', 'js/company12.js', 'js/carter13.js', 'js/account14.js', 'js/carry15.js', 'js/book16.js', 'js/kit17.js', 'js/cards18.js', 'js/hearing19.js', 'js/lungs20.js', 'js/weather21.js', 'js/deadcalm22.js', 'js/combat23.js', 'js/bloom24.js', 'js/coop25.js', 'js/chart26.js', 'js/hearth27.js', 'js/people28.js', 'js/chill29.js', 'js/workings30.js', 'js/marks31.js', 'js/bestiary32.js'];
   const CREDITS = [
     { title: 'The engine', rows: [
       ['Code in js/ (but for this repository\'s phase files, below), css/, schemas/, locales/, sw.js', 'Copied on 2026-11-11 from Echoes of the Shattered Octave (same owner), commit f2b3990, at the owner\'s direction (D14). Written with AI assistance', 'That repository declares no open licence', []],
@@ -176,7 +179,7 @@ const PANEL10 = (() => {
   const current = () => (typeof G !== 'undefined' && G && G.flags && byId(G.flags.la_bg)) || byId(DEFAULT);
   const closeBtn = '<button class="dfbtn small close" id="x">Close</button>';
   const wireClose = () => { const x = document.getElementById('x'); if (x) x.onclick = () => { closeModal(); G.state = 'play'; }; };
-  const oilFrac = () => { try { return Math.max(0, Math.min(1, LANTERN7.oil() / LANTERN7.L.fillS)); } catch (e) { return 0; } };
+  const oilFrac = () => { try { return Math.max(0, Math.min(1, LANTERN7.oil() / LANTERN7.cap())); } catch (e) { return 0; } };
 
   function renderWho(done) {
     // a card is a button, but reads as prose: the button face is for a name, not a paragraph
@@ -187,12 +190,76 @@ const PANEL10 = (() => {
     openModal(`<div id="la-who"><h2>${TX.whoTitle}</h2><p class="muted">${esc(TX.whoLead)}</p>${cards}</div>`, 'la-who');
     document.querySelectorAll('#la-who [data-bg]').forEach((el) => { el.onclick = () => { closeModal(); done(el.dataset.bg); }; });
   }
-  function choose(id) {
+  // Put a card on the traveller in hand. choose() is the creation path; the succession path (js/company12.js) calls this
+  // with the next person's card, so the handover gets the same health figure and the same name the creation screen gives.
+  function applyBg(id, opts) {
     const b = byId(id) || byId(DEFAULT), p = G.player;
     G.flags.la_bg = b.id;
-    if (p) { ST.baseHp = p.hpMax; p.hpMax = Math.max(1, Math.round(p.hpMax * b.hp)); p.hp = p.hpMax; p.name = b.call; }
+    // The card's health is the card's own figure, not a share of the engine's class health: as a share, the deserter's
+    // card promised 90 and the YOU panel showed 39. A card that gives no figure is 100 (godot-people.md's own scale).
+    if (p) { ST.baseHp = p.hpMax; p.hpMax = Math.max(1, Math.round(100 * b.hp)); p.hp = p.hpMax; p.name = b.call; }
+    return b;
+  }
+  function choose(id) { return applyBg(id); }
+  // ---------------------------------------------------------------- old saves: the card's figure, not the old share
+  // choose() sets the card's figure at creation, but restoreGame() puts the player back exactly as the save stored it.
+  // A save written before P86 (or by a window still running that code) carries the engine's 43-scale health: the
+  // carter's 120 was stored as 52, the deserter's 90 as 39, so the YOU panel's card line and its Health line disagreed
+  // and the HUD's health bar drew the old share. Raise a loaded maximum that sits below the card to the card's figure
+  // and scale what is left of the bar with it, so a full bar stays full and a hurt one keeps its share. A levelled or
+  // otherwise higher maximum is never lowered.
+  function reconcile() {
+    try {
+      const p = G && G.player; if (!p || !(p.hpMax > 0)) return false;
+      const fig = Math.max(1, Math.round(100 * current().hp));
+      if (p.hpMax >= fig) return false;
+      const f = Math.max(0, Math.min(1, p.hp / p.hpMax));
+      p.hpMax = fig;
+      if (p.hp > 0) p.hp = Math.max(1, Math.min(fig, Math.round(f * fig)));
+      return true;
+    } catch (e) { return false; }
+  }
+  // ---------------------------------------------------------------- co-op: the card's health for the guest too
+  // A guest's traveller is made on the host by PARTNER19, which gives it the engine's calling health (about 43) and
+  // never sees this game's card. The guest sends the walk of life they chose as an id; the host looks the figure up in
+  // its own table (no number off the wire is trusted) and the partner gets the card's health outright, the same reading
+  // choose() gives the host (P86). With no id, the default card (the deserter) answers.
+  function coop() {
+    if (typeof PARTNER19 !== 'object' || !PARTNER19 || !PARTNER19.guest || !PARTNER19.guest.card) return false;
+    const g = PARTNER19.guest;
+    if (!g.card.laCard10) {
+      const _card = g.card;
+      g.card = function (src, opts) {
+        const c = _card.apply(this, arguments);
+        try {
+          if (c && !c.error) {
+            const fl = src && typeof src === 'object' && src.flags ? src.flags : (typeof G !== 'undefined' && G && G.flags);
+            c.laBg = (byId(fl && fl.la_bg) || byId(DEFAULT)).id;
+          }
+        } catch (e) { /* the card goes without it; the host keeps the engine's health */ }
+        return c;
+      };
+      g.card.laCard10 = true;
+    }
+    if (!PARTNER19.join || PARTNER19.join.laCard10) return true;
+    const _join = PARTNER19.join;
+    PARTNER19.join = function (card, opts) {
+      const r = _join.apply(this, arguments);
+      try {
+        const b = byId(card && card.laBg) || byId(DEFAULT), p = PARTNER19.S && PARTNER19.S.pp;
+        if (r && r.ok && b && p) {
+          const hp = Math.max(1, Math.round(100 * b.hp));
+          p.hpMax = hp; p.hp = hp;
+          if (r.partner) { r.partner.hpMax = hp; r.partner.hp = hp; }
+        }
+      } catch (e) { /* the engine's own health stands */ }
+      return r;
+    };
+    PARTNER19.join.laCard10 = true;
+    return true;
   }
   function renderYou() {
+    reconcile();   // the panel's card line and its Health line can never disagree, however the player was loaded
     const b = current(), p = G.player;
     openModal(`<h2>${esc(p.name)}</h2>${closeBtn}<p><b style="color:var(--gold)">${esc(b.name)}</b></p><p>${esc(cap(b.life))}</p>
       <p><b>${TX.whoKnack}:</b> ${esc(b.knack.name)} (${esc(b.knack.what)}).<br><b>${TX.whoFlaw}:</b> ${esc(b.flaw.name)} (${esc(b.flaw.what)}).</p>
@@ -206,22 +273,60 @@ const PANEL10 = (() => {
     const worn = Object.values(p.armor || {}).filter(Boolean).map((id) => esc(name(id)));
     const wornIds = new Set(Object.values(p.armor || {}));
     const bag = (p.inv || []).filter((s) => s && s.n > (wornIds.has(s.id) ? 1 : 0)).map((s) => esc(name(s.id)) + (s.n - (wornIds.has(s.id) ? 1 : 0) > 1 ? ' x' + (s.n - (wornIds.has(s.id) ? 1 : 0)) : ''));
-    let lamp = TX.lampNone; try { lamp = TX.lamp(LANTERN7.words(LANTERN7.oil())); } catch (e) { /* no lantern */ }
+    let lamp = TX.lampNone; try {
+      const hasTorch = (p.inv || []).some((s) => s && s.id === 'torch');
+      const w = LANTERN7.words(LANTERN7.oil());
+      lamp = hasTorch ? TX.torch(w) : TX.lamp(w);
+    } catch (e) { /* no light */ }
     openModal(`<h2>${TX.packTitle}</h2>${closeBtn}
       <p><b>${TX.packHands}:</b> ${hands.join(', ') || '-'}</p><p><b>${TX.packWorn}:</b> ${worn.join(', ') || '-'}</p>
       <p><b>${TX.packBag}:</b> ${bag.join(', ') || '-'}</p><p>${esc(lamp)}</p><p>${esc(TX.salt(p.gold | 0))}</p>`, 'inv');
     wireClose();
   }
-  function renderBook() {
+  function renderBook(q, openN) {
     const day = Math.max(0, G.day | 0), part = typeof timeName === 'function' ? timeName() : '';
-    const rows = (G.journal || []).filter((j) => j && j.text).map((j) => `<p>${esc(j.text)}</p>`).join('') || `<p class="muted">${TX.bookNone}</p>`;
-    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p>${rows}`, 'log');
+    const errand = (G.journal || []).find((j) => j && j.cat === 'main');
+    const B = typeof BOOK16 !== 'undefined' ? BOOK16 : null;
+    if (!B) {
+      const rows = (G.journal || []).filter((j) => j && j.text).map((j) => `<p>${esc(j.text)}</p>`).join('') || `<p class="muted">${TX.bookNone}</p>`;
+      openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with A. It does not stop the world.</p>${rows}`, 'log');
+      wireClose(); return;
+    }
+    if (openN != null) {
+      const e = B.byN(openN); if (!e) { renderBook(q, null); return; }
+      B.read(e.n);
+      openModal(`<h2>${esc(e.title)}</h2>${closeBtn}<p class="muted">Entry ${e.n} of ${B.count}. ${esc(e.witnesses.length >= 2 ? B.TX.two : B.TX.one)}${e.hand ? ' In ' + esc(e.hand) + '\'s hand.' : ''}</p>
+        <pre style="white-space:pre-wrap;font-family:var(--font-body);line-height:1.45">${esc(e.text)}</pre>
+        <div class="btns"><button class="dfbtn" id="book-back">Back to the book</button></div>`, 'log');
+      const back = document.getElementById('book-back'); if (back) back.onclick = () => renderBook('', null);
+      wireClose(); return;
+    }
+    const list = B.find(q);
+    const rows = list.map((e) => `<button class="dfbtn" data-book="${e.n}" style="display:block;width:100%;text-align:left;margin:.35cqh 0"><b>${e.n}. ${esc(e.title)}</b> <span class="muted">${B.isRead(e.n) ? 'read' : 'unread'}</span></button>`).join('') || `<p class="muted">${esc(B.TX.none)}</p>`;
+    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with A. It does not stop the world.</p>
+      ${errand ? `<p><b>The errand.</b> ${esc(errand.text)}</p>` : ''}
+      <p><input id="book-search" class="book-search" type="search" placeholder="${esc(B.TX.search)}" value="${esc(q || '')}"></p>
+      <div id="book-list" class="book-list">${rows}</div>`, 'log');
+    const bind = () => document.querySelectorAll('[data-book]').forEach((b) => { b.onclick = () => renderBook('', +b.dataset.book); });
+    bind();
+    const input = document.getElementById('book-search');
+    if (input) input.oninput = () => {
+      const box = document.getElementById('book-list'), found = B.find(input.value);
+      box.innerHTML = found.map((e) => `<button class="dfbtn" data-book="${e.n}" style="display:block;width:100%;text-align:left;margin:.35cqh 0"><b>${e.n}. ${esc(e.title)}</b> <span class="muted">${B.isRead(e.n) ? 'read' : 'unread'}</span></button>`).join('') || `<p class="muted">${esc(B.TX.none)}</p>`;
+      bind();
+    };
     wireClose();
   }
   function renderFolk() {
     const T = (L1 && L1.TOPICS) || {}, line = (n) => (T[n] && T[n].low) || '';
+    const C = typeof COMPANY12 !== 'undefined' ? COMPANY12 : null;
+    const roll = C && C.roll ? C.roll() : [];
+    const dead = roll.length && C.TX ? `<h3>${esc(C.TX.deadTitle)}</h3>${roll.map((d) => `<p>${esc(d.named ? C.TX.deadNamed(d.name) : C.TX.deadUnnamed(d.name))}</p>`).join('')}` : '';
+    const A = typeof ACCOUNT14 !== 'undefined' && ACCOUNT14.state ? ACCOUNT14.state() : null;
+    const fw = A && A.forsworn ? Object.keys(A.forsworn).filter((n) => A.forsworn[n]) : [];
+    const sworn = fw.length ? `<h3>Forsworn</h3>${fw.map((n) => `<p>${esc(n)}. Forsworn.</p>`).join('')}` : '';
     openModal(`<h2>${TX.folkTitle}</h2>${closeBtn}
-      <p><b>Marget Sayle.</b> ${esc(line('Marget Sayle'))}</p><p><b>Gytha Marrin.</b> ${esc(line('Gytha Marrin'))}</p><p>${esc(TX.carter)}</p>`, 'ledger');
+      <p><b>Marget Sayle.</b> ${esc(line('Marget Sayle'))}</p><p><b>Gytha Marrin.</b> ${esc(line('Gytha Marrin'))}</p><p>${esc(TX.carter)}</p>${dead}${sworn}`, 'ledger');
     wireClose();
   }
   function renderHelp10() {
@@ -295,10 +400,21 @@ const PANEL10 = (() => {
       ev.stopImmediatePropagation(); ev.preventDefault();
       renderWho((id) => { try { L1.begin(); choose(id); } catch (e) { ST.err = String(e && e.message); } });
     }, true);
+    // a load restores the player as the save stored it: an old 43-scale maximum is brought up to the card's figure
+    if (typeof restoreGame === 'function') {
+      const _rg = restoreGame;
+      restoreGame = function () {
+        const r = _rg.apply(this, arguments);
+        try { if (here()) reconcile(); } catch (e) { /* the save's own figure stands */ }
+        return r;
+      };
+    }
+    // a joining guest's traveller gets the card's health, as the host's own does (P86)
+    try { coop(); } catch (e) { /* co-op keeps the engine's health */ }
     return true;
   }
   const ORIG = { armorNoise: typeof armorNoise === 'function' ? armorNoise : null, openModal: typeof openModal === 'function' ? openModal : null };
   const wired = typeof window !== 'undefined' ? wire() : false;
-  return { PHASE_FILES, BACKGROUNDS, DEFAULT, byId, BUTTONS, TX, CREDITS, hudText, texts, choose, renderWho, state: () => ST, current, ORIG, wrapHUD, wired };
+  return { PHASE_FILES, BACKGROUNDS, DEFAULT, byId, BUTTONS, TX, CREDITS, hudText, texts, choose, applyBg, renderWho, state: () => ST, current, ORIG, wrapHUD, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = PANEL10;

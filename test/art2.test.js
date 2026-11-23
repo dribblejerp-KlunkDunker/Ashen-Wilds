@@ -18,7 +18,7 @@ const assets = new Function(read('js/assets.js') + ';return ASSETS')();
 check(['tex', 'spr', 'fp', 'meta'].every((k) => assets[k] && Object.keys(assets[k]).length === 0), 'the engine\'s table of embedded pictures is empty');
 check(read('js/assets.js').length < 800, 'and the file that held 2.4 MB of them is a few lines');
 check(Object.keys(new Function(read('js/painted-manifest.js') + ';return PAINTED_MANIFEST')()).length === 0, 'the list of painted picture files is empty too');
-const walk = (dir, out) => { for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) { if (e.name === '.git' || e.name === 'node_modules') continue; const p = dir ? dir + '/' + e.name : e.name; if (e.isDirectory()) walk(p, out); else out.push(p); } return out; };
+const walk = (dir, out) => { for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) { if (e.name === '.git' || e.name === 'node_modules' || e.name === 'shots') continue; const p = dir ? dir + '/' + e.name : e.name; if (e.isDirectory()) walk(p, out); else out.push(p); } return out; };
 const all = walk('', []), pics = all.filter((f) => /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f));
 const mine = (f) => f === 'img/title.png' || /^img\/p_la_\w+\.jpg$/.test(f) || /^assets\/icons\/[\w-]+\.png$/.test(f) || /^docs\/screenshots\/\w+\.(png|gif)$/.test(f);   // stills, and clips of this game played (Phase 4)
 check(pics.length > 0 && pics.every(mine), 'every picture file is a still or clip of this game, a portrait cut from it, or its own icon: ' + (pics.filter((f) => !mine(f)).join(' ') || pics.length + ' files'));

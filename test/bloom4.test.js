@@ -3,7 +3,8 @@
 // Phase 4, the walking bloom: it hunts by sound on the ledge (O7), modelled (O9). This checks its rules against the
 // bestiary's numbers, its mind step by step without a browser, its body (bones, winding, the flat picture), and, in a
 // browser, that it is PLAYED: walked past it does not turn, run past it comes and claws, it cannot follow you in at
-// Marget Sayle's door, and the switch puts the flat painted figure in its place.
+// Marget Sayle's door, waking after it has killed you puts it back at its post, and the switch puts the flat painted
+// figure in its place.
 'use strict';
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..');
 const B = require(path.join(ROOT, 'js', 'bloom4.js')), L = require(path.join(ROOT, 'js', 'ledge1.js'));
@@ -14,7 +15,7 @@ const R = B.R, src = fs.readFileSync(path.join(ROOT, 'js', 'bloom4.js'), 'utf8')
 // ---- what the written world says, and that the rules say the same
 const bible = ['the-smothering.md', 'bestiary.md'].map((f) => fs.readFileSync(path.join(ROOT, 'docs', 'worldbuilding', f), 'utf8')).join('\n');
 check(/shambles at 1\.9 m\/s \(slower than you walk\), sees 8 m in a 120 degree cone,\s+hears a sprint or a swing within 8 m \(scaled by your noise\), claws for 16 and two seconds of\s+choking/.test(bible), 'the world bible says what a walking bloom is (the-smothering.md: 1.9 m/s, 8 m, 120 degrees, 16, two seconds)');
-check(R.speed === 1.9 && R.see === 8 && Math.abs(R.seeCone - Math.PI * 2 / 3) < 1e-9 && R.claw === 16 && R.choke === 2, 'and the rules carry exactly those numbers');
+check(R.speed === 1.9 && R.see === 8 && Math.abs(R.seeCone - Math.PI * 2 / 3) < 1e-9 && R.claw === 32 && R.choke === 2, 'and the rules carry those numbers, the claw doubled for the cards\' 100 scale (P88): ' + R.claw);
 const ENGINE_WALK = 2.6;   // js/game.js: (2.6 + Speed/60) cells a second, before running
 check(/const spd = \(2\.6 \+ p\.attrs\.Speed \/ 60\) \* \(running \? 1\.7 : 1\)/.test(fs.readFileSync(path.join(ROOT, 'js', 'game.js'), 'utf8')) && R.speed < ENGINE_WALK, 'it shambles slower than you walk (1.9 against the engine\'s 2.6 and up)');
 
@@ -103,6 +104,12 @@ const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), sw = fs.rea
 check(/js\/sun3\.js\?v=\d+"><\/script>\s*<script src="js\/bloom4\.js\?v=\d+"><\/script>/.test(html), 'index.html loads bloom4.js straight after sun3.js');
 check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
 
+// ---- waking by the lamp (js/game.js #btn-wake): reset() puts it back at its post
+S = B.fresh(); S.x = 91; S.y = 41; S.state = 'claw'; S.heard = 3; S.choke = 1.5;
+B.reset();
+check(B.state().state === 'post' && Math.hypot(B.state().x - R.post.x, B.state().y - R.post.y) < 1e-9 && !B.state().held, 'reset() puts it back at its post, its hearing forgotten');
+check(/getElementById\('btn-wake'\)[\s\S]{0,200}?\breset\b/.test(src), 'and waking by the lamp calls it: the bloom listens to #btn-wake itself, not the copied engine');
+
 // ---- the played half, in a browser
 (async () => {
   const HN = require('./harness.js');
@@ -150,6 +157,17 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
       // 5. what it costs: thirty frames with it in view, with the modelled pass and without (software rendering: an upper bound)
       const cost = (enable) => { GFX.laBodies = enable; advanceTime(17); const a = pn(); for (let i = 0; i < 30; i++) render(); return (pn() - a) / 30; };
       cost(true); out.ms = { on: cost(true), off: cost(false), pass: Bm.gl().ms }; GFX.laBodies = true;
+      // 6. waking by the lamp: it goes back to its post, so a respawn is survivable (it used to wake in reach and kill again)
+      begin(89.5, 48.5); G.player.hp = 1;
+      const W = Bm.state(); Object.assign(W, { x: c.x + 1.2, y: c.y, yaw: 0, state: 'come', t: 0, tx: c.x, ty: c.y, _hit: false });
+      for (let i = 0; i < 150 && G.state !== 'dead'; i++) advanceTime(100);
+      out.wake = { died: G.state === 'dead' };
+      if (out.wake.died) document.getElementById('btn-wake').click();
+      const w1 = Bm.state();
+      out.wake.state = w1.state; out.wake.off = Math.hypot(w1.x - Bm.R.post.x, w1.y - Bm.R.post.y);
+      out.wake.playing = G.state === 'play'; out.wake.hp = G.player.hp; out.wake.dist = Math.hypot(c.x - w1.x, c.y - w1.y);
+      for (let i = 0; i < 120; i++) advanceTime(100);
+      out.wake.after = { state: Bm.state().state, hp: G.player.hp, playing: G.state === 'play' };
       out.tickErr = Bm.gl().tickErr || null;
       return out;
     });
@@ -158,7 +176,7 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
     check(r.inMap, 'and it stands in the ledge\'s map as a solid thing you can look at and cannot walk through');
     check(r.walk.state === 'post' && r.walk.heard === 0 && r.walk.hp === r.walk.hp0 && r.walk.door, 'PLAYED: walk down the ramp and behind it to the door, and it never turns');
     check(r.run.heard >= 1 && r.run.clawed >= 1, 'PLAYED: run down the ramp, and it hears, comes, and claws');
-    check(r.run.hpAfter === r.run.hp0 - 16, 'the claw takes 16 (' + r.run.hp0 + ' to ' + r.run.hpAfter + ')');
+    check(r.run.hpAfter === r.run.hp0 - 32, 'the claw takes 32 (' + r.run.hp0 + ' to ' + r.run.hpAfter + ')');
     check(r.run.peakNoise > 5, 'and the dust sets you coughing, which is loud (noise up to ' + r.run.peakNoise.toFixed(1) + ')');
     check(/walking bloom/i.test(r.run.msgs), 'what happened is said in words: "' + r.run.msgs.slice(0, 120).replace(/\s+/g, ' ') + '"');
     check(r.door.inside === 0 && r.door.state === 'wait' && Math.hypot(r.door.x - 85.3, r.door.y - 31.5) < 0.5, 'PLAYED: go in at the door and bar it, and it cannot follow; it waits off the door (' + r.door.state + ' at ' + r.door.x.toFixed(1) + ', ' + r.door.y.toFixed(1) + ')');
@@ -169,6 +187,9 @@ check(/js\/bloom4\.js\?v=\d+/.test(sw), 'and the offline list carries it');
     check(r.sw.gone && r.sw.off === r.sw.without, 'off draws exactly what it draws with the modelled pass taken out (frame hash ' + r.sw.off + ')');
     console.log('NOTE frame cost in software rendering, 30 frames with it in view: ' + r.ms.on.toFixed(1) + ' ms with the model, ' + r.ms.off.toFixed(1) + ' ms with the flat figure (the time to submit a frame; software rendering cannot say what it costs on a real card)');
     check(r.ms.on - r.ms.off < Math.max(8, r.ms.off * 0.5), 'it costs a small part of the frame even in software rendering (' + (r.ms.on - r.ms.off).toFixed(1) + ' ms more; the look test cost 27)');
+    check(r.wake.died && r.wake.state === 'post' && r.wake.off < 0.01, 'PLAYED: die to it and wake by the lamp, and it is back at its post (' + r.wake.state + ', ' + r.wake.off.toFixed(2) + ' m off)');
+    check(r.wake.playing && r.wake.hp > 0 && r.wake.dist > 10, 'the spawn is out of its hearing: ' + r.wake.dist.toFixed(1) + ' m off, and you are standing (hp ' + r.wake.hp + ')');
+    check(r.wake.after.playing && r.wake.after.hp === r.wake.hp && r.wake.after.state === 'post', 'and twelve seconds later you are still standing - it used to wake in reach and kill you again');
     check(!r.tickErr, 'its step through the game never threw: ' + (r.tickErr || 'none'));
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
   } catch (e) { fails++; console.log('FAIL the browser half stopped: ' + String(e.message).split('\n')[0]); }

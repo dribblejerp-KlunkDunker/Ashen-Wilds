@@ -2,7 +2,9 @@
 // NODE_PATH=$(npm root -g) node test/door5.test.js        with Playwright installed globally
 // Phase 5, the door that holds: Marget Sayle's door has a bar, and the safe room is only safe when it is across.
 // This checks the written lines it answers, the bar's paintings, the bloom's mind at a door without a browser, and, in
-// a browser, plays it: bar the door and the bloom leans on it once and goes away; leave it open and it comes in.
+// a browser, plays it: bar the door and the bloom leans on it once and goes away; leave it open and it comes in; give
+// it a player's three seconds to find the bar and the knock still comes; and standing in the doorway, E leaves the
+// bothy (the bar there does not take the press).
 'use strict';
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..');
 const D = require(path.join(ROOT, 'js', 'door5.js')), B = require(path.join(ROOT, 'js', 'bloom4.js')), L = require(path.join(ROOT, 'js', 'ledge1.js'));
@@ -39,6 +41,10 @@ B.think(S, Object.assign({}, open, { px: 0, py: 0, noise: 1, moving: false, here
 check(S.state === 'toDoor' && S.tx === door.x, 'when you go out of its map, it follows to the door you went through');
 let atDoor = false; for (let i = 0; i < 30 * 12 && !atDoor; i++) atDoor = B.think(S, Object.assign({}, open, { px: 0, py: 0, noise: 1, moving: false, here: false, door }), 1 / 30).door;
 check(atDoor && Math.hypot(S.x - door.x, S.y - door.y) < 0.4, 'and says when it is there; what happens next is the door\'s business');
+// a door may ask it to stand there first: a player who has just come in needs the seconds to find the bar
+S = B.fresh(); S.state = 'toDoor'; S.tx = S.x + 0.05; S.ty = S.y; S.t = 0;
+let first = null; for (let i = 0; i < 30 * 6 && first == null; i++) if (B.think(S, Object.assign({}, open, { px: 0, py: 0, noise: 1, moving: false, here: false, door, doorPause: 4 }), 1 / 30).door) first = i / 30;
+check(first != null && first >= 3.5 && first <= 4.5, 'with a pause, it stands at the door first and only then tries it (' + (first == null ? 'never' : first.toFixed(1) + ' s') + ')');
 S = B.fresh(); S.state = 'listen'; S.t = 0;
 let homeDoor = false; for (let i = 0; i < 30 * 30 && !homeDoor; i++) homeDoor = B.think(S, Object.assign({}, open, { px: 0, py: 0, noise: 1, moving: false, here: false, door, home: door, homeIsDoor: true }), 1 / 30).door;
 check(homeDoor && S.state === 'back', 'shut in a room with nothing to hunt, it listens, then makes for the door to go home');
@@ -69,15 +75,17 @@ check(/js\/bloom4\.js\?v=\d+"><\/script>\s*<script src="js\/door5\.js\?v=\d+"><\
       const wait = (secs, until) => { for (let i = 0; i < secs * 10; i++) { advanceTime(100); check(); if (G.state !== 'play' || (until && until())) break; } };
       const inDoor = () => { c.dir = -Math.PI / 2; interact(); advanceTime(100); };
       const useBar = () => { const b = G.ents.find((e) => e.use === 'la_bar'); c.dir = Math.atan2(b.y - c.y, b.x - c.x); interact(); advanceTime(50); return b; };
-      out.doors = Bm.DOORS.map((d) => d.from + '>' + d.to);
+      out.doors = Bm.DOORS.map((d) => d.from + '>' + d.to); out.pause = Bm.DOORS[0] && Bm.DOORS[0].pause;
       // the bar
       begin(83.5, 30.9); inDoor(); out.inside = G.mapId; out.told = /Put the bar across/.test(box());
       const n0 = G.noise, bar = useBar(); out.bar = { flag: !!G.flags.la_barred, sprite: bar.sprite, noise: G.noise - n0, said: /drop the bar/.test(box()) };
       useBar(); out.bar.lifted = !G.flags.la_barred && bar.sprite === 'la_bar_lean';
-      // A. run down, go in, bar it: it leans on the door once, and goes away
-      begin(87, 41.5); go(86.6, 33.6, 20, true); go(83.6, 30.9, 5, true); const heardA = Bm.state().heard; inDoor(); useBar();
+      // A. run down, go in, take a player's three seconds to find the bar, then bar it: it stands at the door meanwhile
+      // (before the pause it was inside by then, and there was never a knock to hear)
+      begin(87, 41.5); go(86.6, 33.6, 20, true); go(83.6, 30.9, 5, true); const heardA = Bm.state().heard; inDoor(); wait(3);
+      const earlyIn = Bm.state().map === LEDGE1.BOTHY; useBar();
       let everIn = 0; for (let i = 0; i < 600; i++) { advanceTime(100); check(); if (Bm.state().map !== LEDGE1.LEDGE) everIn++; if (Bm.state().state === 'post' && i > 100) break; }
-      out.A = { heard: heardA, knocks: DOOR5.state().knocks, leans: DOOR5.state().leans, everIn, end: Bm.state().state, hp: G.player.hp, hpMax: G.player.hpMax || 43, knockSaid: /leans on the door from outside, once/.test(box()), marget: /They do not stay where it is quiet/.test(box()) };
+      out.A = { heard: heardA, earlyIn, knocks: DOOR5.state().knocks, leans: DOOR5.state().leans, everIn, end: Bm.state().state, hp: G.player.hp, hpMax: G.player.hpMax || 43, knockSaid: /leans on the door from outside, once/.test(box()), marget: /They do not stay where it is quiet/.test(box()) };
       // ... and a second time it leans in silence: one knock, once
       const flags = G.flags; Bm.reset(); loadMap(LEDGE1.LEDGE, { x: 87, y: 41.5, dir: -Math.PI / 2 }); G.flags = flags; G.flags.la_barred = false; const b2 = document.querySelector('#msgs'); if (b2) b2.innerHTML = '';
       go(86.6, 33.6, 20, true); go(83.6, 30.9, 5, true); inDoor(); useBar(); wait(20, () => Bm.state().state === 'wait');
@@ -86,7 +94,7 @@ check(/js\/bloom4\.js\?v=\d+"><\/script>\s*<script src="js\/door5\.js\?v=\d+"><\
       begin(87, 41.5); go(86.6, 33.6, 20, true); go(83.6, 30.9, 5, true); inDoor(); go(2.0, 2.6, 4);
       wait(12, () => Bm.state().map === LEDGE1.BOTHY && Bm.state().t > 1.5);
       out.B = { inMap: Bm.state().map, ledgeHidden: Bm.entity(LEDGE1.LEDGE).hidden, bothyShown: !Bm.entity(LEDGE1.BOTHY).hidden };
-      go(1.5, 3.4, 2); wait(8, () => Bm.state().clawed > 0); out.B.clawed = Bm.state().clawed; out.B.hp = G.player.hp;
+      go(1.5, 3.4, 2); wait(8, () => Bm.state().clawed > 0); out.B.clawed = Bm.state().clawed; out.B.hp = G.player.hp; out.B.hpMax = G.player.hpMax || 43;
       // ... and if it comes in and finds nothing to hunt (you stand still: be stone), it goes back out the way it came
       begin(87, 41.5); go(86.6, 33.6, 20, true); go(83.6, 30.9, 5, true); inDoor(); go(4.4, 1.7, 4);
       wait(15, () => Bm.state().map === LEDGE1.BOTHY); const cameIn = Bm.state().map; wait(40, () => Bm.state().map === LEDGE1.LEDGE);
@@ -94,6 +102,25 @@ check(/js\/bloom4\.js\?v=\d+"><\/script>\s*<script src="js\/door5\.js\?v=\d+"><\
       // C. a barred door does not open from outside, nor from inside
       begin(83.5, 30.8); G.flags.la_barred = true; inDoor(); out.C = { stayed: G.mapId, said: /barred from inside/.test(box()) };
       loadMap(LEDGE1.BOTHY); G.state = 'play'; transfer({ map: LEDGE1.LEDGE, x: 83.5, y: 30.6, dir: Math.PI / 2 }); out.C.inStayed = G.mapId; out.C.inSaid = /Lift it first/.test(box());
+      // D. standing in the doorway, E uses the door: the bar, right on the crosshair there, must not take the press
+      begin(83.5, 30.9); inDoor(); G.flags.la_told_bar = true;                 // inside, the bar leaning by the door
+      c.dir = Math.PI / 2; G.keys = { w: true }; advanceTime(400); G.keys = {};  // into the doorway, facing the door
+      c.dir = 0.7;                                                             // and looking at its right edge, where the bar is picked
+      advanceTime(100);                                                          // the prompt is the engine's own, then ours
+      out.exit = { at: [+c.x.toFixed(2), +c.y.toFixed(2)], hint: G.hint, kind: G.hintKind };
+      const dk = Object.keys(G.map.doors || {}).find((k) => G.map.cells[+k] && G.map.cells[+k].door);
+      out.exit.doorName = dk != null ? (G.map.cells[+dk].label || '') : '';
+      interact(); advanceTime(100); out.exit.map = G.mapId; out.exit.barred = !!G.flags.la_barred;
+      // ... and at the door's edge, where the crosshair misses the door cell: still the door's name, and E still leaves
+      begin(83.5, 30.9); inDoor(); G.flags.la_told_bar = true;
+      loadMap(LEDGE1.BOTHY, { x: 3.5, y: 4.5, dir: 0.6 }); G.state = 'play'; G.flags.la_barred = false; advanceTime(150);
+      out.exit.edge = { hint: G.hint, kind: G.hintKind };
+      interact(); advanceTime(100); out.exit.edge.map = G.mapId;
+      // ... and with the bar across, the first press lifts it and the next leaves
+      begin(83.5, 30.9); inDoor(); G.flags.la_told_bar = true; DOOR5.setBar(true);
+      c.dir = Math.PI / 2; G.keys = { w: true }; advanceTime(400); G.keys = {}; c.dir = 0.7;
+      interact(); advanceTime(100); out.exit.lift = { map: G.mapId, barred: !!G.flags.la_barred };
+      interact(); advanceTime(100); out.exit.lift.map2 = G.mapId;
       out.bad = bad;
       // D. drawn inside: the body by firelight, and the switch
       Bm.reset(); G.flags = { la_told_bar: true }; G.dead = false; G.player.hp = G.player.hpMax || 43; loadMap(LEDGE1.BOTHY, { x: 1.7, y: 2.2, dir: 0.55 }); G.state = 'play'; G.tod = 0.735; Bm.pose({ map: LEDGE1.BOTHY, x: 3.6, y: 3.7, yaw: -2.5, state: 'listen', alert: 1 }); advanceTime(400);
@@ -104,18 +131,23 @@ check(/js\/bloom4\.js\?v=\d+"><\/script>\s*<script src="js\/door5\.js\?v=\d+"><\
       return out;
     });
     check(r.doors.join(' ') === 'la_ledge>la_bothy la_bothy>la_ledge', 'the bloom knows both ways through Marget Sayle\'s door');
+    check(r.pause >= 3, 'and the door asks it to stand ' + r.pause + ' s before it tries the latch, so a player who has just come in can find the bar');
     check(r.inside === 'la_bothy' && r.told, 'the first time you come in, Marget Sayle tells you to put the bar across');
     check(r.bar.flag && r.bar.sprite === 'la_bar_set' && r.bar.said && r.bar.noise > 0.5, 'use the bar and it drops across the door, and that is not silent (noise +' + r.bar.noise.toFixed(1) + ')');
     check(r.bar.lifted, 'use it again and it stands back by the door');
-    check(r.A.heard >= 1 && r.A.everIn === 0 && r.A.leans >= 1, 'PLAYED: run down, go in and bar it: the bloom follows to the door, and the door holds');
+    check(r.A.heard >= 1 && r.A.earlyIn === false && r.A.everIn === 0 && r.A.leans >= 1, 'PLAYED: run down, go in, take three seconds to find the bar and drop it: the bloom is still at the door, and it holds');
     check(r.A.knocks === 1 && r.A.knockSaid && r.A.marget, 'it leans on the door once, you are told, and Marget Sayle says it will go');
     check(r.A.end === 'post' && r.A.hp === r.A.hpMax, 'it waits a while off the door and goes back to its post; you are not touched');
     check(r.A2.leans > r.A.leans && r.A2.knocks === 1 && !r.A2.said, 'the second time it leans in silence: one knock, once');
     check(r.B.inMap === 'la_bothy' && r.B.ledgeHidden && r.B.bothyShown, 'PLAYED: leave the door open and it comes in after you');
-    check(r.B.clawed >= 1 && r.B.hp < 43, 'move where it can see you, and it claws you in the room (' + r.B.hp + ' left)');
+    check(r.B.clawed >= 1 && r.B.hp <= r.B.hpMax - 32, 'move where it can see you, and it claws you in the room (' + r.B.hp + ' of ' + r.B.hpMax + ' left)');
     check(r.B.still.cameIn === 'la_bothy' && r.B.still.wentOut === 'la_ledge' && r.B.still.hp === r.B.still.hpMax && r.B.still.end === 'post', 'stand still in the room and it finds nothing: it listens, goes back out the way it came, and home to its post');
     check(r.C.stayed === 'la_ledge' && r.C.said, 'a barred door does not open from outside: "The door is barred from inside."');
     check(r.C.inStayed === 'la_bothy' && r.C.inSaid, 'nor from inside until the bar is lifted');
+    check(r.exit.map === 'la_ledge' && r.exit.barred === false, 'PLAYED: stand in the bothy\'s doorway at ' + r.exit.at.join(', ') + ' and E leaves the bothy; the bar by the door does not take the press');
+    check(r.exit.hint === r.exit.doorName && r.exit.hint && !/bar/i.test(r.exit.hint), 'the prompt in the doorway names the door, not the bar: "' + r.exit.hint + '"');
+    check(r.exit.edge.hint === r.exit.doorName && r.exit.edge.kind === 'door' && r.exit.edge.map === 'la_ledge', 'where the crosshair misses the door cell but E still leaves, the prompt still names the door: "' + r.exit.edge.hint + '"');
+    check(r.exit.lift.map === 'la_bothy' && r.exit.lift.barred === false && r.exit.lift.map2 === 'la_ledge', 'with the bar across, the first E lifts it and the next leaves');
     check(r.bad === 0, 'in all of that it never stood in a wall, the table, the bed or Marget Sayle');
     check(r.D.passOn && r.D.on > 0.0005 && r.D.off > 0.0002 && r.D.sprite === 'la_bloom_flat', 'inside, it is drawn by firelight, modelled or (switch off) flat (' + (r.D.on * 100).toFixed(2) + '% and ' + (r.D.off * 100).toFixed(2) + '% of the view is its caps)');
     check(!r.err, 'nothing it does threw: ' + (r.err || 'none'));

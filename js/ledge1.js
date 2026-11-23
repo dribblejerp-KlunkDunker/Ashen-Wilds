@@ -26,6 +26,9 @@
 // ============================================================
 'use strict';
 
+// Node tests require this file on its own; the browser already has opening11.js loaded before it.
+const OPEN11 = typeof OPENING11 !== 'undefined' ? OPENING11 : require('./opening11.js');
+
 const LEDGE1 = (() => {
   const LEDGE = 'la_ledge', BOTHY = 'la_bothy';
   const W = 96, H = 96;
@@ -309,6 +312,7 @@ const LEDGE1 = (() => {
       'Her bothy is under this ledge.',
     ],
     arrive: ['The highland edge. Hoarfrost.', 'Look west.'],
+    errand: 'The errand. Marget Sayle, under the ledge.',
     journal: 'Gytha Marrin sent us north for Marget Sayle, one of the four who came back from the first survey. Her bothy is under the ledge, down the ramp on the north side.',
   };
   // what anyone in the north will say when asked (a person's own answer, in NPCS, comes first)
@@ -339,6 +343,7 @@ const LEDGE1 = (() => {
       name: TX.marget, sprite: 'la_marget', portrait: 'la_marget', tier: 'low', scale: 0.95,
       greet: { polite: 'You came up the Bell Road. In the thaw. Sit down before you fall down.', normal: 'Shut the door. The fire is not for the hill.', blunt: 'Say what you want and say it quietly.' },
       topics: {
+        'Marget Sayle': 'That is my name on the door. I came back with the other three and I have been here since. What I saw is mine. Sit down and ask me something else.',
         'Gytha Marrin': 'The Receipt-Wife. Still counting. Tell her I am not a receipt.',
         'The survey': 'Six went through with Ebba Cray. Four came back. I am one of the four. That is all I have ever said and it is all I will say here.',
         'The south': 'They are digging under their salt. I heard it from a reaver who thought I was deaf. I have been waiting for somebody to come and ask me to go and tell them not to.',
@@ -533,10 +538,26 @@ void main() {
   }
   function arrive() {
     const box = document.querySelector('#msgs'); if (box) box.innerHTML = '';
-    G.journal = [{ cat: 'main', text: TX.journal, day: G.day }];
+    G.journal = [];
+    if (G.flags) G.flags.la_looked = false;
+    LOOK.s = OPEN11.make(); LOOK.nudged = false;
     G.tod = START.tod;
     try { if (typeof Weather !== 'undefined' && Weather.hold) Weather.hold('clear'); } catch (e) { /* the engine's own weather */ }
     msg(TX.arrive[0], 'warn', 5000); msg(TX.arrive[1], 'info', 6000);
+  }
+  // Phase 11: the errand waits until the Slagcrown has been held near the middle of the view for two seconds.
+  // The rule is js/opening11.js; this is the wire. O11's co-op half waits for the two-player phase.
+  const LOOK = { s: OPEN11.make(), nudged: false };
+  function lookTick(dt) {
+    if (typeof G === 'undefined' || !G || G.mapId !== LEDGE || G.state !== 'play') return;
+    if (!G.flags || G.flags.la_looked) return;
+    const target = OPEN11.bearing(Engine.cam.x, Engine.cam.y, CIT.x, CIT.y);
+    const s = OPEN11.step(LOOK.s, Engine.cam.dir, target, dt);
+    if (OPEN11.seen(s)) {
+      G.flags.la_looked = true;
+      journal('main', TX.journal);
+      msg(TX.errand, 'info', 6500);
+    }
   }
   function wire() {
     installArt(); people();
@@ -572,6 +593,10 @@ void main() {
     if (typeof R3D !== 'undefined' && R3D.extendMesh) R3D.extendMesh(glowGround);
     if (typeof DAYS !== 'undefined' && Array.isArray(DAYS)) { const n = DAYS.length || 8; DAYS.length = 0; for (let i = 0; i < n; i++) DAYS.push('The thaw'); }
     if (typeof R3D !== 'undefined' && R3D.addPass) { try { R3D.addPass(skyPass); R3D.addPass(ashPass); } catch (e) { GLS.failed = String(e && e.message); } }
+    if (typeof update === 'function') {
+      const _update = update;
+      update = function (dt) { const r = _update.apply(this, arguments); try { lookTick(dt); } catch (e) { GLS.lookErr = GLS.lookErr || String(e && e.message); } return r; };
+    }
   }
   // the Options rows
   function optionRows() {
