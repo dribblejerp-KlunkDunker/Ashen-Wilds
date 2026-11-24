@@ -838,9 +838,8 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
    view for two seconds, added up, before the errand. The co-op half waits for the two-player phase.
 4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
-5. **The zones (O15), ZP1 to ZP30**: sizes, squeezes, the zone's-days rule, the new sites and four Chart legs the
-   atlas gives no miles for. First of all, Wexhaven's size, which the archive leaves unset. See *Zones (O15), for a
-   ruling* below.
+5. ~~**The zones (O15), ZP1 to ZP30**~~ **Settled by O16** (2026-11-24): all approved, Wexhaven at the standard zone
+   size. See *Zones (O15)* below.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
 book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's route, the opening view, the dates,
@@ -1016,7 +1015,7 @@ are not the limit.
 
 Software rendering cannot show real GPU speed or memory limits; run the tool on real hardware before ruling on E1.
 
-## Zones (O15), for a ruling
+## Zones (O15): approved 2026-11-24 (O16)
 
 `docs/worldbuilding/atlas/10-zones.md` (the plan) · `docs/worldbuilding/atlas/zones/*.svg` (one sketch a zone) ·
 `tools/zones.js` (draws the sketches from the plan's tables and measures the 30-to-60-second rule). Not a phase: a
@@ -1030,7 +1029,8 @@ belongs in each on a grid, fills the ways between them, and gives the Chart legs
 distances. `node tools/zones.js` passes for every zone: the longest stretch of any way with nothing within 70 cells is
 155 cells, and on average there is something every 71 to 106 cells.
 
-Everything below is **[PROPOSED]** and waits for the owner.
+Everything below was **[PROPOSED]** here and is **approved** ("i approve", 2026-11-24; O16 on the canon sheet). Wexhaven
+takes the standard zone size (ZP16); its own extent inside the zone stays unset.
 
 **Rules**
 

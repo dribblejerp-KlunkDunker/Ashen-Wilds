@@ -14,7 +14,7 @@ person and place have a full entry.
 - [The atlas](atlas/): the nine tabs of the Claude Doc "Ashen Wilds atlas", from how to read it to the wider Round,
   with the scale every distance is measured to (`atlas/1-scale-and-distances.md`), and
   [the wilds between](atlas/9-the-wilds-between.md): ten new places across the open country.
-- [The zones](atlas/10-zones.md) (2026-11-24, **proposed**, for ruling O15): each region as one walkable zone, its
+- [The zones](atlas/10-zones.md) (2026-11-24, approved as O16, for ruling O15): each region as one walkable zone, its
   places on a grid, new small sites to fill it, and the Chart legs between zones; sketches in `atlas/zones/`.
 - [Who is who](people/README.md): every named person (169 entries) and where their full entry is, with new full entries
   by region in `people/`.

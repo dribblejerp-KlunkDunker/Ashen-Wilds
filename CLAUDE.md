@@ -265,6 +265,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O14:** every traveller starts with a torch; a lantern is found or bought (Phase 38).
 - **O15:** the world's scale is the hybrid: each region one dense walkable zone of about a square mile, the Chart between
   regions, something to find every 30 to 60 seconds of walking, and not on the small side.
+- **O16:** the zones in `docs/worldbuilding/atlas/10-zones.md` (ZP1 to ZP30) are approved: eleven zones, maps of at most
+  384 x 384, great complexes at true size in their own maps, a zone's road days booked when you leave it.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

@@ -1,8 +1,9 @@
 # The zones: the world built at O15's scale
 
-> Written 2026-11-24 for ruling O15 in `../CANON.md` ("the hybrid"). **Status: PROPOSED.** Every zone size, squeeze,
-> grid position, seam, rule and new site here waits for the owner's ruling, and every new name is marked
-> **[PROPOSED]**. The atlas stays the true map: nothing here moves a place, changes a distance on the Chart, or
+> Written 2026-11-24 for ruling O15 in `../CANON.md` ("the hybrid"). **Status: approved 2026-11-24 (O16).** Every
+> zone size, squeeze, grid position, seam, rule and new site here was accepted ("i approve"); the **[PROPOSED]** marks
+> below record what was invented here, not that it still waits. Wexhaven takes the standard zone size, its own extent
+> inside the zone still unset. The atlas stays the true map: nothing here moves a place, changes a distance on the Chart, or
 > settles anything the atlas leaves open. Read with `1-scale-and-distances.md` (the miles and the paces) and
 > `../../engine-limits.md` (how big one map can be). The sketches are in `zones/`, drawn by `tools/zones.js`
 > from the tables below; run `node tools/zones.js` after editing a table.
