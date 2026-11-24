@@ -71,6 +71,9 @@ jobs:
         run: node test/wires19-23.test.js --no-browser
       - name: The highland materials look test (no browser)
         run: node test/highland-materials.test.js
+      - name: Every test file, no browser (so a new phase cannot be left out of CI)
+        run: |
+          for f in test/*.test.js; do echo "== $f"; node "$f" --no-browser || exit 1; done
       - name: The offline list and the icons are current
         run: |
           node tools/pwa/precache.js --check
@@ -100,6 +103,14 @@ jobs:
           - { name: 'Phase 19, the co-op cut (two tabs)', test: sync19 }
           - { name: 'Phase 27, the hearth', test: hearth27 }
           - { name: 'Phase 32, the bestiary', test: bestiary32 }
+          - { name: 'Phase 11, the opening look', test: opening11 }
+          - { name: 'Phase 12, the company', test: company12 }
+          - { name: 'Phase 13, the carter', test: carter13 }
+          - { name: 'Phase 14, the Account', test: account14 }
+          - { name: 'Phase 15, the carry', test: carry15 }
+          - { name: 'Phase 16, the warning book', test: book16 }
+          - { name: 'Phase 17, the kit', test: kit17 }
+          - { name: 'Phase 18, the cards', test: cards18 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0

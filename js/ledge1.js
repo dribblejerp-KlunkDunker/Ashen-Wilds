@@ -624,6 +624,7 @@ void main() {
   }
   wire(); optionRows();
   return { LEDGE, BOTHY, W, H, SUN, CIT, PLATEAU, SHELF, RAMP, HOLLOW, CANYON, landH, citadelTop, buildLedge, buildBothy, TX, TOPICS: TOPICS_LA, FL, hash, gl: () => GLS, begin, SWITCHES, START, laMap,
+    look: () => LOOK.s, resetLook: () => { LOOK.s = OPEN11.make(); LOOK.nudged = false; if (typeof G !== 'undefined' && G && G.flags) G.flags.la_looked = false; },
     tiles: () => ({ t_la_rock: paintRock(), t_la_frost: paintFrost(21), t_la_frost2: paintFrost(121), t_la_scorch: paintScorch(), t_la_ember: paintEmber(), t_la_slag: paintSlag(), t_la_bloom: paintBloom(), t_house_la_drystone: paintDrystone(), t_la_turfroof: paintTurfRoof() }) };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LEDGE1;

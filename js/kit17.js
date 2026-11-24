@@ -126,9 +126,9 @@ const KIT17 = (() => {
     const id = BY_ID[bg] ? bg : 'deserter', g = applyTo(p, id);
     if (!G || !G.flags) return g;
     G.flags.la_kit = { bg: id, ids: g.ids, kg: g.kg, fuel: g.fuel };
-    // Phase 17 replaces the lantern's thousand-second oil with the kit's torch. It is still one light and one fuel
-    // pool, so Phase 7's burn, guttering and the bloom's `lit` rule keep working without a second clock.
-    G.flags.la_oil = g.fuel; G.flags.la_flasks = 0;
+    // Audit fix: the kit records its torch's fuel (la_kit.fuel) but no longer overwrites the lantern's oil or empties
+    // Marget Sayle's flasks. The lantern is the one light (Phase 7, P59, approved under O10); whether a kit's torch
+    // replaces it is a question for the owner, listed in ROADMAP.md.
     try { if (typeof UPG !== 'undefined') UPG.lantern = false; } catch (e) { /* the light starts out */ }
     return g;
   }
@@ -164,7 +164,6 @@ const KIT17 = (() => {
         const r = _rg.apply(this, arguments);
         try {
           if (G.player && G.map && G.map._la && (!G.flags.la_kit || !G.flags.la_kit.fuel)) applyKit(G.player, G.flags.la_bg || 'deserter');
-          else if (G.flags && G.flags.la_kit && G.flags.la_kit.fuel && G.flags.la_oil == null) G.flags.la_oil = G.flags.la_kit.fuel;
         } catch (e) { /* the old save keeps what it had */ }
         return r;
       };

@@ -59,11 +59,15 @@ check(/playerMove/.test(src) && /updateNarrow/.test(src) && /function startTitle
       out.prompt = { state: G.state, text: document.getElementById('event-panel').innerText };
       const b = document.querySelector('#event-panel button[data-i="0"]'); if (b) b.click();
       out.attached = { on: CARRY15.state().on, hands: CARRY15.handsFree(CARRY15.state()), pace: CARRY15.pace(CARRY15.state()) };
-      // walk a measured second on the shelf
-      const c = Engine.cam; c.dir = 0; const x0 = c.x;
-      G.keys = { w: true }; advanceTime(1000); G.keys = {};
-      out.walk = { dx: c.x - x0, pace: CARRY15.pace(CARRY15.state()) };
+      // walk a measured second on open ground (the bothy is too small: a walk there meets the wall), then the same
+      // second free, from the same place and facing
+      const c = Engine.cam;
+      loadMap(LEDGE1.LEDGE);
+      const at = { x: c.x, y: c.y }, walk1 = () => { c.x = at.x; c.y = at.y; c.dir = Math.PI; G.keys = { w: true }; advanceTime(1000); G.keys = {}; return Math.hypot(c.x - at.x, c.y - at.y); };
+      out.walk = { dx: walk1(), pace: CARRY15.pace(CARRY15.state()) };
+      out.walk.seen = G.ents.some((e) => e.id === 'la_marget' && !e.hidden);
       interact();
+      out.walk.free = walk1();
       out.released = { on: CARRY15.state().on, hands: CARRY15.handsFree(CARRY15.state()) };
       // the top of the ramp starts the look back once
       CARRY15.attachNow(); loadMap(LEDGE1.LEDGE);
@@ -79,7 +83,8 @@ check(/playerMove/.test(src) && /updateNarrow/.test(src) && /function startTitle
     });
     check(/Take her arm/.test(r.prompt.text) && r.attached.on, 'after the promise, Marget offers her arm');
     check(r.attached.on && !r.attached.hands && Math.abs(r.attached.pace - 0.65) < 1e-9, 'taking it loads both hands at 0.65 pace');
-    check(r.walk.dx > 0 && r.walk.dx < 2.0 && Math.abs(r.walk.pace - 0.65) < 1e-9, 'the measured walk is slower: ' + r.walk.dx.toFixed(2) + ' cells');
+    check(r.walk.dx > 0.5 && r.walk.dx < r.walk.free * 0.75 && Math.abs(r.walk.pace - 0.65) < 1e-9, 'the measured walk is slower: ' + r.walk.dx.toFixed(2) + ' cells with her, ' + r.walk.free.toFixed(2) + ' free');
+    check(r.walk.seen, 'out on the ledge with her, she is there at your side');
     check(!r.released.on && r.released.hands, 'E releases her and frees the hands');
     check(r.title.seen && r.title.open === 'la-title' && r.title.modal, 'at the top with her, the look back and title start once');
     check(r.after.open === null && r.after.state === 'play', 'Escape skips the title');

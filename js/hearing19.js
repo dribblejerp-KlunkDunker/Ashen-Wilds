@@ -174,9 +174,10 @@ const HEARING19 = (() => {
         const read = reading({ noise: G.noise, surface: surfaceAt(G.map, Engine.cam.x, Engine.cam.y), hearing });
         const ctx = Engine.ctx;
         ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(2, 2, 62, 10);
+        // top right of the view (audit fix: at the top left it sat under the game's messages, which print there)
+        ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(256, 2, 62, 10);
         ctx.fillStyle = '#b8a883'; ctx.font = '7px "Alegreya", serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText('heard ' + Math.round(read.metres) + ' m', 5, 7);
+        ctx.fillText('heard ' + Math.round(read.metres) + ' m', 259, 7);
         ctx.restore();
       } catch (e) { /* no gauge is better than a broken frame */ }
       return r;

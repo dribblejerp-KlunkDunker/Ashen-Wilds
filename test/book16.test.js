@@ -48,6 +48,7 @@ check(/js\/book16\.js/.test(html) && html.indexOf('js/book16.js') < html.indexOf
     await HN.begin(s.page);
     const r = await s.page.evaluate(async () => {
       const out = {};
+      advanceTime(2600);   // Phase 11: the errand is written once the Slagcrown has been looked at for two seconds
       G.state = 'play'; renderLog();
       out.list = { count: document.querySelectorAll('[data-book]').length, errand: document.querySelector('#modal-panel').innerText.includes('The errand.') };
       document.querySelector('[data-book="1"]').click();

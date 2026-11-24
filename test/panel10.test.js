@@ -76,6 +76,7 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
     const r = await s.page.evaluate(() => {
       const out = { err: null }; const p = G.player;
       try {
+        advanceTime(2600); out.looked = !!G.flags.la_looked;   // Phase 11: the errand is given once the Slagcrown has been looked at
         out.bg = G.flags.la_bg; out.name = p.name; out.hp = [p.hp, p.hpMax, PANEL10.state().baseHp]; out.an = [armorNoise(), PANEL10.ORIG.armorNoise()];
         out.btns = HUD_BTNS.map((b) => b.t);
         const open = (f) => { G.state = 'panel'; f(); const t = document.querySelector('#modal-panel').innerText; closeModal(); G.state = 'play'; return t; };
@@ -95,7 +96,8 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
         HUD_BTNS.find((b) => b.t === 'LAMP').f(); out.lampBtn = UPG.lantern;
         const v0 = p.voice; window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F1' })); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'F1' })); out.f1 = { voice: [v0, p.voice], murmur: G.murmurT || 0 };
         // the HUD as drawn: its words, and the third bar is your lantern's oil in tallow
-        UPG.lantern = true; G.flags.la_oil = 120; render(); out.hud = PANEL10.state().hud.slice(); out.bar = PANEL10.state().bar;
+        // half a filling: the lantern's own oil (Phase 7), restored by the audit
+        UPG.lantern = true; G.flags.la_oil = 540; render(); out.hud = PANEL10.state().hud.slice(); out.bar = PANEL10.state().bar;
         // the credits
         renderAccessibilityMenu(); VOICES.renderFullCredits(); out.credits = document.querySelector('#modal-panel').innerText; closeModal(); G.state = 'play';
         // saved and loaded, the choice stays
@@ -136,6 +138,7 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
       } catch (e) { out.err = String(e && e.stack || e); }
       return out;
     });
+    check(!r.err, 'the played script ran to its end' + (r.err ? ': ' + r.err.split('\n').slice(0, 3).join(' | ') : ''));
     check(r.bg === 'gutter' && r.name === 'The waif', 'the choice takes: you walk as the gutter-kin, called ' + r.name);
     check(r.coop && r.coop.live === 'gutter' && r.coop.save === 'carter' && r.coop.ok && r.coop.hpMax === 120 && r.coop.snap === 120 && r.coop.none.bg === 'deserter' && r.coop.none.ok && r.coop.none.hpMax === 90, 'co-op: the guest brings the walk of life they chose, and the host gives the partner that card\'s health (live ' + (r.coop && r.coop.live) + '; save ' + (r.coop && r.coop.save) + ' at ' + (r.coop && r.coop.hpMax) + '; no card ' + (r.coop && r.coop.none.bg) + ' at ' + (r.coop && r.coop.none.hpMax) + ')');
     check(r.hp[1] === 75 && r.hp[0] === 75, 'with the gutter-kin\'s 75 health, the card\'s figure (the engine\'s base was ' + r.hp[2] + ')');

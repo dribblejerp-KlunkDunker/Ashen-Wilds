@@ -75,7 +75,8 @@ check(/The Account opens with A/.test(book), 'BOOK tells the player how to open 
       out.choices = (DLG.choices || []).map((q) => q.t);
       DLG.choices[0].f();
       out.entry = ACCOUNT14.state().entries.map((e) => ({ kind: e.kind, person: e.person, state: e.state, due: e.due }));
-      // the book opens on A without stopping the clock
+      // the book opens on A without stopping the clock (A works in play: leave her talk first, as a player does)
+      closeModal(); G.state = 'play';
       const tod = G.tod;
       ACCOUNT14.open(); out.open = { state: G.state, panel: G.openPanel };
       advanceTime(2000);

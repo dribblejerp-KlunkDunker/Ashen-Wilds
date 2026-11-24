@@ -117,7 +117,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
       out.journal = G.journal.map((j) => j.text); out.day = typeof DAYS !== 'undefined' ? DAYS[0] : null; out.tod0 = G.tod;
       out.spawn = { x: c.x, y: c.y, feet: G.player.feet };
       const plan = EAVES78.plan(G.maps.la_ledge); out.houses = plan.houses.map((h) => [h.x0, h.y0, h.x1, h.y1, h.roofTex || '']);
-      out.carter = G.ents.filter((e) => e.kind === 'npc').map((e) => e.name);
+      out.carter = G.ents.filter((e) => e.kind === 'npc' && !e.hidden).map((e) => e.name);   // a person you can see: Marget's ledge body waits hidden until she is led out (Phase 15)
       out.lights = G.ents.filter((e) => e.lightCol).length;
 
       // ---- frames, under a stopped clock (the engine's clock moves the ash; nothing here rolls dice)

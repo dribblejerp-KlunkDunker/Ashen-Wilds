@@ -76,14 +76,14 @@ check(fs.existsSync(path.join(ROOT, 'js', 'ledge1.js')) && /OPEN(?:ING)?11\.step
     const r = await s.page.evaluate(async () => {
       const out = {};
       out.atStart = { flag: !!G.flags.la_looked, journal: G.journal.map((j) => j.text) };
-      G.flags.la_looked = false; G.journal = [];
+      LEDGE1.resetLook(); G.journal = [];
       Engine.cam.dir = Math.PI;
       advanceTime(1900);
       out.early = { flag: !!G.flags.la_looked, journal: G.journal.length };
       advanceTime(300);
       out.after = { flag: !!G.flags.la_looked, journal: G.journal.map((j) => j.text) };
       // look away for two seconds: the count is held, and the errand is still given only once
-      G.flags.la_looked = false; G.journal = [];
+      LEDGE1.resetLook(); G.journal = [];
       Engine.cam.dir = 0;
       advanceTime(2500);
       out.away = { flag: !!G.flags.la_looked, journal: G.journal.length };
