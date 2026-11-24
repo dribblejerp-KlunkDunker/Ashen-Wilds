@@ -838,6 +838,9 @@ The questions of 2026-11-19 were all ruled that evening (O11, below). What is op
    view for two seconds, added up, before the errand. The co-op half waits for the two-player phase.
 4. **Google Drive** could not be searched for the faction bible (the connector lacks a permission). If it is there,
    it is read against O11.
+5. **The zones (O15), ZP1 to ZP30**: sizes, squeezes, the zone's-days rule, the new sites and four Chart legs the
+   atlas gives no miles for. First of all, Wexhaven's size, which the archive leaves unset. See *Zones (O15), for a
+   ruling* below.
 
 Settled on 2026-11-19 by O10: the rules of Phases 4 to 8 (P33 to P70), the chart's placements, and the warning
 book of S.30. Settled the same evening by O11: Mara Venn and Harl, Odo Starke's route, the opening view, the dates,
@@ -1012,6 +1015,93 @@ are not the limit.
   map. A coarser cell is not recommended (a person is one cell tall); a smaller zone is the fallback.
 
 Software rendering cannot show real GPU speed or memory limits; run the tool on real hardware before ruling on E1.
+
+## Zones (O15), for a ruling
+
+`docs/worldbuilding/atlas/10-zones.md` (the plan) · `docs/worldbuilding/atlas/zones/*.svg` (one sketch a zone) ·
+`tools/zones.js` (draws the sketches from the plan's tables and measures the 30-to-60-second rule). Not a phase: a
+plan. No game code changed. `test/art2.test.js` now allows the zone sketches (pictures this repository draws), and CI
+runs `node tools/zones.js --check`.
+
+O15 rules the hybrid: the atlas stays the true map, each region is one dense walkable zone of about a square mile,
+the long hauls are on the Chart, and something to see, find or fight every 30 to 60 seconds of walking (78 to 156
+cells at 2.6 cells a second). The plan lays out eleven zones in the road's order, places every atlas place that
+belongs in each on a grid, fills the ways between them, and gives the Chart legs between zones from the atlas's
+distances. `node tools/zones.js` passes for every zone: the longest stretch of any way with nothing within 70 cells is
+155 cells, and on average there is something every 71 to 106 cells.
+
+Everything below is **[PROPOSED]** and waits for the owner.
+
+**Rules**
+
+- **ZP1** A zone is 1,536 x 1,536 cells (4 x 4 maps of 384, 0.95 of a mile a side). Three are larger because their
+  road is long: the Bell Road country 1,536 x 2,688, the Watchhouse and the Causeway 2,688 x 1,152, the Citadels and
+  the north 3,072 x 1,536. About 13 square miles in all, before the great complexes.
+- **ZP2** Zones are built now as connected maps of at most 384 x 384 (E1, E2), seams put on thresholds the land has;
+  they join into one map when chunked streaming lands. A long thin map (the King's Sluice, the Hewers' Road)
+  is cheap because the cost is per cell: a reading of `docs/engine-limits.md`, not yet measured.
+- **ZP3** Great complexes stand at true size (O10) in their own maps behind a gate in the zone, as `la_bothy` is.
+  Small built places are built in the zone at true size.
+- **ZP4** Open country is squeezed; each zone states its squeeze; bearings are kept within about a quarter turn.
+- **ZP5** A zone's days: leaving a zone by another threshold books the atlas days of the road between the two (the
+  walk south stays 28 days).
+- **ZP6** Six kinds of thing on a zone: complex, atlas place, new site, gate, hunting ground, wayside find or view.
+- **ZP7** Wayside things are a fixed list of kinds (a cache cairn, a dead traveller and what they carried, a view, a
+  cut stone, a broken cart, a neighbour's mark), each placed by hand and showing only what the atlas says is there.
+- **ZP8** A Chart leg may stop at a landing: one map of at most 384 x 384 (the White Trees, the Nailhouse, the Lazaret
+  Rocks).
+- **ZP9** Chart units: food one ration a traveller a day; fuel one a traveller a night away from a hearth; oil at sea
+  counted in nights.
+
+**The zones** (sizes, squeezes and grids as in the plan)
+
+- **ZP10** Z1 the highland edge and the ledge (the ledge and bothy kept as built; Coldbarrow at its foot).
+- **ZP11** Z2 the Bell Road country, with the Spiral Fold and Hollowmere Dam at its two edges.
+- **ZP12** Z3 the Watchhouse and the Causeway, from Bellwether Yard to Brackenreach and the burning east.
+- **ZP13** Z4 the Blackfen's drowned middle, west and south, walked into from Z3 only by the Corpseway and the dry ways.
+- **ZP14** Z4b the Drowned Measures as its own zone, a day's Chart leg from Rook's Stair: the brief grouped it with
+  the Blackfen, but the atlas puts it fifty miles north, off the Bell Road.
+- **ZP15** Z5 the Salt Trace and the Downs: the Trace's Downs stretch to Whitlow, the White Horse and the Kings'
+  Barrows. The Trace's fen stretch (with the White Trees) and its last stretch to Wexhaven are Chart legs.
+- **ZP16** Z6 Wexhaven and the Burned Quay at the standard size, **though the archive leaves Wexhaven's scale unset**:
+  that is the owner's first ruling here.
+- **ZP17** Z7 the Citadels and the north: the rim, the Ringing Field, the Scald to the Cold Edge and the Bald Hills;
+  Kell Tor drawn only to its blank gate and its tarn; the Deep in its own maps.
+- **ZP18** Z8a to Z8d, the Round's landfalls: Port Sable and the Sable Shore, Saint-Aumere, Sephar and the Garden of
+  Hours (its temples drawn into one stretch of river), Halsing and the White Deeps.
+- **ZP19** The Roofed Mile drawn in Z2 at a third of its true length (about 540 cells); Milebank in Z4b at half (about
+  820 cells).
+- **ZP20** The carrying line counted from the fen: the first tower is Halwen's chapel tower, the fifth the
+  Bell-Tender's House, the ninth at Coldbarrow, the eleventh Greystair's belfry; wrapped bells still in the second,
+  fifth, seventh and tenth; the third, sixth and eighth lost; the fourth broken in its yard.
+
+**New small sites** (each written up in the plan with why it fits)
+
+- **ZP21** Z1: Marget's peat bank, the Warm Skeps, the Boiling Stone, the Slag Fall, the Warm Shieling, the
+  Listeners' Cairn, the Downhill Den, the Dropping Place, the Ponies' Shelf, Wilmot's Fold.
+- **ZP22** Z2: the Wether Bield, the Lime Fall, the Moth Barn, the Stone Ruts, the Carriers' Pit, the Last Coach, the
+  Halwen Stones.
+- **ZP23** Z3: the Roll Stone, the Spent Beacon, the Eel Weir.
+- **ZP24** Z4: the Penitents' Lime Cache, the Withy Beds, the Eel Traps, the Claim Post, Heron Holm.
+- **ZP25** Z4b: the Surveyors' Mound, the Eel Garths, the Rent Stones.
+- **ZP26** Z5: Cleeve Grange, Sallow Grange, Brockhold, the Gate Camp, Hollow Grange, the Chalk Well.
+- **ZP27** Z6: the Stove Sledge, the Rear-guard Barricade, the Fishers' Stair, the Burned Ropewalk.
+- **ZP28** Z7: the Breathing Holes, the Lodge Cairn, the Ice-walkers' Camp, the Prospectors' Shelter.
+- **ZP29** Z8: the Hand-Sign Stones, the Debt Board, the Pressers' Shrine, the Petitioners' Steps, the Glass-Carriers'
+  Path, the Embassy Quay, the Empty Traps, the Low Lodge's Meeting Room.
+
+**Chart legs whose miles the atlas does not give**
+
+- **ZP30** Tavin's road station to the Downs, about 20 miles, 2 days (C4); Crake Ford's ferry path to the Trace,
+  about 10 miles, 1 day (C5); Port Sable to Sephar, about 1,000 miles, 10 days (S3b); Saint-Aumere to Halsing, about
+  120 miles, 15 days (S4).
+
+**Not done, and not checked:** no zone is built and no code changed; `js/chart26.js` still has its five nodes and
+six short roads, and would be rebuilt from these legs in a later phase if they are approved. Feel (whether one thing
+every 85 cells reads dense or cluttered, how a seam's half-second load sits with the dread) needs a person at the
+controls once a zone exists. The Round's four landfalls are outlines: their ways cover a small part of their ground.
+Names were checked against `docs/worldbuilding/` and `js/` for clashes on 2026-11-24 ("Lime Pit" clashed with Withy
+Bottom's lime pit and was renamed the Carriers' Pit).
 
 ## Old phase table (kept for history)
 

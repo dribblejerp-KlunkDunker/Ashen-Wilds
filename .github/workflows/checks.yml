@@ -78,6 +78,8 @@ jobs:
         run: |
           node tools/pwa/precache.js --check
           node tools/icons.js --check
+      - name: The zone sketches match the zone plan, and every way keeps the 30-to-60-second rule (O15)
+        run: node tools/zones.js --check
 
   # One job per phase, run side by side: the whole set ran past 15 minutes in one job once Phase 6 came
   # (a slow runner took 5 minutes over Phase 4 alone). Each phase keeps its own 15 minute limit.

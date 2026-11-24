@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1070" viewBox="0 0 1160 1070" font-family="Georgia, serif">
+<rect width="100%" height="100%" fill="#f4efe4"/>
+<text x="30" y="22" font-size="16" fill="#222">Z8C. Sephar and the Garden of Hours</text>
+<text x="30" y="40" font-size="11" fill="#555">1536 x 1536 cells (1 cell = 1 m). Dashed squares: maps of 384 x 384. A sketch, not art. Numbers are the rows of the zone's table.</text>
+<rect x="30" y="50" width="900" height="900" fill="#e9e2d0" stroke="#333" stroke-width="1.5"/>
+<line x1="255.0" y1="50.0" x2="255.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="480.0" y1="50.0" x2="480.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="705.0" y1="50.0" x2="705.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="275.0" x2="930.0" y2="275.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="500.0" x2="930.0" y2="500.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="725.0" x2="930.0" y2="725.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#6b5a44" stroke-width="5" points="475.3,50.0 475.3,137.9 475.3,219.9 475.3,302.0 475.3,378.1 475.3,495.3"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="323.0,378.1 405.0,378.1 475.3,378.1 557.3,378.1 627.7,378.1"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="475.3,495.3 475.3,565.6 475.3,635.9"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="475.3,495.3 405.0,577.3"/>
+<polygon points="475.3,46.9 484.3,55.9 475.3,64.9 466.3,55.9" fill="#d8b04a" stroke="#000"/>
+<circle cx="475.3" cy="137.9" r="4" fill="#fff" stroke="#555"/>
+<circle cx="475.3" cy="219.9" r="4" fill="#fff" stroke="#555"/>
+<circle cx="475.3" cy="302" r="6" fill="#a33" stroke="#000"/>
+<rect x="317" y="372.1" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="469.3" y="372.1" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="621.7" y="372.1" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="405" cy="378.1" r="4" fill="#fff" stroke="#555"/>
+<circle cx="557.3" cy="378.1" r="6" fill="#a33" stroke="#000"/>
+<rect x="466.3" y="486.3" width="18" height="18" fill="#3a3a3a" stroke="#000"/>
+<rect x="399" y="571.3" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="469.3" y="629.9" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="475.3" cy="565.6" r="4" fill="#fff" stroke="#555"/>
+<circle cx="475.3" cy="436.7" r="4" fill="#fff" stroke="#555"/>
+<circle cx="440.2" cy="536.3" r="4" fill="#fff" stroke="#555"/>
+<text x="485.3" y="59.9" font-size="10" fill="#111">1 The river: from the sea (S3)</text>
+<text x="63.9" y="382.1" font-size="10" fill="#111">5 The temple at Qesh and its smoked-glass house</text>
+<text x="485.3" y="354.1" font-size="10" fill="#111">6 The Glass-Carriers' Path</text>
+<text x="637.7" y="382.1" font-size="10" fill="#111">7 The temple at Marrah</text>
+<text x="485.3" y="499.3" font-size="10" fill="#111">10 The Garden of Hours, where the Guest lives</text>
+<text x="415.0" y="595.3" font-size="10" fill="#111">11 The Embassy Quay</text>
+<text x="485.3" y="639.9" font-size="10" fill="#111">12 The oldest temple: the sanctuary on its mound</text>
+<text x="485.3" y="141.9" font-size="10" fill="#111">2</text>
+<text x="485.3" y="223.9" font-size="10" fill="#111">3</text>
+<text x="485.3" y="306.0" font-size="10" fill="#111">4</text>
+<text x="415.0" y="382.1" font-size="10" fill="#111">8</text>
+<text x="567.3" y="382.1" font-size="10" fill="#111">9</text>
+<text x="485.3" y="569.6" font-size="10" fill="#111">13</text>
+<text x="485.3" y="440.7" font-size="10" fill="#111">14</text>
+<text x="450.2" y="540.3" font-size="10" fill="#111">15</text>
+<rect x="30" y="965" width="12" height="12" fill="#3a3a3a"/>
+<text x="48" y="975" font-size="10" fill="#333">great complex: its own maps, true size</text>
+<rect x="330" y="965" width="12" height="12" fill="#6b5a44"/>
+<text x="348" y="975" font-size="10" fill="#333">atlas place, built in the zone</text>
+<rect x="630" y="965" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<text x="648" y="975" font-size="10" fill="#333">new small site [PROPOSED]</text>
+<polygon points="36,984 42,991 36,998 30,991" fill="#d8b04a"/>
+<text x="48" y="995" font-size="10" fill="#333">threshold: another zone, the Chart, or below</text>
+<circle cx="336" cy="991" r="6" fill="#a33"/>
+<text x="348" y="995" font-size="10" fill="#333">hunting ground</text>
+<circle cx="636" cy="991" r="4" fill="#fff" stroke="#555"/>
+<text x="648" y="995" font-size="10" fill="#333">wayside find or view</text>
+<line x1="30" y1="1024" x2="60" y2="1024" stroke="#6b5a44" stroke-width="5"/>
+<text x="66" y="1028" font-size="10" fill="#333">road</text>
+<line x1="210" y1="1024" x2="240" y2="1024" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6"/>
+<text x="246" y="1028" font-size="10" fill="#333">track or path</text>
+<line x1="390" y1="1024" x2="420" y2="1024" stroke="#4a7a9a" stroke-width="4" stroke-dasharray="4 6"/>
+<text x="426" y="1028" font-size="10" fill="#333">by boat or wading</text>
+<line x1="570" y1="1024" x2="600" y2="1024" stroke="#7a6a9a" stroke-width="3" stroke-dasharray="2 5"/>
+<text x="606" y="1028" font-size="10" fill="#333">under ground or roofed</text>
+<line x1="750" y1="1024" x2="780" y2="1024" stroke="#9a5a3a" stroke-width="2" stroke-dasharray="1 4"/>
+<text x="786" y="1028" font-size="10" fill="#333">rope, ladder or stakes</text>
+</svg>

@@ -56,6 +56,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
+    node tools/zones.js --check                       # the zone sketches match atlas/10-zones.md (O15)
 
     NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
     NODE_PATH=$(npm root -g) node test/ledge1.test.js

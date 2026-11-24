@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1070" viewBox="0 0 1160 1070" font-family="Georgia, serif">
+<rect width="100%" height="100%" fill="#f4efe4"/>
+<text x="30" y="22" font-size="16" fill="#222">Z8D. Halsing and the White Deeps</text>
+<text x="30" y="40" font-size="11" fill="#555">1536 x 1536 cells (1 cell = 1 m). Dashed squares: maps of 384 x 384. A sketch, not art. Numbers are the rows of the zone's table.</text>
+<rect x="30" y="50" width="900" height="900" fill="#e9e2d0" stroke="#333" stroke-width="1.5"/>
+<line x1="255.0" y1="50.0" x2="255.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="480.0" y1="50.0" x2="480.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="705.0" y1="50.0" x2="705.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="275.0" x2="930.0" y2="275.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="500.0" x2="930.0" y2="500.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="725.0" x2="930.0" y2="725.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#6b5a44" stroke-width="5" points="30.0,518.8 123.8,512.9 211.6,507.0 299.5,501.2 381.6,495.3 475.3,495.3 557.3,495.3 639.4,495.3"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="475.3,495.3 475.3,413.3 475.3,337.1"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="475.3,495.3 475.3,577.3 475.3,659.4"/>
+<polygon points="35.9,509.79999999999995 44.9,518.8 35.9,527.8 26.9,518.8" fill="#d8b04a" stroke="#000"/>
+<circle cx="123.8" cy="512.9" r="4" fill="#fff" stroke="#555"/>
+<circle cx="211.6" cy="507" r="6" fill="#a33" stroke="#000"/>
+<rect x="293.5" y="495.2" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="375.6" y="489.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="469.3" y="489.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="469.3" y="407.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="469.3" y="331.1" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="551.3" y="489.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<polygon points="639.4,486.3 648.4,495.3 639.4,504.3 630.4,495.3" fill="#d8b04a" stroke="#000"/>
+<circle cx="475.3" cy="577.3" r="4" fill="#fff" stroke="#555"/>
+<rect x="469.3" y="653.4" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="428.4" cy="495.3" r="4" fill="#fff" stroke="#555"/>
+<text x="45.9" y="536.8" font-size="10" fill="#111">1 The carting road: from Saint-Aumere (S4)</text>
+<text x="309.5" y="519.2" font-size="10" fill="#111">4 The Empty Traps</text>
+<text x="143.7" y="485.3" font-size="10" fill="#111">5 The Company's new pumping house, steaming</text>
+<text x="485.3" y="471.3" font-size="10" fill="#111">6 Halsing town: the Company's offices, the lanes, the chapels</text>
+<text x="485.3" y="417.3" font-size="10" fill="#111">7 The bunkhouses of the bonded hewers</text>
+<text x="485.3" y="341.1" font-size="10" fill="#111">8 The Low Lodge's Meeting Room</text>
+<text x="567.3" y="527.3" font-size="10" fill="#111">9 The Old Pit-heads, six hundred years of winding gear</text>
+<text x="649.4" y="499.3" font-size="10" fill="#111">10 The stair-heads down to the White Galleries</text>
+<text x="485.3" y="663.4" font-size="10" fill="#111">12 The carters' and bakers' lanes</text>
+<text x="133.8" y="516.9" font-size="10" fill="#111">2</text>
+<text x="221.6" y="511.0" font-size="10" fill="#111">3</text>
+<text x="485.3" y="581.3" font-size="10" fill="#111">11</text>
+<text x="438.4" y="499.3" font-size="10" fill="#111">13</text>
+<rect x="30" y="965" width="12" height="12" fill="#3a3a3a"/>
+<text x="48" y="975" font-size="10" fill="#333">great complex: its own maps, true size</text>
+<rect x="330" y="965" width="12" height="12" fill="#6b5a44"/>
+<text x="348" y="975" font-size="10" fill="#333">atlas place, built in the zone</text>
+<rect x="630" y="965" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<text x="648" y="975" font-size="10" fill="#333">new small site [PROPOSED]</text>
+<polygon points="36,984 42,991 36,998 30,991" fill="#d8b04a"/>
+<text x="48" y="995" font-size="10" fill="#333">threshold: another zone, the Chart, or below</text>
+<circle cx="336" cy="991" r="6" fill="#a33"/>
+<text x="348" y="995" font-size="10" fill="#333">hunting ground</text>
+<circle cx="636" cy="991" r="4" fill="#fff" stroke="#555"/>
+<text x="648" y="995" font-size="10" fill="#333">wayside find or view</text>
+<line x1="30" y1="1024" x2="60" y2="1024" stroke="#6b5a44" stroke-width="5"/>
+<text x="66" y="1028" font-size="10" fill="#333">road</text>
+<line x1="210" y1="1024" x2="240" y2="1024" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6"/>
+<text x="246" y="1028" font-size="10" fill="#333">track or path</text>
+<line x1="390" y1="1024" x2="420" y2="1024" stroke="#4a7a9a" stroke-width="4" stroke-dasharray="4 6"/>
+<text x="426" y="1028" font-size="10" fill="#333">by boat or wading</text>
+<line x1="570" y1="1024" x2="600" y2="1024" stroke="#7a6a9a" stroke-width="3" stroke-dasharray="2 5"/>
+<text x="606" y="1028" font-size="10" fill="#333">under ground or roofed</text>
+<line x1="750" y1="1024" x2="780" y2="1024" stroke="#9a5a3a" stroke-width="2" stroke-dasharray="1 4"/>
+<text x="786" y="1028" font-size="10" fill="#333">rope, ladder or stakes</text>
+</svg>
