@@ -21,8 +21,9 @@ const SHOTS = [
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const s = await H.open(); await H.begin(s.page);
+  // Phase 7's lantern: Phase 38's torch is held off (GFX.laTorch) so these stills show the lantern as built
   const place = ([map, tod, x, y, dir, pitch, oil, lit, on]) => {
-    BLOOM4.reset(); G.flags = { la_told_bar: true, la_oil: oil }; GFX.laLamp = on; loadMap(map, { x, y, dir }); G.state = 'play'; G.day = 2; G.tod = tod; G.fadeT = 0; G.keys = {};
+    BLOOM4.reset(); G.flags = { la_told_bar: true, la_oil: oil }; GFX.laLamp = on; GFX.laTorch = false; loadMap(map, { x, y, dir }); G.state = 'play'; G.day = 2; G.tod = tod; G.fadeT = 0; G.keys = {};
     UPG.lantern = lit; LANTERN7.state().prev = lit; if (R3D.camera && R3D.camera.setAngle) R3D.camera.setAngle(pitch);
     advanceTime(600); G.tod = tod; G.flags.la_oil = oil; advanceTime(30); G.tod = tod; G.flags.la_oil = oil; const m = document.querySelector('#msgs'); if (m) m.innerHTML = '';
   };

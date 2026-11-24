@@ -45,7 +45,7 @@ Act III content in Phase 36.
 | W A S D | Walk |
 | Mouse | Look (click the view first) |
 | E or Space | Open a door, speak, read what is in front of you |
-| U or N | Light or douse your lantern |
+| U or N | Light or douse what is in your left hand: your torch, or a lantern once you have one |
 | C, I, L, K, H | Who you are, your pack, the book, who you know, how to play |
 | Esc | Controls and Options |
 
@@ -74,10 +74,12 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
 - **Marget Sayle's bothy, built the highland way**: field stone laid dry under a low hipped roof of
   turf and heather, one small window on the lee side and none to the north wind, and smoke from a
   hole in the roof.
-- **Your lantern**, in your left hand: a small tallow light that warms the ground at your feet. It
-  burns oil. A full one lasts dusk to dawn; sleet spends it nearly twice as fast; it shrinks, gutters
-  and goes out. Marget Sayle keeps two flasks of oil in her corner. Lit after dark, it shows you to
-  the walking bloom.
+- **Your torch**, in your left hand from the start: pitch on a stave, a bigger and redder light than a
+  lantern's, and four minutes of fuel (the gutter-kin's a minute and a half, the hedge-priest's six). It
+  burns down, gutters and goes out, and spent is spent. Lit after dark, it shows you to the walking bloom.
+- **A lantern, if you find one**: a horn lantern stands beside Marget Sayle's two flasks of oil. A small
+  tallow light; a full one lasts dusk to dawn; sleet spends it nearly twice as fast. Her flasks fill it.
+  From the pack you take the torch or the lantern into your hand.
 - **The walking bloom**, modelled, on the shelf by the foot of the ramp. It hunts by sound: walk
   and it does not hear you; run and it comes to where the noise was, and claws. It sees only
   movement, close and in front of it, unless your lantern is lit. It cannot follow you in at the bothy's door.
@@ -123,7 +125,8 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/bloom4.js` | Phase 4: the walking bloom, its hunt and its modelled body |
 | `js/door5.js` | Phase 5: the bar on Marget Sayle's door, and what the bloom does at it |
 | `js/weather6.js` | Phase 6: ashfall and sleet, stopped by the bothy's roof |
-| `js/lantern7.js` | Phase 7: your lantern, its light and its oil, and Marget Sayle's flasks |
+| `js/lantern7.js` | Phase 7: the light in your left hand, the lantern, its oil, and Marget Sayle's flasks |
+| `js/torch38.js` | Phase 38: you start with a torch; the horn lantern is found (in the bothy) or bought |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
@@ -152,6 +155,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/door5.test.js --no-browser
     node test/weather6.test.js --no-browser
     node test/lantern7.test.js --no-browser
+    node test/torch38.test.js --no-browser
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
     node test/panel10.test.js --no-browser
@@ -174,6 +178,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/door5.test.js
     NODE_PATH=$(npm root -g) node test/weather6.test.js
     NODE_PATH=$(npm root -g) node test/lantern7.test.js
+    NODE_PATH=$(npm root -g) node test/torch38.test.js
     NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node test/dread9.test.js
     NODE_PATH=$(npm root -g) node test/panel10.test.js

@@ -71,6 +71,8 @@ check(/js\/weather6\.js\?v=\d+"><\/script>\s*<script src="js\/lantern7\.js\?v=\d
     const NIGHT = 0.95;
     // stand somewhere, at an hour, with this much oil, lit or not
     await s.page.evaluate(() => {
+      // Phase 7's lantern as built: Phase 38's torch is switched off for this suite (test/torch38.test.js covers it)
+      GFX.laTorch = false;
       window.__at = (map, x, y, dir, tod, oil, lit, on = true, pitch = -0.06) => {
         BLOOM4.reset(); G.flags = { la_told_bar: true, la_oil: oil }; GFX.laLamp = on; GFX.laWx = true; loadMap(map, { x, y, dir }); G.state = 'play'; G.day = 2; G.tod = tod; G.fadeT = 0; G.keys = {};
         UPG.lantern = lit; LANTERN7.state().prev = lit; if (R3D.camera && R3D.camera.setAngle) R3D.camera.setAngle(pitch); advanceTime(300); G.tod = tod; G.flags.la_oil = oil; LANTERN7.state().said.length = 0;

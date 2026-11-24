@@ -126,7 +126,7 @@ check(!/'townsman'|'townswoman'|'hearth'|'bed'|'table'|'sign'/.test(ledge) && /l
     check(r.npc && r.npc.sprite === 'la_carter' && r.has[0] && r.has[1], 'the carter on the ledge wears his own painting, and the rig has taken both people');
     check(r.idle && r.walk2 && r.walk6 && r.talk && new Set([r.idle[2], r.walk2[2], r.walk6[2], r.talk[2]]).size === 4, 'standing, two steps of a walk and talking are four different pictures of him');
     check(r.side && r.side[0] < r.idle[0], 'seen from the side he is narrower than from the front (' + (r.side || []).join(' x ') + ' against ' + r.idle.slice(0, 2).join(' x ') + ')');
-    check(r.hearth && Array.isArray(r.hearth.light) && r.hearth.light[0] > r.hearth.light[2] * 3 && r.inside.join() === 'la_bar_lean,la_bed,la_hearth,la_marget,la_oil2,la_table', 'the bothy holds the bed, the fire, the table, the door bar (Phase 5), the lamp oil (Phase 7) and Marget Sayle; the fire\'s light is red (got ' + r.inside.join() + ')');
+    check(r.hearth && Array.isArray(r.hearth.light) && r.hearth.light[0] > r.hearth.light[2] * 3 && r.inside.join() === 'la_bar_lean,la_bed,la_hearth,la_hornlamp,la_marget,la_oil2,la_table', 'the bothy holds the bed, the fire, the table, the door bar (Phase 5), the lamp oil (Phase 7), the horn lantern (Phase 38) and Marget Sayle; the fire\'s light is red (got ' + r.inside.join() + ')');
     check(r.lit > r.unlit * 1.15, 'the room is brighter with the fire than without it (' + r.lit.toFixed(1) + ' against ' + r.unlit.toFixed(1) + ')');
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
     const gone = [...s.missing].filter((p) => /pixel3d|painted|face_/.test(p));

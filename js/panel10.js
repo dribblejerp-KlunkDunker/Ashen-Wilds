@@ -104,7 +104,7 @@ const PANEL10 = (() => {
     packTitle: 'What you carry', packHands: 'In your hands', packWorn: 'Worn', packBag: 'In the pack',
     salt: (n) => (n > 0 ? n + (n === 1 ? ' measure of salt.' : ' measures of salt.') : 'No salt.'),
     lamp: (w) => 'The lantern: ' + (w === 'dry' ? 'dry, no oil' : w + ' of oil') + '.', lampNone: 'No lantern.',
-    torch: (w) => 'The torch: ' + (w === 'dry' ? 'dry, no fuel' : w + ' of fuel') + '.',
+    torch: (w) => 'The torch: ' + w + '.',   // Phase 38's words: fresh, burning well, half burned, burning down, nearly spent, spent
     bookTitle: 'The book',
     bookDate: (day, part) => 'The thaw of S.30, day ' + (day + 1) + ', ' + part + '.',
     bookNone: 'Nothing written yet.',
@@ -127,7 +127,7 @@ const PANEL10 = (() => {
   // ---------------------------------------------------------------- the credits: this repository's (CREDITS.md)
   const OFL = 'SIL Open Font License 1.1 (text in fonts/)';
   // this repository's own code: a phase is one file js/<feature><phase>.js (CLAUDE.md)
-  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js', 'js/opening11.js', 'js/company12.js', 'js/carter13.js', 'js/account14.js', 'js/carry15.js', 'js/book16.js', 'js/kit17.js', 'js/cards18.js', 'js/hearing19.js', 'js/lungs20.js', 'js/weather21.js', 'js/deadcalm22.js', 'js/combat23.js', 'js/bloom24.js', 'js/coop25.js', 'js/chart26.js', 'js/hearth27.js', 'js/people28.js', 'js/workings30.js', 'js/marks31.js', 'js/bestiary32.js', 'js/actone33.js', 'js/acttwo34.js', 'js/sidearcs35.js', 'js/actthree36.js', 'js/endings37.js'];
+  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js', 'js/opening11.js', 'js/company12.js', 'js/carter13.js', 'js/account14.js', 'js/carry15.js', 'js/book16.js', 'js/kit17.js', 'js/cards18.js', 'js/hearing19.js', 'js/lungs20.js', 'js/weather21.js', 'js/deadcalm22.js', 'js/combat23.js', 'js/bloom24.js', 'js/coop25.js', 'js/chart26.js', 'js/hearth27.js', 'js/people28.js', 'js/workings30.js', 'js/marks31.js', 'js/bestiary32.js', 'js/actone33.js', 'js/acttwo34.js', 'js/sidearcs35.js', 'js/actthree36.js', 'js/endings37.js', 'js/torch38.js'];
   const CREDITS = [
     { title: 'The engine', rows: [
       ['Code in js/ (but for this repository\'s phase files, below), css/, schemas/, locales/, sw.js', 'Copied on 2026-11-11 from Echoes of the Shattered Octave (same owner), commit f2b3990, at the owner\'s direction (D14). Written with AI assistance', 'That repository declares no open licence', []],
@@ -179,7 +179,7 @@ const PANEL10 = (() => {
   const current = () => (typeof G !== 'undefined' && G && G.flags && byId(G.flags.la_bg)) || byId(DEFAULT);
   const closeBtn = '<button class="dfbtn small close" id="x">Close</button>';
   const wireClose = () => { const x = document.getElementById('x'); if (x) x.onclick = () => { closeModal(); G.state = 'play'; }; };
-  const oilFrac = () => { try { return Math.max(0, Math.min(1, LANTERN7.oil() / LANTERN7.cap())); } catch (e) { return 0; } };
+  const oilFrac = () => { try { return LANTERN7.frac ? LANTERN7.frac() : Math.max(0, Math.min(1, LANTERN7.oil() / LANTERN7.cap())); } catch (e) { return 0; } };   // the light in hand (Phase 38: a torch)
 
   function renderWho(done) {
     // a card is a button, but reads as prose: the button face is for a name, not a paragraph
@@ -275,7 +275,7 @@ const PANEL10 = (() => {
     const wornIds = new Set(Object.values(p.armor || {}));
     const bag = (p.inv || []).filter((s) => s && s.n > (wornIds.has(s.id) ? 1 : 0)).map((s) => esc(name(s.id)) + (s.n - (wornIds.has(s.id) ? 1 : 0) > 1 ? ' x' + (s.n - (wornIds.has(s.id) ? 1 : 0)) : ''));
     // the oil is the lantern's (Phase 7); a kit's torch has no fuel of its own yet, so the line names the lantern (audit fix)
-    let lamp = TX.lampNone; try { lamp = TX.lamp(LANTERN7.words(LANTERN7.oil())); } catch (e) { /* no light */ }
+    let lamp = TX.lampNone; try { const S = LANTERN7.source ? LANTERN7.source() : null, w = S ? S.words(S.get()) : LANTERN7.words(LANTERN7.oil()); lamp = S && S.id === 'torch' ? TX.torch(w) : TX.lamp(w); } catch (e) { /* no light */ }
     openModal(`<h2>${TX.packTitle}</h2>${closeBtn}
       <p><b>${TX.packHands}:</b> ${hands.join(', ') || '-'}</p><p><b>${TX.packWorn}:</b> ${worn.join(', ') || '-'}</p>
       <p><b>${TX.packBag}:</b> ${bag.join(', ') || '-'}</p><p>${esc(lamp)}</p><p>${esc(TX.salt(p.gold | 0))}</p>`, 'inv');

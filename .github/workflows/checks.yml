@@ -111,6 +111,7 @@ jobs:
           - { name: 'Phase 16, the warning book', test: book16 }
           - { name: 'Phase 17, the kit', test: kit17 }
           - { name: 'Phase 18, the cards', test: cards18 }
+          - { name: 'Phase 38, start with a torch', test: torch38 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
