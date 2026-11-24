@@ -118,20 +118,23 @@ check(!src.split('\n').some((l) => /\S.*[;{)]\s*\/\/ /.test(l)), 'no comment aft
     await ev(L.buildInPage, 1600);
     const a4 = await ev(() => {
       const { m, id } = window.__lim; G.maps[id] = m; GFX.laStream = true;
-      const t0 = performance.now(); G.state = 'paused'; loadMap(id, { x: 400.5, y: 400.5, dir: 0 }); G.state = 'play'; render(); R3D.gl().finish();
-      const first = performance.now() - t0;
+      const b0 = R3D.stream().built, t0 = performance.now(); G.state = 'paused'; loadMap(id, { x: 400.5, y: 400.5, dir: 0 }); G.state = 'play';
+      const t1 = performance.now(); render(); const t2 = performance.now(); R3D.gl().finish();
+      const first = performance.now() - t0, parts = [t1 - t0, t2 - t1, performance.now() - t2].map(Math.round), firstChunks = R3D.stream().built - b0;
       for (let i = 0; i < 200 && R3D.stream().info.chunks < R3D.stream().info.need; i++) render();
       const at = R3D.stream();
       Engine.cam.x = 1200.5; Engine.cam.y = 1200.5; settleFeet();
       for (let i = 0; i < 200 && R3D.stream().info.chunks < R3D.stream().info.need; i++) render();
       for (let i = 0; i < 3; i++) render();
       const later = R3D.stream();
-      return { first: Math.round(first), chunks: at.info.chunks, tris: at.info.tris, later: later.info.chunks, freed: later.freed, keys: later.keys.every((k) => { const [x, y] = k.split(',').map(Number); return Math.abs(x * 64 + 32 - 1200) < 300 && Math.abs(y * 64 + 32 - 1200) < 300; }) };
+      return { first: Math.round(first), parts, firstChunks, chunks: at.info.chunks, tris: at.info.tris, later: later.info.chunks, freed: later.freed, keys: later.keys.every((k) => { const [x, y] = k.split(',').map(Number); return Math.abs(x * 64 + 32 - 1200) < 300 && Math.abs(y * 64 + 32 - 1200) < 300; }) };
     });
-    console.log('   1600 x 1600: first frame ' + a4.first + ' ms here (software); ' + a4.chunks + ' chunks, ' + a4.tris + ' triangles kept');
+    console.log('   1600 x 1600: first frame ' + a4.first + ' ms here (software: loadMap, render, finish ' + a4.parts.join(', ') + '); ' + a4.chunks + ' chunks, ' + a4.tris + ' triangles kept');
     check(a4.chunks <= 45 && a4.tris < 1.8e6, 'on a 1600 x 1600 map no more than 45 chunks are kept (' + a4.chunks + '), whatever the map\'s size');
     check(a4.freed > 0 && a4.later <= 45 && a4.keys, 'walking 800 cells on, the chunks behind are let go and only those round the eye remain');
-    check(a4.first < 3000, 'entering it takes ' + a4.first + ' ms here, not the 5 s of the whole map');
+    // Time here is software rendering's and the machine's (12 s on one CI runner, 0.3 s on another box), so what is
+    // checked is the work: the first frame builds only the chunks nearest the eye, not the map's 625
+    check(a4.firstChunks >= 4 && a4.firstChunks <= 16, 'entering it, the first frame builds ' + a4.firstChunks + ' chunks, the nearest, not the map\'s 625 (' + a4.first + ' ms here)');
 
     // ---- 5. the switch off: the whole map again
     const a5 = await ev(() => { GFX.laStream = false; G.state = 'paused'; loadMap('la_z1_2_0', G.maps.la_z1_2_0.spawn); G.state = 'play'; render(); const off = R3D.stream().on; GFX.laStream = true; render(); return { off, on: R3D.stream().on }; });
