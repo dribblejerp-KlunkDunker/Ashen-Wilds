@@ -1272,27 +1272,29 @@ walks back up the cleft and holds the bloom in the bothy for the ramp check, as 
 Measured here (software rendering, two slow cores): entering a zone map takes about half a second (its mesh, 1.19 million
 triangles, builds in about 450 ms); a frame there about 5 ms; a save is about 8 KB of JSON.
 
-**Invented, for a ruling:**
+**Invented here; ruled 2026-11-24 (O19): "eventaully I do not want the ridges hence the open world I want. everything
+else is fine".** P40-1, P40-2, P40-4, P40-5 and P40-6 are approved. P40-3 stands for now and is to go: the zone is
+to be one open world, with no ridges between its maps.
 
-- **[PROPOSED] P40-1** The two maps' names: "The ledge path" and "The Greystair fork" (both are names Z1 already uses, for
+- **P40-1** The two maps' names: "The ledge path" and "The Greystair fork" (both are names Z1 already uses, for
   a way and a place).
-- **[PROPOSED] P40-2** The ground of Z1: an upland falling gently south (about one in a hundred), frost and scorch, rock
+- **P40-2** The ground of Z1: an upland falling gently south (about one in a hundred), frost and scorch, rock
   where steep. A stand-in until Phase 41 shapes the zone.
-- **[PROPOSED] P40-3** Map edges as a band of rock 11 deep, with cuts and notches, the overlap of 20 cells, and the cut's
+- **P40-3** (for now only: O19) Map edges as a band of rock 11 deep, with cuts and notches, the overlap of 20 cells, and the cut's
   shape (two bends, 5 cells either side of the edge). Z-R2 says "a threshold the land already has"; this is that
   threshold, the same everywhere for now.
-- **[PROPOSED] P40-4** The ledge's way down is a gap of two boulders at the south end of its top, and the crag below has
+- **P40-4** The ledge's way down is a gap of two boulders at the south end of its top, and the crag below has
   a cleft where the ledge path ends. Z1 calls the ramp "the ledge's way down"; the ramp itself runs from the ledge's top
   to the shelf, so the way off the ledge is a second one.
-- **[PROPOSED] P40-5** The carter keeps up: behind by more than 5 cells he jogs at 4 cells a second (you walk at about
+- **P40-5** The carter keeps up: behind by more than 5 cells he jogs at 4 cells a second (you walk at about
   3.4 on level ground here, more than P33's 2.6), and he walks your trail instead of straight at you.
-- **[PROPOSED] P40-6** The notch's words: "<the way> goes on from here. That country is not built yet."
+- **P40-6** The notch's words: "<the way> goes on from here. That country is not built yet."
 
 **Not done, and not checked:** the other fourteen maps of Z1 and every place on these two (Phase 41); a Chart booking
 when you leave a zone by another threshold (Z-R5); building maps only when first needed (two maps cost 310 ms at every
 new game and every load; sixteen would cost over two seconds, so Phase 41 must build lazily). Co-op is not tested: the guest
-builds the same two maps (they are made with no dice, so its copy should match the host's), but no two-tab crossing has been run. The rock bands read as walls in the stills: shaping them into the land
-(ridges, spurs) is Phase 41's. Feel, the half-second load at a seam on a real machine, and how the walk down feels after
+builds the same two maps (they are made with no dice, so its copy should match the host's), but no two-tab crossing has been run. The rock bands read as walls in the stills, and O19 rules they are to go: the open world needs the renderer to stream a
+zone in chunks (E2's phase), so that a zone is one map and nothing stands between its squares. Feel, the half-second load at a seam on a real machine, and how the walk down feels after
 the title need a person.
 
 ## Old phase table (kept for history)

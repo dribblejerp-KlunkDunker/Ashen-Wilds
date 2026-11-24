@@ -297,6 +297,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   until the renderer streams chunks (`docs/engine-limits.md`).
 - **O18:** last night's other proposals are approved: Marget's lantern line, the prologue's end card, X for the Account,
   E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
+- **O19:** a zone is to be one open world: the rock bands between Phase 40's maps stand only until the renderer streams a
+  zone in chunks (E2), and then go. Phase 40's other proposals are approved.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

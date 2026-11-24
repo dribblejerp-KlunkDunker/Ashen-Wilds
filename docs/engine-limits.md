@@ -133,8 +133,11 @@ For a square-mile zone, four ways, best first:
 **Ruled** (O17, 2026-11-24, "I approve"): build regions as connected maps of at most 384 x 384 now, cut at natural thresholds,
 so work on regions can start without waiting on the engine. In parallel, make chunked streaming a numbered phase in
 `js/r3d21.js` (and the light, sleet and roof passes) with its own look and speed tests; when it lands, a region's maps
-can be joined into one map with the seams removed. The zone sizes and squeeze ratio O15 asks for are still to be
-ruled.
+can be joined into one map with the seams removed. The zone sizes and squeeze ratio were then ruled under O16.
+
+**And then** (O19, 2026-11-24): the owner wants the zone as one open world, without the ridges Phase 40 put between
+its maps. So chunked streaming is no longer a later nicety: it is how a zone is to be built, and the connected maps are
+the stand-in until it lands.
 
 ## Re-running
 
