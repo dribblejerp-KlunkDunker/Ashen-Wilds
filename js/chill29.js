@@ -4,25 +4,33 @@
 //  Source: docs/worldbuilding/the-round-and-the-long-account.md, "Small magic" and "Workings and
 //  marks in play": every working takes warmth from the one who speaks it, which the fen calls the
 //  chill; marks are renewed at the hearth fire. The lore gives the cost and the fire, not a rate.
-//  Every rate, threshold, stage word and bar position below is [PROPOSED].
+//  Every rate, threshold, stage word and bar position below was accepted by the owner on 2026-11-23.
 //
 //  One feature: a per-player warmth pool, 0..100, lost to the visible cold and restored at the
 //  bothy's lit hearth. It does not add a working, a mark, a fire-lighting verb, NPC warmth or a
-//  network field. The workings and marks stay pure; this file exposes warmth() and spend() for
-//  their later wires.
+//  network field. The workings and marks stay pure; this file exposes no working API.
 // ============================================================
 'use strict';
 
 const CHILL29 = (() => {
   const MIN = 0, MAX = 100;
-  // [PROPOSED] The cold is the visible WEATHER6 sleet plus the night; shelter holds, the lit
-  // hearth warms. The lore has no figures for any of these.
+  // The cold is the visible WEATHER6 sleet plus the night; shelter holds, the lit hearth warms.
+  // The lore has no figures for any of these; the accepted values are the owner's, 2026-11-23.
   const ASH_RATE = -0.08;       // per second, outdoors, ashfall, day
   const SLEET_RATE = -0.30;     // per second, outdoors, full sleet
   const NIGHT_RATE = -0.12;     // per second, additional, outdoors, night
   const FIRE_RATE = 1.00;       // per second, within FIRE_RADIUS of a lit hearth
   const FIRE_RADIUS = 2.5;      // metres (cells)
-  const WARM_AT = 50, CHILLED_AT = 25;   // [PROPOSED] stage thresholds
+  const WARM_AT = 50, CHILLED_AT = 25;   // accepted stage thresholds
+
+  // The stage is a reading of the pool, not a second saved value. These are the words it says
+  // when the reading changes.
+  const STAGE_WORDS = {
+    warm: 'The cold lets go of your hands.',
+    chilled: 'The cold gets into your hands.',
+    freezing: 'You are shaking. Get to a fire.',
+    'the chill': 'The chill has you. You cannot run.'
+  };
 
   const clamp = (n, a, b) => (n < a ? a : n > b ? b : n);
 
@@ -34,7 +42,7 @@ const CHILL29 = (() => {
     return 'the chill';
   }
 
-  function make() { return { warmth: MAX, stage: 'warm', seen: 'warm' }; }
+  function make() { return { warmth: MAX }; }
 
   // One pure step. `o`: dt seconds; outdoor; sleet 0..1; night; fire. The pool holds indoors.
   function step(s, o) {
@@ -49,17 +57,15 @@ const CHILL29 = (() => {
       if (o.night) rate += NIGHT_RATE;
     }
     s.warmth = clamp((+s.warmth || 0) + rate * dt, MIN, MAX);
-    s.stage = stageOf(s.warmth);
     return s;
   }
 
   // The engine's stamina return, at each stage. At zero the wire also holds the engine's fatigue
   // at zero, which stops a run and an attack without editing the engine.
   function staminaReturn(s) {
-    const st = s && s.stage ? s.stage : stageOf(s && s.warmth);
+    const st = stageOf(s && s.warmth);
     return st === 'warm' ? 1 : st === 'chilled' ? 0.75 : st === 'freezing' ? 0.5 : 0;
   }
-  const canSprint = (s) => !!(s && +s.warmth > 0);
 
   // A fire is a deco, not a lamp: the bothy's la_hearth or a campfire, lit (glow >= 0.5).
   function nearFire(entities, x, y, radius) {
@@ -74,16 +80,6 @@ const CHILL29 = (() => {
     return false;
   }
 
-  function spend(s, n) {
-    if (!s) return s;
-    const d = Math.max(0, +n || 0);
-    s.warmth = clamp((+s.warmth || 0) - d, MIN, MAX);
-    s.stage = stageOf(s.warmth);
-    return s;
-  }
-
-  const warmth = (s) => (s ? clamp(+s.warmth || 0, MIN, MAX) : 0);
-
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false;
   const here = () => typeof G !== 'undefined' && G && G.map && G.map._la;
@@ -93,8 +89,6 @@ const CHILL29 = (() => {
     if (!G.flags.la_chill || typeof G.flags.la_chill !== 'object') G.flags.la_chill = make();
     const s = G.flags.la_chill;
     s.warmth = clamp(+s.warmth || 0, MIN, MAX);
-    s.stage = stageOf(s.warmth);
-    if (!s.seen) s.seen = s.stage;
     return s;
   }
   function reset() {
@@ -121,20 +115,12 @@ const CHILL29 = (() => {
     if (!here() || G.state !== 'play' || G.dead || !on()) return;
     const s = state(), pos = playerPos(), x = pos ? +pos.x || 0 : 0, y = pos ? +pos.y || 0 : 0;
     const fire = nearFire(G.map.entities, x, y, FIRE_RADIUS);
-    const before = s.stage;
+    const before = stageOf(s.warmth);
     step(s, { dt, outdoor: !!G.map.outdoor, sleet: sleetNow(), night: nightNow(), fire });
-    const now = s.stage;
+    const now = stageOf(s.warmth);
     if (now !== before) {
-      if (now !== s.seen) {
-        s.seen = now;
-        const words = {
-          warm: 'The cold lets go of your hands.',
-          chilled: 'The cold gets into your hands.',
-          freezing: 'You are shaking. Get to a fire.',
-          'the chill': 'The chill has you. You cannot run.'
-        };
-        try { if (typeof msg === 'function') msg(words[now], now === 'warm' ? '' : 'bad', now === 'the chill' ? 5000 : 3200); } catch (e) { /* no message box */ }
-      }
+      const word = STAGE_WORDS[now];
+      try { if (word && typeof msg === 'function') msg(word, now === 'warm' ? '' : 'bad', now === 'the chill' ? 5000 : 3200); } catch (e) { /* no message box */ }
     }
     // The engine's run and attack both read p.fat. Holding it at zero is the no-run/no-attack
     // gate without changing the engine; the player still walks and can reach the fire.
@@ -149,15 +135,20 @@ const CHILL29 = (() => {
         L1.SWITCHES.push(['laChill', 'The chill', 'Warmth, the cold stages and the bothy hearth. Off: no warmth and no bar']);
       }
     } catch (e) { /* the Options row is absent */ }
-    // A new card is a new body: creation and succession both come through these two.
+    // A new card is a new body. Creation calls choose(), which closes over panel10's local
+    // applyBg, while succession (company12) calls PANEL10.applyBg directly: both paths need a
+    // wrapper, and each wrapper belongs to its own path.
     try {
-      if (typeof PANEL10 !== 'undefined' && PANEL10.applyBg) {
-        const _ab = PANEL10.applyBg;
-        PANEL10.applyBg = function () { const r = _ab.apply(this, arguments); try { reset(); } catch (e) { /* the card stands */ } return r; };
-      }
-      if (typeof PANEL10 !== 'undefined' && PANEL10.choose) {
-        const _ch = PANEL10.choose;
-        PANEL10.choose = function () { const r = _ch.apply(this, arguments); try { reset(); } catch (e) { /* the card stands */ } return r; };
+      if (typeof PANEL10 !== 'undefined' && PANEL10) {
+        for (const key of ['applyBg', 'choose']) {
+          const fn = PANEL10[key];
+          if (typeof fn !== 'function') continue;
+          PANEL10[key] = function () {
+            const r = fn.apply(this, arguments);
+            try { reset(); } catch (e) { /* the card stands */ }
+            return r;
+          };
+        }
       }
     } catch (e) { /* the card keeps its warmth */ }
     // Stamina returns less in the cold. Multiply the layer below, which may already be the
@@ -202,7 +193,7 @@ const CHILL29 = (() => {
 
   return {
     MIN, MAX, ASH_RATE, SLEET_RATE, NIGHT_RATE, FIRE_RATE, FIRE_RADIUS, WARM_AT, CHILLED_AT,
-    stageOf, make, step, staminaReturn, canSprint, nearFire, spend, warmth, state, reset, wire
+    stageOf, make, step, staminaReturn, nearFire, state, reset, wire
   };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = CHILL29;

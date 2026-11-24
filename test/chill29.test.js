@@ -13,7 +13,8 @@ check(C.stageOf(100) === 'warm' && C.stageOf(50) === 'warm' && C.stageOf(49) ===
 check(C.stageOf(25) === 'chilled' && C.stageOf(24) === 'freezing' && C.stageOf(1) === 'freezing' && C.stageOf(0) === 'the chill', 'chilled 25, freezing 1, the chill 0');
 
 const s = C.make();
-check(s.warmth === 100 && s.stage === 'warm', 'a new body starts warm');
+check(s.warmth === 100 && C.stageOf(s.warmth) === 'warm', 'a new body starts warm');
+check(Object.keys(s).join(',') === 'warmth', 'the saved state is the pool alone');
 C.step(s, { dt: 10, outdoor: true, sleet: 0, night: false });
 check(close(s.warmth, 99.2), 'ten seconds of day ashfall costs 0.8');
 C.step(s, { dt: 10, outdoor: true, sleet: 1, night: false });
@@ -28,15 +29,10 @@ check(held.warmth === 90, 'the lit hearth adds 1 a second and wins over the cold
 const full = C.make(); C.step(full, { dt: 1000, outdoor: true, sleet: 1, night: true, fire: true });
 check(full.warmth === 100, 'the pool never passes 100');
 const empty = C.make(); C.step(empty, { dt: 1000, outdoor: true, sleet: 1, night: true });
-check(empty.warmth === 0 && empty.stage === 'the chill', 'the pool stops at zero and the chill');
+check(empty.warmth === 0 && C.stageOf(empty.warmth) === 'the chill', 'the pool stops at zero and the chill');
 
 check(C.staminaReturn({ warmth: 100 }) === 1 && C.staminaReturn({ warmth: 30 }) === 0.75 && C.staminaReturn({ warmth: 10 }) === 0.5 && C.staminaReturn({ warmth: 0 }) === 0, 'stamina return falls with each stage');
-check(C.canSprint({ warmth: 1 }) && !C.canSprint({ warmth: 0 }), 'no sprint at the chill');
-check(C.warmth({ warmth: 40 }) === 40 && C.warmth(null) === 0, 'warmth reads a clamped pool');
-const spent = C.make(); C.spend(spent, 60);
-check(spent.warmth === 40 && spent.stage === 'chilled', 'spending for a later working stages the pool');
-C.spend(spent, 1000);
-check(spent.warmth === 0 && spent.stage === 'the chill', 'spending clamps at zero');
+check(!('warmth' in C) && !('spend' in C), 'no future-workings API is exposed');
 
 const fire = [{ kind: 'deco', sprite: 'la_hearth', x: 3.5, y: 1.4, glow: 1 }];
 const lamp = [{ kind: 'deco', sprite: 'lamp', x: 3.5, y: 1.4, glow: 1 }];
@@ -66,7 +62,12 @@ global.needsRecovery = () => 1;
 
 check(C.wire() && C.wire(), 'the wire installs once');
 G.flags.la_chill = undefined;
-check(C.state().warmth === 100, 'an empty save starts full');
+check(C.state().warmth === 100 && Object.keys(C.state()).join(',') === 'warmth', 'an empty save starts full and stores no stage');
+G.flags.la_chill = { warmth: 37 };
+const reloaded = JSON.parse(JSON.stringify({ la_chill: G.flags.la_chill }));
+G.flags.la_chill = reloaded.la_chill;
+check(C.state().warmth === 37 && C.stageOf(C.state().warmth) === 'chilled', 'a saved warmth reloads and derives its stage');
+G.flags.la_chill = undefined;
 global.update(10);
 check(close(C.state().warmth, 99.2), 'the wire ticks the day ashfall outside');
 G.tod = 0.9; global.WEATHER6.sleetAt = () => 1; global.update(10);
@@ -75,9 +76,12 @@ G.map.outdoor = false; global.update(10);
 check(close(C.state().warmth, 95), 'the bothy holds the pool away from the fire');
 G.map.entities = [{ kind: 'deco', sprite: 'la_hearth', x: 50, y: 50, glow: 1 }]; global.update(10);
 check(close(C.state().warmth, 100), 'the bothy hearth warms the pool back to full');
-G.map.entities = [{ kind: 'deco', sprite: 'lamp', x: 50, y: 50, glow: 1 }]; G.map.outdoor = true; G.flags.la_chill = C.make(); G.flags.la_chill.warmth = 1; G.flags.la_chill.stage = 'freezing'; G.flags.la_chill.seen = 'freezing'; messages.length = 0; G.player.fat = 100; global.update(10);
-check(C.state().warmth === 0 && C.state().stage === 'the chill', 'a cold tick can reach the chill');
-check(messages.some((m) => m === 'The chill has you. You cannot run.'), 'the chill says it once');
+G.map.entities = [{ kind: 'deco', sprite: 'lamp', x: 50, y: 50, glow: 1 }]; G.map.outdoor = true; G.flags.la_chill = C.make(); G.flags.la_chill.warmth = 1; messages.length = 0; G.player.fat = 100; G.player.hp = 100; global.update(10);
+check(C.state().warmth === 0 && C.stageOf(C.state().warmth) === 'the chill', 'a cold tick can reach the chill');
+check(G.player.hp === 100, 'the chill at zero is non-lethal');
+check(messages.some((m) => m === 'The chill has you. You cannot run.'), 'the chill says its word on the crossing');
+messages.length = 0; global.update(0.01);
+check(messages.length === 0, 'the stage word is not repeated while the stage holds');
 check(G.player.fat === 0 && global.needsRecovery() === 0, 'the chill holds fatigue at zero and returns no stamina');
 G.flags.la_chill = C.make(); G.flags.la_chill.warmth = 12;
 global.PANEL10.applyBg();

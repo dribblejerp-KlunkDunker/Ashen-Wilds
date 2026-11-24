@@ -50,6 +50,8 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
     node test/panel10.test.js --no-browser
+    node test/hearth27.test.js --no-browser
+    node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
@@ -65,6 +67,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node test/dread9.test.js
     NODE_PATH=$(npm root -g) node test/panel10.test.js
+    NODE_PATH=$(npm root -g) node test/hearth27.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -128,12 +131,18 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/bloom24.js         Phase 24: bloom wounds, clouds, burst and prologue invulnerability
     js/coop25.js          Phase 25: co-op parity, one noise, one sighting, one fuel pool
     js/chart26.js         Phase 26: five nodes, six roads, shortest path and supplies
-    js/hearth27.js        Phase 27: rest, store, the named dead and promises
+    js/hearth27.js        Phase 27: the bothy REST panel: rest, store, named dead and promises
     js/people28.js        Phase 28: morale, memory and meetings
-    js/chill29.js         Phase 29: warmth, the cold stages and the lit hearth
+    js/chill29.js         The chill (Phase 29): warmth, the cold stages and the lit hearth
     js/workings30.js      Phase 30: eight workings, costs and prohibitions
     js/marks31.js         Phase 31: glim, keen, rime, ember, dull-voice
         js/bestiary32.js     Phase 32: the seventeen things in the ash; a page in the warning book
+    js/actone33.js       Phase 33: Act I, the Burned Quay's five scenes and three choices
+    js/acttwo34.js       Phase 34: Act II, the three courts, the receipt and the winter roof
+    js/sidearcs35.js     Phase 35: Act II, the five side arcs and their consequences
+    js/actthree36.js     Phase 36: Act III, the eleven days, Marget's limit and the wall
+    js/touchlink36.js    Support, not a phase: the phone link; ?touch/?mobile or a coarse pointer starts touch controls
+    js/endings37.js      Phase 37: the five endings and the player's last line
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:

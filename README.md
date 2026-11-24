@@ -4,10 +4,10 @@ A first-person game of dread in the world of Ashen Wilds, for one to four player
 browser. A small carrying company takes a dead kingdom's unpaid receipts, and one old woman who was
 inside the Vaults, around a cold sea under a dimmed sun. No prophecy is coming.
 
-**Status: the first place only.** You can stand on the prologue's ledge, look at the Slagcrown under
-the coal sun, walk down past the walking bloom that stands on the shelf, and reach Marget Sayle's
+**Status: the prologue is playable; the Acts and endings are logic.** You can stand on the prologue's ledge, look at the Slagcrown under the
+coal sun, walk down past the walking bloom that stands on the shelf, and reach Marget Sayle's
 bothy and speak to her. Walk, do not run: it hunts by sound. Put the bar across her door, or it may
-follow you in. Out in the dark, or with it coming at you, the picture closes in. Nothing of the story past that door is built. `ROADMAP.md` says exactly what is and is not here.
+follow you in. Out in the dark, or with it coming at you, the picture closes in. Acts I to III and the five endings are built as pure content and state machines, with their maps, art and scenes still to come. `ROADMAP.md` says exactly what is and is not here.
 
 ![The ledge](docs/screenshots/01_the_ledge.png)
 
@@ -31,6 +31,14 @@ From source there is nothing to build or install. Serve the folder and open it:
     git clone https://github.com/dribblejerp-KlunkDunker/Ashen-Wilds.git
     cd Ashen-Wilds
     python3 -m http.server 8000        # then open http://localhost:8000
+
+### Play on your phone
+
+Open the game with `?touch=1` or `?mobile` in the address, for example
+`https://dribblejerp-klunkdunker.github.io/Ashen-Wilds/?touch=1`, or open it on a device whose main
+pointer is a finger. The touch stick, its buttons and the touch-aware opening start with play.
+Options > Controls > Touch controls still rules: Off wins. This is the phone-link support, not the
+Act III content in Phase 36.
 
 | Input | Action |
 | --- | --- |
@@ -81,6 +89,17 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
   the exact quarry-troll and bloom distances, open from the book under The beasts.
 - **The chill.** A warmth pool you lose in sleet and at night and get back at the bothy's lit
   hearth. Below half your hands slow; at zero you cannot run or fight. Options > The chill.
+- **The hearth at the bothy.** REST at the lit fire opens the hearth: rest four or eight hours,
+  keep a small store of smoked eel and lamp oil, name a dead person in the company roll, and read
+  the promises already written in the Account. The panel's wording is still proposed.
+- **The phone link.** A `?touch=1` or `?mobile` address, or a coarse pointer, starts the thumb
+  stick and touch buttons from the first frame and leaves out the mouse-capture line. Options >
+  Controls > Touch controls still rules. This is support, not the Act III content in Phase 36.
+- **The Acts and the endings, as logic.** Act I's Burned Quay scenes, the three courts of Act II,
+  its five side arcs, the eleven days at Halsing and the five endings are built as deterministic
+  content and state machines. The tests play every route, including the receipt's unanswered
+  identity, Marget's limit and the three blanks. No Act map, scene art, dialogue UI or save is
+  built yet; the briefs and proposed rulings are in `ROADMAP.md`.
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
   code here.
 
@@ -108,6 +127,9 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
+| `js/hearth27.js` | Phase 27: the bothy REST panel, rest, the store, the named dead and the Account promises |
+| `js/touchlink36.js` | Phase 36 support: the phone link that starts touch controls from `?touch`/`?mobile` or a coarse pointer |
+| `js/actone33.js`, `js/acttwo34.js`, `js/sidearcs35.js`, `js/actthree36.js`, `js/endings37.js` | Phases 33-37: the Acts and the endings as content and state engines |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
@@ -133,6 +155,13 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/building8.test.js --no-browser
     node test/dread9.test.js --no-browser
     node test/panel10.test.js --no-browser
+    node test/hearth27.test.js --no-browser
+    node test/touchlink36.test.js --no-browser
+    node test/actone33.test.js --no-browser
+    node test/acttwo34.test.js --no-browser
+    node test/sidearcs35.test.js --no-browser
+    node test/actthree36.test.js --no-browser
+    node test/endings37.test.js --no-browser
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
@@ -148,10 +177,11 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/building8.test.js
     NODE_PATH=$(npm root -g) node test/dread9.test.js
     NODE_PATH=$(npm root -g) node test/panel10.test.js
+    NODE_PATH=$(npm root -g) node test/hearth27.test.js
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
-barred door holds and the open one does not, the lantern burns its oil and goes out, dread rises in the dark and leaves you behind a barred door, and the switches change the picture. It says nothing about how the
+barred door holds and the open one does not, the lantern burns its oil and goes out, dread rises in the dark and leaves you behind a barred door, the switches change the picture, and the bothy hearth opens from REST. It says nothing about how the
 game feels: that needs a person at the controls.
 
 ## The games this replaced
