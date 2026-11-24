@@ -1181,6 +1181,51 @@ controls once a zone exists. The Round's four landfalls are outlines: their ways
 Names were checked against `docs/worldbuilding/` and `js/` for clashes on 2026-11-24 ("Lime Pit" clashed with Withy
 Bottom's lime pit and was renamed the Carriers' Pit).
 
+## The lore pipeline, for a ruling
+
+`docs/pipeline.md` (the design) · `tools/lore/lib.js`, `tools/lore/places.js`, `tools/lore/gazetteer.md` ·
+`docs/data/places.json` (generated) · `test/lore-places.test.js` (Node only, in CI). Not a phase: a design and one
+slice. No game code changed and nothing in the game loads the data.
+
+The design turns approved lore into game content the way `tools/book.js` turns the warning book's Markdown into
+`js/book16.js`: the lore stays the owner's prose and is never written to; a tool per kind reads its existing
+conventions (headings, the italic line under a name, bold labels, tables) into `docs/data/<kind>.json`, checked in
+and checked current in CI; the game's own numbers and unruled lines live in game sheets (`docs/game/<kind>.md`) with
+a status per row; a small loader will give phases `LORE.place(id)` and the like. Canon checks run as tests: every
+fact re-read at its file and line, every name in the roster, bestiary or atlas (or marked [PROPOSED]), plain ASCII,
+no prophecy, no answer to the three shut questions. Three pieces of engine work (a scene runner, a zone-map builder,
+a MAP panel) would then wire the pure phases 21, 22, 25, 26, 28, 30, 31 and 33 to 37.
+
+**Built:** the places slice. All **133** of the gazetteer's places parse: 67 from their own entry, 33 from a shared
+heading, 3 from a region file, 25 named in bold inside an entry, 5 mentioned in passing. 42 get an atlas kind, 37 a
+position in miles, 82 a zone position, 43 named people and 60 named beasts. The test re-reads every source line.
+
+Everything below is **[PROPOSED]** and waits for the owner.
+
+- **LP1** Three layers: lore untouched; game sheets in `docs/game/`; generated data in `docs/data/`, and in
+  `js/data/*.js` (plain scripts, cached by `sw.js`) once the game loads a kind. The page never fetches JSON.
+- **LP2** Game sheets are Markdown tables with a status column, not front-matter added to the lore files.
+- **LP3** The gazetteer's 133 is the list of places (copied into `tools/lore/gazetteer.md` from the project doc).
+  The atlas also has places the gazetteer does not count (the Burning Bank, the Hewers' Road, the Bell-Spire, the
+  King's Sluice): keep the 133, or read every atlas heading?
+- **LP4** Ids are the name in lower case with underscores, no leading "the" (`wayfarers_watchhouse`).
+- **LP5** `js/chart26.js`'s five nodes and six [PROPOSED] roads replaced by the atlas's legs (the walk south is 315
+  miles and 28 days), keeping its rules and test.
+- **LP6** 91 places have no kind in the atlas's six words ("Venting moor", "Drowned royal ship"): leave null, or rule
+  a kind each.
+- **LP7** The ledge and the bothy have no atlas entry and are read from the design document: add two atlas entries?
+- **LP8** "The Bloom Quarters" is one place in the gazetteer (read from Port Sable's); Marlstow's lower town is the
+  other. One place or two?
+- **LP9** Beasts outside the seventeen (the hulk-conger, hold-goblins) are not listed in `hunts`; the Unnamed is
+  (from the bestiary's own entry). Keep it so?
+- **LP10** The Fen Gate stays an open alias: the pipeline does not join it to the East Choke Point.
+- **LP11** The build order in `docs/pipeline.md` section 6: people and beasts next, then the canon test over
+  everything, items and the chart, scenes, zones after O15, and only then the loader and the first wire.
+
+**Not done, and not checked:** no other kind, no game sheet, no loader, no wiring. People and beasts are found by
+matching the roster's names and the bestiary's words, so a person named only by a role is missed. The Salt Trace's
+fen stages are prose and are not read. The places JSON uses the zone plan, which is itself [PROPOSED] under O15.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |

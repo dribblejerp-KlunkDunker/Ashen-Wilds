@@ -55,6 +55,8 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/prologue39.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
+    node test/lore-places.test.js --no-browser   # the lore pipeline: the atlas's places into docs/data/places.json
+    node tools/lore/places.js --check            # docs/data/places.json is current (--write rebuilds it)
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
     node tools/zones.js --check                       # the zone sketches match atlas/10-zones.md (O15)
@@ -154,6 +156,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
     js/prologue39.js     Phase 39: the prologue played through; its end card after the title (days, oil, pitch, who lived)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
+    tools/lore/           the lore pipeline (docs/pipeline.md): lib.js, places.js -> docs/data/places.json; nothing loads it yet
 
 Useful facts, all checked in this repository:
 
