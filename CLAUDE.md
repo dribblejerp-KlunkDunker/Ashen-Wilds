@@ -56,6 +56,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
     node tools/icons.js --check                       # the icons match the mark in js/art2.js
+    node tools/zones.js --check                       # the zone sketches match atlas/10-zones.md (O15)
 
     NODE_PATH=$(npm root -g) node test/fork0.test.js  # the played half, headless Chromium
     NODE_PATH=$(npm root -g) node test/ledge1.test.js
@@ -264,6 +265,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O14:** every traveller starts with a torch; a lantern is found or bought (Phase 38).
 - **O15:** the world's scale is the hybrid: each region one dense walkable zone of about a square mile, the Chart between
   regions, something to find every 30 to 60 seconds of walking, and not on the small side.
+- **O16:** the zones in `docs/worldbuilding/atlas/10-zones.md` (ZP1 to ZP30) are approved: eleven zones, maps of at most
+  384 x 384, great complexes at true size in their own maps, a zone's road days booked when you leave it.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

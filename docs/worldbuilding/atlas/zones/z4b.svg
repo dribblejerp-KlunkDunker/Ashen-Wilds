@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1070" viewBox="0 0 1160 1070" font-family="Georgia, serif">
+<rect width="100%" height="100%" fill="#f4efe4"/>
+<text x="30" y="22" font-size="16" fill="#222">Z4B. The Drowned Measures</text>
+<text x="30" y="40" font-size="11" fill="#555">1536 x 1536 cells (1 cell = 1 m). Dashed squares: maps of 384 x 384. A sketch, not art. Numbers are the rows of the zone's table.</text>
+<rect x="30" y="50" width="900" height="900" fill="#e9e2d0" stroke="#333" stroke-width="1.5"/>
+<line x1="255.0" y1="50.0" x2="255.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="480.0" y1="50.0" x2="480.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="705.0" y1="50.0" x2="705.0" y2="950.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="275.0" x2="930.0" y2="275.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="500.0" x2="930.0" y2="500.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<line x1="30.0" y1="725.0" x2="930.0" y2="725.0" stroke="#b9ae96" stroke-dasharray="3 4"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#6b5a44" stroke-width="5" points="30.0,167.2 129.6,180.1 223.4,196.5"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="223.4,196.5 305.4,243.4 381.6,296.1"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#9a5a3a" stroke-width="2" stroke-dasharray="1 4" points="381.6,296.1 334.7,331.3"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#6b5a44" stroke-width="5" points="334.7,331.3 330.0,413.3 325.9,518.8 323.0,635.9 323.0,723.8 328.8,811.7"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="381.6,296.1 469.5,343.0 557.3,401.6"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6" points="557.3,401.6 615.9,460.2 662.8,542.2 721.4,624.2 762.4,682.8 809.3,753.1 879.6,841.0"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#9a5a3a" stroke-width="2" stroke-dasharray="1 4" points="721.4,624.2 674.5,723.8 615.9,782.4 528.0,811.7 475.3,811.7 393.3,811.7 328.8,811.7"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#4a7a9a" stroke-width="4" stroke-dasharray="4 6" points="721.4,624.2 791.7,589.1 850.3,577.3 920.6,565.6"/>
+<polyline fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#4a7a9a" stroke-width="4" stroke-dasharray="4 6" points="325.9,518.8 393.3,530.5"/>
+<polygon points="35.9,158.2 44.9,167.2 35.9,176.2 26.9,167.2" fill="#d8b04a" stroke="#000"/>
+<circle cx="129.6" cy="180.1" r="4" fill="#fff" stroke="#555"/>
+<rect x="217.4" y="190.5" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="299.4" y="237.4" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="375.6" y="290.1" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="399" y="319.4" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="328.7" y="325.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="324" y="407.3" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="319.9" y="512.8" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="387.3" y="524.5" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="323" cy="635.9" r="6" fill="#a33" stroke="#000"/>
+<circle cx="323" cy="723.8" r="4" fill="#fff" stroke="#555"/>
+<rect x="322.8" y="799.9" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="463.5" y="337" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<rect x="551.3" y="395.6" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<polygon points="580.8,375 589.8,384 580.8,393 571.8,384" fill="#d8b04a" stroke="#000"/>
+<rect x="609.9" y="454.2" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="662.8" cy="542.2" r="6" fill="#a33" stroke="#000"/>
+<rect x="715.4" y="618.2" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="762.4" cy="682.8" r="4" fill="#fff" stroke="#555"/>
+<rect x="803.3" y="747.1" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<polygon points="879.6,832 888.6,841 879.6,850 870.6,841" fill="#d8b04a" stroke="#000"/>
+<circle cx="791.7" cy="589.1" r="4" fill="#fff" stroke="#555"/>
+<rect x="844.3" y="571.3" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="920.6" cy="565.6" r="4" fill="#fff" stroke="#555"/>
+<circle cx="674.5" cy="723.8" r="6" fill="#a33" stroke="#000"/>
+<rect x="609.9" y="776.4" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="522" y="805.7" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="469.3" y="805.7" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<rect x="387.3" y="805.7" width="12" height="12" fill="#6b5a44" stroke="#000"/>
+<circle cx="82.7" cy="174.2" r="4" fill="#fff" stroke="#555"/>
+<circle cx="176.5" cy="188.3" r="6" fill="#a33" stroke="#000"/>
+<circle cx="264.4" cy="219.9" r="4" fill="#fff" stroke="#555"/>
+<circle cx="343.5" cy="269.7" r="4" fill="#fff" stroke="#555"/>
+<circle cx="327.7" cy="466" r="4" fill="#fff" stroke="#555"/>
+<circle cx="324.1" cy="577.3" r="4" fill="#fff" stroke="#555"/>
+<circle cx="513.4" cy="372.3" r="4" fill="#fff" stroke="#555"/>
+<circle cx="639.4" cy="501.2" r="4" fill="#fff" stroke="#555"/>
+<circle cx="692.1" cy="583.2" r="4" fill="#fff" stroke="#555"/>
+<circle cx="844.5" cy="797.1" r="4" fill="#fff" stroke="#555"/>
+<circle cx="698" cy="674" r="4" fill="#fff" stroke="#555"/>
+<circle cx="572" cy="797.1" r="4" fill="#fff" stroke="#555"/>
+<text x="45.9" y="157.2" font-size="10" fill="#111">1 The quarry approach: from Rook's Stair (C3)</text>
+<text x="233.4" y="200.5" font-size="10" fill="#111">3 The Dry Table</text>
+<text x="315.4" y="247.4" font-size="10" fill="#111">4 The Surveyors' Mound</text>
+<text x="391.6" y="300.1" font-size="10" fill="#111">5 The Peg Houses and the Crooked Pair</text>
+<text x="415.0" y="329.4" font-size="10" fill="#111">6 The drowned survey hut</text>
+<text x="192.2" y="335.3" font-size="10" fill="#111">7 Milebank, the north end</text>
+<text x="340.0" y="417.3" font-size="10" fill="#111">8 The Eel Garths</text>
+<text x="335.9" y="508.8" font-size="10" fill="#111">9 The Red Stitch</text>
+<text x="403.3" y="520.5" font-size="10" fill="#111">10 The drowned church, a hundred paces off the bank</text>
+<text x="59.1" y="809.9" font-size="10" fill="#111">13 Milebank, the south end and its waiting ground</text>
+<text x="479.5" y="347.0" font-size="10" fill="#111">14 The Rent Stones</text>
+<text x="567.3" y="405.6" font-size="10" fill="#111">15 The Three Mouths</text>
+<text x="590.8" y="388.0" font-size="10" fill="#111">16 The King's Sluice: in under the basin</text>
+<text x="625.9" y="464.2" font-size="10" fill="#111">17 A collapse of the Long Cut's wall</text>
+<text x="731.4" y="628.2" font-size="10" fill="#111">19 The Four Steps</text>
+<text x="819.3" y="757.1" font-size="10" fill="#111">21 The narrowed channel and the Low Rack Four</text>
+<text x="889.6" y="845.0" font-size="10" fill="#111">22 The Long Cut's tail, at the river</text>
+<text x="860.3" y="595.3" font-size="10" fill="#111">24 Far Bank Gate and the Return Shelf</text>
+<text x="625.9" y="772.4" font-size="10" fill="#111">27 The Drowned Orchard and its five living trees</text>
+<text x="538.0" y="815.7" font-size="10" fill="#111">28 The Bent Fence</text>
+<text x="485.3" y="843.7" font-size="10" fill="#111">29 The Three Steps</text>
+<text x="298.5" y="829.7" font-size="10" fill="#111">30 The Reed Yard</text>
+<text x="139.6" y="184.1" font-size="10" fill="#111">2</text>
+<text x="333.0" y="639.9" font-size="10" fill="#111">11</text>
+<text x="333.0" y="727.8" font-size="10" fill="#111">12</text>
+<text x="672.8" y="546.2" font-size="10" fill="#111">18</text>
+<text x="772.4" y="686.8" font-size="10" fill="#111">20</text>
+<text x="801.7" y="593.1" font-size="10" fill="#111">23</text>
+<text x="930.6" y="569.6" font-size="10" fill="#111">25</text>
+<text x="684.5" y="727.8" font-size="10" fill="#111">26</text>
+<text x="92.7" y="178.2" font-size="10" fill="#111">31</text>
+<text x="186.5" y="192.3" font-size="10" fill="#111">32</text>
+<text x="274.4" y="223.9" font-size="10" fill="#111">33</text>
+<text x="353.5" y="273.7" font-size="10" fill="#111">34</text>
+<text x="337.7" y="470.0" font-size="10" fill="#111">35</text>
+<text x="334.1" y="581.3" font-size="10" fill="#111">36</text>
+<text x="523.4" y="376.3" font-size="10" fill="#111">37</text>
+<text x="649.4" y="505.2" font-size="10" fill="#111">38</text>
+<text x="702.1" y="587.2" font-size="10" fill="#111">39</text>
+<text x="854.5" y="801.1" font-size="10" fill="#111">40</text>
+<text x="708.0" y="678.0" font-size="10" fill="#111">41</text>
+<text x="582.0" y="801.1" font-size="10" fill="#111">42</text>
+<rect x="30" y="965" width="12" height="12" fill="#3a3a3a"/>
+<text x="48" y="975" font-size="10" fill="#333">great complex: its own maps, true size</text>
+<rect x="330" y="965" width="12" height="12" fill="#6b5a44"/>
+<text x="348" y="975" font-size="10" fill="#333">atlas place, built in the zone</text>
+<rect x="630" y="965" width="12" height="12" fill="#fff" stroke="#a33" stroke-width="2"/>
+<text x="648" y="975" font-size="10" fill="#333">new small site [PROPOSED]</text>
+<polygon points="36,984 42,991 36,998 30,991" fill="#d8b04a"/>
+<text x="48" y="995" font-size="10" fill="#333">threshold: another zone, the Chart, or below</text>
+<circle cx="336" cy="991" r="6" fill="#a33"/>
+<text x="348" y="995" font-size="10" fill="#333">hunting ground</text>
+<circle cx="636" cy="991" r="4" fill="#fff" stroke="#555"/>
+<text x="648" y="995" font-size="10" fill="#333">wayside find or view</text>
+<line x1="30" y1="1024" x2="60" y2="1024" stroke="#6b5a44" stroke-width="5"/>
+<text x="66" y="1028" font-size="10" fill="#333">road</text>
+<line x1="210" y1="1024" x2="240" y2="1024" stroke="#8a7a62" stroke-width="3" stroke-dasharray="10 6"/>
+<text x="246" y="1028" font-size="10" fill="#333">track or path</text>
+<line x1="390" y1="1024" x2="420" y2="1024" stroke="#4a7a9a" stroke-width="4" stroke-dasharray="4 6"/>
+<text x="426" y="1028" font-size="10" fill="#333">by boat or wading</text>
+<line x1="570" y1="1024" x2="600" y2="1024" stroke="#7a6a9a" stroke-width="3" stroke-dasharray="2 5"/>
+<text x="606" y="1028" font-size="10" fill="#333">under ground or roofed</text>
+<line x1="750" y1="1024" x2="780" y2="1024" stroke="#9a5a3a" stroke-width="2" stroke-dasharray="1 4"/>
+<text x="786" y="1028" font-size="10" fill="#333">rope, ladder or stakes</text>
+</svg>
