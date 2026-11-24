@@ -77,8 +77,8 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
 - **Your torch**, in your left hand from the start: pitch on a stave, a bigger and redder light than a
   lantern's, and four minutes of fuel (the gutter-kin's a minute and a half, the hedge-priest's six). It
   burns down, gutters and goes out, and spent is spent. Lit after dark, it shows you to the walking bloom.
-- **A lantern, if you find one**: a horn lantern stands beside Marget Sayle's two flasks of oil. A small
-  tallow light; a full one lasts dusk to dawn; sleet spends it nearly twice as fast. Her flasks fill it.
+- **A lantern, when you get one**: Marget Sayle gives you her horn lantern when you first speak to her. A
+  small tallow light; a full one lasts dusk to dawn; sleet spends it nearly twice as fast. Her two flasks fill it.
   From the pack you take the torch or the lantern into your hand.
 - **The walking bloom**, modelled, on the shelf by the foot of the ramp. It hunts by sound: walk
   and it does not hear you; run and it comes to where the noise was, and claws. It sees only
@@ -126,7 +126,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/door5.js` | Phase 5: the bar on Marget Sayle's door, and what the bloom does at it |
 | `js/weather6.js` | Phase 6: ashfall and sleet, stopped by the bothy's roof |
 | `js/lantern7.js` | Phase 7: the light in your left hand, the lantern, its oil, and Marget Sayle's flasks |
-| `js/torch38.js` | Phase 38: you start with a torch; the horn lantern is found (in the bothy) or bought |
+| `js/torch38.js` | Phase 38: you start with a torch; Marget Sayle gives you her horn lantern (or one is bought) |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |

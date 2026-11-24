@@ -19,9 +19,9 @@
 //      when it is spent it is spent: lamp oil does not go on a torch.
 //    * ITS LIGHT. Bigger than the lantern's and a little redder (pitch, not tallow): the bible's "less light range than
 //      the torch" read the other way. The walking bloom sees it as it sees the lantern.
-//    * THE LANTERN, FOUND. A horn lantern stands on the floor beside Marget Sayle's flasks of oil [PROPOSED: where it is
-//      found is for the owner]. Use it and it is yours: it goes into the left hand (unlit, half full), the torch goes
-//      to the pack with what fuel it has. Using either one from the pack takes it into the hand; using the one in hand
+//    * THE LANTERN, GIVEN. Marget Sayle gives you her horn lantern the first time you speak to her (the owner's ruling,
+//      2026-11-23: "she will give it to you"). It goes into the left hand (unlit, half full); the torch goes to the pack
+//      with what fuel it has. Using either one from the pack takes it into the hand; using the one in hand
 //      lights or douses it. Her flasks fill the lantern and nothing else.
 //    * THE LANTERN, BOUGHT. The item table gets a Horn Lantern row with a price [PROPOSED], so any trader can sell it;
 //      TORCH38.gain('lantern') is the hook a trader calls. No trader exists yet.
@@ -44,7 +44,6 @@ const TORCH38 = (() => {
     r: [2.2, 5.6],              // the pool's radius in cells, nearly spent to fresh: more than the lantern's 1.7 to 4.2 [PROPOSED]
     col: [255, 140, 30],        // pitch flame: tallow yellow pulled toward red, still "yours" and never the land's ember [PROPOSED]
     inK: 0.15,                  // in a room it adds less than the lantern's 0.22: its pool is bigger, and one fire lights a room [PROPOSED]
-    lanternAt: { x: 1.95, y: 1.25 },   // on the floor beside Marget Sayle's flasks [PROPOSED]
     lanternKg: 1.2,             // the bible's
     lanternPrice: 10,           // measures: lanterns are only mended, never made, so dearer than a targe (6) [PROPOSED]
   };
@@ -100,9 +99,8 @@ const TORCH38 = (() => {
     dry: 'The torch is spent.',
     low: 'The torch is burning down to the stave.',
     out: 'The torch gutters and goes out.',
-    lantern: 'A horn lantern, its panes scratched dull, on the floor beside the oil.',
-    found: 'You take the horn lantern. The torch goes into your pack.',
-    foundLit: 'You pinch out the torch and take the horn lantern. The torch goes into your pack.',
+    given: 'Marget Sayle: "Take the lantern. A torch shows you to everything on that shelf." The torch goes into your pack.',
+    givenLit: 'Marget Sayle: "Put that out and take the lantern. A torch shows you to everything on that shelf."',
     toLantern: 'You take the lantern in your left hand.',
     toTorch: 'You take the torch in your left hand.',
     pinch: (id) => (id === 'torch' ? 'You douse the lantern and take the torch.' : 'You pinch out the torch and take the lantern.'),
@@ -162,7 +160,7 @@ const TORCH38 = (() => {
     outline(s, INK);
     return done(s);
   }
-  // the horn lantern as a thing standing on a plank
+  // the horn lantern as a thing standing on the ground: for a trader's table or a find, when there is one (not placed yet)
   function paintLanternThing() {
     const s = sheet(40, 64), cx = 20;
     for (let i = 0; i <= 40; i++) { const t = i / 40, a = Math.PI * t, x = cx + Math.cos(Math.PI - a) * 9, y = 16 - Math.sin(a) * 12; put(s, Math.round(x), Math.round(y), ramp(IRON, 0.5, x, y)); }   // the bail
@@ -215,11 +213,6 @@ const TORCH38 = (() => {
     return f.la_light === 'lantern' && f.la_have.lantern ? null : TORCH;
   }
   function say(t, cls, ms) { if (typeof msg === 'function') msg(t, cls || '', ms || 3500); }
-  function syncDeco() {
-    if (!ST.deco) return;
-    const f = G.flags || {};
-    ST.deco.hidden = !sw() || !!(f.la_have && f.la_have.lantern);
-  }
   function giveItem(id) {
     try { const p = G.player; if (p && Array.isArray(p.inv) && !p.inv.some((s) => s && s.id === id)) p.inv.push({ id, n: 1 }); } catch (e) { /* the pack keeps what it had */ }
   }
@@ -227,8 +220,8 @@ const TORCH38 = (() => {
     const f = flags(), wasLit = !!(typeof UPG !== 'undefined' && UPG.lantern), r = gain(f, id);
     if (r === 'had') return r;
     if (typeof UPG !== 'undefined') UPG.lantern = false;
-    giveItem(id); syncDeco();
-    if (id === 'lantern') say(wasLit ? TX.foundLit : TX.found, '', 4500);
+    giveItem(id);
+    if (id === 'lantern') say(wasLit ? TX.givenLit : TX.given, '', 6000);
     return r;
   }
   function takeNow(id) {
@@ -245,29 +238,29 @@ const TORCH38 = (() => {
     const L1 = LEDGE1;
     LANTERN7.setSource(source);
     // the lantern as a thing in the world and in the pack; a price, so a trader can sell it
-    const thing = paintLanternThing();
-    Engine.addSprite('la_hornlamp', { w: thing.w, h: thing.h, data: thing.data, hs: thing.hs, cx: thing.cx, dy: thing.dy });
     try { if (typeof ITEMS !== 'undefined') ITEMS.lantern = { name: TX.itemName, sprite: 'loot', use: 'light', stack: 1, desc: TX.itemDesc }; } catch (e) { /* the pack has no row for it */ }
     try { if (typeof KIT17 !== 'undefined' && KIT17.ITEM_ROWS && !KIT17.ITEM_ROWS.lantern) KIT17.ITEM_ROWS.lantern = { id: 'lantern', name: TX.itemName, kind: 'light', kg: T.lanternKg, price: T.lanternPrice, stack: 1, use: 'light', desc: TX.itemDesc }; } catch (e) { /* no price */ }
-    const _bm = buildAllMaps; buildAllMaps = function () {
-      const maps = _bm.apply(this, arguments);
-      try { const m = maps && maps[L1.BOTHY]; if (m) { ST.deco = m.deco('la_hornlamp', T.lanternAt.x, T.lanternAt.y, { solid: false, scale: 1, use: 'la_lantern', label: TX.lantern }); ST.deco.hidden = !sw(); } } catch (e) { /* the bothy stands without it */ }
-      return maps;
+    // Marget Sayle gives you her lantern the first time you speak to her (after her own words, so her talk runs first)
+    ORIG.talk = talk;
+    talk = function (e) {
+      const r = ORIG.talk.apply(this, arguments);
+      try {
+        if (e && e.id === 'la_marget' && on()) { const f = flags(); if (!f.la_have.lantern && !f.la_lantern_given) { f.la_lantern_given = true; gainNow('lantern'); } }
+      } catch (x) { ST.err = ST.err || String(x && x.message); }
+      return r;
     };
-    const _lm = loadMap; loadMap = function () { const r = _lm.apply(this, arguments); try { syncDeco(); } catch (e) { /* the plank keeps it */ } return r; };
-    const _up = update; update = function () { const r = _up.apply(this, arguments); try { if (ST.deco && G.mapId === L1.BOTHY) syncDeco(); } catch (e) { /* the plank keeps it */ } return r; };
     // a new traveller: the torch, at the card's fuel (the creation click calls panel10's own choose, so read the click)
     if (typeof document !== 'undefined') document.addEventListener('click', (ev) => {
       const el = ev.target && ev.target.closest ? ev.target.closest('#la-who [data-bg]') : null;
       if (!el) return;
-      setTimeout(() => { try { if (G && G.flags) { fresh(G.flags, G.flags.la_bg || el.dataset.bg); syncDeco(); } } catch (e) { /* the torch stands */ } }, 0);
+      setTimeout(() => { try { if (G && G.flags) { fresh(G.flags, G.flags.la_bg || el.dataset.bg); } } catch (e) { /* the torch stands */ } }, 0);
     }, true);
     // an old save: put it right once, at load
     if (typeof restoreGame === 'function') {
       ORIG.restoreGame = restoreGame;
       restoreGame = function () {
         const r = ORIG.restoreGame.apply(this, arguments);
-        try { if (G && G.flags && G.map && G.map._la) { ST.migrated = migrate(G.flags, G.flags.la_bg); if (G.flags.la_have.lantern) giveItem('lantern'); syncDeco(); } } catch (e) { ST.err = ST.err || String(e && e.message); }
+        try { if (G && G.flags && G.map && G.map._la) { ST.migrated = migrate(G.flags, G.flags.la_bg); if (G.flags.la_have.lantern) giveItem('lantern'); } } catch (e) { ST.err = ST.err || String(e && e.message); }
         return r;
       };
     }
@@ -275,7 +268,6 @@ const TORCH38 = (() => {
     ORIG.useDeco = useDeco;
     useDeco = function (e) {
       try {
-        if (e && e.use === 'la_lantern' && sw()) { gainNow('lantern'); return; }
         if (e && e.use === 'la_oil' && on() && !flags().la_have.lantern) { say(TX.noLantern, '', 3000); return; }
       } catch (x) { ST.err = ST.err || String(x && x.message); }
       return ORIG.useDeco.apply(this, arguments);

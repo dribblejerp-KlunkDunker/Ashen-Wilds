@@ -962,8 +962,8 @@ Ruled:
 The owner's ruling Q-A1. Every traveller begins with the kit's Pitch Torch in the left hand, at the bible's fuel (240 s;
 the gutter-kin 90, the hedge-priest 360). It burns by Phase 7's rules: U lights and douses it, the weather spends it, the
 last fifth shrinks, the last half minute gutters, and spent is spent (lamp oil is not for a torch). The horn lantern is
-found or bought: one stands on the bothy's floor beside Marget Sayle's flasks; use it and it is in your hand, with the
-torch in your pack. Using either from the pack takes it into the hand; using the one in hand lights or douses it. Her
+given or bought: Marget Sayle gives you hers the first time you speak to her, and it goes into your hand, with the torch
+in your pack. Using either from the pack takes it into the hand; using the one in hand lights or douses it. Her
 flasks fill the lantern, even while the torch burns, and refuse you when you have no lantern. Old saves: one from before
 Phase 38 carried a lantern and keeps it (with the card's torch in the pack); one written by the build merged in #63/#64
 had the torch's fuel in the lantern's oil and no flasks, so its fuel moves to the torch and the two flasks come back
@@ -977,16 +977,19 @@ own suites run with this switch off, as built; `tools/lanternshots.js` does too.
 Lore conflict, resolved by the ruling: the bible's item proposal 3 put a horn lantern in the Hedge-priest's kit. Every kit
 now starts with the torch.
 
-Invented, for a ruling [PROPOSED]:
+Ruled 2026-11-23 ("she will give it to you. I approve of the rest"):
 
-- **P-T1** Where the lantern is found: on the bothy's floor, beside the flasks. It could as well hang on Marget's wall,
-  be hers to give, or be somewhere on the ledge.
+- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line, [PROPOSED]: *"Take the
+  lantern. A torch shows you to everything on that shelf."* (the bestiary: a shuttered lantern draws fewer than an
+  open torch).
 - **P-T2** Its price, for when a trader exists: 10 measures (a targe is 6; lanterns are only mended, never made).
 - **P-T3** The torch's light: a pool 2.2 to 5.6 cells across (the lantern 1.7 to 4.2), colour (255, 140, 30), and in a
   room 0.15 of its strength (the lantern 0.22), so one fire still lights a room.
 - **P-T4** Its words: fresh, burning well, half burned, burning down, nearly spent, spent; and its lines (light, pinch
   out, burning down to the stave, gutters and goes out, no lantern to fill).
 - **P-T5** Taking the lantern puts it straight into the hand and the torch into the pack, pinched out if it was lit.
+
+P-T2 to P-T5 are approved. The flame in the hand now fades with its fuel (the review on #66).
 
 Not built: buying (no trader yet; `TORCH38.gain('lantern')` is the hook one calls), bog-pine splints that add fuel, a torch
 burning spores, moths drawn to an open flame (bestiary), and a torch dropped or thrown.

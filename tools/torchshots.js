@@ -1,6 +1,6 @@
 // Usage: NODE_PATH=$(npm root -g) node tools/torchshots.js <outDir> [only]
 // Phase 38's stills: the torch unlit and lit on the ledge at night, its pool at your feet beside the lantern's, burning
-// down, the horn lantern on Marget Sayle's plank, the lantern in hand once found, and the switch off; and one clip, the
+// down, Marget Sayle giving you her lantern, and the switch off; and one clip, the
 // torch's flame played for three seconds (needs ffmpeg on the path to join the frames).
 'use strict';
 const path = require('path'), fs = require('fs'), os = require('os'), cp = require('child_process');
@@ -14,7 +14,7 @@ const SHOTS = [
   ['142_torch_at_your_feet', 'la_ledge', NIGHT, 89.5, 40.5, Math.PI, -0.45, 240, true, 'torch', true],
   ['143_lantern_at_your_feet', 'la_ledge', NIGHT, 89.5, 40.5, Math.PI, -0.45, 240, true, 'lantern', true],
   ['144_torch_burning_down', 'la_ledge', NIGHT, 89.5, 40.5, Math.PI, -0.45, 25, true, 'torch', true],
-  ['145_the_lantern_by_the_oil', 'la_bothy', NIGHT, 2.6, 3.0, -1.95, -0.2, 240, true, 'torch', true],
+  ['145_marget_gives_the_lantern', 'la_bothy', NIGHT, 2.8, 3.4, -1.75, -0.05, 240, true, 'torch', true],
   ['146_switch_off', 'la_ledge', NIGHT, 89.5, 40.5, Math.PI, -0.45, 240, true, 'torch', false],
 ];
 (async () => {
@@ -27,12 +27,13 @@ const SHOTS = [
     UPG.lantern = lit; LANTERN7.state().prev = lit; if (R3D.camera && R3D.camera.setAngle) R3D.camera.setAngle(pitch);
     advanceTime(600); G.tod = tod; G.flags.la_torch = fuel; G.flags.la_oil = 540; advanceTime(30); G.tod = tod; G.flags.la_torch = fuel;
     const m = document.querySelector('#msgs'); if (m) m.innerHTML = '';
+    if (map === 'la_bothy') { talk(G.ents.find((e) => e.id === 'la_marget')); closeModal(); G.state = 'play'; }   // she gives you her lantern
   };
   for (const [name, ...rest] of SHOTS) {
     if (only && !name.includes(only)) continue;
     await s.page.evaluate(place, rest);
     await s.page.waitForTimeout(600);
-    await s.page.evaluate(([tod, fuel]) => { G.tod = tod; G.flags.la_torch = fuel; const m = document.querySelector('#msgs'); if (m) m.innerHTML = ''; }, [rest[1], rest[6]]);
+    await s.page.evaluate(([tod, fuel, map]) => { G.tod = tod; G.flags.la_torch = fuel; const m = document.querySelector('#msgs'); if (m && map !== 'la_bothy') m.innerHTML = ''; }, [rest[1], rest[6], rest[0]]);
     await s.page.waitForTimeout(250);
     await s.page.screenshot({ path: path.join(out, name + '.png'), clip: { x: 0, y: 0, width: 1280, height: 600 } });
     console.log('wrote ' + name + '.png');

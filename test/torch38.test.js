@@ -3,8 +3,8 @@
 // Phase 38, start with a torch. Without a browser: the bible's torch fuel by background, the torch's words, a new
 // traveller, the three kinds of old save, taking and gaining a light, and the pictures. In a browser: you begin with the
 // torch in hand at the card's fuel; it lights by U with this game's words, burns, throws a bigger and redder pool than
-// the lantern; the HUD's bar and PACK speak of the torch; lamp oil is refused with no lantern; the horn lantern is found
-// in the bothy and taken into the hand; the pack swaps the two; the flasks fill the lantern while the torch burns; an old
+// the lantern; the HUD's bar and PACK speak of the torch; lamp oil is refused with no lantern; Marget Sayle gives you her
+// horn lantern the first time you speak to her; the pack swaps the two; the flasks fill the lantern while the torch burns; an old
 // save from the #63/#64 build gets its fuel moved and the flasks back; and switched off, the frame is Phase 7's.
 'use strict';
 const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '..');
@@ -43,7 +43,7 @@ check(Object.values(T.TX).every((v) => typeof v !== 'string' || /^[\x20-\x7e]*$/
 {
   const f = T.fresh({}, 'deserter');
   check(T.pure.take(f, 'lantern', false) === 'none' && f.la_light === 'torch', 'you cannot take a lantern you do not have');
-  check(T.pure.gain(f, 'lantern') === 'gained' && f.la_light === 'lantern' && f.la_have.lantern && T.pure.gain(f, 'lantern') === 'had', 'a lantern found or bought is yours and goes into the hand, once');
+  check(T.pure.gain(f, 'lantern') === 'gained' && f.la_light === 'lantern' && f.la_have.lantern && T.pure.gain(f, 'lantern') === 'had', 'a lantern given or bought is yours and goes into the hand, once');
   check(T.pure.take(f, 'torch', true) === 'swapped-lit' && f.la_light === 'torch' && T.pure.take(f, 'torch', false) === 'same', 'the pack swaps the two lights; using the one in hand is not a swap');
 }
 // ---- the pictures
@@ -52,7 +52,7 @@ check(Object.values(T.TX).every((v) => typeof v !== 'string' || /^[\x20-\x7e]*$/
   check(u.w === 110 && u.h === 200 && f0.w === 110 && !u.emit && f0.emit && f0.emit.some((v) => v), 'the torch in hand is painted in code at the lantern\'s size; lit, its flame is light, unlit it has none');
   check(f0.data.some((v, i) => v !== f1.data[i]) && f0.data.every((v, i) => v === again.data[i]), 'the flame\'s frames differ from each other, and a frame is the same every time it is painted (no dice)');
   const th = T.paintLanternThing();
-  check(th.w === 40 && th.h === 64 && th.data.some((v) => v >>> 24), 'the horn lantern on the floor is painted in code');
+  check(th.w === 40 && th.h === 64 && th.data.some((v) => v >>> 24), 'the horn lantern as a thing (for a trader\'s table, later) is painted in code');
   check(!/Math\.random/.test(src), 'nothing uses a random number');
 }
 
@@ -83,11 +83,12 @@ check(Object.values(T.TX).every((v) => typeof v !== 'string' || /^[\x20-\x7e]*$/
         out.bar = LANTERN7.frac();
         // the bothy: oil refused, the lantern found
         loadMap(LEDGE1.BOTHY); G.state = 'play'; advanceTime(100);
-        const oil = G.ents.find((e) => e.use === 'la_oil'), lamp = G.ents.find((e) => e.use === 'la_lantern');
+        const oil = G.ents.find((e) => e.use === 'la_oil'), marget = G.ents.find((e) => e.id === 'la_marget');
         useDeco(oil); out.refused = { said: last(), flasks: f().la_flasks };
-        out.deco = lamp ? { hidden: !!lamp.hidden, sprite: lamp.sprite } : null;
-        const litBefore = !!UPG.lantern; useDeco(lamp);
-        out.found = { litBefore, said: last(), light: f().la_light, have: !!f().la_have.lantern, lit: !!UPG.lantern, inv: G.player.inv.map((q) => q.id), hidden: !!lamp.hidden, src: LANTERN7.source().id };
+        out.noFloor = !G.ents.some((e) => e.sprite === 'la_hornlamp' || e.use === 'la_lantern');
+        const litBefore = !!UPG.lantern; talk(marget); closeModal(); G.state = 'play';
+        out.found = { litBefore, said: last(), light: f().la_light, have: !!f().la_have.lantern, lit: !!UPG.lantern, inv: G.player.inv.map((q) => q.id), src: LANTERN7.source().id };
+        f().la_light = 'torch'; talk(marget); closeModal(); G.state = 'play'; out.once = { light: f().la_light, lanterns: G.player.inv.filter((q) => q.id === 'lantern').length }; f().la_light = 'lantern';
         // the pack swaps the lights; with the torch lit in hand, the flasks fill the lantern
         useItem(G.player.inv.find((q) => q.id === 'torch')); out.toTorch = { light: f().la_light, said: last() };
         useItem(G.player.inv.find((q) => q.id === 'torch')); out.relit = !!UPG.lantern;
@@ -95,9 +96,9 @@ check(Object.values(T.TX).every((v) => typeof v !== 'string' || /^[\x20-\x7e]*$/
         useItem(G.player.inv.find((q) => q.id === 'lantern')); out.toLantern = { light: f().la_light, lit: !!UPG.lantern, said: last() };
         // switched off: Phase 7's frame (the found lantern hidden, the lantern in hand), equal to this phase taken out
         loadMap(LEDGE1.BOTHY); G.state = 'play'; G.tod = 0.95; f().la_have.lantern = false; f().la_light = 'torch'; UPG.lantern = false; LANTERN7.state().prev = false;
-        const lampEnt = G.ents.find((e) => e.use === 'la_lantern'); if (lampEnt) lampEnt.hidden = false;
-        GFX.laTorch = false; advanceTime(50); frame(); out.offHidden = lampEnt ? !!lampEnt.hidden : null; out.offSrc = LANTERN7.source().id; out.off = frame();
-        const was = G.ents.slice(); G.ents = G.ents.filter((e) => e.use !== 'la_lantern'); LANTERN7.setSource(null); out.bare = frame(); G.ents = was; LANTERN7.setSource(TORCH38.source);
+        GFX.laTorch = false; advanceTime(50); frame(); out.offSrc = LANTERN7.source().id; out.off = frame();
+        LANTERN7.setSource(null); out.bare = frame(); LANTERN7.setSource(TORCH38.source);
+        f().la_have.lantern = false; f().la_lantern_given = false; talk(G.ents.find((e) => e.id === 'la_marget')); closeModal(); G.state = 'play'; out.offGift = !!f().la_have.lantern;
         GFX.laTorch = true; advanceTime(50);
         // an old save from the #63/#64 build
         G.flags = { la_bg: 'deserter', la_kit: { bg: 'deserter', fuel: 240 }, la_oil: 150, la_flasks: 0 };
@@ -114,13 +115,14 @@ check(Object.values(T.TX).every((v) => typeof v !== 'string' || /^[\x20-\x7e]*$/
     check(Math.abs(r.burnt - 10) < 0.6, 'ten seconds in ashfall burn ten seconds of pitch: ' + r.burnt.toFixed(2));
     check(/The torch: (fresh|burning well)\./.test(r.pack) && r.bar > 0.9 && r.bar < 1, 'PACK says how the torch is burning, and the HUD\'s third bar is the torch (' + r.bar.toFixed(3) + ')');
     check(/no lantern to fill/.test(r.refused.said) && r.refused.flasks === 2, 'with no lantern, Marget\'s oil is refused and the flasks stay: "' + r.refused.said + '"');
-    check(r.deco && !r.deco.hidden && r.deco.sprite === 'la_hornlamp', 'the horn lantern stands in the bothy');
-    check(r.found.litBefore && !r.found.lit && r.found.light === 'lantern' && r.found.have && r.found.src === 'lantern' && r.found.hidden && r.found.inv.includes('lantern') && r.found.inv.includes('torch') && /pinch out the torch and take the horn lantern/.test(r.found.said),
-      'taking it: the torch is pinched out and goes to the pack, the lantern is in hand and in the pack, and the floor is bare: "' + r.found.said + '"');
+    check(r.noFloor, 'no lantern stands on the floor: it is Marget Sayle\'s to give');
+    check(r.found.litBefore && !r.found.lit && r.found.light === 'lantern' && r.found.have && r.found.src === 'lantern' && r.found.inv.includes('lantern') && r.found.inv.includes('torch') && /Marget Sayle: "Put that out and take the lantern/.test(r.found.said),
+      'speaking to her, she gives you the lantern: the torch is put out and goes to the pack, the lantern is in hand and in the pack: "' + r.found.said + '"');
+    check(r.once.light === 'torch' && r.once.lanterns === 1, 'she gives it once: speaking to her again changes nothing');
     check(r.toTorch.light === 'torch' && /take the torch/.test(r.toTorch.said) && r.relit, 'the pack takes the torch back into the hand, and using it again lights it');
     check(r.fill.oil === 1080 && r.fill.flasks === 1 && r.fill.torchLit, 'with the torch burning in hand, a flask still fills the lantern in the pack');
     check(r.toLantern.light === 'lantern' && !r.toLantern.lit && /douse|pinch/.test(r.toLantern.said), 'and the pack swaps back to the lantern, putting the torch out: "' + r.toLantern.said + '"');
-    check(r.offHidden === true && r.offSrc === 'lantern', 'switched off: the lantern is in hand and the found lantern is gone from the floor');
+    check(r.offSrc === 'lantern' && !r.offGift, 'switched off: the lantern is in hand from the start, and Marget gives nothing');
     check(r.off === r.bare, 'switched off, the frame is exactly Phase 7\'s, with this phase taken out (' + r.off + ')');
     if (r.save) check(r.save.how === 'torch-build' && r.save.light === 'torch' && r.save.torch === 150 && r.save.flasks === 2 && r.save.oil == null, 'a save from the #63/#64 build loads with its fuel in the torch and the two flasks back: ' + JSON.stringify(r.save));
     else check(false, 'the save round-trip ran');

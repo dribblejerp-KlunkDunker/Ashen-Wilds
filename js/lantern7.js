@@ -234,7 +234,8 @@ const LANTERN7 = (() => {
     ctx.drawImage(P.dark[step], x, y, iw, ih);
     if (burning) {
       const a = clamp(flame(oil, S.capS) * flicker(oil, t) * (1 - 0.5 * (1 - dk)), 0, 1), glow = P.frames ? P.frames[Math.floor(t * 9) % P.frames.length] : P.glow;   // a torch's flame moves: frames by the anim clock
-      ctx.globalAlpha = P.frames ? Math.max(a, 0.85) : a; ctx.drawImage(glow[step], x, y, iw, ih);
+      // a painted flame keeps its body by day, and fades with its fuel (the review on #66)
+      ctx.globalAlpha = P.frames ? Math.max(a, 0.85 * flame(oil, S.capS) * flicker(oil, t)) : a; ctx.drawImage(glow[step], x, y, iw, ih);
     }
     ctx.restore(); ST.drawn++;
   }

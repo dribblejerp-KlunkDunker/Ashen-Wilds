@@ -146,7 +146,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/actthree36.js     Phase 36: Act III, the eleven days, Marget's limit and the wall
     js/touchlink36.js    Support, not a phase: the phone link; ?touch/?mobile or a coarse pointer starts touch controls
     js/endings37.js      Phase 37: the five endings and the player's last line
-    js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); the horn lantern found in the bothy or bought
+    js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
