@@ -75,13 +75,13 @@ const CARRY15 = (() => {
   function place() {
     const s = state(), b = body(), c = Engine.cam;
     if (!s.on) { if (b && s.x && s.y) { b.x = s.x; b.y = s.y; } return; }
-    step(s, { px: c.x, py: c.y, dir: c.dir, side: 0.32, fwd: 0.8, blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y); } catch (e) { return false; } } }, 0);
+    step(s, { px: c.x, py: c.y, dir: c.dir, side: 0.32, fwd: 0.8, blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y, body()); } catch (e) { return false; } } }, 0);
     const bb = body(); if (bb) { bb.x = s.x; bb.y = s.y; bb.hidden = false; }
   }
   function attachNow() {
     const s = attach('you', 'marget', 'arm'), b = body(), c = Engine.cam;
     s.x = c.x + 0.55; s.y = c.y;
-    S = s; if (G.flags) G.flags.la_carry = s;
+    S = s; if (G.flags) { G.flags.la_carry = s; G.flags.la_marget_out = true; }
     if (b) { b.x = s.x; b.y = s.y; b.hidden = false; }
     msg(TX.takeLead, 'warn', 6500);
   }
@@ -133,8 +133,13 @@ const CARRY15 = (() => {
     buildAllMaps = function () {
       const maps = _bm.apply(this, arguments);
       try {
+        // Audit fix: the ledge's body stays hidden until she has been taken by the arm (G.flags.la_marget_out), so the
+        // ledge does not show a second Marget Sayle outside her own door before you arrive. Once she is out, the
+        // bothy's body is hidden instead (the engine's requires/until, read at every loadMap).
         const m = maps[LEDGE1.LEDGE];
-        if (m && !m.entities.some((e) => e.id === 'la_marget')) m.npc('la_marget', 83.5, 31.4, { name: LEDGE1.TX.marget, wander: false });
+        if (m && !m.entities.some((e) => e.id === 'la_marget')) m.npc('la_marget', 83.5, 31.4, { name: LEDGE1.TX.marget, wander: false, requires: 'la_marget_out', hidden: true });
+        const b = maps[LEDGE1.BOTHY], home = b && b.entities.find((e) => e.id === 'la_marget');
+        if (home) home.until = 'la_marget_out';
       } catch (e) { /* the ledge has no second body */ }
       if (!S) S = load(G.flags && G.flags.la_carry);
       return maps;

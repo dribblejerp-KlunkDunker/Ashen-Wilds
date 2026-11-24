@@ -82,7 +82,8 @@ check(/la_kit/.test(src) && /currentWeapon/.test(src), 'the chosen kit is record
       out.armor = Object.assign({}, G.player.armor);
       out.oil = G.flags.la_oil;
       out.items = { torch: ITEMS.torch && ITEMS.torch.name, targe: ITEMS.targe && ITEMS.targe.name, gambeson: ITEMS.gambeson && ITEMS.gambeson.name };
-      G.flags.la_kit.kg = 20; out.load = { noise: armorNoise(), pace: KIT17.pace(20, G.flags.la_bg), sprint: KIT17.canSprint(20, G.flags.la_bg) }; G.flags.la_kit.kg = 10;
+      const kg0 = G.flags.la_kit.kg, n0 = armorNoise(), step0 = KIT17.noise(kg0, G.flags.la_bg);
+      G.flags.la_kit.kg = 20; out.load = { rise: armorNoise() - n0, want: KIT17.noise(20, G.flags.la_bg) - step0, noise: armorNoise(), pace: KIT17.pace(20, G.flags.la_bg), sprint: KIT17.canSprint(20, G.flags.la_bg) }; G.flags.la_kit.kg = 10;
       const d = snapshotGame(); d.flags = { la_bg: 'carter' }; d.player.inv = [{ id: 'a_jerkin', n: 1 }]; d.player.weapons = ['sword']; d.player.armor = {};
       restoreGame(d); out.old = { kit: G.flags.la_kit, inv: G.player.inv.map((s) => s.id), weapons: G.player.weapons.slice(), oil: G.flags.la_oil };
       G.player.weapons.push('crossbow'); G.player.weapon = G.player.weapons.length - 1;
@@ -94,10 +95,10 @@ check(/la_kit/.test(src) && /currentWeapon/.test(src), 'the chosen kit is record
     check(r.inv.includes('targe') && r.inv.includes('torch'), 'the chosen kit is in the bag');
     check(r.weapons.includes('sword') && !r.weapons.includes('crossbow'), 'the chosen kit is in the weapon hand and the old class weapon is gone');
     check(r.armor.shield === 'targe', 'the chosen targe is worn');
-    check(r.oil === 240 || r.oil === 90 || r.oil === 360, 'the kit sets the torch fuel');
+    check(r.kit.fuel === 240 && (r.oil == null || r.oil === 540), 'the kit records its torch fuel and leaves the lantern half full (Phase 7): oil ' + r.oil);
     check(r.items.torch === 'Pitch Torch' && r.items.targe === 'Wooden Targe' && r.items.gambeson === 'Quilted Gambeson', 'the engine can name the kit\'s own items');
-    check(r.load.noise === 1 && r.load.pace < 1 && !r.load.sprint, 'twenty kilograms adds a noise step, slows the walk and forbids a sprint');
-    check(r.old.kit && r.old.kit.ids.includes('torch') && r.old.inv.includes('gambeson') && r.old.weapons[0] === 'axe' && r.old.oil === 240, 'an old save rebuilds the kit, its bag, its hand and its fuel');
+    check(r.load.want > 0 && Math.abs(r.load.rise - r.load.want) < 1e-9 && r.load.pace < 1 && !r.load.sprint, 'twenty kilograms adds a noise step, slows the walk and forbids a sprint');
+    check(r.old.kit && r.old.kit.ids.includes('torch') && r.old.inv.includes('gambeson') && r.old.weapons[0] === 'axe' && r.old.kit.fuel === 240, 'an old save rebuilds the kit, its bag, its hand and its fuel');
     check(r.weaponsAfter.includes('crossbow'), 'the engine can still hold the old weapon, but the attack path refuses a ranged one');
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
   } catch (e) { fails++; console.log('FAIL the browser half stopped: ' + String(e.message).split('\n')[0]); }

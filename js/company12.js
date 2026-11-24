@@ -171,6 +171,14 @@ const COMPANY12 = (() => {
       try { if (here() || G.flags) ensure(); } catch (e) { /* the card still works */ }
       return r;
     };
+    // Audit fix: the creation screen's click handler calls panel10's own closed-over choose(), so the wrapper above never
+    // ran in play and the company (and so the roll) did not exist until a death. Read the chosen card from the click, as
+    // js/kit17.js does, after the handler has run.
+    if (typeof document !== 'undefined') document.addEventListener('click', (ev) => {
+      const el = ev.target && ev.target.closest ? ev.target.closest('#la-who [data-bg]') : null;
+      if (!el) return;
+      setTimeout(() => { try { if (G && G.flags) { G.flags.la_company = null; ensure(); } } catch (e) { /* the card still works */ } }, 0);
+    }, true);
     const _die = die;
     die = function (src) {
       try { if (pass(src)) return; } catch (e) { /* fall through to the engine's death */ }

@@ -132,7 +132,8 @@ const CARDS18 = (() => {
       const _an = armorNoise;
       armorNoise = function (p) {
         const n = _an.apply(this, arguments);
-        try { if (here()) { const e = effects(bgNow()); return n + e.packNoise + e.step; } } catch (e) { /* armour alone */ }
+        // audit fix: soft feet (e.step) are Phase 10's (P82); adding them here too counted them twice
+        try { if (here()) { const e = effects(bgNow()); return n + e.packNoise; } } catch (e) { /* armour alone */ }
         return n;
       };
     } catch (e) { /* armour alone */ }

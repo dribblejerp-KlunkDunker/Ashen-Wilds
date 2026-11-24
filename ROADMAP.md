@@ -914,6 +914,45 @@ The last still shows the live hearing gauge at 3 m and the grey lungs bar at 80 
 found two layout faults and fixed them: BOOK had a browser-default search field and nested scrolling, and the carry wire placed Marget in
 front of the camera. The title still keeps the HUD below it, as `124_3d_the_title.png` did.
 
+## Audit of phases 11 to 37 (2026-11-23, evening)
+
+PRs #63 and #64 were merged with CI red. Five suites of approved phases (1, 2, 5, 7, 10) failed in the browser, and the
+browser halves of phases 11 to 18 had never passed: the machine that wrote them could not start Chromium, and those
+suites were not in CI. This pass fixes every failure. Every suite now passes in Node and in headless Chromium
+(43 suites, 1,157 checks), and CI now runs all of them.
+
+Faults in the game, fixed:
+
+- **Two Margets.** Phase 15 put a second Marget Sayle on the ledge outside her door from the first frame. Her ledge body
+  now waits hidden until she is taken by the arm (`G.flags.la_marget_out`); then the bothy's body is hidden instead.
+- **The lantern shrank to a torch.** Phase 17 set the lantern's oil to the kit's torch fuel (four minutes, not eighteen)
+  and emptied Marget's two flasks; Phase 7's capacity read the torch. Phase 7 (P59, approved under O10) is restored:
+  the kit still records its torch's fuel in `la_kit.fuel`. See the question below.
+- **The carter never moved.** His collision test counted his own body, so every step was blocked. Fixed; and while he
+  follows he no longer blocks you (he pinned the player on the ledge), solid again when held or waiting.
+- **No company until a death.** Phase 12 made the company in a wrapper the creation screen never calls. It is now made
+  when a card is chosen, as Phase 17 does. FOLK's roll was also always empty (`roll()` called with nothing).
+- **The roll named the carter "The causeway carter"**, the card's name, not the prologue's "The carter". Fixed.
+- **Untrained did nothing once Phase 23 was wired.** The commitment cost absorbed the card's extra third. It now scales.
+- **Soft feet counted twice** (Phase 10's -0.8 and Phase 18's -0.34). Phase 18 no longer adds it; Phase 10's P82 stands.
+- **"heard N m" sat under the game's messages** (top left). Moved to the top right of the view.
+- **Tab could fail to close the pack** when two presses shared a millisecond (Phase 10). It now compares the event.
+
+Tests that were wrong, fixed: Phase 15 walked into the bothy wall; Phases 11, 14 and 16 left a dialogue open or opened
+the book before the two-second look; Phase 12 checked the wake was shown when it must be hidden; Phase 13 teleported
+into the bothy with a held carter; Phase 17 compared total armour noise to 1; Phase 7's switch-off frame now holds
+the later HUD layers (19, 20, 29) off by their own switches. `LEDGE1.resetLook()` is new, for tests.
+
+Not built, though the Flash list reads as if it were: phases 21, 22, 25, 26, 28, 30, 31 and 33 to 37 are tables and
+pure rules with tests of themselves only. Nothing in the game calls them. Their "Browser:" lines are what a browser
+test should check one day, not what was checked.
+
+Decision I need:
+
+- **Q-A1 [PROPOSED]: torch or lantern.** The kits carry a torch with its own fuel; the game's light is Phase 7's lantern
+  (approved, "the one light" in the design). Does a kit's torch replace the lantern, sit beside it, or stay a
+  pack item? Until you rule, the lantern stays as approved.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |

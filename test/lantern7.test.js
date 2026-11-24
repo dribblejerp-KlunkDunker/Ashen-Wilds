@@ -142,9 +142,13 @@ check(/js\/weather6\.js\?v=\d+"><\/script>\s*<script src="js\/lantern7\.js\?v=\d
       __at(LEDGE1.LEDGE, 89.5, 40.5, Math.PI, NIGHT, 540, true, false); for (let i = 0; i < 8; i++) { G.tod = NIGHT; advanceTime(250); }
       const eng = LANTERN7.ORIG.lanternLight(); const Lo = LIGHTING.lanternLight();
       out.off = { oil: G.flags.la_oil, same: !!Lo && !!eng && Lo.cr === eng.cr && Lo.r === eng.r, notOurs: Lo !== LANTERN7.lampLight() };
+      // Later phases (19 hearing, 20 lungs, 29 chill) draw HUD layers of their own over this one. They are switched off
+      // for both frames, by their own Options switches, so the bare frame below rebuilds the same HUD stack.
+      const later = { h: GFX.laHearGauge, l: GFX.laLungs, c: GFX.laChill }; GFX.laHearGauge = false; GFX.laLungs = false; GFX.laChill = false;
       const fOff = __frame(); out.off.hash = __fnv(fOff.p.data) + ':' + __fnv(fOff.h.data);
       const lg = LIGHTING.lanternLight, dh = drawHUD; LIGHTING.lanternLight = LANTERN7.ORIG.lanternLight; drawHUD = typeof PANEL10 !== 'undefined' ? PANEL10.wrapHUD(LANTERN7.ORIG.drawHUD) : LANTERN7.ORIG.drawHUD;   // a later phase's layer (Phase 10's words) stays on
       const fBare = __frame(); out.off.bare = __fnv(fBare.p.data) + ':' + __fnv(fBare.h.data); LIGHTING.lanternLight = lg; drawHUD = dh;
+      GFX.laHearGauge = later.h; GFX.laLungs = later.l; GFX.laChill = later.c;
       __at(LEDGE1.BOTHY, 1.6, 2.4, -Math.PI / 2, NIGHT, 540, false, false); advanceTime(50); const e2 = G.map.entities.find((x) => x.use === 'la_oil'); out.off.flasksHidden = e2 && e2.hidden;
       GFX.laLamp = true;
       out.err = LANTERN7.state().err || WEATHER6.state().err || BLOOM4.gl().tickErr || null;

@@ -100,7 +100,7 @@ const CARTER13 = (() => {
   }
 
   // ---------------------------------------------------------------- the wire (browser only)
-  let wired = false, BODY = null, S = null, namedOther = false;
+  let wired = false, BODY = null, S = null, namedOther = null;   // null: naming() runs once at the start (audit fix: false skipped it, so the roll kept the card name)
   const here = () => typeof G !== 'undefined' && G && G.mapId === LEDGE1.LEDGE;
   function state() {
     if (!S && typeof G !== 'undefined' && G && G.flags) S = load(G.flags.la_carter, { x: 79.9, y: 46.2 });
@@ -115,9 +115,11 @@ const CARTER13 = (() => {
   function naming() {
     if (typeof G === 'undefined' || !G || !G.flags || typeof PANEL10 === 'undefined') return;
     const other = G.flags.la_bg === 'carter';
+    const name = other ? TX.other : TX.name;
+    // the roll's name for him follows the NPC's, whenever the company is (re)made (audit fix)
+    try { const c = G.flags.la_company, q = c && c.people && c.people.find((x) => x.id === 'carter'); if (q && q.alive && q.name !== name) q.name = name; } catch (e) { /* the roll keeps its name */ }
     if (other === namedOther) return;
     namedOther = other;
-    const name = other ? TX.other : TX.name;
     try { if (typeof NPCS !== 'undefined' && NPCS.la_carter) NPCS.la_carter.name = name; } catch (e) { /* the NPC keeps its name */ }
     try { PANEL10.TX.carter = other ? TX.otherCarter : TX.carterFolk; } catch (e) { /* the panel keeps its line */ }
     const b = body(); if (b) b.name = name;
@@ -130,6 +132,9 @@ const CARTER13 = (() => {
     const s = state(), b = body(); if (!b) return;
     b.x = s.x; b.y = s.y; b.hidden = G.mapId !== LEDGE1.LEDGE;
     b.dead = s.mode === 'dead';
+    // Audit fix: following at 1.2 cells he stood in your road and pinned you on the ledge; he does not block you while
+    // he follows. Held or waiting, he is solid again and can be bumped into.
+    b.solid = s.mode !== 'follow';
     b.label = s.mode === 'down' ? TX.down : s.mode === 'dead' ? TX.dead : (b.name || TX.name);
   }
   function tickWire(dt) {
@@ -147,7 +152,7 @@ const CARTER13 = (() => {
     const c = Engine.cam;
     const env = {
       px: c.x, py: c.y, speed: SPEED,
-      blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y); } catch (e) { return false; } },
+      blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y, body()); } catch (e) { return false; } },   // audit fix: pass his own body, or it blocks every step he takes
       cliff: (x, y) => { try { const g = G.map.groundAt ? G.map.groundAt(x, y) : 0, h = G.map.groundAt ? G.map.groundAt(S.x, S.y) : 0; return h - g > 0.8; } catch (e) { return false; } },
     };
     // the bloom's claw reaches him if he is beside it; he does not strike back

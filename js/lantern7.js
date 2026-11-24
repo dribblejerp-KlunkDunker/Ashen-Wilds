@@ -53,8 +53,9 @@ const LANTERN7 = (() => {
 
   // ---------------------------------------------------------------- the rules, pure (Node runs these)
   const burnRate = (k) => L.burn.ashfall + (L.burn.sleet - L.burn.ashfall) * clamp(k || 0, 0, 1);   // k: how far into a spell of sleet, out of doors
-  // a kit's torch holds less than a lantern's night, so the words and the flame read against the fuel the kit set
-  const cap = (full) => +full > 0 ? +full : ((typeof G !== 'undefined' && G && G.flags && G.flags.la_kit && G.flags.la_kit.fuel) || L.fillS);
+  // The lantern's own filling, unless a caller names another. (Audit fix: Phase 17 had this read the kit's torch fuel,
+  // which shrank the approved lantern (P59, O10) to a four-minute light. Torch or lantern per kit is for the owner.)
+  const cap = (full) => +full > 0 ? +full : L.fillS;
   // how big the flame is, 0..1: full above the last fifth, then down to a third, and out at nothing
   function flame(oil, full) { if (oil <= 0) return 0; const f = oil / (cap(full) * L.lowAt); return f >= 1 ? 1 : 0.32 + 0.68 * f; }
   const radius = (oil, full) => lerp(L.r[0], L.r[1], flame(oil, full));

@@ -268,16 +268,14 @@ const PANEL10 = (() => {
   }
   function renderPack() {
     ST.packT = typeof performance !== 'undefined' ? performance.now() : 0;
+    ST.packEv = (typeof window !== 'undefined' && window.event) || null;   // the key press that opened it, if any (audit fix)
     const p = G.player, name = (id) => (typeof ITEMS !== 'undefined' && ITEMS[id] && ITEMS[id].name) || (typeof WEAPONS !== 'undefined' && WEAPONS[id] && WEAPONS[id].name) || id;
     const hands = (p.weapons || []).filter(Boolean).map((id) => esc(name(id)));
     const worn = Object.values(p.armor || {}).filter(Boolean).map((id) => esc(name(id)));
     const wornIds = new Set(Object.values(p.armor || {}));
     const bag = (p.inv || []).filter((s) => s && s.n > (wornIds.has(s.id) ? 1 : 0)).map((s) => esc(name(s.id)) + (s.n - (wornIds.has(s.id) ? 1 : 0) > 1 ? ' x' + (s.n - (wornIds.has(s.id) ? 1 : 0)) : ''));
-    let lamp = TX.lampNone; try {
-      const hasTorch = (p.inv || []).some((s) => s && s.id === 'torch');
-      const w = LANTERN7.words(LANTERN7.oil());
-      lamp = hasTorch ? TX.torch(w) : TX.lamp(w);
-    } catch (e) { /* no light */ }
+    // the oil is the lantern's (Phase 7); a kit's torch has no fuel of its own yet, so the line names the lantern (audit fix)
+    let lamp = TX.lampNone; try { lamp = TX.lamp(LANTERN7.words(LANTERN7.oil())); } catch (e) { /* no light */ }
     openModal(`<h2>${TX.packTitle}</h2>${closeBtn}
       <p><b>${TX.packHands}:</b> ${hands.join(', ') || '-'}</p><p><b>${TX.packWorn}:</b> ${worn.join(', ') || '-'}</p>
       <p><b>${TX.packBag}:</b> ${bag.join(', ') || '-'}</p><p>${esc(lamp)}</p><p>${esc(TX.salt(p.gold | 0))}</p>`, 'inv');
@@ -320,7 +318,7 @@ const PANEL10 = (() => {
   function renderFolk() {
     const T = (L1 && L1.TOPICS) || {}, line = (n) => (T[n] && T[n].low) || '';
     const C = typeof COMPANY12 !== 'undefined' ? COMPANY12 : null;
-    const roll = C && C.roll ? C.roll() : [];
+    const roll = C && C.roll ? C.roll(C.state()) : [];   // audit fix: roll() needs the company; called bare it was always empty
     const dead = roll.length && C.TX ? `<h3>${esc(C.TX.deadTitle)}</h3>${roll.map((d) => `<p>${esc(d.named ? C.TX.deadNamed(d.name) : C.TX.deadUnnamed(d.name))}</p>`).join('')}` : '';
     const A = typeof ACCOUNT14 !== 'undefined' && ACCOUNT14.state ? ACCOUNT14.state() : null;
     const fw = A && A.forsworn ? Object.keys(A.forsworn).filter((n) => A.forsworn[n]) : [];
@@ -374,7 +372,9 @@ const PANEL10 = (() => {
     window.addEventListener('keydown', (ev) => {
       try {
         if (ev.repeat || !here() || G.state !== 'panel' || G.openPanel !== 'inv' || (ev.key || '').toLowerCase() !== 'tab') return;
-        if (!(ST.packT < ev.timeStamp)) return;   // the engine's own listener runs first: this press is the one that opened it
+        // the engine's own listener runs first: the press that opened the pack must not close it. Compare the event itself;
+        // the time is only a fallback, since two presses inside one millisecond can share a stamp (audit fix)
+        if (ST.packEv ? ev === ST.packEv : !(ST.packT < ev.timeStamp)) return;
         ev.preventDefault(); ev.stopImmediatePropagation(); closeModal(); G.state = 'play';
       } catch (e) { /* a key press must never throw */ }
     }, true);

@@ -84,15 +84,19 @@ check(/quest = function/.test(src) && /Follow me\./.test(src) && /Hold here\./.t
       out.body = !!e && e.id === 'la_carter' && !e.wander;
       advanceTime(6000);
       out.follow = { d: Math.hypot(e.x - c.x, e.y - c.y), mode: CARTER13.state().mode, map: G.mapId };
+      // following but never told to come through, he waits outside the door when you go in (audit: tested before the
+      // hold order, since a held carter rightly stays where he was told)
+      loadMap(LEDGE1.BOTHY); advanceTime(200);
+      out.door = { map: G.mapId, mode: CARTER13.state().mode, x: CARTER13.state().x, y: CARTER13.state().y };
+      loadMap(LEDGE1.LEDGE); CARTER13.order(CARTER13.state(), 'follow'); CARTER13.state().toldFollow = false; advanceTime(4000);
       talk(e);
       out.choices = (DLG.choices || []).map((q) => q.t);
       DLG.choices[1].f();                    // Hold here
       out.hold = CARTER13.state().mode;
+      closeModal(); G.state = 'play';        // leave the talk, as a player does, so the world runs
       const before = { x: e.x, y: e.y };
       G.keys = { w: true }; advanceTime(1500); G.keys = {};
       out.held = Math.hypot(e.x - before.x, e.y - before.y);
-      loadMap(LEDGE1.BOTHY); advanceTime(200);
-      out.door = { map: G.mapId, mode: CARTER13.state().mode, x: CARTER13.state().x, y: CARTER13.state().y };
       CARTER13.hurt(CARTER13.state(), 200);
       for (let i = 0; i < 1300; i++) update(1 / 60);
       out.dead = { mode: CARTER13.state().mode, roll: COMPANY12.roll(G.flags.la_company).map((d) => d.name) };

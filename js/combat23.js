@@ -93,8 +93,11 @@ const COMBAT23 = (() => {
         if (!(+G.attack.t > beforeT)) return r;
         // The inner path may be the engine (one fatigue) or sync19's co-op swing (none). Charge the rest
         // of the committed cost from what it actually spent, not from an assumed one.
+        // Audit fix: the card's Untrained flaw (CARDS18, x1.333) scales the committed cost. Charging a flat st.cost here
+        // absorbed the extra that cards18 had already taken, so the flaw did nothing once this phase was wired.
+        let k = 1; try { if (typeof CARDS18 !== 'undefined' && G.flags) k = Math.max(1, +CARDS18.effects(G.flags.la_bg).untrained || 1); } catch (e) { k = 1; }
         const spent = Math.max(0, beforeFat - p.fat);
-        p.fat = Math.max(0, p.fat - Math.max(0, st.cost - spent));
+        p.fat = Math.max(0, p.fat - Math.max(0, st.cost * k - spent));
         if (G.flags) G.flags.la_combat = st;
         G.attack.t = Math.max(G.attack.t, total(kind)); G.attack.dur = G.attack.t;
         return r;

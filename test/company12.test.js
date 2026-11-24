@@ -82,12 +82,13 @@ check(/la_looked/.test(ledge), 'Phase 11 still owns the opening look');
       return out;
     });
     check(r.card.state === 'dead' && /load is taken up/i.test(r.card.title) && /deserter is dead/i.test(r.card.text), 'a death shows the company card, not the wake');
-    check(r.card.wake === false && r.card.button, 'the wake is taken away and the load is offered');
+    check(r.card.wake === true && r.card.button,   // hidden: the wake is gone (the check was inverted; audit fix)
+      'the wake is taken away and the load is offered');
     check(r.company.dead.length === 1 && r.company.people.find((p) => p.id === 'you').alive === false, 'the dead traveller is written into the company');
     check(r.after.name === 'The causeway carter' && r.after.hp === 120 && r.after.hpMax === 120, 'the carter takes up the load at 120 health');
     check(r.after.map === 'la_bothy' && r.after.state === 'play' && !r.after.dead, 'and stands at the bothy hearth, playing');
     check(/The dead/.test(r.folk) && /The deserter, Not named\.|The deserter\. Not named\./.test(r.folk), 'FOLK has the roll and names the dead');
-    check(r.end.state === 'dead' && /company ends here/i.test(r.end.title) && r.end.wake === false && /title/i.test(r.end.button), 'a second death ends the company, with no wake and no successor');
+    check(r.end.state === 'dead' && /company ends here/i.test(r.end.title) && r.end.wake === true && /title/i.test(r.end.button), 'a second death ends the company, with no wake and no successor');
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
   } catch (e) { fails++; console.log('FAIL the browser half stopped: ' + String(e.message).split('\n')[0]); }
   await s.close();

@@ -54,13 +54,15 @@ check(/\[PROPOSED/.test(src), 'the figures the cards do not give are marked prop
       out.held = { xp: G.player.xp, level: G.player.level, perks: G.player.perkPoints };
       out.effects = G.flags.la_effects;
       PANEL10.choose('healer'); out.healer = { fog: G.map.fogDist, effects: G.flags.la_effects };
-      PANEL10.choose('cleaner'); G.player.fat = 50; G.state = 'play'; G.keys = {}; attack('test'); out.cleaner = { fat: G.player.fat, effects: G.flags.la_effects };
+      PANEL10.choose('cleaner'); G.player.fat = 50; G.state = 'play'; G.keys = {}; attack('test'); out.cleaner = { fat: G.player.fat, effects: G.flags.la_effects, cost: (G.flags.la_combat || {}).cost || 1 };
+      PANEL10.choose('deserter'); G.flags.la_combat = null; G.attack.t = 0; G.player.fat = 50; G.state = 'play'; G.keys = {}; attack('test'); out.trained = { fat: G.player.fat, cost: (G.flags.la_combat || {}).cost || 1 };
       return out;
     });
     check(r.held.xp === 0 && r.held.level === 1 && r.held.perks === 0, 'XP, level and perk points stay at zero on this game\'s maps');
     check(r.effects && typeof r.effects.sight === 'number', 'the chosen card\'s effects are recorded');
     check(r.healer.fog === 72 && r.healer.effects.sight === 0.6, 'Night-blind narrows the living map\'s fog to 60 percent');
-    check(Math.abs((50 - r.cleaner.fat) - 1.333) < 0.001 && r.cleaner.effects.untrained > 1, 'Untrained spends a third more fatigue on a swing');
+    // Phase 23 prices a blow by its commitment; the card's Untrained multiplies that price (audit fix)
+    check(Math.abs((50 - r.cleaner.fat) - r.cleaner.cost * 1.333) < 0.001 && Math.abs((50 - r.trained.fat) - r.trained.cost) < 0.001 && r.cleaner.effects.untrained > 1, 'Untrained spends a third more fatigue on a swing: ' + (50 - r.cleaner.fat).toFixed(3) + ' against ' + (50 - r.trained.fat).toFixed(3));
     check(s.errors.length === 0, 'no page errors: ' + (s.errors[0] || 'none'));
   } catch (e) { fails++; console.log('FAIL the browser half stopped: ' + String(e.message).split('\n')[0]); }
   await s.close();
