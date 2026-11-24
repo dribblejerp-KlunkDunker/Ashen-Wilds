@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You carry a lantern that burns oil (`js/lantern7.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You start with a torch; a lantern is found or bought (`js/lantern7.js`, `js/torch38.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`).
 
 ## The owner's rules
 
@@ -51,6 +51,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     node test/dread9.test.js --no-browser
     node test/panel10.test.js --no-browser
     node test/hearth27.test.js --no-browser
+    node test/torch38.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
@@ -68,6 +69,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node test/dread9.test.js
     NODE_PATH=$(npm root -g) node test/panel10.test.js
     NODE_PATH=$(npm root -g) node test/hearth27.test.js
+    NODE_PATH=$(npm root -g) node test/torch38.test.js
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -75,7 +77,8 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You ca
     NODE_PATH=$(npm root -g) node tools/bloomgifs.js docs/screenshots     # and played, as clips (needs ffmpeg)
     NODE_PATH=$(npm root -g) node tools/doorshots.js docs/screenshots     # the door: stills and played clips
     NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
-    NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip (Phase 38 held off)
+    NODE_PATH=$(npm root -g) node tools/torchshots.js docs/screenshots    # the torch, the found lantern: stills and a clip
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
@@ -143,6 +146,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/actthree36.js     Phase 36: Act III, the eleven days, Marget's limit and the wall
     js/touchlink36.js    Support, not a phase: the phone link; ?touch/?mobile or a coarse pointer starts touch controls
     js/endings37.js      Phase 37: the five endings and the player's last line
+    js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -192,6 +196,8 @@ Useful facts, all checked in this repository:
   bloom through `BLOOM4.setSenses`.
 - The player's light is `LIGHTING.lanternLight()` (js/lighting.js), read once a frame; `js/lantern7.js` replaces it on this
   game's maps. Lit or not is the engine's `UPG.lantern`; the oil is `G.flags.la_oil` (seconds), saved with the game.
+  What is in the left hand is a source (`LANTERN7.setSource`): Phase 38's torch, or Phase 7's lantern when none is set.
+  Read the light in hand through `LANTERN7.frac()`, `source()`, `reach()` and `flameNow()`, never `la_oil` directly.
   Point lights in the 3D renderer are multiplied, not added (`js/light21.js`): warm light on blue frost turns it
   white, so a light that must read warm needs little blue and a strong red.
 - The 3D renderer shades your own body (pass `body`) at a point 0.3 cells in front of your eye. Any light there burns the
@@ -254,6 +260,9 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O7:** the walking bloom hunts on the highland edge. It is a body, not a beast.
 - **O8:** the sun's day is approved: coal, coin and clear days, fixed by the day's number.
 - **O9:** beasts are modelled, the walking bloom too; living people stay painted.
+- **O14:** every traveller starts with a torch; a lantern is found or bought (Phase 38).
+- **O15:** the world's scale is the hybrid: each region one dense walkable zone of about a square mile, the Chart between
+  regions, something to find every 30 to 60 seconds of walking, and not on the small side.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

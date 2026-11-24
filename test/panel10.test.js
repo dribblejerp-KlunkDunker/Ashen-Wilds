@@ -76,6 +76,7 @@ check(!/Math\.random/.test(src), 'nothing in it uses a random number');
     const r = await s.page.evaluate(() => {
       const out = { err: null }; const p = G.player;
       try {
+        GFX.laTorch = false;   // Phase 10 as built speaks of the lantern; Phase 38's torch is tested in test/torch38.test.js
         advanceTime(2600); out.looked = !!G.flags.la_looked;   // Phase 11: the errand is given once the Slagcrown has been looked at
         out.bg = G.flags.la_bg; out.name = p.name; out.hp = [p.hp, p.hpMax, PANEL10.state().baseHp]; out.an = [armorNoise(), PANEL10.ORIG.armorNoise()];
         out.btns = HUD_BTNS.map((b) => b.t);

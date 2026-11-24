@@ -947,11 +947,52 @@ Not built, though the Flash list reads as if it were: phases 21, 22, 25, 26, 28,
 pure rules with tests of themselves only. Nothing in the game calls them. Their "Browser:" lines are what a browser
 test should check one day, not what was checked.
 
-Decision I need:
+Ruled:
 
-- **Q-A1 [PROPOSED]: torch or lantern.** The kits carry a torch with its own fuel; the game's light is Phase 7's lantern
-  (approved, "the one light" in the design). Does a kit's torch replace the lantern, sit beside it, or stay a
-  pack item? Until you rule, the lantern stays as approved.
+- **Q-A1: torch or lantern.** Ruled 2026-11-23: "start with torches; the lanterns should be findable or buyable." Built
+  as Phase 38, below (O14 in `CANON.md`).
+- **The world's scale** (O15 in `CANON.md`), ruled 2026-11-23: the hybrid. Each region is one dense walkable zone of
+  about a square mile; the Chart carries you between regions. Not on the small side: more places may be added. Next:
+  a scale proposal (zone sizes, which places go in each, the squeeze from atlas miles) for a ruling.
+
+## Phase 38 - start with a torch
+
+`js/torch38.js` · `test/torch38.test.js` · `tools/torchshots.js` (stills 140 to 147) · switch: Options > "Start with a torch"
+
+The owner's ruling Q-A1. Every traveller begins with the kit's Pitch Torch in the left hand, at the bible's fuel (240 s;
+the gutter-kin 90, the hedge-priest 360). It burns by Phase 7's rules: U lights and douses it, the weather spends it, the
+last fifth shrinks, the last half minute gutters, and spent is spent (lamp oil is not for a torch). The horn lantern is
+given or bought: Marget Sayle gives you hers the first time you speak to her, and it goes into your hand, with the torch
+in your pack. Using either from the pack takes it into the hand; using the one in hand lights or douses it. Her
+flasks fill the lantern, even while the torch burns, and refuse you when you have no lantern. Old saves: one from before
+Phase 38 carried a lantern and keeps it (with the card's torch in the pack); one written by the build merged in #63/#64
+had the torch's fuel in the lantern's oil and no flasks, so its fuel moves to the torch and the two flasks come back
+(this answers the review comment on #65).
+
+How: Phase 7 now draws "the light in the hand" from a source (`LANTERN7.setSource`); with none set it is Phase 7 exactly.
+Phase 38 sets the torch as that source. The HUD's third bar, the PACK line and dread read the light in hand
+(`LANTERN7.frac`, `source`, `reach`, `flameNow`). Off, the frame is Phase 7's, by hash (tested). Phase 7's and Phase 10's
+own suites run with this switch off, as built; `tools/lanternshots.js` does too.
+
+Lore conflict, resolved by the ruling: the bible's item proposal 3 put a horn lantern in the Hedge-priest's kit. Every kit
+now starts with the torch.
+
+Ruled 2026-11-23 ("she will give it to you. I approve of the rest"):
+
+- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line, [PROPOSED]: *"Take the
+  lantern. A torch shows you to everything on that shelf."* (the bestiary: a shuttered lantern draws fewer than an
+  open torch).
+- **P-T2** Its price, for when a trader exists: 10 measures (a targe is 6; lanterns are only mended, never made).
+- **P-T3** The torch's light: a pool 2.2 to 5.6 cells across (the lantern 1.7 to 4.2), colour (255, 140, 30), and in a
+  room 0.15 of its strength (the lantern 0.22), so one fire still lights a room.
+- **P-T4** Its words: fresh, burning well, half burned, burning down, nearly spent, spent; and its lines (light, pinch
+  out, burning down to the stave, gutters and goes out, no lantern to fill).
+- **P-T5** Taking the lantern puts it straight into the hand and the torch into the pack, pinched out if it was lit.
+
+P-T2 to P-T5 are approved. The flame in the hand now fades with its fuel (the review on #66).
+
+Not built: buying (no trader yet; `TORCH38.gain('lantern')` is the hook one calls), bog-pine splints that add fuel, a torch
+burning spores, moths drawn to an open flame (bestiary), and a torch dropped or thrown.
 
 ## Old phase table (kept for history)
 

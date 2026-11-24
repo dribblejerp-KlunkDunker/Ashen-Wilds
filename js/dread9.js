@@ -169,7 +169,7 @@ void main() {
       gl.activeTexture(gl.TEXTURE13); gl.bindTexture(gl.TEXTURE_2D, s.depthTex); gl.uniform1i(u.uDep, 13);
       gl.uniform4f(u.uDr, lk.drain, lk.close, lk.crush, lk.far);
       gl.uniform4f(u.uDr2, lk.inner, breath, lk.farFrom, s.w / s.h);
-      const e = ST.env || {}, reach = (() => { try { return typeof LANTERN7 !== 'undefined' && LANTERN7.radius ? LANTERN7.radius(LANTERN7.oil()) : 4.2; } catch (x) { return 4.2; } })();
+      const e = ST.env || {}, reach = (() => { try { return typeof LANTERN7 !== 'undefined' && LANTERN7.reach ? LANTERN7.reach() : LANTERN7.radius ? LANTERN7.radius(LANTERN7.oil()) : 4.2; } catch (x) { return 4.2; } })();
       gl.uniform4f(u.uDr3, clamp(e.lamp || 0, 0, 1), reach, e.room ? 0.6 : 0, 0);
       gl.bindVertexArray(GLS.vao); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.bindVertexArray(null);
       gl.activeTexture(gl.TEXTURE12); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE13); gl.bindTexture(gl.TEXTURE_2D, null);
@@ -189,7 +189,7 @@ void main() {
   function envNow() {
     const m = G.map, c = Engine.cam, out = m.outdoor !== false && !m.ceil, p = G.player || {};
     const e = { dark: out ? 1 - dayness(G.tod) : 0, lamp: 0, room: !out, barred: false, sleet: 0, hurt: 0, bloom: null, partner: Infinity, clawed: 0 };
-    try { if (typeof LANTERN7 !== 'undefined' && LANTERN7.lit && LANTERN7.lit()) e.lamp = LANTERN7.flame(LANTERN7.oil()); else if (typeof UPG !== 'undefined' && UPG.lantern) e.lamp = 1; } catch (x) { /* no lantern */ }
+    try { if (typeof LANTERN7 !== 'undefined' && LANTERN7.lit && LANTERN7.lit()) e.lamp = LANTERN7.flameNow ? LANTERN7.flameNow() : LANTERN7.flame(LANTERN7.oil()); else if (typeof UPG !== 'undefined' && UPG.lantern) e.lamp = 1; } catch (x) { /* no lantern */ }
     try { if (typeof DOOR5 !== 'undefined') e.barred = !!DOOR5.barred(); } catch (x) { /* no door */ }
     try { if (out && typeof WEATHER6 !== 'undefined' && GFX.laWx !== false) e.sleet = WEATHER6.sleetAt(Math.max(0, G.day | 0), G.tod); } catch (x) { /* no weather */ }
     if (p.hpMax > 0) e.hurt = clamp(1 - p.hp / p.hpMax, 0, 1);

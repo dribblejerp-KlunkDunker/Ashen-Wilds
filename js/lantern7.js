@@ -187,7 +187,13 @@ const LANTERN7 = (() => {
   const ST = { lit: false, said: [], err: null, drawn: 0, deco: null, prev: false, pics: null };
   const dayness = (tod) => clamp((Math.cos(((tod == null ? 0.5 : tod) - 0.5) * Math.PI * 2) + 0.3) / 1.3, 0, 1);   // the engine's own curve (js/lighting.js)
   function flags() { if (!G.flags) G.flags = {}; if (G.flags.la_oil == null) G.flags.la_oil = L.startS; if (G.flags.la_flasks == null) G.flags.la_flasks = L.flasks; return G.flags; }
-  const oilNow = () => flags().la_oil;
+  // ---- the light in the hand. By default this phase's lantern. A later phase may hand it something else (Phase 38's
+  // torch) by LANTERN7.setSource(fn): fn() returns { id, capS, r, col, get(), set(v), TX, words(oil), pictures() } or null
+  // for the lantern. Unset, everything below is Phase 7 exactly.
+  const SRC = { fn: null };
+  const LANTERN = { id: 'lantern', capS: L.fillS, r: L.r, col: L.col, get: () => flags().la_oil, set: (v) => { flags().la_oil = v; }, TX, words: (o) => words(o), pictures: () => pictures() };
+  function src() { try { const s = SRC.fn && SRC.fn(); if (s) return s; } catch (e) { /* the lantern */ } return LANTERN; }
+  const oilNow = () => src().get();
   const lit = () => !!(typeof UPG !== 'undefined' && UPG.lantern) && oilNow() > 0;
   function say(t, cls, ms) { ST.said.push(t); if (ST.said.length > 12) ST.said.shift(); if (typeof msg === 'function') msg(t, cls || '', ms || 3500); }
   function sleetK() {
@@ -202,9 +208,9 @@ const LANTERN7 = (() => {
     if (!ST.bodyPass) ST.bodyPass = bodyPass();
     const c = Engine.cam, oil = oilNow(), out = G.map && G.map.outdoor !== false && !G.map.ceil;
     const k = out ? 0.12 + 0.88 * darkNow() : 1; if (k < 0.15) return null;   // by day out of doors it shows as nothing much
-    const t = typeof ANIM !== 'undefined' ? ANIM.T : 0, f = flame(oil) * flicker(oil, t) * k * (out ? 1 : L.inK), lx = Math.cos(c.dir - Math.PI / 2), ly = Math.sin(c.dir - Math.PI / 2);
+    const S = src(), t = typeof ANIM !== 'undefined' ? ANIM.T : 0, f = flame(oil, S.capS) * flicker(oil, t) * k * (out ? 1 : (S.inK != null ? S.inK : L.inK)), lx = Math.cos(c.dir - Math.PI / 2), ly = Math.sin(c.dir - Math.PI / 2);
     light.x = c.x + Math.cos(c.dir) * L.hand.fwd + lx * L.hand.left; light.y = c.y + Math.sin(c.dir) * L.hand.fwd + ly * L.hand.left;
-    light.r = radius(oil); light.cr = L.col[0] * f; light.cg = L.col[1] * f; light.cb = L.col[2] * f; delete light.vis;
+    light.r = lerp(S.r[0], S.r[1], flame(oil, S.capS)); light.cr = S.col[0] * f; light.cg = S.col[1] * f; light.cb = S.col[2] * f; delete light.vis;
     return light;
   }
   // ---- the picture in the left hand, drawn after the HUD as the sword is
@@ -218,7 +224,7 @@ const LANTERN7 = (() => {
   }
   function drawHand() {
     const ctx = Engine.ctx; if (!ctx || G.state !== 'play' || !G.player || G.dead) return;
-    const P = pictures(), oil = oilNow(), burning = lit(), dk = darkNow(), t = typeof ANIM !== 'undefined' ? ANIM.T : 0;
+    const S = src(), P = S.pictures(), oil = oilNow(), burning = lit(), dk = darkNow(), t = typeof ANIM !== 'undefined' ? ANIM.T : 0;
     // the light on the arm: the scene's (a room has its fire; out of doors, the hour), as one of a few steps
     const amb = G.map.outdoor !== false && !G.map.ceil ? 1 - 0.74 * dk : 0.52, step = STEPS.reduce((b, k, i) => (Math.abs(k - amb) < Math.abs(STEPS[b] - amb) ? i : b), 0);
     const sc = 0.5, iw = W_ * sc, ih = H_ * sc;
@@ -226,29 +232,34 @@ const LANTERN7 = (() => {
     const x = -6, y = Math.round(VIEW_H + 20 + bob - ih);
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, VW, VIEW_H); ctx.clip();
     ctx.drawImage(P.dark[step], x, y, iw, ih);
-    if (burning) { const a = clamp(flame(oil) * flicker(oil, t) * (1 - 0.5 * (1 - dk)), 0, 1); ctx.globalAlpha = a; ctx.drawImage(P.glow[step], x, y, iw, ih); }
+    if (burning) {
+      const a = clamp(flame(oil, S.capS) * flicker(oil, t) * (1 - 0.5 * (1 - dk)), 0, 1), glow = P.frames ? P.frames[Math.floor(t * 9) % P.frames.length] : P.glow;   // a torch's flame moves: frames by the anim clock
+      // a painted flame keeps its body by day, and fades with its fuel (the review on #66)
+      ctx.globalAlpha = P.frames ? Math.max(a, 0.85 * flame(oil, S.capS) * flicker(oil, t)) : a; ctx.drawImage(glow[step], x, y, iw, ih);
+    }
     ctx.restore(); ST.drawn++;
   }
   // ---- the key: U lights it and douses it (the engine's own binding), with this game's words
   function toggle() {
-    if (UPG.lantern) { UPG.lantern = false; ST.prev = false; say(TX.douse, 'info', 1800); return; }
-    if (oilNow() <= 0) { ST.prev = false; say(TX.dry, 'warn', 2500); return; }
-    UPG.lantern = true; ST.prev = true; say(TX.light(words(oilNow())), 'info', 2600);
+    const S = src();
+    if (UPG.lantern) { UPG.lantern = false; ST.prev = false; say(S.TX.douse, 'info', 1800); return; }
+    if (oilNow() <= 0) { ST.prev = false; say(S.TX.dry, 'warn', 2500); return; }
+    UPG.lantern = true; ST.prev = true; say(S.TX.light(S.words(oilNow())), 'info', 2600);
   }
   function tick(dt) {
     if (typeof G === 'undefined' || !G || G.state !== 'play') return;
     if (ST.deco && G.flags) syncOil();
     if (!on()) return;
-    const f = flags(), now = !!UPG.lantern;
-    if (now !== ST.prev) { ST.prev = now; if (now) { if (f.la_oil <= 0) { UPG.lantern = false; ST.prev = false; say(TX.dry, 'warn', 2500); } else say(TX.light(words(f.la_oil)), 'info', 2600); } }   // lit some other way (touch, a menu)
-    const st = { lit: !!UPG.lantern, oil: f.la_oil }, ev = burnStep(st, dt, burnRate(sleetK()));
-    f.la_oil = st.oil;
-    if (ev === 'out') { UPG.lantern = false; ST.prev = false; say(TX.out, 'warn', 4000); }
-    else if (ev === 'low') say(TX.low, 'warn', 3500);
+    flags(); const S = src(), now = !!UPG.lantern, fuel = S.get();
+    if (now !== ST.prev) { ST.prev = now; if (now) { if (fuel <= 0) { UPG.lantern = false; ST.prev = false; say(S.TX.dry, 'warn', 2500); } else say(S.TX.light(S.words(fuel)), 'info', 2600); } }   // lit some other way (touch, a menu)
+    const st = { lit: !!UPG.lantern, oil: S.get() }, ev = burnStep(st, dt, burnRate(sleetK()), S.capS);
+    S.set(st.oil);
+    if (ev === 'out') { UPG.lantern = false; ST.prev = false; say(S.TX.out, 'warn', 4000); }
+    else if (ev === 'low') say(S.TX.low, 'warn', 3500);
   }
   function syncOil() { const n = clamp(flags().la_flasks, 0, 2); ST.deco.sprite = 'la_oil' + n; ST.deco.label = TX.oil(n); ST.deco.hidden = !sw(); }   // off, the corner is bare as before
   function useOil() {
-    const f = flags(), st = { lit: !!UPG.lantern && f.la_oil > 0, oil: f.la_oil, flasks: f.la_flasks }, r = pour(st);
+    const f = flags(), st = { lit: !!UPG.lantern && src().id === 'lantern' && f.la_oil > 0, oil: f.la_oil, flasks: f.la_flasks }, r = pour(st);
     f.la_oil = st.oil; f.la_flasks = st.flasks;
     if (r === 'lit') say(TX.notLit, 'warn', 3500);
     else if (r === 'full') say(TX.full, '', 2500);
@@ -303,6 +314,12 @@ const LANTERN7 = (() => {
     return true;
   }
   const wired = typeof window !== 'undefined' ? wire() : false;
-  return { L, TX, cap, burnRate, flame, radius, flicker, words, burnStep, pour, paintLantern, paintOil, state: () => ST, oil: () => (typeof G !== 'undefined' && G ? oilNow() : null), lit, toggle, lampLight, ORIG, wired };
+  // what the light in the hand is now: for the HUD, the pack and dread (Phase 38 can make it a torch)
+  const now = () => (typeof G !== 'undefined' && G ? src() : LANTERN);
+  const frac = () => { const S = now(); return clamp(S.get() / S.capS, 0, 1); };
+  const reach = () => { const S = now(); return lerp(S.r[0], S.r[1], flame(S.get(), S.capS)); };
+  const flameNow = () => { const S = now(); return flame(S.get(), S.capS); };
+  const setSource = (fn) => { SRC.fn = typeof fn === 'function' ? fn : null; };
+  return { L, TX, cap, burnRate, flame, radius, flicker, words, burnStep, pour, paintLantern, paintOil, state: () => ST, oil: () => (typeof G !== 'undefined' && G ? oilNow() : null), lit, toggle, lampLight, ORIG, wired, setSource, source: now, frac, reach, flameNow, useOil: () => useOil() };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LANTERN7;
