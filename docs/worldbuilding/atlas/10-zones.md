@@ -1361,7 +1361,7 @@ counted in nights, as the quays count it. The units are [PROPOSED]; the days are
 The walk south stays the atlas's 28 days: 2 (Z1) + 7 (Z2) + 5 (Z3) + 4 (C1) + 5 (Z5) + 5 (C2).
 
 The Chart as built in Phase 26 (`js/chart26.js`) has five nodes and six shorter roads (the ledge to Wexhaven in 6
-days). If these legs are approved, its table is rebuilt from them in a later phase. This document changes no code.
+days). If these legs are approved, its table is rebuilt from them in a later phase. This document changes no code. (Rebuilt 2026-11-24 under O18, LP5: the walk south's six legs.)
 
 ## Places not in a zone yet
 

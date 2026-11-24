@@ -154,7 +154,7 @@ hook, listed here so the work is visible.
 | 21 weather21 | The six skies' sight, sound, spore, ground, torch | `bestiary.md`, "Weather and the bestiary" -> `weather.json`; the [PROPOSED] cells in `docs/game/weather.md` | `WEATHER6` (Phase 6) choosing the sky; already read by `lungs20` and `bloom24` |
 | 22 deadcalm22 | Cinder squall and the 90 s Dead Calm | the same sheet | A schedule entry in `WEATHER6`, and the HUD's warning |
 | 25 coop25 | Parity rules; no lore table | nothing: rules only | `net19` sending the loudest noise and the shared sighting |
-| 26 chart26 | Five nodes, six roads, made-up days | `chart.json` (the atlas's legs: the walk south is 315 miles, 28 days) | A MAP panel and `transfer` between zone maps |
+| 26 chart26 | The walk south's six legs, from the atlas (rebuilt under O18, LP5) | `chart.json` (the atlas's legs: the walk south is 315 miles, 28 days) | A MAP panel and `transfer` between zone maps |
 | 28 people28 | `make(name)`; names supplied by the caller | `people.json` (who, where, state) and `docs/game/people.md` | An encounter placed in a zone by the person's place's (x, y); the engine's dialogue panel |
 | 30 workings30 | The eight workings' rows | "Small magic" -> `workings.json` | A speak key, and the warmth cost through `chill29` |
 | 31 marks31 | The five marks' rows | "Workings and marks in play" -> `marks.json` | A mark on a `kit17` item, renewed at the `hearth27` fire |

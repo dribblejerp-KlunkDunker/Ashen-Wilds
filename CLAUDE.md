@@ -140,7 +140,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/combat23.js        Phase 23: commitment clock, stamina at the start, formation, clang, lodge, stagger
     js/bloom24.js         Phase 24: bloom wounds, clouds, burst and prologue invulnerability
     js/coop25.js          Phase 25: co-op parity, one noise, one sighting, one fuel pool
-    js/chart26.js         Phase 26: five nodes, six roads, shortest path and supplies
+    js/chart26.js         Phase 26: the walk south on the atlas's legs (315 miles, 28 days), shortest path and supplies
     js/hearth27.js        Phase 27: the bothy REST panel: rest, store, named dead and promises
     js/people28.js        Phase 28: morale, memory and meetings
     js/chill29.js         The chill (Phase 29): warmth, the cold stages and the lit hearth
