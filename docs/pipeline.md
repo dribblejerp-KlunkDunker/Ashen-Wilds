@@ -1,8 +1,8 @@
 # The lore pipeline
 
-Written 2026-11-24 (overnight run 4). **Status: a design for a ruling, with one slice built.** Nothing in the game
-loads any of this yet. Every rule, file name and shape below is **[PROPOSED]**; the list of decisions is at the end and
-in `ROADMAP.md` ("The lore pipeline, for a ruling").
+Written 2026-11-24 (overnight run 4). **Status: approved (O18, 2026-11-24), with one slice built.** Nothing in the game
+loads any of this yet. Every rule, file name and shape below was [PROPOSED] and is approved; the decisions and their
+rulings are at the end and in `ROADMAP.md` ("The lore pipeline, for a ruling").
 
 **The aim.** Adding a place, a person, a quest or an enemy should be mostly writing and ruling: the owner writes or
 approves the lore, a tool reads it into data, a test says what is missing or wrong, and the engine work is done once
@@ -22,7 +22,7 @@ already keeps and writes nothing into it.
 |---|---|---|
 | Places | `docs/worldbuilding/atlas/2-` to `9-*.md` (approved, O10) | One `##` or `###` heading an entry; an italic line under the name (*kind, scale, held by, danger, source*, between middle dots); bold section labels (**At a glance.**, **Layout.**, **Who is here.**, **Dangers.**, **Finds.**, **Hooks.**); numbered layout items with bold names |
 | Distances and positions | `atlas/1-scale-and-distances.md` | Stage tables ("Miles from the Watchhouse"), the scarp table, the walk south; `9-the-wilds-between.md`'s (x, y) miles from the Watchhouse door |
-| Zones | `atlas/10-zones.md` (run 2; **PROPOSED** under O15) | `## Zn. Title`; tables "Places on the grid" (#, Place, x, y, Kind) and "Ways" (polylines); `tools/zones.js` already reads them |
+| Zones | `atlas/10-zones.md` (run 2; approved as O16) | `## Zn. Title`; tables "Places on the grid" (#, Place, x, y, Kind) and "Ways" (polylines); `tools/zones.js` already reads them |
 | People | `docs/worldbuilding/people/README.md` (the 169-row roster) and the six `people/*.md` files | The roster's Name, Who, Where, State, Full entry; each entry's `###` name, italic line and **Who.**, **Looks.**, **Carries.**, **Find them.**, **Hooks.** |
 | Enemies | `docs/worldbuilding/bestiary.md` | The "At a glance" table (seventeen rows: tier, height, weight, senses, ground, status); one `##` an entry with fixed `###` parts (Measures, Senses, Habitat and lair, For the game) |
 | Items and texts | `docs/worldbuilding/items-and-texts.md` | One `###` an item; its price line |
@@ -217,7 +217,8 @@ Salt Trace's fen stages (Long Wade, the Ferry Stump, the White Trees at 18) are 
 
 ## 8. Decisions for the owner
 
-All **[PROPOSED]**; the same list is in `ROADMAP.md` as LP1 to LP11.
+All approved as O18 (2026-11-24); the same list is in `ROADMAP.md` as LP1 to LP11. Where one asked a question: LP3 keep
+the 133; LP6 leave the kind empty; LP7 add atlas entries for the ledge and the bothy; LP8 two places.
 
 - **LP1** The three layers: lore untouched, game sheets in `docs/game/`, generated data in `docs/data/` (checked in)
   and `js/data/` once loaded.

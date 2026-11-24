@@ -282,6 +282,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   384 x 384, great complexes at true size in their own maps, a zone's road days booked when you leave it.
 - **O17:** one map is at most 384 x 384 cells (512 at most); a region is connected maps joined at natural thresholds
   until the renderer streams chunks (`docs/engine-limits.md`).
+- **O18:** last night's other proposals are approved: Marget's lantern line, the prologue's end card, X for the Account,
+  E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

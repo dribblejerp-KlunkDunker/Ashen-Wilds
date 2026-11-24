@@ -981,7 +981,7 @@ now starts with the torch.
 
 Ruled 2026-11-23 ("she will give it to you. I approve of the rest"):
 
-- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line, [PROPOSED]: *"Take the
+- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line (approved, O18): *"Take the
   lantern. A torch shows you to everything on that shelf."* (the bestiary: a shuttered lantern draws fewer than an
   open torch).
 - **P-T2** Its price, for when a trader exists: 10 measures (a targe is 6; lanterns are only mended, never made).
@@ -1046,7 +1046,7 @@ The beats, and what each one does now:
 
 ### Added
 
-- **The prologue's end** [PROPOSED]: after the title, a card with the run's numbers, then Walk on. Its words: *The
+- **The prologue's end** (approved, O18): after the title, a card with the run's numbers, then Walk on. Its words: *The
   ledge is behind you.* / *Marget Sayle is on your arm. The Bell Road goes south from here.* / *On the road: 1 day.* /
   *The lantern: 9 of 18 minutes of oil, and 2 flasks in the pack.* (or *No lantern.*) / *The torch: 4 of 4 minutes of
   pitch.* (or *The torch is spent.*) / *Who lived: ...* / *Written in the roll: ...* (or *Nobody was written in the
@@ -1054,8 +1054,8 @@ The beats, and what each one does now:
   count from the day you began (`G.flags.la_day0`); who lived reads the company roll (Phase 12), the carter's own state
   (Phase 13) and whether Marget is out. Shown once (`G.flags.la_prologue_end`). Off, the title ends the prologue as
   Phase 15 left it; the card is a page, not a picture, so the frame is the same on and off (tested by hash).
-- **[PROPOSED] P39-1** The Account's key is X (A walks).
-- **[PROPOSED] P39-2** E while carrying acts on a door, the bar or another person; on her or on nothing it lets go.
+- **P39-1** (approved, O18) The Account's key is X (A walks).
+- **P39-2** (approved, O18) E while carrying acts on a door, the bar or another person; on her or on nothing it lets go.
 
 ### Not done, and what needs a person
 
@@ -1064,7 +1064,8 @@ The beats, and what each one does now:
   post at the ramp's foot, so it hears the carry and follows you up the ramp. In the test's run it never reached us; in
   the clip's run, where we stopped half way up for a still, it clawed once (90 to 58). When the title comes it is a
   step behind you, and the world is held while the title and the card are up. Whether that is the dread wanted, or
-  whether the bloom should give up at the top, is a ruling for the owner; nothing here changes it.
+  whether the bloom should give up at the top, was a ruling for the owner. Ruled 2026-11-24 (O18): it keeps the chase,
+  as built.
 - Feel, timing and sound: whether the two-second look reads as a look, whether the walk and the carry's pace feel
   right, whether the bar's sound and the knock land, how long the title should hold. Software rendering cannot show any
   of that.
@@ -1199,7 +1200,8 @@ a MAP panel) would then wire the pure phases 21, 22, 25, 26, 28, 30, 31 and 33 t
 heading, 3 from a region file, 25 named in bold inside an entry, 5 mentioned in passing. 42 get an atlas kind, 37 a
 position in miles, 82 a zone position, 43 named people and 60 named beasts. The test re-reads every source line.
 
-Everything below is **[PROPOSED]** and waits for the owner.
+Everything below was **[PROPOSED]** here and is **approved** (O18, 2026-11-24). Where an item asked a question, the
+ruling is: LP3 keep the 133; LP6 leave the kind empty; LP7 add atlas entries for the ledge and the bothy; LP8 two places.
 
 - **LP1** Three layers: lore untouched; game sheets in `docs/game/`; generated data in `docs/data/`, and in
   `js/data/*.js` (plain scripts, cached by `sw.js`) once the game loads a kind. The page never fetches JSON.
@@ -1223,7 +1225,10 @@ Everything below is **[PROPOSED]** and waits for the owner.
 
 **Not done, and not checked:** no other kind, no game sheet, no loader, no wiring. People and beasts are found by
 matching the roster's names and the bestiary's words, so a person named only by a role is missed. The Salt Trace's
-fen stages are prose and are not read. The places JSON uses the zone plan, which is itself [PROPOSED] under O15.
+fen stages are prose and are not read. The places JSON uses the zone plan, approved as O16.
+
+**Follow-up from O18, not done yet:** write the two atlas entries (LP7), split the Bloom Quarters into two places in
+`tools/lore/gazetteer.md` and `docs/data/places.json` (LP8), and move `js/chart26.js` to the atlas's legs (LP5).
 
 ## Old phase table (kept for history)
 
