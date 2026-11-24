@@ -47,6 +47,8 @@ const THRESH40 = (() => {
     la_z1_2_1: { col: 2, row: 1, ox: 768, oy: 384 - MARGIN, w: 384, h: 384 + MARGIN, name: TX.fork },
   };
   const BUILT = { '2,0': 'la_z1_2_0', '2,1': 'la_z1_2_1' };
+  // maps a later phase builds of this zone (js/open42.js): Marget is hidden on them too when she is not there
+  const MORE = [];
   const builtAt = (col, row) => BUILT[col + ',' + row] || null;
   // Z1's ways, copied from atlas/10-zones.md ("Ways"); test/threshold40.test.js reads the table and checks they match.
   const WAYS = [
@@ -275,7 +277,7 @@ const THRESH40 = (() => {
   function hideMarget() {
     if (typeof G === 'undefined' || !G || !G.flags || !G.maps) return;
     const where = G.flags.la_marget_map && G.maps[G.flags.la_marget_map] ? G.flags.la_marget_map : L1.LEDGE;
-    for (const id of [L1.LEDGE].concat(Object.keys(MAPS))) {
+    for (const id of [L1.LEDGE].concat(Object.keys(MAPS), MORE)) {
       const m = G.maps[id]; if (!m) continue;
       const e = m.entities.find((q) => q.id === 'la_marget'); if (!e) continue;
       e.hidden = !(G.flags.la_marget_out && where === id);
@@ -303,7 +305,8 @@ const THRESH40 = (() => {
   }
   function walkOn() {
     if (!sw() || typeof G === 'undefined' || !G || G.mapId !== L1.LEDGE) return false;
-    const t = TH.find((q) => q.id === 'ledge-down'); if (!t) return false;
+    // the first way down from the ledge that is open now (a later phase may add another, with its own when())
+    const t = TH.find((q) => q.from === L1.LEDGE && q.kind === 'gate' && (!q.when || q.when())); if (!t) return false;
     ST.walkOn++;
     return cross(t);
   }
@@ -311,7 +314,7 @@ const THRESH40 = (() => {
     if (typeof G === 'undefined' || !G || G.state !== 'play' || !G.map || !G.maps) return;
     if (G.mapId === L1.LEDGE && gapState !== sw()) setGap(sw());
     const c = Engine.cam;
-    for (const t of TH) if (t.from === G.mapId && t.test(c.x, c.y)) { cross(t); return; }
+    for (const t of TH) if (t.from === G.mapId && (!t.when || t.when()) && t.test(c.x, c.y)) { cross(t); return; }
     // a way into country not built yet
     const D = MAPS[G.mapId]; if (!D) return;
     const zx = c.x + D.ox, zy = c.y + D.oy;
@@ -362,6 +365,6 @@ const THRESH40 = (() => {
     return true;
   }
   const wired = wire();
-  return { TX, TILE, BAND, MARGIN, ZONE, MAPS, WAYS, CRAG, CLEFT, GAP, ARRIVE_Z1, ARRIVE_LEDGE, H, edgeOf, crossings, plan, cellAt, inCut, lineDist, build, thresholds: () => TH.length ? TH : thresholds(), cross, walkOn, setGap, state: () => ST, wired };
+  return { TX, TILE, BAND, MARGIN, ZONE, MAPS, MORE, WAYS, CRAG, CLEFT, GAP, ARRIVE_Z1, ARRIVE_LEDGE, H, hash, vnoise, fbm, segDist, edgeOf, crossings, plan, cellAt, inCut, lineDist, build, thresholds: () => TH.length ? TH : thresholds(), cross, walkOn, setGap, on: sw, state: () => ST, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = THRESH40;

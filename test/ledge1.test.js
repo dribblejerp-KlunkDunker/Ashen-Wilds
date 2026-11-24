@@ -168,7 +168,7 @@ check(!/\belf|\bdwar|orcish folk|goblin folk/i.test(all2), 'only humans are spok
     const TOP = Object.keys(L.TOPICS);
     check(r.cine && r.cine.play === false && r.cine.shots === 0 && Array.isArray(r.cineRows) && r.cineRows.length === 0, 'the Shattered Octave\'s opening film never plays here, and Options has no switch or replay for it: ' + JSON.stringify([r.cine, r.cineRows]));
     // Phase 40 adds the first two maps of the highland edge below the ledge (js/threshold40.js)
-    check(r.map === L.LEDGE && r.maps.join() === [L.BOTHY, L.LEDGE, 'la_z1_2_0', 'la_z1_2_1'].sort().join(), 'Begin opens on the highland edge, and only this game\'s maps exist: ' + r.maps.join(', '));
+    check(r.map === L.LEDGE && r.maps.join() === [L.BOTHY, L.LEDGE, 'la_z1', 'la_z1_2_0', 'la_z1_2_1'].sort().join(), 'Begin opens on the highland edge, and only this game\'s maps exist: ' + r.maps.join(', '));
     check(r.active && !r.failed && r.passes.includes('la-coalsun') && r.passes.includes('la-ash'), 'the 3D renderer draws it, with the coal sun and the ash as passes of their own');
     check(r.passes.indexOf('la-coalsun') === r.passes.indexOf('sky') + 1 && r.passes.indexOf('la-ash') > r.passes.indexOf('transparent') && r.passes.indexOf('la-ash') < r.passes.indexOf('post'), 'the sun is painted straight after the engine\'s sky; the ash after the world and before the grade');
     check(r.spawn.feet === 14 && Math.abs(r.spawn.x - 89.5) < 1e-6, 'you begin on the ledge, fourteen up, your back to the rock');

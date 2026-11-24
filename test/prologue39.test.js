@@ -207,13 +207,14 @@ const P = require(path.join(ROOT, 'js', 'prologue39.js'));
     await click('#la-walk-on');
     const b10b = await ev(() => { advanceTime(100); return { panel: G.openPanel, state: G.state, end: !!G.flags.la_prologue_end, shown: PROLOGUE39.state().shown, map: G.mapId, carry: CARRY15.state().on }; });
     check(!b10b.panel && b10b.state === 'play' && b10b.end && b10b.shown === 1, 'Walk on closes it, and play goes on: ' + JSON.stringify(b10b));
-    // Phase 40: Walk on takes the company down from the ledge, Marget still on your arm; walking up the cleft in the crag
-    // brings you back onto the ledge, where the rest of this test carries on
-    check(b10b.map === 'la_z1_2_0' && b10b.carry, 'Walk on takes you down to the ledge path, with her on your arm (Phase 40): ' + b10b.map);
+    // Phase 40: Walk on takes the company down from the ledge, Marget still on your arm (since Phase 42 into the one open
+    // map of the highland edge); walking up the cleft in the crag brings you back onto the ledge, where the rest of this
+    // test carries on
+    check(b10b.map === 'la_z1' && b10b.carry, 'Walk on takes you down to the ledge path, with her on your arm (Phases 40 and 42): ' + b10b.map);
     const up = await ev(() => {
-      const c = Engine.cam, t = THRESH40.thresholds().find((q) => q.id === 'ledge-up'), to = { x: t.door.x, y: t.door.y - 1.2 };
+      const c = Engine.cam, from = G.mapId, t = THRESH40.thresholds().find((q) => q.from === from && q.to === 'la_ledge'), to = { x: t.door.x, y: t.door.y - 1.2 };
       const norm = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-      for (let i = 0; i < 60 * 30 && G.mapId === 'la_z1_2_0'; i++) {
+      for (let i = 0; i < 60 * 30 && G.mapId === from; i++) {
         const diff = norm(Math.atan2(to.y - c.y, to.x - c.x) - c.dir);
         G.keys = { w: Math.abs(diff) < 0.5, arrowleft: diff < -0.06, arrowright: diff > 0.06 };
         update(1 / 60);

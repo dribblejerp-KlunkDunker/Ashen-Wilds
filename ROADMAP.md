@@ -1341,6 +1341,63 @@ time, since a square mile's data takes over half a second to make at once); a co
 entities by distance. A real GPU and a phone: a million triangles near the eye is fine on a desktop card and should be
 measured on a phone. Feel: whether chunks being built a few a frame ever shows as a hitch on a real machine.
 
+## Phase 42 - the highland edge as one open country
+
+`js/open42.js` · `test/open42.test.js` · `tools/openshots.js` (stills 190 to 197) · switch: Options > "One open country"
+
+O19 wants a zone walked as one open world, with no ridges between its parts; Phase 41 made the renderer draw a map that
+big a piece at a time. This phase builds Z1 as one map.
+
+- **One map.** `la_z1`, "The highland edge": 1,536 x 1,536 cells, the whole of Z1 in the zone's own coordinates (a cell
+  of the map is the same cell of `atlas/10-zones.md`'s grid). The renderer streams it (Phase 41).
+- **The same ground, without the bands.** Its ground, frost, scorch and rock, its nine ways, and the crag round the
+  ledge with its cleft are Phase 40's, from the same functions of zone coordinates: away from Phase 40's inner edges every
+  cell is Phase 40's (tested over half a million cells, and cell for cell against both of Phase 40's maps in the
+  browser). The bands of rock between Phase 40's maps are gone: from the crag's foot every point of every way can be
+  walked to without a cut, and the test walks the ledge path from the crag to the Greystair fork, 370 cells, on one map,
+  the carter with you.
+- **The zone's own edge** is still rock, 11 deep, until the zones beyond it are built. One way runs into it, the upper
+  road south to Coldbarrow, and ends in a notch that says so (Phase 40's words).
+- **Down and up.** The ledge's gap and the end card's Walk on lead into it, at the crag's foot; the cleft leads back up.
+  Marget on your arm, the carter and the walking bloom come and go as through Phase 40's ways (tested).
+- **Made a piece at a time.** A square mile's ground takes about 0.8 s to make here. From Begin, the page makes it
+  sixteen rows at a time while it is idle, 8 ms at most at a go; if you go down before it is done, or load a save made
+  in it, the rest is made at once. Made in pieces or at once, it is the same map, cell for cell (tested).
+- **The map (M)** of a map this big is drawn a cell to a pixel (the engine's is four, which would be a 6,144-pixel
+  canvas): the walked ground, the ways paler, rock dark, and you.
+- **The switch off:** the ledge's gap and Walk on lead to Phase 40's two maps, with the rock between them, exactly as
+  before. The ledge itself is the same map either way (tested: its rock, floor, ground and mesh). The open map is made
+  either way.
+
+How: `OPEN42` wraps `buildAllMaps` (the map, empty, and the making started), `loadMap` (it is finished before you enter),
+`update` (the notch's words) and `renderMap`. Changed in an earlier phase file, not the copied engine: `js/threshold40.js`
+(a threshold may have a `when()`, and Walk on takes the first way down that is open; Marget is hidden on the maps a
+later phase lists in `THRESH40.MORE`; its noise and segment helpers are exported). Tests changed to match:
+`test/ledge1.test.js` and `test/fork0.test.js` (five maps), `test/threshold40.test.js` (it tests Phase 40's maps, so it
+turns this phase's switch off), `test/prologue39.test.js` (Walk on goes down into the open map, and the walk back up
+takes whichever cleft you are below).
+
+Measured here (software rendering, two slow cores): entering the open map takes about 0.4 s once it is made (1.1 s if
+it has to be finished first); a frame there about 2 to 3 ms with nothing on it yet; the map holds about 45 MB of arrays
+in the page; a save with it is about 35 KB of JSON. Made in idle time, it took about 45 s after Begin here, because
+software rendering leaves the page almost no idle time; on a real machine it should take a few seconds.
+
+**Invented, for a ruling:**
+
+- **[PROPOSED] P42-1** The map's name, "The highland edge" (Z1's own name), and its id `la_z1`.
+- **[PROPOSED] P42-2** The zone's outer edge as a band of rock 11 deep for now (standing for the rim's foot to the north
+  and the high ground elsewhere), opened by a notch where a way leaves the zone, until the zones beyond are built.
+- **[PROPOSED] P42-3** The switch's name and words, "One open country".
+
+**Not done, and not checked:** Z1's places (the next phase: the peat bank, the Bloom drifts, the Warm Skeps and the
+rest of the 56); the ground is still Phase 40's stand-in (P40-2), with no rise to the rim or fall to Coldbarrow beyond
+its one-in-a-hundred slope; Phase 40's two maps are still built at every new game and load, for the switch's sake
+(about 310 ms here); a Chart booking when you leave a zone by another threshold (Z-R5). Co-op is not tested: the guest
+makes the same map with no dice, but no two-tab walk has been run. A pre-existing look, not from this phase: standing
+near a cell's edge and looking along it, the frost tile's far texture can show a hard line straight ahead (it is in
+Phase 40's stills too, streamed or not, torch lit or not); worth a look in the renderer's ground shader. Feel, how far
+you want to see across open country, and whether the making ever shows as a hitch on a real machine need a person.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
