@@ -1006,12 +1006,13 @@ triangles, 1.3 GB of vertex buffers, a 5 s mesh build, and about 50 ms a frame o
 (a hash of every cell, a light map of every cell uploaded every frame) before anything is drawn. Saves and `update()`
 are not the limit.
 
-- **[PROPOSED] E1** The largest single map is 384 x 384 (512 x 512 at most).
-- **[PROPOSED] E2** Build each region now as connected maps of at most 384 x 384, joined at natural thresholds (a pass,
+- **E1** (approved, O16) The largest single map is 384 x 384 (512 x 512 at most).
+- **E2** (approved, O16) Build each region now as connected maps of at most 384 x 384, joined at natural thresholds (a pass,
   a gate, a stair), and make chunked streaming in `js/r3d21.js` a numbered phase so that a region can later become one
   map. A coarser cell is not recommended (a person is one cell tall); a smaller zone is the fallback.
 
-Software rendering cannot show real GPU speed or memory limits; run the tool on real hardware before ruling on E1.
+Ruled 2026-11-24 ("I approve"): E1 and E2 are O16 in `CANON.md`. Software rendering cannot show real GPU speed or
+memory limits; re-run the tool on real hardware when the streaming phase is planned.
 
 ## Old phase table (kept for history)
 

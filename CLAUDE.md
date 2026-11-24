@@ -264,6 +264,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
 - **O14:** every traveller starts with a torch; a lantern is found or bought (Phase 38).
 - **O15:** the world's scale is the hybrid: each region one dense walkable zone of about a square mile, the Chart between
   regions, something to find every 30 to 60 seconds of walking, and not on the small side.
+- **O16:** one map is at most 384 x 384 cells (512 at most); a region is connected maps joined at natural thresholds
+  until the renderer streams chunks (`docs/engine-limits.md`).
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

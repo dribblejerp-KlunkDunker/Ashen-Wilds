@@ -130,11 +130,11 @@ For a square-mile zone, four ways, best first:
 | **A coarser cell** | Make one cell two metres, so a square mile is 800 x 800. | Fewer cells. | Breaks the game's measure: a person is one cell tall, doors and huts are sized in cells, P33's walking pace is in cells. Every phase's numbers would change. Not recommended. |
 | **A smaller zone** | Make each region 384 to 512 cells a side (a quarter to a third of a mile) and squeeze its places tighter. | No engine work; O15 already says places are drawn closer than the atlas's miles. | O15 says not on the small side. A 512-cell zone walks edge to edge in about 3 minutes, against about 10 for a square mile. |
 
-**What I would do** `[PROPOSED]`: build regions as connected maps of at most 384 x 384 now, cut at natural thresholds,
+**Ruled** (O16, 2026-11-24, "I approve"): build regions as connected maps of at most 384 x 384 now, cut at natural thresholds,
 so work on regions can start without waiting on the engine. In parallel, make chunked streaming a numbered phase in
 `js/r3d21.js` (and the light, sleet and roof passes) with its own look and speed tests; when it lands, a region's maps
-can be joined into one map with the seams removed. The owner rules on this, and on the zone sizes and squeeze ratio
-O15 already asks to be proposed.
+can be joined into one map with the seams removed. The zone sizes and squeeze ratio O15 asks for are still to be
+ruled.
 
 ## Re-running
 
