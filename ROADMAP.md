@@ -1196,9 +1196,10 @@ fact re-read at its file and line, every name in the roster, bestiary or atlas (
 no prophecy, no answer to the three shut questions. Three pieces of engine work (a scene runner, a zone-map builder,
 a MAP panel) would then wire the pure phases 21, 22, 25, 26, 28, 30, 31 and 33 to 37.
 
-**Built:** the places slice. All **133** of the gazetteer's places parse: 67 from their own entry, 33 from a shared
-heading, 3 from a region file, 25 named in bold inside an entry, 5 mentioned in passing. 42 get an atlas kind, 37 a
-position in miles, 82 a zone position, 43 named people and 60 named beasts. The test re-reads every source line.
+**Built:** the places slice. All **134** of the gazetteer's places parse (its 133, with the Bloom Quarters as two
+under O18): 69 from their own entry, 32 from a shared heading, 3 from a region file, 25 named in bold inside an
+entry, 5 mentioned in passing. 44 get an atlas kind, 37 a position in miles, 82 a zone position, 44 named people and
+62 named beasts. The test re-reads every source line.
 
 Everything below was **[PROPOSED]** here and is **approved** (O18, 2026-11-24). Where an item asked a question, the
 ruling is: LP3 keep the 133; LP6 leave the kind empty; LP7 add atlas entries for the ledge and the bothy; LP8 two places.
@@ -1227,8 +1228,10 @@ ruling is: LP3 keep the 133; LP6 leave the kind empty; LP7 add atlas entries for
 matching the roster's names and the bestiary's words, so a person named only by a role is missed. The Salt Trace's
 fen stages are prose and are not read. The places JSON uses the zone plan, approved as O16.
 
-**Follow-up from O18, not done yet:** write the two atlas entries (LP7), split the Bloom Quarters into two places in
-`tools/lore/gazetteer.md` and `docs/data/places.json` (LP8), and move `js/chart26.js` to the atlas's legs (LP5).
+**Follow-up from O18.** Done: the ledge and Marget Sayle's bothy have atlas entries (LP7), at the end of
+`atlas/4-the-citadels.md`, written only from lines already canon, each source listed; the pipeline now reads them
+there. The Bloom Quarters are two places, Port Sable's Bloom Quarter and Marlstow's lower town (LP8), so the list has
+134. Not done yet: moving `js/chart26.js` to the atlas's legs (LP5).
 
 ## Old phase table (kept for history)
 

@@ -2,8 +2,9 @@
 // node tools/lore/places.js --check   exit 1 if docs/data/places.json has drifted from the atlas
 // node tools/lore/places.js --list    print one line per place: how it was found, and where
 //
-// The first slice of the lore pipeline (docs/pipeline.md). The list of places is the gazetteer's 133
-// (tools/lore/gazetteer.md); each is looked up in docs/worldbuilding/atlas/ and given its region, kind, position
+// The first slice of the lore pipeline (docs/pipeline.md). The list of places is the gazetteer's
+// (tools/lore/gazetteer.md: 133, and 134 since O18 split the Bloom Quarters); each is looked up in
+// docs/worldbuilding/atlas/ and given its region, kind, position
 // where the atlas gives one, zones (atlas/10-zones.md), people (people/README.md's roster), what hunts there
 // (the bestiary), and the file and line it was read from. Nothing here is written by hand: change the atlas and
 // run --write. Nothing in the game loads the JSON yet.
@@ -23,8 +24,8 @@ const REGION_FILES = {
   'The Bell Road': ['3-the-bell-road.md'],
   'The Drowned Measures': ['6-the-drowned-measures.md'],
   'The Citadels and the far north': ['4-the-citadels.md', '5-the-deep.md'],
-  // the ledge and the bothy have no atlas entry: the game's design is their source
-  "The Long Account's built level": ['../the-round-and-the-long-account.md'],
+  // the ledge and the bothy: their atlas entries (added under O18, LP7) in the Citadels' file
+  "The Long Account's built level": ['4-the-citadels.md'],
   'The wilds between': ['9-the-wilds-between.md'],
 };
 // The files that are places (not the guide, the scale tab or the zone plan).

@@ -197,15 +197,17 @@ model (the one part that stays engine work, O9).
 ## 7. The slice built tonight
 
 `node tools/lore/places.js --write` reads the gazetteer's list (`tools/lore/gazetteer.md`, copied from the project
-doc `claude/location-gazetteer.md`, which is not in the repository) and finds every one of the **133** places:
+doc `claude/location-gazetteer.md`, which is not in the repository) and finds every one of the **134** places (the gazetteer's 133, with
+the Bloom Quarters split in two under O18, LP8):
 
-- 67 have an entry of their own; 33 share a heading with another place ("Milebank and the Red Stitch"); 3 are a
+- 69 have an entry of their own; 32 share a heading with another place ("Milebank and the Red Stitch"); 3 are a
   whole region file read from its first entry (the Blackfen, the Bell Road, the Drowned Measures); 25 are named in
   bold inside another entry (the Naming Stone, the Long Stable); 5 are only mentioned in passing (Qesh, Marrah, the
-  Grass, the Red Country, Marget Sayle's bothy).
-- 42 get one of the six kinds from the line under their name; 37 a position in miles; 82 a zone and grid position;
-  43 named people; 60 named beasts.
-- The ledge and the bothy have no atlas entry: they are read from the game's design document.
+  Grass, the Red Country, Marlstow's lower town).
+- 44 get one of the six kinds from the line under their name; 37 a position in miles; 82 a zone and grid position;
+  44 named people; 62 named beasts.
+- The ledge and the bothy are read from their atlas entries in `atlas/4-the-citadels.md`, added under O18 (LP7)
+  from what the design, the rulings and the people sheet already say. Before that they were read from the design.
 
 `node test/lore-places.test.js` checks all of that against the lore, line by line, and that the JSON is current. The
 gazetteer's `aka:` and `at:` notes add no names: the test checks each is the atlas's own words.

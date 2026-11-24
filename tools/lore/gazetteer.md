@@ -1,14 +1,17 @@
-# The gazetteer's 133 places, as the lore pipeline reads them
+# The gazetteer's places, as the lore pipeline reads them
 
 Copied 2026-11-24 from the project doc `claude/location-gazetteer.md` (counted 2026-11-14, updated 2026-11-19), which
 is not in this repository. It is the list `tools/lore/places.js` must find in the atlas, one line per place. It is a
 count, not lore: where it and the atlas differ, the atlas is right.
 
+The gazetteer counts 133. O18 (LP8, 2026-11-24) splits its "The Bloom Quarters" into the two the atlas has, Port
+Sable's Bloom Quarter and Marlstow's lower town, so this list has 134.
+
 One line per place: `- Name`. After the name, `aka: A; B` gives other names the atlas uses for it, and `at: text`
 says where to look when the name alone does not find it (the words the atlas uses). Neither adds a name: every
 `aka` and `at` is a phrase the atlas already has, and the test checks that.
 
-## The wider Round, outside Orlen (37)
+## The wider Round, outside Orlen (38)
 
 - The Slate Sea
 - The Scald
@@ -23,7 +26,8 @@ says where to look when the name alone does not find it (the words the atlas use
 - Port Sable
 - The Exchange
 - The Limewalks
-- The Bloom Quarters | aka: The Bloom Quarter
+- Port Sable's Bloom Quarter | aka: The Bloom Quarter
+- Marlstow's lower town | at: The lower town, given up
 - The Lazaret Rocks
 - Vauclere
 - Saint-Aumere
