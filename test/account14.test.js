@@ -58,7 +58,7 @@ check(q.every((x) => !/[^\x09\x0a\x0d\x20-\x7e]/.test(x)), 'every quoted line is
 check(/G\.state = was === 'play' \? 'play' : was/.test(src), 'the panel keeps the world playing');
 check(/la_account/.test(src) && /la_forsworn|forsworn\[e\.person\]/.test(src), 'the book and the forsworn mark are saved');
 const book = fs.readFileSync(path.join(ROOT, 'js', 'panel10.js'), 'utf8');
-check(/The Account opens with A/.test(book), 'BOOK tells the player how to open the Account');
+check(/The Account opens with X/.test(book), 'BOOK tells the player how to open the Account');
 
 // ---- in a browser: Marget's promise, the non-pausing book, the hearth. Skipped when no Playwright.
 (async () => {

@@ -127,7 +127,7 @@ const PANEL10 = (() => {
   // ---------------------------------------------------------------- the credits: this repository's (CREDITS.md)
   const OFL = 'SIL Open Font License 1.1 (text in fonts/)';
   // this repository's own code: a phase is one file js/<feature><phase>.js (CLAUDE.md)
-  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js', 'js/opening11.js', 'js/company12.js', 'js/carter13.js', 'js/account14.js', 'js/carry15.js', 'js/book16.js', 'js/kit17.js', 'js/cards18.js', 'js/hearing19.js', 'js/lungs20.js', 'js/weather21.js', 'js/deadcalm22.js', 'js/combat23.js', 'js/bloom24.js', 'js/coop25.js', 'js/chart26.js', 'js/hearth27.js', 'js/people28.js', 'js/workings30.js', 'js/marks31.js', 'js/bestiary32.js', 'js/actone33.js', 'js/acttwo34.js', 'js/sidearcs35.js', 'js/actthree36.js', 'js/endings37.js', 'js/torch38.js'];
+  const PHASE_FILES = ['js/fork0.js', 'js/ledge1.js', 'js/art2.js', 'js/sun3.js', 'js/bloom4.js', 'js/door5.js', 'js/weather6.js', 'js/lantern7.js', 'js/building8.js', 'js/dread9.js', 'js/panel10.js', 'js/opening11.js', 'js/company12.js', 'js/carter13.js', 'js/account14.js', 'js/carry15.js', 'js/book16.js', 'js/kit17.js', 'js/cards18.js', 'js/hearing19.js', 'js/lungs20.js', 'js/weather21.js', 'js/deadcalm22.js', 'js/combat23.js', 'js/bloom24.js', 'js/coop25.js', 'js/chart26.js', 'js/hearth27.js', 'js/people28.js', 'js/workings30.js', 'js/marks31.js', 'js/bestiary32.js', 'js/actone33.js', 'js/acttwo34.js', 'js/sidearcs35.js', 'js/actthree36.js', 'js/endings37.js', 'js/torch38.js', 'js/prologue39.js'];
   const CREDITS = [
     { title: 'The engine', rows: [
       ['Code in js/ (but for this repository\'s phase files, below), css/, schemas/, locales/, sw.js', 'Copied on 2026-11-11 from Echoes of the Shattered Octave (same owner), commit f2b3990, at the owner\'s direction (D14). Written with AI assistance', 'That repository declares no open licence', []],
@@ -287,7 +287,7 @@ const PANEL10 = (() => {
     const B = typeof BOOK16 !== 'undefined' ? BOOK16 : null;
     if (!B) {
       const rows = (G.journal || []).filter((j) => j && j.text).map((j) => `<p>${esc(j.text)}</p>`).join('') || `<p class="muted">${TX.bookNone}</p>`;
-      openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with A. It does not stop the world.</p>${rows}`, 'log');
+      openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with X. It does not stop the world.</p>${rows}`, 'log');
       wireClose(); return;
     }
     if (openN != null) {
@@ -301,7 +301,7 @@ const PANEL10 = (() => {
     }
     const list = B.find(q);
     const rows = list.map((e) => `<button class="dfbtn" data-book="${e.n}" style="display:block;width:100%;text-align:left;margin:.35cqh 0"><b>${e.n}. ${esc(e.title)}</b> <span class="muted">${B.isRead(e.n) ? 'read' : 'unread'}</span></button>`).join('') || `<p class="muted">${esc(B.TX.none)}</p>`;
-    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with A. It does not stop the world.</p>
+    openModal(`<h2>${TX.bookTitle}</h2>${closeBtn}<p class="muted">${esc(TX.bookDate(day, part))}</p><p class="muted">The Account opens with X. It does not stop the world.</p>
       ${errand ? `<p><b>The errand.</b> ${esc(errand.text)}</p>` : ''}
       <p><input id="book-search" class="book-search" type="search" placeholder="${esc(B.TX.search)}" value="${esc(q || '')}"></p>
       <div id="book-list" class="book-list">${rows}</div>`, 'log');

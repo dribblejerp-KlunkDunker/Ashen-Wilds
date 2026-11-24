@@ -25,6 +25,7 @@ const CARRY15 = (() => {
     titleLine: 'At the top she turns and looks at the Slagcrown once, and says nothing.',
     atTop: 'The top of the ramp. The country opens west.',
     attachPrompt: 'She cannot manage the ledge path. Take her arm?',
+    handsFull: 'Both your hands are full.',
   };
   const PACE = 0.65, NOISE = 3.4;
   const make = () => ({ v: 1, on: false, carrier: 'you', carried: 'marget', item: 'arm', x: 0, y: 0 });
@@ -74,8 +75,42 @@ const CARRY15 = (() => {
   }
   function place() {
     const s = state(), b = body(), c = Engine.cam;
+    // Phase 39 fix: on your arm she is not solid. Solid, she could be put where you stand (below), and then neither of
+    // you could move again: the carry locked on the ramp. Let go of, she is solid again, as every person is.
+    if (b) b.solid = !s.on;
     if (!s.on) { if (b && s.x && s.y) { b.x = s.x; b.y = s.y; } return; }
-    step(s, { px: c.x, py: c.y, dir: c.dir, side: 0.32, fwd: 0.8, blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y, body()); } catch (e) { return false; } } }, 0);
+    // Where she can stand is judged from where you stand, at your height: she is on your arm, not walking on her own.
+    // (Judged from her own last place, as the engine judges a walker, a place 0.8 ahead up the ramp was a step too high
+    // whenever you turned, and she was left behind on the slope for good.) Walls, cliffs and other solid things still hold.
+    const feet = G.player && typeof G.player.feet === 'number' ? G.player.feet : 0;
+    const up = typeof STEP_UP === 'number' ? STEP_UP : 0.36, steep = typeof MAX_GRADE === 'number' ? MAX_GRADE : 1.1;
+    const blocked = (x, y) => {
+      try {
+        const m = G.map, r = 0.2;
+        if (m.lvls || m.smooth) {
+          const g = m.groundAt(x, y);
+          if (Math.abs(g - feet) > up + 0.5) return true;
+          if (m.smooth && g > feet + 0.02 && m.gradeAt(x, y) > steep) return true;
+        }
+        for (const [dx, dy] of [[-r, -r], [r, -r], [-r, r], [r, r]]) if (m.isBlocked((x + dx) | 0, (y + dy) | 0)) return true;
+        for (const e of G.ents) { if (e === b || !e.solid || e.hidden || e.dead) continue; const rr = (e.radius || 0.3) + 0.2; if ((x - e.x) * (x - e.x) + (y - e.y) * (y - e.y) < rr * rr) return true; }
+        return false;
+      } catch (e) { return false; }
+    };
+    step(s, { px: c.x, py: c.y, dir: c.dir, side: 0.32, fwd: 0.8, blocked }, 0);
+    // Phase 39 fix: coming out of the bothy's door with her, her place ahead and to the side was blocked (the carter
+    // stands there), so she kept her place from inside the bothy, which on the ledge is a far corner of the map. When the
+    // usual place is blocked and she is not beside you, she takes the next free place: the other side, then beside you,
+    // then behind; failing all of them, where you stand.
+    if (Math.hypot(s.x - c.x, s.y - c.y) > 1.6) {
+      const tries = [[0.8, -0.32], [0, 0.45], [0, -0.45], [-0.6, 0.2], [-0.6, -0.2]];
+      let put = false;
+      for (const [f, sd] of tries) {
+        const nx = c.x + Math.cos(c.dir) * f - Math.sin(c.dir) * sd, ny = c.y + Math.sin(c.dir) * f + Math.cos(c.dir) * sd;
+        if (!blocked(nx, ny)) { s.x = nx; s.y = ny; put = true; break; }
+      }
+      if (!put) { s.x = c.x; s.y = c.y; }
+    }
     const bb = body(); if (bb) { bb.x = s.x; bb.y = s.y; bb.hidden = false; }
   }
   function attachNow() {
@@ -90,6 +125,7 @@ const CARRY15 = (() => {
     const b = body();
     if (b) { s.x = b.x; s.y = b.y; }
     detach(s); save();
+    if (b) b.solid = true;
     msg(TX.release, '', 5000);
   }
   function startTitle() {
@@ -117,13 +153,34 @@ const CARRY15 = (() => {
       if (TITLE && !TITLE.done && String(ev.key).toLowerCase() === 'escape') { ev.preventDefault(); ev.stopImmediatePropagation(); TITLE.finish(); }
     }, true);
   }
+  // What E is aimed at while she is on your arm, looking past her: { talk }, { use }, { item }, { door }, or null.
+  function aimed() {
+    const her = body(), others = G.ents.filter((e) => e !== her);
+    const e = Engine.pick(others, typeof USE_RANGE === 'number' ? USE_RANGE : 2.6);
+    if (e && !e.dead && !e.hidden) {
+      if (e.kind === 'npc') return { talk: e };
+      if (e.kind === 'deco' && e.use) return { use: e };
+      if (e.kind === 'item') return { item: e };
+    }
+    if (typeof DOOR5 !== 'undefined' && DOOR5.doorway && DOOR5.doorway()) return { door: true };
+    const w = Engine.pickWall(2.0);
+    if (w && w.cell && w.cell.door) return { door: true };
+    return null;
+  }
+  // The top of the ramp: where the shelf's ramp comes up onto the ledge (LEDGE1.RAMP's columns, at the ledge's own
+  // edge). Phase 39 fix: the look back used to fire at (87.5, 33.2), the ramp's foot on the shelf, the moment you came
+  // out of the bothy's door with her; the bible's beat is "At the top she turns".
+  function atTop(x, y) {
+    const R = LEDGE1.RAMP;
+    return x >= R.x0 - 0.5 && x <= R.x1 + 0.5 && y >= R.y1 + 0.2 && y <= R.y1 + 2.5;
+  }
   function tick(dt) {
     if (typeof G === 'undefined' || !G || G.state !== 'play') return;
     const s = state(); if (!s || !s.on) return;
     place(); save();
     if (G.mapId === LEDGE1.LEDGE && !G.flags.la_title_seen) {
       const c = Engine.cam;
-      if (Math.hypot(c.x - 87.5, c.y - 33.2) < 1.1) startTitle();
+      if (atTop(c.x, c.y)) startTitle();
     }
   }
   function wire() {
@@ -157,10 +214,24 @@ const CARRY15 = (() => {
       }
       return _talk.apply(this, arguments);
     };
+    // Phase 39 fix: E with her on your arm used to let her go whatever was in front of you, so the bothy's door could not
+    // be opened (nor its bar lifted) with her on your arm, and the carter could not be spoken to: the prologue could not
+    // be finished. Now E does what it would do for what is in front of you (a door, the bar, another person), and lets
+    // her go only when she or nothing is there. Things on the ground stay where they are: both hands are full.
     const _int = interact;
     interact = function () {
       const s = state();
-      if (s && s.on) { releaseNow(); return; }
+      if (s && s.on) {
+        const t = aimed();
+        if (!t) { releaseNow(); return; }
+        if (t.item) { msg(TX.handsFull, '', 1800); return; }
+        if (t.talk) { talk(t.talk); return; }
+        if (t.use) { useDeco(t.use); return; }
+        // a door: the doors' own rules run (the bar, a lock, the way through), as if she were not in the line of sight
+        const her = body(), was = her ? her.hidden : null;
+        if (her) her.hidden = true;
+        try { return _int.apply(this, arguments); } finally { if (her && G.ents.includes(her)) her.hidden = was; }
+      }
       return _int.apply(this, arguments);
     };
     const _pm = playerMove;
@@ -170,7 +241,7 @@ const CARRY15 = (() => {
       return _pm.apply(this, arguments);
     };
     const _attack = attack;
-    attack = function () { const s = state(); if (s && s.on) { msg('Both your hands are full.', '', 1800); return; } return _attack.apply(this, arguments); };
+    attack = function () { const s = state(); if (s && s.on) { msg(TX.handsFull, '', 1800); return; } return _attack.apply(this, arguments); };
     const _look = look;
     look = function (mx, my) { const s = state(); return s && s.on ? _look.call(this, mx * PACE, my * PACE) : _look.apply(this, arguments); };
     const _un = updateNarrow;
@@ -191,7 +262,7 @@ const CARRY15 = (() => {
     wired = true;
     return true;
   }
-  return { TX, PACE, NOISE, make, attach, detach, pace, handsFree, canAttack, noise, step, load, wire, state, save, attachNow, releaseNow, startTitle };
+  return { TX, PACE, NOISE, make, attach, detach, pace, handsFree, canAttack, noise, step, load, wire, state, save, attachNow, releaseNow, startTitle, atTop, aimed };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = CARRY15;
 if (typeof window !== 'undefined') CARRY15.wire();

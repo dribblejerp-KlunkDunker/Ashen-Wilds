@@ -71,7 +71,11 @@ check(/playerMove/.test(src) && /updateNarrow/.test(src) && /function startTitle
       out.released = { on: CARRY15.state().on, hands: CARRY15.handsFree(CARRY15.state()) };
       // the top of the ramp starts the look back once
       CARRY15.attachNow(); loadMap(LEDGE1.LEDGE);
+      // the ramp's foot (where Phase 15 first put the trigger) does not start it; the top does (Phase 39 fix)
       Engine.cam.x = 87.5; Engine.cam.y = 33.2;
+      for (let i = 0; i < 5; i++) update(1 / 60);
+      out.foot = !!G.flags.la_title_seen;
+      Engine.cam.x = 87; Engine.cam.y = 39.6;
       for (let i = 0; i < 5; i++) update(1 / 60);
       out.title = { seen: !!G.flags.la_title_seen, open: G.openPanel, modal: document.getElementById('modal').classList.contains('hidden') === false };
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -86,6 +90,7 @@ check(/playerMove/.test(src) && /updateNarrow/.test(src) && /function startTitle
     check(r.walk.dx > 0.5 && r.walk.dx < r.walk.free * 0.75 && Math.abs(r.walk.pace - 0.65) < 1e-9, 'the measured walk is slower: ' + r.walk.dx.toFixed(2) + ' cells with her, ' + r.walk.free.toFixed(2) + ' free');
     check(r.walk.seen, 'out on the ledge with her, she is there at your side');
     check(!r.released.on && r.released.hands, 'E releases her and frees the hands');
+    check(!r.foot, 'at the ramp\'s foot on the shelf, the title has not come');
     check(r.title.seen && r.title.open === 'la-title' && r.title.modal, 'at the top with her, the look back and title start once');
     check(r.after.open === null && r.after.state === 'play', 'Escape skips the title');
     check(r.twice.before && r.twice.after && r.twice.modal, 'the title does not come twice');

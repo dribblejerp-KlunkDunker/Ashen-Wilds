@@ -28,7 +28,7 @@ const ACCOUNT14 = (() => {
     broken: 'Broken',
     forsworn: 'Forsworn',
     salt: (n) => n + (n === 1 ? ' measure of salt' : ' measures of salt'),
-    bookLine: 'The Account opens with A. It does not stop the world.',
+    bookLine: 'The Account opens with X. It does not stop the world.',
     promise: 'We will bring you to whoever answers for the Crown, and bring back their answer.',
     promiseText: 'Bring Marget Sayle to whoever answers for the Crown, and bring back their answer.',
     promiseTaken: 'You give your word. The Account writes it under your name.',
@@ -106,6 +106,8 @@ const ACCOUNT14 = (() => {
 
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false, OPEN = false;
+  const KEY = 'x';
+  const bound = (k) => { try { return typeof UPG !== 'undefined' && !!UPG.keybinds && Object.values(UPG.keybinds).includes(k); } catch (e) { return false; } };
   const here = () => typeof G !== 'undefined' && G && (G.mapId === LEDGE1.LEDGE || G.mapId === LEDGE1.BOTHY);
   function current() { try { return G.flags && G.flags.la_account; } catch (e) { return null; } }
   function ensure() {
@@ -187,7 +189,9 @@ const ACCOUNT14 = (() => {
     window.addEventListener('keydown', (ev) => {
       if (G.state !== 'play') return;
       const k = String(ev.key || '').toLowerCase();
-      if (k === 'a' && !ev.repeat && !ev.ctrlKey && !ev.metaKey && !ev.altKey) { ev.preventDefault(); ev.stopImmediatePropagation(); open(); }
+      // Phase 39 fix: the Account was on A, and this listener ran first and swallowed the key, so A never walked left.
+      // It is on X now [PROPOSED], and it gives way to any key the player has bound to walking or anything else.
+      if (k === KEY && !bound(k) && !ev.repeat && !ev.ctrlKey && !ev.metaKey && !ev.altKey) { ev.preventDefault(); ev.stopImmediatePropagation(); open(); }
       else if (k === 'escape' && OPEN) { ev.preventDefault(); ev.stopImmediatePropagation(); close(); }
     }, true);
     if (typeof restoreGame === 'function') {
@@ -197,7 +201,7 @@ const ACCOUNT14 = (() => {
     wired = true;
     return true;
   }
-  return { V, TX, KINDS, make, add, due, mark, keep, break: breakWord, standSurety, standApart, forsworn, pages, load, wire, open, close, promise, hearth, state: current };
+  return { V, TX, KEY, KINDS, make, add, due, mark, keep, break: breakWord, standSurety, standApart, forsworn, pages, load, wire, open, close, promise, hearth, state: current };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = ACCOUNT14;
 if (typeof window !== 'undefined') ACCOUNT14.wire();
