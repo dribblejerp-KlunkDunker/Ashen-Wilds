@@ -123,7 +123,7 @@ function loadInPage() {
   const gl = R3D.gl && R3D.gl(); if (gl) gl.finish();
   const t2 = performance.now();
   const info = (R3D.mesh && R3D.mesh()) || R3D.stats.lastMesh || {};
-  return { loadMapMs: t1 - t0, firstFrameMs: t2 - t1, mesh: info, r3dActive: !!(R3D.active && R3D.active()), software: R3D.st && R3D.st.software, renderer: R3D.st && R3D.st.renderer };
+  return { loadMapMs: t1 - t0, firstFrameMs: t2 - t1, mesh: info, stream: R3D.stream ? R3D.stream() : null, r3dActive: !!(R3D.active && R3D.active()), software: R3D.st && R3D.st.software, renderer: R3D.st && R3D.st.renderer };
 }
 
 // Runs inside the browser: time update() and render() + gl.finish() from two views.
@@ -138,6 +138,10 @@ function framesInPage(frames) {
   for (const v of views) {
     Engine.cam.x = v.x; Engine.cam.y = v.y; Engine.cam.dir = v.dir; settleFeet(); G.keys = {};
     for (let i = 0; i < 3; i++) render();
+    // Phase 41: on a streamed map, let the chunks the eye needs be built before timing (a few a frame)
+    const sw = () => (R3D.stream ? R3D.stream() : null);
+    let warm = 0;
+    for (; warm < 400 && sw() && sw().on && sw().info && sw().info.chunks < sw().info.need; warm++) render();
     if (gl) gl.finish();
     const r = [], u = [], cpu = [], builds0 = R3D.stats.meshBuilds;
     for (let i = 0; i < frames; i++) {
@@ -145,7 +149,8 @@ function framesInPage(frames) {
       render(); if (gl) gl.finish(); const c = performance.now();
       u.push(b - a); r.push(c - b); cpu.push(R3D.stats.cpuLast || 0);
     }
-    out.views.push({ update: med(u), render: med(r), renderP95: p95(r), r3dCpu: med(cpu), meshRebuilds: R3D.stats.meshBuilds - builds0, all: r.map((x) => Math.round(x)) });
+    const si = sw() && sw().on ? sw().info : null;
+    out.views.push({ update: med(u), render: med(r), renderP95: p95(r), r3dCpu: med(cpu), meshRebuilds: R3D.stats.meshBuilds - builds0, all: r.map((x) => Math.round(x)), warm, stream: si ? { chunks: si.chunks, verts: si.verts, tris: si.tris } : null });
   }
   // the change check R3D runs on every frame (js/r3d21.js cellSig, copied here only to time it): it reads every cell
   const strHash = new Map();

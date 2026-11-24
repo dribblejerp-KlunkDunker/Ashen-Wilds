@@ -1297,6 +1297,50 @@ builds the same two maps (they are made with no dice, so its copy should match t
 zone in chunks (E2's phase), so that a zone is one map and nothing stands between its squares. Feel, the half-second load at a seam on a real machine, and how the walk down feels after
 the title need a person.
 
+## Phase 41 - streaming: one map as big as a zone
+
+`js/stream41.js` · `js/r3d21.js` and `js/light21.js` (the copied renderer, changed) · `test/stream41.test.js` ·
+`tools/streamshots.js` (stills 180 to 182) · `tools/limits.js` re-run (`docs/engine-limits-41.json`) · switch: Options >
+"Stream large maps"
+
+O19 wants a zone walked as one open world, with nothing between its squares, and O17's measurements showed one map of
+a square mile could not be drawn as the renderer stood. This phase changes the renderer so that a map's cost no longer
+grows with its size. It does not yet make Z1 one map: that is Phase 42.
+
+- **Chunks.** A map of more than 65,536 cells is built in chunks of 64 x 64. Only the chunks within the fog's reach of
+  the eye (its fog distance + 48 cells, at least 96) are built, kept and drawn. The nearest are built at once, the rest
+  a few milliseconds a frame, and a chunk left behind is let go. The roofs and the burning ground (the mesh
+  extensions) are one small mesh of their own.
+- **Changes.** GameMap's setters list what they change (`js/stream41.js`), and only the chunks touched are rebuilt
+  (before, the whole map, five seconds at a square mile). One built chunk a frame is hashed again, so a write that went
+  round the setters is found within a second or so.
+- **The per-frame scans are gone on a streamed map.** The renderer hashed every cell every frame and every per-cell
+  array twice a second; the light map was cleared and sent whole every frame; the sun's heights were hashed twice a
+  second. Now: a count of changes, and the light map only where the lights were and are.
+- **The same picture.** A 300 x 300 map streamed is the very same triangles, to the bit, as built whole (tested by
+  hashing every triangle of every upload). Small maps (the ledge, the bothy) and every map with the switch off are
+  built whole, byte for byte as before (the ledge's and the zone maps' buffers were compared before and after).
+
+**Measured here (software rendering, two slow cores; `docs/engine-limits.md`, "After Phase 41"):** a 1600 x 1600 map
+now takes about 0.3 s to enter (5.2 s before), keeps about 1.2 million triangles whatever its size (20.5 million
+before), and draws a frame in about 8 ms (about 950 ms before). What still grows is the number of entities: about 4 ms
+of the 8 is the sprites, their animation and the lights' gathering walking 16,001 of them.
+
+**The copied engine changed** (CLAUDE.md asks it be said): `js/r3d21.js` (the mesh builder takes a rectangle; the
+chunk manager; drawing; the far plane; the light map's partial upload; `R3D.stream()`), and one line of
+`js/light21.js` (the heights' change check). There was no other way in: all of it is inside the renderer's closure.
+
+**Invented, for a ruling:**
+
+- **[PROPOSED] P41-1** The numbers: chunks of 64 cells, streamed past 65,536 cells, kept within the fog distance + 48
+  cells, built at once within 72 cells and else at 6 ms a frame.
+- **[PROPOSED] P41-2** The switch's name and words, "Stream large maps".
+
+**Not done, and not checked:** Z1 as one open map (Phase 42: one 1,536-cell map, no bands, its ground made a piece at a
+time, since a square mile's data takes over half a second to make at once); a coarser mesh for far chunks; culling
+entities by distance. A real GPU and a phone: a million triangles near the eye is fine on a desktop card and should be
+measured on a phone. Feel: whether chunks being built a few a frame ever shows as a hitch on a real machine.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
