@@ -996,6 +996,81 @@ P-T2 to P-T5 are approved. The flame in the hand now fades with its fuel (the re
 Not built: buying (no trader yet; `TORCH38.gain('lantern')` is the hook one calls), bog-pine splints that add fuel, a torch
 burning spores, moths drawn to an open flame (bestiary), and a torch dropped or thrown.
 
+## Phase 39 - the prologue played through
+
+`js/prologue39.js` · `test/prologue39.test.js` · `tools/prologueshots.js` (stills 151 to 163, clip
+`150_the_prologue.gif`) · switch: Options > "The prologue's end"
+
+The prologue's pieces (Phases 5, 11, 13, 14, 15 and 38) had each been tested alone. `test/prologue39.test.js` plays
+them in a row in headless Chromium with a player's inputs: the page's own keyboard (E, X, Escape, A held down), W and
+the arrow keys through `G.keys` one frame at a time (an autopilot in `test/harness.js` that walks and turns as a
+player does), and the real buttons (Begin, the card, the dialogue's topics and answers, her arm, Goodbye, Walk on). It
+stops the page's frame loop so the run is the same every time. Nothing in the run sets a flag the game should set;
+the one exception is a separate check after the run, which holds the bloom still to test the carry on the ramp alone.
+
+The beats, and what each one does now:
+
+| Beat | Phase | Result |
+| --- | --- | --- |
+| Begin, choose the deserter's card | 10 | Works. On the ledge with a fresh 240 s torch, no errand yet. |
+| The two-second look at the Slagcrown | 11 | Works. The errand is given at 2 s, not at 1. |
+| Walk down the ramp to the door, the carter behind | 13 | Works. He follows and stands within 2 cells when you stop; the bloom stays at its post. |
+| The door and its bar | 5 | Works. E goes in; he waits outside; Marget says to bar it; E at the bar drops it. |
+| Marget gives you her lantern | 38 | Works. The first E: the lantern in hand, the torch in the pack. |
+| Her promise and the Account | 14 | Works. The south, then Answer, then Give your word: the Account's first entry, under your name. X opens it. |
+| Her arm, out of the door | 15 | **Was broken; fixed.** |
+| The carter told to follow again | 13 | **Was broken; fixed.** |
+| The carry up the ramp, the look back, the title | 15 | **Was broken (twice); fixed.** |
+| The end | 39 | **Had none; added.** |
+
+### Faults found by playing, and fixed (each test-first, in the phase that owns it)
+
+1. **A did not walk left** (`js/account14.js`). The Account opened on A from a capture listener that swallowed the key,
+   so the W A S D walk could not strafe left, and A opened the book instead. The Account is on X now, and it gives way
+   to any key bound in the controls. The BOOK page says "The Account opens with X" (`js/panel10.js`).
+2. **E with her on your arm always let her go** (`js/carry15.js`). With Marget on your arm, E at the bothy's door let go
+   of her instead of lifting the bar or opening the door, so she could not be brought out: the prologue could not be
+   finished. E at the carter let go of her too. Now E does what it would do for what is in front of you (a door and its
+   bar, another person, the bar itself) and lets go only when she or nothing is there. Things on the ground are left:
+   both hands are full. (`js/door5.js` exposes its doorway rule as `DOOR5.doorway()` so the carry can ask it.)
+3. **Out of the door, she was left in a corner of the map** (`js/carry15.js`). Her place beside you was blocked by the
+   carter waiting outside, so she kept the place she had inside the bothy, which on the ledge is a far corner. Now a
+   blocked place tries the other side, beside you, then behind.
+4. **The title came at the foot of the ramp** (`js/carry15.js`). It fired at (87.5, 33.2), on the shelf, the moment
+   you came out with her. The bible: "At the top she turns". It now fires where the ramp comes up onto the ledge
+   (`CARRY15.atTop`). `test/carry15.test.js` checks the foot does not start it.
+5. **The carry locked on the ramp** (`js/carry15.js`; found by the clip's run, not the test's). Turning on the ramp
+   with her, her new place was judged from her own last place a step below, as the engine judges a walker, so it was
+   always too high; she was left behind, then put where you stood, and as she was solid neither of you could move
+   again. Now her place is judged from your feet (she is on your arm), and on your arm she is not solid.
+
+### Added
+
+- **The prologue's end** [PROPOSED]: after the title, a card with the run's numbers, then Walk on. Its words: *The
+  ledge is behind you.* / *Marget Sayle is on your arm. The Bell Road goes south from here.* / *On the road: 1 day.* /
+  *The lantern: 9 of 18 minutes of oil, and 2 flasks in the pack.* (or *No lantern.*) / *The torch: 4 of 4 minutes of
+  pitch.* (or *The torch is spent.*) / *Who lived: ...* / *Written in the roll: ...* (or *Nobody was written in the
+  roll.*) / *The walk south to Wexhaven is the first leg on the Chart. It is not built yet.* / button *Walk on*. Days
+  count from the day you began (`G.flags.la_day0`); who lived reads the company roll (Phase 12), the carter's own state
+  (Phase 13) and whether Marget is out. Shown once (`G.flags.la_prologue_end`). Off, the title ends the prologue as
+  Phase 15 left it; the card is a page, not a picture, so the frame is the same on and off (tested by hash).
+- **[PROPOSED] P39-1** The Account's key is X (A walks).
+- **[PROPOSED] P39-2** E while carrying acts on a door, the bar or another person; on her or on nothing it lets go.
+
+### Not done, and what needs a person
+
+- **The bloom and the carry, for a ruling.** Carrying her, your step is 3.4 loud and you walk at 0.65 of a pace, about
+  1.7 cells a second; the bloom shambles at 1.9. Every way from the door to the ramp passes within its hearing of its
+  post at the ramp's foot, so it hears the carry and follows you up the ramp. In the test's run it never reached us; in
+  the clip's run, where we stopped half way up for a still, it clawed once (90 to 58). When the title comes it is a
+  step behind you, and the world is held while the title and the card are up. Whether that is the dread wanted, or
+  whether the bloom should give up at the top, is a ruling for the owner; nothing here changes it.
+- Feel, timing and sound: whether the two-second look reads as a look, whether the walk and the carry's pace feel
+  right, whether the bar's sound and the knock land, how long the title should hold. Software rendering cannot show any
+  of that.
+- Only the deserter's run is played. The other seven cards, co-op, a dead carter and a refused promise are not.
+- The walk south (the Chart's first leg) is not built.
+
 ## Engine limits (for O15)
 
 `tools/limits.js` · `docs/engine-limits.md` (the table and the reasoning) · `docs/engine-limits.json` (raw numbers) ·

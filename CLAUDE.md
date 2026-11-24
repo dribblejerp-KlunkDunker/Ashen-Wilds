@@ -14,7 +14,7 @@ out (decision D14). That repository is read-only for this work: read it, never c
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
-Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You start with a torch; a lantern is found or bought (`js/lantern7.js`, `js/torch38.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`).
+Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You start with a torch; a lantern is found or bought (`js/lantern7.js`, `js/torch38.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`). The prologue plays through from Begin to its end card (`js/prologue39.js`, `test/prologue39.test.js`).
 
 ## The owner's rules
 
@@ -52,6 +52,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/panel10.test.js --no-browser
     node test/hearth27.test.js --no-browser
     node test/torch38.test.js --no-browser
+    node test/prologue39.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node tools/pwa/precache.js --check                # the offline list is current
@@ -71,6 +72,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node test/panel10.test.js
     NODE_PATH=$(npm root -g) node test/hearth27.test.js
     NODE_PATH=$(npm root -g) node test/torch38.test.js
+    NODE_PATH=$(npm root -g) node test/prologue39.test.js  # the whole prologue, played with a player's inputs
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -80,6 +82,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node tools/weathershots.js docs/screenshots  # ashfall and sleet: stills and a clip
     NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip (Phase 38 held off)
     NODE_PATH=$(npm root -g) node tools/torchshots.js docs/screenshots    # the torch, the found lantern: stills and a clip
+    NODE_PATH=$(npm root -g) node tools/prologueshots.js docs/screenshots # the prologue played through: stills 151-163, clip 150
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
@@ -149,6 +152,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/touchlink36.js    Support, not a phase: the phone link; ?touch/?mobile or a coarse pointer starts touch controls
     js/endings37.js      Phase 37: the five endings and the player's last line
     js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
+    js/prologue39.js     Phase 39: the prologue played through; its end card after the title (days, oil, pitch, who lived)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
 
 Useful facts, all checked in this repository:
@@ -193,6 +197,12 @@ Useful facts, all checked in this repository:
 - Anything that falls (ash, sleet) should stop at roofs: read `EAVES78.shelter(map)` (heights in game units, times
   `R3D.ZK`), place each flake in the world along the view ray, skip it under a roof, and write `gl_FragDepth` so walls
   hide it. `js/weather6.js` does all three. `R3D.passes()` returns copies; to wrap a pass, use `R3D.getPass(name)`.
+- To play the game as a player does, use `HN.autopilot(page)` (test/harness.js): it stops the page's frame loop and gives
+  `__P39.walkTo(x, y, r)` and `__P39.face(a)`, which press W and the arrow keys through `G.keys` one frame at a time. Press
+  E, X, Escape and the rest with `page.keyboard`, and click the real buttons. `test/prologue39.test.js` plays the prologue.
+- With Marget on your arm (`CARRY15.state().on`), E acts on a door, the bar or another person, and lets her go only when
+  she or nothing is in front (`CARRY15.aimed()`). On your arm she is not solid, and her place is judged from your feet.
+  The look back fires at the top of the ramp (`CARRY15.atTop`). The Account opens with X, not A (A walks).
 - The weather on this game's maps is `WEATHER6`, not the engine's `Weather` (held 'clear' since Phase 1). It reaches
   the light through `Engine.setWeather`, the fog through `R3D.on('frame')`, walking through `playerMove` and the
   bloom through `BLOOM4.setSenses`.

@@ -100,7 +100,7 @@ const DOOR5 = (() => {
   }
 
   // ---------------------------------------------------------------- in the game
-  const ST = { bar: null, sayAt: 0, knocks: 0, leans: 0, sounded: 0 };
+  const ST = { bar: null, sayAt: 0, knocks: 0, leans: 0, sounded: 0, doorway: null };
   const barred = () => typeof G !== 'undefined' && !!(G.flags && G.flags.la_barred);
   function setBar(on) {
     if (!G.flags) G.flags = {};
@@ -166,6 +166,8 @@ const DOOR5 = (() => {
       }
       return null;
     };
+    // Phase 39: the carry (js/carry15.js) asks whether E is aimed at this door
+    ST.doorway = doorway;
     const _interact = typeof interact === 'function' ? interact : null;
     if (_interact) interact = function () {
       try {
@@ -199,6 +201,6 @@ const DOOR5 = (() => {
     return true;
   }
   const wired = wire();
-  return { PLACE, TX, paintBarSet, paintBarLean, barred, setBar, state: () => ST, knockSound, wired };
+  return { PLACE, TX, paintBarSet, paintBarLean, barred, setBar, state: () => ST, doorway: () => (ST.doorway ? ST.doorway() : null), knockSound, wired };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = DOOR5;
