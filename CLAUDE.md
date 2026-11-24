@@ -82,6 +82,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
+    NODE_PATH=$(npm root -g) node tools/limits.js                         # how big one map can be (docs/engine-limits.md)
 
 Open every PNG `tools/shots.js` writes. Stills have caught real faults here: a seam in the smoke
 running through the sun, a bothy lit like a parlour, and a bare lane in the frost tile that ruled

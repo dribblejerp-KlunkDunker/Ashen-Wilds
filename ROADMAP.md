@@ -994,6 +994,25 @@ P-T2 to P-T5 are approved. The flame in the hand now fades with its fuel (the re
 Not built: buying (no trader yet; `TORCH38.gain('lantern')` is the hook one calls), bog-pine splints that add fuel, a torch
 burning spores, moths drawn to an open flame (bestiary), and a torch dropped or thrown.
 
+## Engine limits (for O15)
+
+`tools/limits.js` · `docs/engine-limits.md` (the table and the reasoning) · `docs/engine-limits.json` (raw numbers) ·
+still 150. Not a phase: a measurement. No game code changed.
+
+O15 wants each region to be one walkable zone of about a square mile, about 1600 x 1600 cells (P33). The tool builds
+ledge-like test maps from 96 to 1600 cells a side, with a place every 115 cells and decos between, loads each in
+headless Chromium and times the mesh, the frame, the whole-map checks, memory and the save. At 1600 x 1600: 20 million
+triangles, 1.3 GB of vertex buffers, a 5 s mesh build, and about 50 ms a frame of whole-map checks in `js/r3d21.js`
+(a hash of every cell, a light map of every cell uploaded every frame) before anything is drawn. Saves and `update()`
+are not the limit.
+
+- **[PROPOSED] E1** The largest single map is 384 x 384 (512 x 512 at most).
+- **[PROPOSED] E2** Build each region now as connected maps of at most 384 x 384, joined at natural thresholds (a pass,
+  a gate, a stair), and make chunked streaming in `js/r3d21.js` a numbered phase so that a region can later become one
+  map. A coarser cell is not recommended (a person is one cell tall); a smaller zone is the fallback.
+
+Software rendering cannot show real GPU speed or memory limits; run the tool on real hardware before ruling on E1.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
