@@ -22,7 +22,7 @@ jobs:
           node-version: 22
       - name: Every script parses
         run: |
-          for f in js/*.js sw.js test/*.js tools/*.js tools/pwa/*.js tools/look/*.js; do node --check "$f"; done
+          for f in js/*.js sw.js test/*.js tools/*.js tools/pwa/*.js tools/look/*.js tools/lore/*.js; do node --check "$f"; done
       - name: Phase 0, the fork (no browser)
         run: node test/fork0.test.js --no-browser
       - name: Phase 1, the ledge (no browser)
@@ -69,6 +69,8 @@ jobs:
         run: node test/endings37.test.js --no-browser
       - name: Phase 39, the prologue played through (no browser)
         run: node test/prologue39.test.js --no-browser
+      - name: The lore pipeline, places (the gazetteer's 133 parse, docs/data/places.json is current)
+        run: node test/lore-places.test.js --no-browser
       - name: The phase 19-23 wires against fake G (no browser)
         run: node test/wires19-23.test.js --no-browser
       - name: The highland materials look test (no browser)

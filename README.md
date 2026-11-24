@@ -146,6 +146,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/touchlink36.js` | Phase 36 support: the phone link that starts touch controls from `?touch`/`?mobile` or a coarse pointer |
 | `js/actone33.js`, `js/acttwo34.js`, `js/sidearcs35.js`, `js/actthree36.js`, `js/endings37.js` | Phases 33-37: the Acts and the endings as content and state engines |
 | `tools/look/` | Look tests the page never loads: the quarry-troll, modelled |
+| `tools/lore/`, `docs/data/` | The lore pipeline (`docs/pipeline.md`): tools that read the world bible into data the game will load; its first slice writes `docs/data/places.json` |
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
@@ -179,6 +180,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/actthree36.test.js --no-browser
     node test/endings37.test.js --no-browser
     node test/prologue39.test.js --no-browser
+    node test/lore-places.test.js --no-browser      # the lore pipeline: places
     node tools/pwa/precache.js --check
     node tools/icons.js --check
 
