@@ -51,8 +51,22 @@ jobs:
         run: node test/combat23.test.js --no-browser
       - name: Phase 32, the bestiary (no browser)
         run: node test/bestiary32.test.js --no-browser
+      - name: Phase 27, the hearth (no browser)
+        run: node test/hearth27.test.js --no-browser
+      - name: Phase 36 support, the phone link (no browser)
+        run: node test/touchlink36.test.js --no-browser
       - name: Phase 29, the chill (no browser)
         run: node test/chill29.test.js --no-browser
+      - name: Phase 33, Act I (no browser)
+        run: node test/actone33.test.js --no-browser
+      - name: Phase 34, the three courts (no browser)
+        run: node test/acttwo34.test.js --no-browser
+      - name: Phase 35, the side arcs (no browser)
+        run: node test/sidearcs35.test.js --no-browser
+      - name: Phase 36, the eleven days (no browser)
+        run: node test/actthree36.test.js --no-browser
+      - name: Phase 37, the endings (no browser)
+        run: node test/endings37.test.js --no-browser
       - name: The phase 19-23 wires against fake G (no browser)
         run: node test/wires19-23.test.js --no-browser
       - name: The highland materials look test (no browser)
@@ -84,6 +98,7 @@ jobs:
           - { name: 'Phase 9, dread', test: dread9 }
           - { name: 'Phase 10, the panel and creation', test: panel10 }
           - { name: 'Phase 19, the co-op cut (two tabs)', test: sync19 }
+          - { name: 'Phase 27, the hearth', test: hearth27 }
           - { name: 'Phase 32, the bestiary', test: bestiary32 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0

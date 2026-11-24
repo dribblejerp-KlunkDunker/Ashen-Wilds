@@ -16,6 +16,10 @@ commit `f2b3990`). Same owner as this repository. That repository declares no op
 
 Its code was written with AI assistance (its own credits record commits by Claude and Codebuff).
 
+The phase files for 11 to 37 are this repository's own; the complete list is in `CLAUDE.md` and
+`PANEL10.PHASE_FILES`. `js/touchlink36.js` is this repository's own phone-link support, not a
+phase file and not engine code.
+
 **None of its pictures are here.** Its embedded textures, sprites and hands (`js/assets.js`), its
 creation faces, its prop renders and its app icons were removed in Phase 2 at the owner's ruling.
 Some of the engine's own code still draws things procedurally (frames, roofs, ceilings, weather);
