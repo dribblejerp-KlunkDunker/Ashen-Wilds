@@ -280,6 +280,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   regions, something to find every 30 to 60 seconds of walking, and not on the small side.
 - **O16:** the zones in `docs/worldbuilding/atlas/10-zones.md` (ZP1 to ZP30) are approved: eleven zones, maps of at most
   384 x 384, great complexes at true size in their own maps, a zone's road days booked when you leave it.
+- **O17:** one map is at most 384 x 384 cells (512 at most); a region is connected maps joined at natural thresholds
+  until the renderer streams chunks (`docs/engine-limits.md`).
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

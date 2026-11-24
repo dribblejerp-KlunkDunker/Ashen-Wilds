@@ -72,7 +72,7 @@
      "as": "gate",
      "label": "The Hoar beyond: off this plan",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1008
+     "line": 1009
     }
    ],
    "people": [],
@@ -302,7 +302,7 @@
      "as": "atlas",
      "label": "The Exchange",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1095
+     "line": 1096
     }
    ],
    "people": [],
@@ -336,7 +336,7 @@
      "as": "atlas",
      "label": "The Limewalks",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1098
+     "line": 1099
     }
    ],
    "people": [],
@@ -372,7 +372,7 @@
      "as": "atlas",
      "label": "The Bloom Quarter's wall",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1097
+     "line": 1098
     }
    ],
    "people": [],
@@ -408,7 +408,7 @@
      "as": "complex",
      "label": "The Lazaret Rocks: Keeper's Rock, the Ring",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1091
+     "line": 1092
     }
    ],
    "people": [
@@ -570,7 +570,7 @@
      "as": "complex",
      "label": "The Garden of Hours, where the Guest lives",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1233
+     "line": 1234
     }
    ],
    "people": [
@@ -686,7 +686,7 @@
      "as": "atlas",
      "label": "Halsing town: the Company's offices, the lanes, the chapels",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1289
+     "line": 1290
     }
    ],
    "people": [
@@ -868,7 +868,7 @@
      "as": "atlas",
      "label": "Pennick",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1100
+     "line": 1101
     }
    ],
    "people": [],
@@ -902,7 +902,7 @@
      "as": "atlas",
      "label": "Wendlemouth",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1108
+     "line": 1109
     }
    ],
    "people": [],
@@ -1084,7 +1084,7 @@
      "as": "atlas",
      "label": "The Burned Quay and Gytha Marrin's chair",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 869
+     "line": 870
     }
    ],
    "people": [
@@ -1122,7 +1122,7 @@
      "as": "complex",
      "label": "The Constance",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 881
+     "line": 882
     }
    ],
    "people": [],
@@ -1234,7 +1234,7 @@
      "as": "gate",
      "label": "The Marrow Passes: the Chart (C9)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 994
+     "line": 995
     }
    ],
    "people": [],
@@ -1332,7 +1332,7 @@
      "as": "gate",
      "label": "The Salt Trace's mouth: the Chart (C1)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 455
+     "line": 456
     },
     {
      "zone": "Z5",
@@ -1341,7 +1341,7 @@
      "as": "gate",
      "label": "The Salt Trace on to Wexhaven (C2)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 776
+     "line": 777
     },
     {
      "zone": "Z6",
@@ -1350,7 +1350,7 @@
      "as": "gate",
      "label": "The Salt Trace: from Whitlow (C2)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 856
+     "line": 857
     }
    ],
    "people": [
@@ -1390,7 +1390,7 @@
      "as": "atlas",
      "label": "The Corpseway's parish end, its stone cross",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 427
+     "line": 428
     },
     {
      "zone": "Z3",
@@ -1399,7 +1399,7 @@
      "as": "gate",
      "label": "The Corpseway: on into Z4",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 430
+     "line": 431
     },
     {
      "zone": "Z4",
@@ -1408,7 +1408,7 @@
      "as": "gate",
      "label": "The Corpseway: from the Watchhouse (Z3)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 533
+     "line": 534
     }
    ],
    "people": [
@@ -1448,7 +1448,7 @@
      "as": "gate",
      "label": "The dry ways: on into Z4",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 437
+     "line": 438
     },
     {
      "zone": "Z4",
@@ -1457,7 +1457,7 @@
      "as": "gate",
      "label": "The dry ways: from the Cold Passing (Z3)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 569
+     "line": 570
     },
     {
      "zone": "Z4",
@@ -1466,7 +1466,7 @@
      "as": "gate",
      "label": "The dry ways east: to the Nailhouse (C6)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 577
+     "line": 578
     }
    ],
    "people": [],
@@ -1504,7 +1504,7 @@
      "as": "atlas",
      "label": "Reedwake's cut: the leaning post, the empty bell bracket",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 544
+     "line": 545
     },
     {
      "zone": "Z4",
@@ -1513,7 +1513,7 @@
      "as": "atlas",
      "label": "Reedwake: the Rows, the chapel barge, the bread posts",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 545
+     "line": 546
     }
    ],
    "people": [],
@@ -1576,7 +1576,7 @@
      "as": "atlas",
      "label": "Bellwether Yard",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 426
+     "line": 427
     }
    ],
    "people": [
@@ -1615,7 +1615,7 @@
      "as": "atlas",
      "label": "The Nine Stakes",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 555
+     "line": 556
     }
    ],
    "people": [
@@ -1659,7 +1659,7 @@
      "as": "complex",
      "label": "Brackenreach, the Causeway's end and the old toll post",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 454
+     "line": 455
     }
    ],
    "people": [
@@ -1698,7 +1698,7 @@
      "as": "atlas",
      "label": "Merewick",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 548
+     "line": 549
     }
    ],
    "people": [
@@ -1734,7 +1734,7 @@
      "as": "complex",
      "label": "Low Harrow: the embankment",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 573
+     "line": 574
     }
    ],
    "people": [],
@@ -1772,7 +1772,7 @@
      "as": "complex",
      "label": "Dunmere: the Lee, the Mere Causeway, the gate",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 558
+     "line": 559
     }
    ],
    "people": [
@@ -1813,7 +1813,7 @@
      "as": "atlas",
      "label": "Alder Fold",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 568
+     "line": 569
     }
    ],
    "people": [],
@@ -1849,7 +1849,7 @@
      "as": "atlas",
      "label": "Tavin's road station",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 565
+     "line": 566
     }
    ],
    "people": [],
@@ -1893,7 +1893,7 @@
      "as": "atlas",
      "label": "Stakeby",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 575
+     "line": 576
     }
    ],
    "people": [],
@@ -1936,7 +1936,7 @@
      "as": "atlas",
      "label": "The toll house",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 445
+     "line": 446
     }
    ],
    "people": [],
@@ -1977,7 +1977,7 @@
      "as": "atlas",
      "label": "The Leaning Team",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 439
+     "line": 440
     }
    ],
    "people": [],
@@ -2018,7 +2018,7 @@
      "as": "atlas",
      "label": "The Cold Passing",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 434
+     "line": 435
     }
    ],
    "people": [],
@@ -2059,7 +2059,7 @@
      "as": "complex",
      "label": "The Drowned Lantern",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 450
+     "line": 451
     }
    ],
    "people": [
@@ -2107,7 +2107,7 @@
      "as": "atlas",
      "label": "Moss Hythe",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 415
+     "line": 416
     }
    ],
    "people": [
@@ -2143,7 +2143,7 @@
      "as": "atlas",
      "label": "Saint Ebbe's at Wick Hollow",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 442
+     "line": 443
     }
    ],
    "people": [],
@@ -2187,7 +2187,7 @@
      "as": "atlas",
      "label": "Saint Leof's at Crake Ford",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 562
+     "line": 563
     }
    ],
    "people": [],
@@ -2251,7 +2251,7 @@
      "as": "complex",
      "label": "Saint Orra's Steps: the Foot Gate",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 541
+     "line": 542
     }
    ],
    "people": [
@@ -2297,7 +2297,7 @@
      "as": "complex",
      "label": "The Wayfarer's Watchhouse",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 420
+     "line": 421
     }
    ],
    "people": [
@@ -2345,7 +2345,7 @@
      "as": "atlas",
      "label": "The Outside Fire",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 419
+     "line": 420
     }
    ],
    "people": [],
@@ -2403,7 +2403,7 @@
      "as": "atlas",
      "label": "The Naming Stone",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 423
+     "line": 424
     }
    ],
    "people": [],
@@ -2437,7 +2437,7 @@
      "as": "atlas",
      "label": "The Drowned Graves",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 424
+     "line": 425
     }
    ],
    "people": [],
@@ -2475,7 +2475,7 @@
      "as": "atlas",
      "label": "Withy Bottom (the Spore Hollow)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 422
+     "line": 423
     }
    ],
    "people": [],
@@ -2513,7 +2513,7 @@
      "as": "atlas",
      "label": "The Causeway Delph: keep still",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 418
+     "line": 419
     }
    ],
    "people": [],
@@ -2551,7 +2551,7 @@
      "as": "atlas",
      "label": "The Long Stable: the ogre",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 417
+     "line": 418
     }
    ],
    "people": [],
@@ -2611,7 +2611,7 @@
      "as": "atlas",
      "label": "The Roofed Gallery",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 421
+     "line": 422
     }
    ],
    "people": [],
@@ -2654,7 +2654,7 @@
      "as": "complex",
      "label": "The tower yard and the Causeway tower",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 433
+     "line": 434
     }
    ],
    "people": [],
@@ -2727,7 +2727,7 @@
      "as": "atlas",
      "label": "The Last Gardens",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 316
+     "line": 317
     }
    ],
    "people": [
@@ -2773,7 +2773,7 @@
      "as": "complex",
      "label": "Halwen House, the carriage drive",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 317
+     "line": 318
     }
    ],
    "people": [
@@ -2829,7 +2829,7 @@
      "as": "atlas",
      "label": "The Old Charcoal Lodge and its burning floors",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 315
+     "line": 316
     }
    ],
    "people": [],
@@ -2872,7 +2872,7 @@
      "as": "atlas",
      "label": "Darnel Cross",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 308
+     "line": 309
     }
    ],
    "people": [],
@@ -2915,7 +2915,7 @@
      "as": "atlas",
      "label": "The Split Kiln",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 302
+     "line": 303
     }
    ],
    "people": [],
@@ -2951,7 +2951,7 @@
      "as": "atlas",
      "label": "The Bell-Tender's House: the fifth tower, the quarry junction",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 295
+     "line": 296
     }
    ],
    "people": [
@@ -2996,7 +2996,7 @@
      "as": "complex",
      "label": "Rook's Stair, the upper gate",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 297
+     "line": 298
     }
    ],
    "people": [
@@ -3045,7 +3045,7 @@
      "as": "atlas",
      "label": "The Roofed Mile, the north mouth",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 285
+     "line": 286
     },
     {
      "zone": "Z2",
@@ -3054,7 +3054,7 @@
      "as": "atlas",
      "label": "The Roofed Mile, the south mouth",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 290
+     "line": 291
     }
    ],
    "people": [],
@@ -3098,7 +3098,7 @@
      "as": "atlas",
      "label": "Saint Vey's Fold",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 282
+     "line": 283
     }
    ],
    "people": [
@@ -3141,7 +3141,7 @@
      "as": "atlas",
      "label": "The Bent Span and its warm gorge",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 277
+     "line": 278
     }
    ],
    "people": [],
@@ -3182,7 +3182,7 @@
      "as": "complex",
      "label": "Coldbarrow, its north gate (SOUTH painted inside)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 155
+     "line": 156
     },
     {
      "zone": "Z1",
@@ -3191,7 +3191,7 @@
      "as": "gate",
      "label": "Coldbarrow's south road: on into Z2",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 156
+     "line": 157
     },
     {
      "zone": "Z2",
@@ -3200,7 +3200,7 @@
      "as": "gate",
      "label": "Coldbarrow's south road: from Z1",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 276
+     "line": 277
     }
    ],
    "people": [],
@@ -3298,7 +3298,7 @@
      "as": "atlas",
      "label": "The Dry Table",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 661
+     "line": 662
     }
    ],
    "people": [
@@ -3336,7 +3336,7 @@
      "as": "atlas",
      "label": "Milebank, the north end",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 665
+     "line": 666
     },
     {
      "zone": "Z4b",
@@ -3345,7 +3345,7 @@
      "as": "atlas",
      "label": "Milebank, the south end and its waiting ground",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 671
+     "line": 672
     }
    ],
    "people": [
@@ -3383,7 +3383,7 @@
      "as": "atlas",
      "label": "The Red Stitch",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 667
+     "line": 668
     }
    ],
    "people": [
@@ -3421,7 +3421,7 @@
      "as": "atlas",
      "label": "The Peg Houses and the Crooked Pair",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 663
+     "line": 664
     }
    ],
    "people": [
@@ -3457,7 +3457,7 @@
      "as": "atlas",
      "label": "The Peg Houses and the Crooked Pair",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 663
+     "line": 664
     }
    ],
    "people": [
@@ -3493,7 +3493,7 @@
      "as": "atlas",
      "label": "The Three Mouths",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 673
+     "line": 674
     }
    ],
    "people": [],
@@ -3529,7 +3529,7 @@
      "as": "gate",
      "label": "The Long Cut's tail, at the river",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 680
+     "line": 681
     }
    ],
    "people": [],
@@ -3566,7 +3566,7 @@
      "as": "atlas",
      "label": "The Four Steps",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 677
+     "line": 678
     }
    ],
    "people": [],
@@ -3627,7 +3627,7 @@
      "as": "atlas",
      "label": "The Drowned Orchard and its five living trees",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 685
+     "line": 686
     }
    ],
    "people": [],
@@ -3661,7 +3661,7 @@
      "as": "atlas",
      "label": "Far Bank Gate and the Return Shelf",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 682
+     "line": 683
     }
    ],
    "people": [
@@ -3697,7 +3697,7 @@
      "as": "atlas",
      "label": "Far Bank Gate and the Return Shelf",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 682
+     "line": 683
     }
    ],
    "people": [
@@ -3733,7 +3733,7 @@
      "as": "atlas",
      "label": "The Reed Yard",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 688
+     "line": 689
     }
    ],
    "people": [
@@ -3769,7 +3769,7 @@
      "as": "atlas",
      "label": "The Three Steps",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 687
+     "line": 688
     }
    ],
    "people": [
@@ -3805,7 +3805,7 @@
      "as": "atlas",
      "label": "The Bent Fence",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 686
+     "line": 687
     }
    ],
    "people": [],
@@ -3846,7 +3846,7 @@
      "as": "complex",
      "label": "The Slagcrown: the outer gate and barbican",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 978
+     "line": 979
     }
    ],
    "people": [
@@ -3898,7 +3898,7 @@
      "as": "atlas",
      "label": "The Greystair fork",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 130
+     "line": 131
     },
     {
      "zone": "Z1",
@@ -3907,7 +3907,7 @@
      "as": "gate",
      "label": "Greystair's lower gate (Z7)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 160
+     "line": 161
     },
     {
      "zone": "Z7",
@@ -3916,7 +3916,7 @@
      "as": "complex",
      "label": "Greystair: the upper gate",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 985
+     "line": 986
     }
    ],
    "people": [
@@ -3962,7 +3962,7 @@
      "as": "complex",
      "label": "Dunmarrow: the approach, under three towers",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 988
+     "line": 989
     },
     {
      "zone": "Z7",
@@ -3971,7 +3971,7 @@
      "as": "atlas",
      "label": "Dunmarrow's one gate",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 989
+     "line": 990
     }
    ],
    "people": [],
@@ -4014,7 +4014,7 @@
      "as": "complex",
      "label": "Hob's Height and the Bell-Spire",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 966
+     "line": 967
     }
    ],
    "people": [
@@ -4060,7 +4060,7 @@
      "as": "atlas",
      "label": "Kell Tor: the blank gate of dressed stone",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 991
+     "line": 992
     }
    ],
    "people": [],
@@ -4129,7 +4129,7 @@
      "as": "atlas",
      "label": "The Bloom drifts, the east hollow",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 131
+     "line": 132
     },
     {
      "zone": "Z1",
@@ -4138,7 +4138,7 @@
      "as": "atlas",
      "label": "The Bloom drifts, the west hollows",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 138
+     "line": 139
     }
    ],
    "people": [],
@@ -4285,7 +4285,7 @@
      "as": "complex",
      "label": "The ledge (la_ledge)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 126
+     "line": 127
     }
    ],
    "people": [],
@@ -4319,7 +4319,7 @@
      "as": "complex",
      "label": "Marget Sayle's bothy (la_bothy)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 127
+     "line": 128
     }
    ],
    "people": [
@@ -4367,7 +4367,7 @@
      "as": "atlas",
      "label": "The Spiral Fold",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 311
+     "line": 312
     }
    ],
    "people": [],
@@ -4451,7 +4451,7 @@
      "as": "atlas",
      "label": "The Ringing Field",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 969
+     "line": 970
     }
    ],
    "people": [
@@ -4500,7 +4500,7 @@
      "as": "gate",
      "label": "The Iron Stair's Foot (Z7)",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 161
+     "line": 162
     },
     {
      "zone": "Z7",
@@ -4509,7 +4509,7 @@
      "as": "atlas",
      "label": "The Iron Stair's Head: down to Z1",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 986
+     "line": 987
     }
    ],
    "people": [],
@@ -4555,7 +4555,7 @@
      "as": "complex",
      "label": "Hollowmere Dam",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 305
+     "line": 306
     }
    ],
    "people": [],
@@ -4637,7 +4637,7 @@
      "as": "atlas",
      "label": "The Cold Edge and the frozen herd",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 1007
+     "line": 1008
     }
    ],
    "people": [],
@@ -4681,7 +4681,7 @@
      "as": "atlas",
      "label": "The Kings' Barrows, the first four",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 787
+     "line": 788
     }
    ],
    "people": [],
@@ -4727,7 +4727,7 @@
      "as": "complex",
      "label": "Whitlow Grange",
      "file": "docs/worldbuilding/atlas/10-zones.md",
-     "line": 774
+     "line": 775
     }
    ],
    "people": [],
