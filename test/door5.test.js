@@ -130,7 +130,8 @@ check(/js\/bloom4\.js\?v=\d+"><\/script>\s*<script src="js\/door5\.js\?v=\d+"><\
       out.err = DOOR5.state().err || Bm.gl().tickErr || null;
       return out;
     });
-    check(r.doors.join(' ') === 'la_ledge>la_bothy la_bothy>la_ledge', 'the bloom knows both ways through Marget Sayle\'s door');
+    // Phase 40 adds the ways down from the ledge and through the cut below it (js/threshold40.js), after these two
+    check(r.doors.slice(0, 2).join(' ') === 'la_ledge>la_bothy la_bothy>la_ledge', 'the bloom knows both ways through Marget Sayle\'s door');
     check(r.pause >= 3, 'and the door asks it to stand ' + r.pause + ' s before it tries the latch, so a player who has just come in can find the bar');
     check(r.inside === 'la_bothy' && r.told, 'the first time you come in, Marget Sayle tells you to put the bar across');
     check(r.bar.flag && r.bar.sprite === 'la_bar_set' && r.bar.said && r.bar.noise > 0.5, 'use the bar and it drops across the door, and that is not silent (noise +' + r.bar.noise.toFixed(1) + ')');

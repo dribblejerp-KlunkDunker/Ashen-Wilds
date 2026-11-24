@@ -45,7 +45,7 @@ Recorded for each size:
 Machine: a cloud box with two cores of an Intel Xeon at 2.1 GHz. The GPU is software: Chromium's ANGLE on Mesa
 llvmpipe (the harness asks for SwiftShader; ANGLE chose llvmpipe). The 3D view renders at 1280 x 800.
 
-![The 512 x 512 test map, a patch of bloom caps in the sleet](screenshots/150_limits_512.png)
+![The 512 x 512 test map, a patch of bloom caps in the sleet](screenshots/149_limits_512.png)
 
 ## The numbers
 

@@ -75,7 +75,8 @@ check(files.every((f) => sw.includes(f)) && sw.includes('img/title.png'), 'it ho
       try { out.save = typeof saveGame === 'function' ? JSON.stringify(saveGame()).length : (typeof snapshotGame === 'function' ? JSON.stringify(snapshotGame()).length : -1); } catch (e) { out.saveErr = String(e); }
       return out;
     });
-    check(r.maps.length === 2 && r.maps.every((id) => /^la_/.test(id)), 'after Begin, none of the engine\'s old maps is in the world: ' + r.maps.join(', '));
+    // Phase 40 adds the highland edge's first two maps (la_z1_2_0, la_z1_2_1); still nothing of the engine's own
+    check(r.maps.length === 4 && r.maps.every((id) => /^la_/.test(id)), 'after Begin, none of the engine\'s old maps is in the world: ' + r.maps.join(', '));
     check(r.r3d && r.state === 'play' && r.hp > 0 && r.todMoved, 'thirty seconds of play run clean, and the clock moves');
     check(new Set([r.noon, r.dusk, r.midnight]).size === 3, 'noon, dusk and midnight are three different pictures');
     check(r.weather.includes('rain') && !r.weatherErr && r.rain !== r.dry, 'the engine\'s rain can be called for on the ledge, and it changes the picture' + (r.weatherErr ? ': ' + r.weatherErr : ''));

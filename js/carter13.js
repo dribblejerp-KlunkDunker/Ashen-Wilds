@@ -31,6 +31,10 @@ const CARTER13 = (() => {
   };
   const MODES = ['follow', 'hold', 'wait', 'down', 'dead'];
   const STOP = 1.2, SPEED = 2.2, BLEED = 20;
+  // Phase 40 [PROPOSED]: behind by more than CATCH cells, he jogs at JOG cells a second to close up (a walker here goes
+  // at about 3.4 on level ground, more than P33's 2.6, so a jog has to be faster than that)
+  const CATCH = 5, JOG = 4;
+  const TRAIL = [];
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   function make(o) {
     const p = o || {}, hp = Math.max(1, Math.round(p.hp || 120));
@@ -96,21 +100,34 @@ const CARTER13 = (() => {
     if (s.mode === 'down' || s.mode === 'dead') s.hp = 0;
     s.bleed = Math.max(0, +raw.bleed || 0);
     s.toldFollow = !!raw.toldFollow;
+    // Phase 40: the map he is on, when he has followed you off the ledge (a save from before has none: the ledge)
+    if (typeof raw.map === 'string' && raw.map.length <= 48) s.map = raw.map;
     return s;
   }
 
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false, BODY = null, S = null, namedOther = null;   // null: naming() runs once at the start (audit fix: false skipped it, so the roll kept the card name)
-  const here = () => typeof G !== 'undefined' && G && G.mapId === LEDGE1.LEDGE;
+  // Phase 40: he can follow you off the ledge (js/threshold40.js), so the map he is on is part of his state, and every
+  // map he can be on has a body for him, hidden unless he is there. With no map in his state he is on the ledge.
+  const mapOf = (s) => (s && s.map && typeof G !== 'undefined' && G && G.maps && G.maps[s.map] ? s.map : LEDGE1.LEDGE);
+  const here = () => typeof G !== 'undefined' && G && G.mapId === mapOf(S);
   function state() {
     if (!S && typeof G !== 'undefined' && G && G.flags) S = load(G.flags.la_carter, { x: 79.9, y: 46.2 });
     return S;
   }
   function save() { if (typeof G !== 'undefined' && G && G.flags) G.flags.la_carter = state(); }
-  function body() {
-    if (BODY) return BODY;
-    try { const m = G.maps[LEDGE1.LEDGE]; BODY = m.entities.find((e) => e.id === 'la_carter') || null; } catch (e) { BODY = null; }
-    return BODY;
+  function body(id) {
+    if (!id && BODY && G.maps && G.maps[mapOf(S)] && G.maps[mapOf(S)].entities.includes(BODY)) return BODY;
+    let b = null;
+    try { const m = G.maps[id || mapOf(S)]; b = m.entities.find((e) => e.id === 'la_carter') || null; } catch (e) { b = null; }
+    if (!id) BODY = b;
+    return b;
+  }
+  // every body of his: the ledge's, and one on each map Phase 40 builds
+  function bodies() {
+    const out = [];
+    try { for (const id in G.maps) { const e = G.maps[id].entities.find((q) => q.id === 'la_carter'); if (e) out.push(e); } } catch (e) { /* the ledge's alone */ }
+    return out;
   }
   function naming() {
     if (typeof G === 'undefined' || !G || !G.flags || typeof PANEL10 === 'undefined') return;
@@ -122,7 +139,7 @@ const CARTER13 = (() => {
     namedOther = other;
     try { if (typeof NPCS !== 'undefined' && NPCS.la_carter) NPCS.la_carter.name = name; } catch (e) { /* the NPC keeps its name */ }
     try { PANEL10.TX.carter = other ? TX.otherCarter : TX.carterFolk; } catch (e) { /* the panel keeps its line */ }
-    const b = body(); if (b) b.name = name;
+    for (const q of bodies()) q.name = name;
     try {
       const c = G.flags.la_company, p = c && c.people && c.people.find((q) => q.id === 'carter');
       if (p) p.name = name;
@@ -130,7 +147,8 @@ const CARTER13 = (() => {
   }
   function sync() {
     const s = state(), b = body(); if (!b) return;
-    b.x = s.x; b.y = s.y; b.hidden = G.mapId !== LEDGE1.LEDGE;
+    for (const q of bodies()) if (q !== b) q.hidden = true;
+    b.x = s.x; b.y = s.y; b.hidden = G.mapId !== mapOf(s);
     b.dead = s.mode === 'dead';
     // Audit fix: following at 1.2 cells he stood in your road and pinned you on the ledge; he does not block you while
     // he follows. Held or waiting, he is solid again and can be bumped into.
@@ -148,10 +166,22 @@ const CARTER13 = (() => {
       journal('side', TX.journalDead);
       msg(TX.dead, 'bad', 6000);
     }
-    if (G.mapId !== LEDGE1.LEDGE) { sync(); return; }
+    if (G.mapId !== mapOf(s)) { sync(); TRAIL.length = 0; return; }
     const c = Engine.cam;
+    // Phase 40: he walks where you walked (your trail), not straight at you, so a bend in a cut or a turn round a rock
+    // does not stop him; and when he has fallen behind, more than CATCH cells back, he goes at a jog to close up.
+    const last = TRAIL[TRAIL.length - 1];
+    if (!last || Math.hypot(c.x - last.x, c.y - last.y) > 0.5) { TRAIL.push({ x: c.x, y: c.y }); if (TRAIL.length > 240) TRAIL.shift(); }
+    const far = Math.hypot(c.x - s.x, c.y - s.y);
+    let to = { x: c.x, y: c.y };
+    if (far > STOP + 0.4 && TRAIL.length > 2) {
+      let j = -1, best = 3;
+      for (let i = 0; i < TRAIL.length; i++) { const d = Math.hypot(TRAIL[i].x - s.x, TRAIL[i].y - s.y); if (d < best) { best = d; j = i; } }
+      // the first point on your trail past him by more than his stopping distance and a step
+      if (j >= 0) for (let i = j; i < TRAIL.length; i++) if (Math.hypot(TRAIL[i].x - s.x, TRAIL[i].y - s.y) > STOP + 1) { to = TRAIL[i]; break; }
+    }
     const env = {
-      px: c.x, py: c.y, speed: SPEED,
+      px: to.x, py: to.y, speed: far > CATCH ? JOG : SPEED,
       blocked: (x, y) => { try { return typeof solidAt === 'function' && solidAt(x, y, body()); } catch (e) { return false; } },   // audit fix: pass his own body, or it blocks every step he takes
       cliff: (x, y) => { try { const g = G.map.groundAt ? G.map.groundAt(x, y) : 0, h = G.map.groundAt ? G.map.groundAt(S.x, S.y) : 0; return h - g > 0.8; } catch (e) { return false; } },
     };
@@ -168,6 +198,8 @@ const CARTER13 = (() => {
   }
   function enterBothy() {
     const s = state();
+    // only from the ledge: the bothy's door is there
+    if (mapOf(s) !== LEDGE1.LEDGE) { sync(); return; }
     if (s.mode === 'follow' && !s.toldFollow) { s.mode = 'hold'; s.x = 83.5; s.y = 31.4; }
     else if (s.mode === 'hold' && Math.hypot(s.x - 83.5, s.y - 31.4) < 5) { s.x = 83.5; s.y = 31.4; }
     save(); sync();
@@ -178,6 +210,7 @@ const CARTER13 = (() => {
     buildAllMaps = function () {
       const maps = _bm.apply(this, arguments);
       try { BODY = maps[LEDGE1.LEDGE].entities.find((e) => e.id === 'la_carter') || null; } catch (e) { BODY = null; }
+      if (S && S.map && !maps[S.map]) delete S.map;
       if (!S) S = load(G.flags && G.flags.la_carter, { x: 79.9, y: 46.2 });
       if (BODY) { BODY.wander = false; BODY.name = G.flags && G.flags.la_bg === 'carter' ? TX.other : TX.name; }
       sync();
@@ -188,7 +221,7 @@ const CARTER13 = (() => {
     const _lm = loadMap;
     loadMap = function (id) {
       const r = _lm.apply(this, arguments);
-      try { if (id === LEDGE1.BOTHY) enterBothy(); else if (id === LEDGE1.LEDGE) sync(); } catch (e) { /* the door stays the door */ }
+      try { if (id === LEDGE1.BOTHY) enterBothy(); else sync(); } catch (e) { /* the door stays the door */ }
       return r;
     };
     // his talk menu is the two orders; the topics remain under "Tell me about"
@@ -206,12 +239,27 @@ const CARTER13 = (() => {
         };
       }
     } catch (e) { /* the old greeting stands */ }
+    // Phase 40 audit: a save opened reloads him (he kept the last session's state, place and map before)
+    if (typeof restoreGame === 'function') {
+      const _rg = restoreGame;
+      restoreGame = function () { const r = _rg.apply(this, arguments); try { S = null; BODY = null; TRAIL.length = 0; state(); sync(); } catch (e) { /* he keeps his last place */ } return r; };
+    }
     naming();
     wired = true;
     return true;
   }
 
-  return { TX, MODES, STOP, SPEED, BLEED, make, order, step, down, hurt, tick, revive, load, wire, state, body, naming, save };
+  // Phase 40: you have gone to another map (js/threshold40.js). Following, alive and near enough to have kept up, he goes
+  // with you and comes out behind you; otherwise he stays where he is. Returns whether he came.
+  function cross(from, to, at, near) {
+    const s = state(); if (!s || mapOf(s) !== from) return false;
+    TRAIL.length = 0;
+    if (s.mode !== 'follow' || !(Math.hypot(s.x - near.x, s.y - near.y) <= 14)) { sync(); return false; }
+    s.map = to; s.x = at.x; s.y = at.y;
+    BODY = null; save(); sync();
+    return true;
+  }
+  return { TX, MODES, STOP, SPEED, BLEED, make, order, step, down, hurt, tick, revive, load, wire, state, body, naming, save, cross, mapOf: () => mapOf(state()) };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = CARTER13;
 if (typeof window !== 'undefined') CARTER13.wire();

@@ -205,8 +205,23 @@ const P = require(path.join(ROOT, 'js', 'prologue39.js'));
     check(b10.panel === 'la-prologue-end', 'after the title, the prologue\'s end card: ' + JSON.stringify({ title: b9t, end: b10.panel }));
     check(/day/i.test(b10.text) && /oil/i.test(b10.text) && /torch/i.test(b10.text) && /Marget Sayle/.test(b10.text) && /The carter/.test(b10.text), 'it gives the run\'s numbers: ' + b10.text.replace(/\s+/g, ' ').slice(0, 300));
     await click('#la-walk-on');
-    const b10b = await ev(() => { advanceTime(100); return { panel: G.openPanel, state: G.state, end: !!G.flags.la_prologue_end, shown: PROLOGUE39.state().shown }; });
+    const b10b = await ev(() => { advanceTime(100); return { panel: G.openPanel, state: G.state, end: !!G.flags.la_prologue_end, shown: PROLOGUE39.state().shown, map: G.mapId, carry: CARRY15.state().on }; });
     check(!b10b.panel && b10b.state === 'play' && b10b.end && b10b.shown === 1, 'Walk on closes it, and play goes on: ' + JSON.stringify(b10b));
+    // Phase 40: Walk on takes the company down from the ledge, Marget still on your arm; walking up the cleft in the crag
+    // brings you back onto the ledge, where the rest of this test carries on
+    check(b10b.map === 'la_z1_2_0' && b10b.carry, 'Walk on takes you down to the ledge path, with her on your arm (Phase 40): ' + b10b.map);
+    const up = await ev(() => {
+      const c = Engine.cam, t = THRESH40.thresholds().find((q) => q.id === 'ledge-up'), to = { x: t.door.x, y: t.door.y - 1.2 };
+      const norm = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+      for (let i = 0; i < 60 * 30 && G.mapId === 'la_z1_2_0'; i++) {
+        const diff = norm(Math.atan2(to.y - c.y, to.x - c.x) - c.dir);
+        G.keys = { w: Math.abs(diff) < 0.5, arrowleft: diff < -0.06, arrowright: diff > 0.06 };
+        update(1 / 60);
+      }
+      G.keys = {}; for (let i = 0; i < 20; i++) update(1 / 60);
+      return { map: G.mapId, x: +c.x.toFixed(1), y: +c.y.toFixed(1), carry: CARRY15.state().on };
+    });
+    check(up.map === 'la_ledge' && up.carry, 'and up the cleft in the crag you are back on the ledge with her: ' + JSON.stringify(up));
     // what happens next is not checked, only told: the bloom heard the carry, and it is invulnerable in the prologue
     const after = await ev(() => { const w = __P39.walkTo(84, 50, 0.4, 12000); return { w: [w.ok, +w.x.toFixed(1), +w.y.toFixed(1), w.why || ''], hp: G.player.hp, bloom: BLOOM4.state().state, carry: CARRY15.state().on, card: PROLOGUE39.state().shown }; });
     console.log('   after the card, carrying her west for up to 12 s: ' + JSON.stringify(after));
@@ -214,9 +229,10 @@ const P = require(path.join(ROOT, 'js', 'prologue39.js'));
 
     // Turning round on the ramp with her on your arm (the clip's run found the pair locked there: she was left a step
     // below on the slope, then put where you stood, and neither could move). The bloom is held still for this one check,
-    // so that only the carry is tested; it is the one place this test sets anything.
+    // so that only the carry is tested; it is the one place this test sets anything. Since Phase 40 it has followed the
+    // company down through the ledge's gap and may be on its way back, in the road: it is held in the bothy, out of it.
     const ramp = await ev(() => {
-      BLOOM4.state().held = true;
+      BLOOM4.pose({ map: LEDGE1.BOTHY, x: 3.5, y: 2.5, state: 'wait' });
       const out = { go: [] };
       const near = () => { const m = G.ents.find((e) => e.id === 'la_marget'), c = Engine.cam; return m ? +Math.hypot(m.x - c.x, m.y - c.y).toFixed(2) : 99; };
       for (const [x, y] of [[87, 40.6], [87, 36.4]]) { const w = __P39.walkTo(x, y, 0.35, 15000); out.go.push([w.ok, +w.x.toFixed(2), +w.y.toFixed(2), w.why || '']); }

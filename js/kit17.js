@@ -118,7 +118,8 @@ const KIT17 = (() => {
 
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false;
-  const here = () => typeof G !== 'undefined' && G && (G.mapId === LEDGE1.LEDGE || G.mapId === LEDGE1.BOTHY);
+  // Phase 40: any of this game's maps (G.map._la), not only the ledge and the bothy: the company walks on past them
+  const here = () => !!(typeof G !== 'undefined' && G && G.map && G.map._la);
   const loadKg = () => (G && G.flags && G.flags.la_kit && isFinite(+G.flags.la_kit.kg) ? Math.max(0, +G.flags.la_kit.kg) : 0);
   const loadBg = () => (G && G.flags && BY_ID[G.flags.la_bg] ? G.flags.la_bg : 'deserter');
   const BY_ID = { deserter: 1, factor: 1, cleaner: 1, cutter: 1, gutter: 1, priest: 1, healer: 1, carter: 1 };

@@ -108,7 +108,8 @@ const ACCOUNT14 = (() => {
   let wired = false, OPEN = false;
   const KEY = 'x';
   const bound = (k) => { try { return typeof UPG !== 'undefined' && !!UPG.keybinds && Object.values(UPG.keybinds).includes(k); } catch (e) { return false; } };
-  const here = () => typeof G !== 'undefined' && G && (G.mapId === LEDGE1.LEDGE || G.mapId === LEDGE1.BOTHY);
+  // Phase 40: any of this game's maps (G.map._la), not only the ledge and the bothy: the company walks on past them
+  const here = () => !!(typeof G !== 'undefined' && G && G.map && G.map._la);
   function current() { try { return G.flags && G.flags.la_account; } catch (e) { return null; } }
   function ensure() {
     const c = load(current());

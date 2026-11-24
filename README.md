@@ -51,7 +51,7 @@ Act III content in Phase 36.
 | Esc | Controls and Options |
 
 Options, under Graphics & access, has a switch for each thing this game draws on top of the engine:
-the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern, highland building, the chill, and the prologue's end card.
+the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, ashfall and sleet, your lantern, highland building, the chill, the prologue's end card, and the ways between maps.
 
 ## What is in the build
 
@@ -109,9 +109,18 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
   her arm, lift the bar and carry her out at her pace, tell the carter to follow, and at the top of the
   ramp she looks back at the Slagcrown and THE LONG ACCOUNT comes up. Then a card with the run: the
   days, the oil and pitch left, and who lived. A test plays the whole of it with a player's keys and
-  clicks. The walk south after it is not built yet.
+  clicks.
 
   ![The prologue, played through](docs/screenshots/150_the_prologue.gif)
+
+- **Down from the ledge** (Phase 40). Walk on, or a gap in the boulders at the south end of the
+  ledge, takes the company down to the ledge path at the foot of its crag: the first of the highland
+  edge's maps. The ledge path runs down to a band of rock and through a cut in it onto the next map, the
+  Greystair fork, where four more ways end in notches: that country is not built yet. Marget Sayle on
+  your arm, the carter when he is following, a co-op partner and the walking bloom, when it is hunting
+  you, come with you. Only the ground and the ways are built; the places on them are not.
+
+  ![Down at the crag's foot](docs/screenshots/173_the_company_comes_down.png)
 
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
   code here.
@@ -139,6 +148,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/lantern7.js` | Phase 7: the light in your left hand, the lantern, its oil, and Marget Sayle's flasks |
 | `js/torch38.js` | Phase 38: you start with a torch; Marget Sayle gives you her horn lantern (or one is bought) |
 | `js/prologue39.js` | Phase 39: the prologue's end card after the title, with the run's numbers; `test/prologue39.test.js` plays the prologue through |
+| `js/threshold40.js` | Phase 40: the highland edge's first two maps, the cut between them, the gap down from the ledge; who comes with you |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
@@ -150,7 +160,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`, `thresholdshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -180,6 +190,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/actthree36.test.js --no-browser
     node test/endings37.test.js --no-browser
     node test/prologue39.test.js --no-browser
+    node test/threshold40.test.js --no-browser
     node test/lore-places.test.js --no-browser      # the lore pipeline: places
     node tools/pwa/precache.js --check
     node tools/icons.js --check
@@ -199,10 +210,11 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/panel10.test.js
     NODE_PATH=$(npm root -g) node test/hearth27.test.js
     NODE_PATH=$(npm root -g) node test/prologue39.test.js   # the whole prologue, played
+    NODE_PATH=$(npm root -g) node test/threshold40.test.js  # down from the ledge, through the cut and back
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
-barred door holds and the open one does not, the lantern burns its oil and goes out, dread rises in the dark and leaves you behind a barred door, the switches change the picture, and the bothy hearth opens from REST, and the prologue can be played from Begin to its end. It says nothing about how the
+barred door holds and the open one does not, the lantern burns its oil and goes out, dread rises in the dark and leaves you behind a barred door, the switches change the picture, and the bothy hearth opens from REST, and the prologue can be played from Begin to its end, and the company walks down off the ledge and through the cut onto the next map and back. It says nothing about how the
 game feels: that needs a person at the controls.
 
 ## The games this replaced
