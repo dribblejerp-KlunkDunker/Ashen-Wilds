@@ -12,7 +12,8 @@ JavaScript: **no framework, no bundler, no build step.** The engine was copied f
 Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) with its story taken
 out (decision D14). That repository is read-only for this work: read it, never change it.
 
-Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`). One
+Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`); below the ledge, the highland
+edge's first two maps (`la_z1_2_0`, `la_z1_2_1`, `js/threshold40.js`) have ground and ways and nothing else yet. One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
 Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You start with a torch; a lantern is found or bought (`js/lantern7.js`, `js/torch38.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`). The prologue plays through from Begin to its end card (`js/prologue39.js`, `test/prologue39.test.js`).
 
@@ -53,6 +54,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/hearth27.test.js --no-browser
     node test/torch38.test.js --no-browser
     node test/prologue39.test.js --no-browser
+    node test/threshold40.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node test/lore-places.test.js --no-browser   # the lore pipeline: the atlas's places into docs/data/places.json
@@ -75,6 +77,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node test/hearth27.test.js
     NODE_PATH=$(npm root -g) node test/torch38.test.js
     NODE_PATH=$(npm root -g) node test/prologue39.test.js  # the whole prologue, played with a player's inputs
+    NODE_PATH=$(npm root -g) node test/threshold40.test.js # down from the ledge, through the cut and back
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -85,6 +88,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node tools/lanternshots.js docs/screenshots  # the lantern: stills and a clip (Phase 38 held off)
     NODE_PATH=$(npm root -g) node tools/torchshots.js docs/screenshots    # the torch, the found lantern: stills and a clip
     NODE_PATH=$(npm root -g) node tools/prologueshots.js docs/screenshots # the prologue played through: stills 151-163, clip 150
+    NODE_PATH=$(npm root -g) node tools/thresholdshots.js docs/screenshots # the ways between maps: stills 170-179
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
@@ -155,6 +159,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/endings37.js      Phase 37: the five endings and the player's last line
     js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
     js/prologue39.js     Phase 39: the prologue played through; its end card after the title (days, oil, pitch, who lived)
+    js/threshold40.js    Phase 40: walking from one map into the next; Z1's first two maps, the band and the cut, the ledge's gap
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
     tools/lore/           the lore pipeline (docs/pipeline.md): lib.js, places.js -> docs/data/places.json; nothing loads it yet
 
@@ -239,6 +244,14 @@ Useful facts, all checked in this repository:
   earlier phase's inner `drawHUD` back must put this layer back too: `PANEL10.wrapHUD(inner)`.
 - The in-game credits are `VOICES.CREDIT_SECTIONS`, refilled in place by Phase 10. The engine's panels are opened by name
   (`renderCharacter`, `renderInventory`, ...); wrap the global to replace one on this game's maps.
+- A map of a zone (Phase 40) is its 384 square of the zone's grid and, on a side where it meets another built map, 20
+  cells of that one: both draw the overlap from one function of zone coordinates (`THRESH40.H`, `cellAt`), so it is the
+  same on both. Every map edge is a band of rock 11 deep; a way crosses it by a cut with two bends (no line of sight
+  out), or ends in a notch where the next map is not built. `THRESH40.MAPS[id]` gives a map's zone origin (`ox`, `oy`).
+- Crossing to another map goes through `THRESH40.cross(threshold)`, which calls `transfer`, then moves Marget's body
+  (`G.flags.la_marget_map`) and the carter (`CARTER13.cross`, his state's `map`). The bloom follows through `BLOOM4.DOORS`:
+  a map may have several; it follows you through the one you last left by and goes home through the one marked `home`.
+  The account, cards, company, kit and carry phases act on any map with `_la`, not only the ledge and the bothy.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
@@ -284,6 +297,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   until the renderer streams chunks (`docs/engine-limits.md`).
 - **O18:** last night's other proposals are approved: Marget's lantern line, the prologue's end card, X for the Account,
   E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
+- **O19:** a zone is to be one open world: the rock bands between Phase 40's maps stand only until the renderer streams a
+  zone in chunks (E2), and then go. Phase 40's other proposals are approved.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

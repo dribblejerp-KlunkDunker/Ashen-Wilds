@@ -69,7 +69,9 @@ jobs:
         run: node test/endings37.test.js --no-browser
       - name: Phase 39, the prologue played through (no browser)
         run: node test/prologue39.test.js --no-browser
-      - name: The lore pipeline, places (the gazetteer's 133 parse, docs/data/places.json is current)
+      - name: Phase 40, walking from one map into the next (no browser)
+        run: node test/threshold40.test.js --no-browser
+      - name: The lore pipeline, places (the gazetteer's 134 parse, docs/data/places.json is current)
         run: node test/lore-places.test.js --no-browser
       - name: The phase 19-23 wires against fake G (no browser)
         run: node test/wires19-23.test.js --no-browser
@@ -119,6 +121,7 @@ jobs:
           - { name: 'Phase 18, the cards', test: cards18 }
           - { name: 'Phase 38, start with a torch', test: torch38 }
           - { name: 'Phase 39, the prologue played through', test: prologue39 }
+          - { name: 'Phase 40, walking from one map into the next', test: threshold40 }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0

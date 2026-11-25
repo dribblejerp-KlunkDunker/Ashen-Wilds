@@ -45,7 +45,7 @@ Recorded for each size:
 Machine: a cloud box with two cores of an Intel Xeon at 2.1 GHz. The GPU is software: Chromium's ANGLE on Mesa
 llvmpipe (the harness asks for SwiftShader; ANGLE chose llvmpipe). The 3D view renders at 1280 x 800.
 
-![The 512 x 512 test map, a patch of bloom caps in the sleet](screenshots/150_limits_512.png)
+![The 512 x 512 test map, a patch of bloom caps in the sleet](screenshots/149_limits_512.png)
 
 ## The numbers
 
@@ -133,8 +133,11 @@ For a square-mile zone, four ways, best first:
 **Ruled** (O17, 2026-11-24, "I approve"): build regions as connected maps of at most 384 x 384 now, cut at natural thresholds,
 so work on regions can start without waiting on the engine. In parallel, make chunked streaming a numbered phase in
 `js/r3d21.js` (and the light, sleet and roof passes) with its own look and speed tests; when it lands, a region's maps
-can be joined into one map with the seams removed. The zone sizes and squeeze ratio O15 asks for are still to be
-ruled.
+can be joined into one map with the seams removed. The zone sizes and squeeze ratio were then ruled under O16.
+
+**And then** (O19, 2026-11-24): the owner wants the zone as one open world, without the ridges Phase 40 put between
+its maps. So chunked streaming is no longer a later nicety: it is how a zone is to be built, and the connected maps are
+the stand-in until it lands.
 
 ## Re-running
 

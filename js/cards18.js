@@ -66,7 +66,8 @@ const CARDS18 = (() => {
 
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false;
-  const here = () => typeof G !== 'undefined' && G && (G.mapId === LEDGE1.LEDGE || G.mapId === LEDGE1.BOTHY);
+  // Phase 40: any of this game's maps (G.map._la), not only the ledge and the bothy: the company walks on past them
+  const here = () => !!(typeof G !== 'undefined' && G && G.map && G.map._la);
   const bgNow = () => (G && G.flags && ROWS[G.flags.la_bg] ? G.flags.la_bg : 'deserter');
   function applyFog(bg) {
     try {

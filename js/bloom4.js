@@ -408,8 +408,17 @@ void main() {
   // what the air does to its senses on a map: a later phase (js/weather6.js) replaces this
   let senses = () => ({ hear: 1, see: 1 });
   let light = () => 0;                                                           // Phase 7: is the player's lantern showing them on this map
-  const groundOf = (id) => (id === L1.LEDGE ? L1.landH : () => 0);
-  const doorFrom = (id) => DOORS.find((d) => d.from === id) || null;
+  // the ground of a map it is on: the ledge's own function, or (Phase 40) the heights of any other sloped map
+  const groundOf = (id) => {
+    if (id === L1.LEDGE) return L1.landH;
+    const m = typeof G !== 'undefined' && G && G.maps ? G.maps[id] : null;
+    return m && (m.lvls || m.smooth) ? (x, y) => m.groundAt(x, y) : () => 0;
+  };
+  // Phase 40: a map may have more than one way out. It follows you through the one you last left this map by (lastExit,
+  // set at every loadMap); it goes home through the one marked home (toward the ledge). With one door, both are it.
+  const lastExit = {};
+  const doorFrom = (id) => (lastExit[id] && DOORS.includes(lastExit[id]) ? lastExit[id] : DOORS.find((d) => d.from === id) || null);
+  const homeDoor = (id) => DOORS.find((d) => d.from === id && d.home) || DOORS.find((d) => d.from === id) || null;
   function blockedOn(m) {
     return (x, y) => {
       for (const [ox, oy] of [[0, 0], [R.radius, 0], [-R.radius, 0], [0, R.radius], [0, -R.radius]]) if (m.isBlocked(Math.floor(x + ox), Math.floor(y + oy))) return true;
@@ -422,7 +431,7 @@ void main() {
     const going = S.state;
     if (d.barred && d.barred()) { if (d.onBarred) d.onBarred(S); S.tx = d.waitAt.x; S.ty = d.waitAt.y; S.state = 'toWait'; S.t = 0; return 'barred'; }
     S.map = d.to; S.x = d.out.x; S.y = d.out.y; S.yaw = d.out.yaw == null ? S.yaw : d.out.yaw; S.t = 0;
-    const back = doorFrom(S.map), homeHere = S.map === L1.LEDGE;
+    const back = homeDoor(S.map), homeHere = S.map === L1.LEDGE;
     if (going === 'back') { const h = homeHere ? R.post : back.at; S.tx = h.x; S.ty = h.y; S.state = 'back'; } else S.state = 'listen';
     return 'through';
   }
@@ -430,11 +439,11 @@ void main() {
     if (typeof G === 'undefined' || !G || G.state !== 'play' || !G.maps || !G.maps[L1.LEDGE]) return;
     if (!G.maps[S.map]) S.map = L1.LEDGE;
     const m = G.maps[S.map], c = Engine.cam, here = G.map === m, moving = here && Math.hypot(c.x - last.x, c.y - last.y) > dt * 0.4; last = { x: c.x, y: c.y };
-    const door = doorFrom(S.map), homeIsDoor = S.map !== L1.LEDGE && !!door;
+    const door = doorFrom(S.map), hd = homeDoor(S.map), homeIsDoor = S.map !== L1.LEDGE && !!hd;
     const sk = senses(S.map);
-    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, doorPause: door ? Math.max(0, +door.pause || 0) : 0, home: homeIsDoor ? door.at : R.post, homeIsDoor, lit: here ? light(S.map) : 0 };
+    const env = { hearK: sk.hear, seeK: sk.see, px: c.x, py: c.y, noise: G.noise || 0, moving, here, blocked: blockedOn(m), ground: groundOf(S.map), door: door ? door.at : null, doorPause: door ? Math.max(0, +door.pause || 0) : 0, home: homeIsDoor ? hd.at : R.post, homeIsDoor, lit: here ? light(S.map) : 0 };
     const ev = S.held ? { heard: false, claw: false, door: false } : think(S, env, Math.min(dt, 0.1));
-    if (ev.door && door) through(door);
+    if (ev.door) { const d = S.state === 'back' ? hd : door; if (d) through(d); }
     if (ev.heard && G.time - saidHeard > 12) { saidHeard = G.time; msg(S.map === L1.LEDGE ? TX.heard : TX.heardIn, 'bad', 3500); }
     if (ev.claw) { damagePlayer(R.claw, TX.name); S.choke = R.choke; if (G.state === 'play') msg(TX.choke, 'bad', 3000); }
     if (S.choke > 0) { S.choke -= dt; if (typeof addNoise === 'function') addNoise(dt * 4.5); }
@@ -461,6 +470,8 @@ void main() {
     // it stands in the map as a thing you can look at and cannot walk through; the engine's maps are built once at start
     const _bm = buildAllMaps; buildAllMaps = function () { const maps = _bm.apply(this, arguments); try { for (const k in ents) delete ents[k]; addMap(maps && maps[L1.LEDGE]); reset(); } catch (e) { /* the ledge stands without it */ } return maps; };
     const _up = update; update = function (dt) { const r = _up.apply(this, arguments); try { tick(dt); } catch (e) { if (!GLS.tickErr) { GLS.tickErr = String(e && e.message); } } return r; };
+    // Phase 40: which way out of a map you last took, for it to follow
+    const _lm = loadMap; loadMap = function (id) { const from = typeof G !== 'undefined' && G ? G.mapId : null; const r = _lm.apply(this, arguments); try { if (from && from !== id) lastExit[from] = DOORS.find((d) => d.from === from && d.to === id) || null; } catch (e) { /* it keeps its last way */ } return r; };
     return true;
   }
   // Waking by the lamp. The engine's wake puts its own chasers back where they started (#btn-wake, js/game.js); this one is

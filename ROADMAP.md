@@ -1075,7 +1075,7 @@ The beats, and what each one does now:
 ## Engine limits (for O15)
 
 `tools/limits.js` · `docs/engine-limits.md` (the table and the reasoning) · `docs/engine-limits.json` (raw numbers) ·
-still 150. Not a phase: a measurement. No game code changed.
+still 149. Not a phase: a measurement. No game code changed.
 
 O15 wants each region to be one walkable zone of about a square mile, about 1600 x 1600 cells (P33). The tool builds
 ledge-like test maps from 96 to 1600 cells a side, with a place every 115 cells and decos between, loads each in
@@ -1232,6 +1232,70 @@ fen stages are prose and are not read. The places JSON uses the zone plan, appro
 ledge and Marget Sayle's bothy have atlas entries (LP7), at the end of `atlas/4-the-citadels.md`, written only from
 lines already canon, each source listed; the pipeline now reads them there. The Bloom Quarters are two places, Port Sable's Bloom Quarter and Marlstow's lower town (LP8), so the list has
 134.
+
+## Phase 40 - walking from one map into the next
+
+`js/threshold40.js` · `test/threshold40.test.js` · `tools/thresholdshots.js` (stills 170 to 179) · switch: Options > "Ways between maps"
+
+O17 builds a region, for now, as connected maps of at most 384 x 384, and the zone plan's rule Z-R2 (O16) puts every
+seam on a threshold the land already has. This phase builds the first two maps of Z1, the highland edge, and the ways
+between them and the ledge. Only the ground and Z1's nine ways are built; the zone's places, things and hunters are
+Phase 41.
+
+- **Two maps.** `la_z1_2_0`, "The ledge path" (Z1's square from 768 to 1152 east and 0 to 384 south): the outside of the
+  ledge's crag at the ledge's gate (990, 140), the ramp foot and the ledge path down. `la_z1_2_1`, "The Greystair fork",
+  south of it: the fork where the ledge path meets the upper road, the last climb, the Greystair road and Wilmot's path.
+  Each is 384 x 404: its own square and 20 cells of the other, drawn from one function of zone coordinates, so the
+  overlap is the same on both (tested, cell by cell). The ways are Z1's table, read back from `atlas/10-zones.md` by the test.
+- **The band and the cut.** Every map edge is a band of rock 11 cells deep. Where a way crosses into a built map it goes
+  through a cut with two bends inside the band, so no line of sight runs out of one map into the other's far edge (the
+  test casts some 50,000 rays from inside the cut and finds none). Crossing the edge line in the cut takes you over, at the same place in
+  zone coordinates, with no fade. Where a way runs into a map not built yet it ends in a notch, and says so: "The
+  Greystair road goes on from here. That country is not built yet."
+- **Down from the ledge.** Two of the boulders at the south end of the ledge's top are taken out, and the drop below them
+  holds as the west edge does. Stepping into the gap brings you out at the crag's foot on the ledge path; walking up the
+  cleft in the crag brings you back onto the ledge. The end card's Walk on (Phase 39) now takes the company down.
+- **Who comes with you.** Marget Sayle on your arm (her body moves with her: `G.flags.la_marget_map`). The carter, when
+  he is following and within 14 cells. A co-op partner, by the engine's own map sync (the guest builds the same maps).
+  The walking bloom, when it is hunting you: it follows through the way you left by, and goes home toward the ledge.
+- **Saves** made below the ledge open below the ledge, the carter with you (tested).
+
+How: `THRESH40` wraps `buildAllMaps` (the two maps are built with the others: about 310 ms of the 360 ms it now takes
+here), `update` (the thresholds) and `loadMap` (the gap, Marget's body). Changed in earlier phase files, none of them the
+copied engine's: `js/bloom4.js` (a map may have more than one door; its ground on any sloped map), `js/carter13.js` (his
+map is part of his state; he walks your trail; a save opened reloads him, which it did not before), and the `here()` of
+`js/account14.js`, `js/cards18.js`, `js/company12.js`, `js/kit17.js` and `js/carry15.js` (any of this game's maps, not
+only the ledge and the bothy). Tests changed to match: `test/ledge1.test.js` and `test/fork0.test.js` (four maps, not
+two), `test/door5.test.js` (more doors after the bothy's two), `test/prologue39.test.js` (Walk on goes down; the test
+walks back up the cleft and holds the bloom in the bothy for the ramp check, as it may now be in the road).
+
+Measured here (software rendering, two slow cores): entering a zone map takes about half a second (its mesh, 1.19 million
+triangles, builds in about 450 ms); a frame there about 5 ms; a save is about 8 KB of JSON.
+
+**Invented here; ruled 2026-11-24 (O19): "eventaully I do not want the ridges hence the open world I want. everything
+else is fine".** P40-1, P40-2, P40-4, P40-5 and P40-6 are approved. P40-3 stands for now and is to go: the zone is
+to be one open world, with no ridges between its maps.
+
+- **P40-1** The two maps' names: "The ledge path" and "The Greystair fork" (both are names Z1 already uses, for
+  a way and a place).
+- **P40-2** The ground of Z1: an upland falling gently south (about one in a hundred), frost and scorch, rock
+  where steep. A stand-in until Phase 41 shapes the zone.
+- **P40-3** (for now only: O19) Map edges as a band of rock 11 deep, with cuts and notches, the overlap of 20 cells, and the cut's
+  shape (two bends, 5 cells either side of the edge). Z-R2 says "a threshold the land already has"; this is that
+  threshold, the same everywhere for now.
+- **P40-4** The ledge's way down is a gap of two boulders at the south end of its top, and the crag below has
+  a cleft where the ledge path ends. Z1 calls the ramp "the ledge's way down"; the ramp itself runs from the ledge's top
+  to the shelf, so the way off the ledge is a second one.
+- **P40-5** The carter keeps up: behind by more than 5 cells he jogs at 4 cells a second (you walk at about
+  3.4 on level ground here, more than P33's 2.6), and he walks your trail instead of straight at you.
+- **P40-6** The notch's words: "<the way> goes on from here. That country is not built yet."
+
+**Not done, and not checked:** the other fourteen maps of Z1 and every place on these two (Phase 41); a Chart booking
+when you leave a zone by another threshold (Z-R5); building maps only when first needed (two maps cost 310 ms at every
+new game and every load; sixteen would cost over two seconds, so Phase 41 must build lazily). Co-op is not tested: the guest
+builds the same two maps (they are made with no dice, so its copy should match the host's), but no two-tab crossing has been run. The rock bands read as walls in the stills, and O19 rules they are to go: the open world needs the renderer to stream a
+zone in chunks (E2's phase), so that a zone is one map and nothing stands between its squares. Feel, the half-second load at a seam on a real machine, and how the walk down feels after
+the title need a person.
 
 ## Old phase table (kept for history)
 

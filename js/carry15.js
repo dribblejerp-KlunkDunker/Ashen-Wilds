@@ -64,7 +64,8 @@ const CARRY15 = (() => {
 
   // ---------------------------------------------------------------- the wire (browser only)
   let wired = false, S = null, TITLE = null, WAS = null;
-  const here = () => typeof G !== 'undefined' && G && (G.mapId === LEDGE1.LEDGE || G.mapId === LEDGE1.BOTHY);
+  // Phase 40: any of this game's maps (G.map._la), not only the ledge and the bothy: the company walks on past them
+  const here = () => !!(typeof G !== 'undefined' && G && G.map && G.map._la);
   function state() {
     if (!S && typeof G !== 'undefined' && G && G.flags) S = load(G.flags.la_carry);
     return S;
