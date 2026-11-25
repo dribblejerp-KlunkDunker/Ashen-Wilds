@@ -140,7 +140,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/combat23.js        Phase 23: commitment clock, stamina at the start, formation, clang, lodge, stagger
     js/bloom24.js         Phase 24: bloom wounds, clouds, burst and prologue invulnerability
     js/coop25.js          Phase 25: co-op parity, one noise, one sighting, one fuel pool
-    js/chart26.js         Phase 26: five nodes, six roads, shortest path and supplies
+    js/chart26.js         Phase 26: the walk south on the atlas's legs (315 miles, 28 days), shortest path and supplies
     js/hearth27.js        Phase 27: the bothy REST panel: rest, store, named dead and promises
     js/people28.js        Phase 28: morale, memory and meetings
     js/chill29.js         The chill (Phase 29): warmth, the cold stages and the lit hearth
@@ -282,6 +282,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   384 x 384, great complexes at true size in their own maps, a zone's road days booked when you leave it.
 - **O17:** one map is at most 384 x 384 cells (512 at most); a region is connected maps joined at natural thresholds
   until the renderer streams chunks (`docs/engine-limits.md`).
+- **O18:** last night's other proposals are approved: Marget's lantern line, the prologue's end card, X for the Account,
+  E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

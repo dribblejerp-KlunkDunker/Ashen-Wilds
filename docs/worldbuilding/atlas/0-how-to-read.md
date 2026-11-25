@@ -96,7 +96,7 @@ The order follows the novel's road, then goes outward.
 |---|---|---|---|
 | 1 | The Blackfen | 36 places and areas, plus the Burning Bank (new) | Written: twelve entries and the small sites |
 | 2 | The Bell Road | 13 places, 72 areas | Written |
-| 3 | The Citadels and the far north | 11 places, 14 areas, plus the Bell-Spire and the Hewers' Road (new) | Written |
+| 3 | The Citadels and the far north | 11 places, 14 areas, plus the Bell-Spire and the Hewers' Road (new), and the ledge and Marget Sayle's bothy (added under O18) | Written |
 | 4 | The Deep | The Low Galleries, the Eleventh Gallery, the Black Seam drift, the Vaults' edge, and new deep places | Written |
 | 5 | The Drowned Measures | 16 places | Written |
 | 6 | Orlen outside the Blackfen | The Downs, Wexhaven and the Constance, the Wrack Shore, the Long Marrow and the Marrow Passes | Written |

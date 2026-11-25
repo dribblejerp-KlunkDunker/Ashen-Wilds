@@ -226,3 +226,86 @@ Citadel's own pumped water, warm from the deep. The beacon tower. The Marne libr
 **Finds.** The brass tags, heavy. Early herbs. Warmth.
 
 **Hooks.** The novel's chapter 25.
+
+## The ledge and Marget Sayle's bothy
+
+*Added 2026-11-24 under O18 (LP7). Nothing here is new: every line is already canon, from the game's design
+(`../the-round-and-the-long-account.md`, "Prologue: the ledge"), the rulings in `../CANON.md` (O6, O7, O8, O11, O14,
+O18 and the P numbers they approve, listed in `ROADMAP.md`), the people sheet and the zone plan (Z1). The sources are
+at the end.*
+
+### The ledge
+
+*Open country · a frosted rock ledge on Orlen's highland edge, below the rim at scarp mile 46, a day and a half east of the Slagcrown · held by nobody · danger II · from the game's design*
+
+**At a glance.** The ledge in the owner's key painting: frosted rock at the highland edge, looking west over a broken
+country burning under a sun gone dark, with the Slagcrown beneath it. The Long Account opens here, in the first week
+of the thaw, S.30.
+
+**How it looks.** Frosted rock, hoarfrost underfoot. Due west, a day and a half on foot, the Slagcrown: a square
+curtain with four corner towers, gate towers east and west, halls, a keep with four turrets, one great tower and two
+spires, and nine spoil heaps in a ring round it. A canyon runs from under the ledge west toward it. Below, the venting
+fires, and a teal hollow. The sun is coal, coin or clear by the day's number. Ash falls, and sleet comes in spells.
+
+**Layout.**
+
+1. **The ledge,** frosted rock at the very edge. There is no wall: you can stand at the edge and look straight down.
+2. **The ramp,** the ledge's way down to the shelf.
+3. **The shelf,** north of the ledge, where Marget Sayle's bothy stands. The walking bloom keeps its post here by the
+   ramp's foot, its back to the way down, facing out over the drop; her door is reached by passing behind it.
+4. **The teal hollow** below, where the corpse-caps grow. The path skirts it.
+5. **The ledge path** down into the highland edge: the ramp's foot is where the ledge meets the rest of the zone (Z1),
+   and the upper road goes on down to Coldbarrow, 18 miles and two days.
+
+**Who is here.** The company, when the game opens: with no choices made, an old Watch deserter with a glim-marked blade
+and a young causeway carter with a spear and the company's shield. The carter was born after the sun went dark and
+has never seen it otherwise. One walking bloom on the shelf. **Marget Sayle**, in her bothy.
+
+**Old magic.** Cold light beside a lantern, if anyone has the working. The deserter's blade carries a glim mark near
+the guard: a cross over a stem, pale blue.
+
+**Wonder and mystery.** The view: the coal sun, the Slagcrown beneath it, the venting fires, the teal hollow below.
+Nothing is asked of anyone until each has looked at the Slagcrown.
+
+**Dangers.** The walking bloom (II), which hunts by sound: "Walk. Do not run. There is one on the shelf, and it hears
+running." The corpse-caps in the hollow: "Do not go down wind of them." Hoarfrost footing.
+
+**Hooks.** The prologue: the view, the errand, the way down, the asking, the carry and the look back. At the top of
+the ledge path Marget turns and looks at the Slagcrown once, and says nothing.
+
+### Marget Sayle's bothy
+
+*Small site · one low room under turf, on the shelf below the ledge · held by Marget Sayle · danger II at the door · from the game's design*
+
+**At a glance.** Marget Sayle's home: a field-stone bothy under the ledge, in sight of the Slagcrown, with one door, a
+bar for it and a banked peat fire. Gytha Marrin sends the company north to ask her to come south.
+
+**How it looks.** Field stone laid dry, under turf and heather: peat-dark sod, heather in clumps, dead grass, a crust
+of ash in the hollows, frost. The roof is hipped all round and cut short at the wall heads, its ridge low. There is no
+chimney, only a rim of turf round a hole on the ridge, and the smoke out of it leaning south. One door; one small
+glazed window in the south wall beside it, and none on the weather side, which is north. Inside, one low dark room;
+the fire is an open hearth on the floor in a kerb of stones.
+
+**Layout.**
+
+1. **The door,** and its bar: heavy timber, iron at both ends, on two hooks.
+2. **The room:** the hearth, and her table with a tally of days cut along its edge. She sleeps facing the door.
+
+**Who is here.** **Marget Sayle**, sixty-two, one of the four who came back from **Ebba Cray**'s survey through the
+breach in S.0; six went through. She has never described what she saw. She cannot walk far and coughs in the cold.
+What she wants is to say one word to the right people: *don't*. She keeps two flasks of lamp oil, and a horn lantern
+that she gives to the company the first time they speak to her.
+
+**Dangers.** The walking bloom comes to a door. Barred, it leans on the door once and waits off it; not barred, it
+follows you in. Marget: "Put the bar across. They come to a door."
+
+**Finds.** Lamp oil. Her lantern. Peat.
+
+**Hooks.** The asking: what the players promise her is the first entry in the Account, with a name on it. The carry:
+she cannot manage the ledge path, and getting her up it is the first two-person load. The witness: whether she goes
+south, and what she says at Halsing.
+
+*Sources: `../the-round-and-the-long-account.md` (The warning; Prologue: the ledge); `../CANON.md` O6 (P1, P2, P7, P8,
+P9, P11 to P16, P23, P24, P41), O7, O8, O10 (P38, P43, P44, P46, P59, P65 to P69), O11, O14, O18;
+`../people/the-citadels-and-the-kingdom.md` (Marget Sayle); `10-zones.md` (Z1); `1-scale-and-distances.md` (the ledge
+at scarp mile 46, a day and a half east of the Slagcrown, the upper road to Coldbarrow).*

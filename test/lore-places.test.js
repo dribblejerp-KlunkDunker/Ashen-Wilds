@@ -1,5 +1,6 @@
 // node test/lore-places.test.js [--no-browser]
-// The lore pipeline's first slice (docs/pipeline.md): every one of the gazetteer's 133 places is found in the
+// The lore pipeline's first slice (docs/pipeline.md): every one of the gazetteer's places (133, and 134 since O18
+// split the Bloom Quarters) is found in the
 // atlas, every fact in docs/data/places.json points at a line that says it, the names it carries are the lore's,
 // the canon checks pass, and the JSON is current. Node only: there is no browser half.
 'use strict';
@@ -11,21 +12,21 @@ let fails = 0;
 const check = (c, l) => { if (c) console.log('PASS ' + l); else { fails++; console.log('FAIL ' + l); } };
 const bad = (list, l, show) => check(list.length === 0, l + (list.length ? ': ' + list.slice(0, 6).map(show || String).join('; ') + (list.length > 6 ? ' ...' : '') : ''));
 
-// ---- the gazetteer's 133
+// ---- the gazetteer's 133, with the Bloom Quarters as two (O18, LP8): 134
 const gaz = P.readGazetteer();
 const regions = {};
 for (const g of gaz) { regions[g.region] = regions[g.region] || { want: g.regionCount, got: 0 }; regions[g.region].got++; }
-check(gaz.length === 133, 'the gazetteer lists 133 places (' + gaz.length + ')');
+check(gaz.length === 134, 'the gazetteer lists 134 places (' + gaz.length + ')');
 check(Object.keys(regions).length === 9, 'in nine regions');
 bad(Object.entries(regions).filter(([, r]) => r.want !== r.got), 'each region has the count its heading gives', ([n, r]) => n + ' ' + r.got + '/' + r.want);
-check(new Set(gaz.map((g) => L.norm(g.name))).size === 133, 'no place is listed twice');
+check(new Set(gaz.map((g) => L.norm(g.name))).size === 134, 'no place is listed twice');
 
 // ---- every one parses
 const r1 = P.build(), r2 = P.build();
 bad(r1.missing, 'every place is found in the lore');
-check(r1.places.length === 133, '133 places parsed (' + r1.places.length + ')');
+check(r1.places.length === 134, '134 places parsed (' + r1.places.length + ')');
 check(P.json(r1.places) === P.json(r2.places), 'two builds are the same');
-check(new Set(r1.places.map((p) => p.id)).size === 133 && r1.places.every((p) => /^[a-z0-9_]+$/.test(p.id)), 'every place has its own id, lower case and underscores');
+check(new Set(r1.places.map((p) => p.id)).size === 134 && r1.places.every((p) => /^[a-z0-9_]+$/.test(p.id)), 'every place has its own id, lower case and underscores');
 check(r1.places.find((p) => p.name === 'The Wayfarer\'s Watchhouse').id === 'wayfarers_watchhouse', 'an id is the name without "the" (wayfarers_watchhouse)');
 
 // ---- every source line says what the place is called

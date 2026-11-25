@@ -1,8 +1,8 @@
 # The lore pipeline
 
-Written 2026-11-24 (overnight run 4). **Status: a design for a ruling, with one slice built.** Nothing in the game
-loads any of this yet. Every rule, file name and shape below is **[PROPOSED]**; the list of decisions is at the end and
-in `ROADMAP.md` ("The lore pipeline, for a ruling").
+Written 2026-11-24 (overnight run 4). **Status: approved (O18, 2026-11-24), with one slice built.** Nothing in the game
+loads any of this yet. Every rule, file name and shape below was [PROPOSED] and is approved; the decisions and their
+rulings are at the end and in `ROADMAP.md` ("The lore pipeline, for a ruling").
 
 **The aim.** Adding a place, a person, a quest or an enemy should be mostly writing and ruling: the owner writes or
 approves the lore, a tool reads it into data, a test says what is missing or wrong, and the engine work is done once
@@ -22,7 +22,7 @@ already keeps and writes nothing into it.
 |---|---|---|
 | Places | `docs/worldbuilding/atlas/2-` to `9-*.md` (approved, O10) | One `##` or `###` heading an entry; an italic line under the name (*kind, scale, held by, danger, source*, between middle dots); bold section labels (**At a glance.**, **Layout.**, **Who is here.**, **Dangers.**, **Finds.**, **Hooks.**); numbered layout items with bold names |
 | Distances and positions | `atlas/1-scale-and-distances.md` | Stage tables ("Miles from the Watchhouse"), the scarp table, the walk south; `9-the-wilds-between.md`'s (x, y) miles from the Watchhouse door |
-| Zones | `atlas/10-zones.md` (run 2; **PROPOSED** under O15) | `## Zn. Title`; tables "Places on the grid" (#, Place, x, y, Kind) and "Ways" (polylines); `tools/zones.js` already reads them |
+| Zones | `atlas/10-zones.md` (run 2; approved as O16) | `## Zn. Title`; tables "Places on the grid" (#, Place, x, y, Kind) and "Ways" (polylines); `tools/zones.js` already reads them |
 | People | `docs/worldbuilding/people/README.md` (the 169-row roster) and the six `people/*.md` files | The roster's Name, Who, Where, State, Full entry; each entry's `###` name, italic line and **Who.**, **Looks.**, **Carries.**, **Find them.**, **Hooks.** |
 | Enemies | `docs/worldbuilding/bestiary.md` | The "At a glance" table (seventeen rows: tier, height, weight, senses, ground, status); one `##` an entry with fixed `###` parts (Measures, Senses, Habitat and lair, For the game) |
 | Items and texts | `docs/worldbuilding/items-and-texts.md` | One `###` an item; its price line |
@@ -154,7 +154,7 @@ hook, listed here so the work is visible.
 | 21 weather21 | The six skies' sight, sound, spore, ground, torch | `bestiary.md`, "Weather and the bestiary" -> `weather.json`; the [PROPOSED] cells in `docs/game/weather.md` | `WEATHER6` (Phase 6) choosing the sky; already read by `lungs20` and `bloom24` |
 | 22 deadcalm22 | Cinder squall and the 90 s Dead Calm | the same sheet | A schedule entry in `WEATHER6`, and the HUD's warning |
 | 25 coop25 | Parity rules; no lore table | nothing: rules only | `net19` sending the loudest noise and the shared sighting |
-| 26 chart26 | Five nodes, six roads, made-up days | `chart.json` (the atlas's legs: the walk south is 315 miles, 28 days) | A MAP panel and `transfer` between zone maps |
+| 26 chart26 | The walk south's six legs, from the atlas (rebuilt under O18, LP5) | `chart.json` (the atlas's legs: the walk south is 315 miles, 28 days) | A MAP panel and `transfer` between zone maps |
 | 28 people28 | `make(name)`; names supplied by the caller | `people.json` (who, where, state) and `docs/game/people.md` | An encounter placed in a zone by the person's place's (x, y); the engine's dialogue panel |
 | 30 workings30 | The eight workings' rows | "Small magic" -> `workings.json` | A speak key, and the warmth cost through `chill29` |
 | 31 marks31 | The five marks' rows | "Workings and marks in play" -> `marks.json` | A mark on a `kit17` item, renewed at the `hearth27` fire |
@@ -197,15 +197,17 @@ model (the one part that stays engine work, O9).
 ## 7. The slice built tonight
 
 `node tools/lore/places.js --write` reads the gazetteer's list (`tools/lore/gazetteer.md`, copied from the project
-doc `claude/location-gazetteer.md`, which is not in the repository) and finds every one of the **133** places:
+doc `claude/location-gazetteer.md`, which is not in the repository) and finds every one of the **134** places (the gazetteer's 133, with
+the Bloom Quarters split in two under O18, LP8):
 
-- 67 have an entry of their own; 33 share a heading with another place ("Milebank and the Red Stitch"); 3 are a
+- 69 have an entry of their own; 32 share a heading with another place ("Milebank and the Red Stitch"); 3 are a
   whole region file read from its first entry (the Blackfen, the Bell Road, the Drowned Measures); 25 are named in
   bold inside another entry (the Naming Stone, the Long Stable); 5 are only mentioned in passing (Qesh, Marrah, the
-  Grass, the Red Country, Marget Sayle's bothy).
-- 42 get one of the six kinds from the line under their name; 37 a position in miles; 82 a zone and grid position;
-  43 named people; 60 named beasts.
-- The ledge and the bothy have no atlas entry: they are read from the game's design document.
+  Grass, the Red Country, Marlstow's lower town).
+- 44 get one of the six kinds from the line under their name; 37 a position in miles; 82 a zone and grid position;
+  44 named people; 62 named beasts.
+- The ledge and the bothy are read from their atlas entries in `atlas/4-the-citadels.md`, added under O18 (LP7)
+  from what the design, the rulings and the people sheet already say. Before that they were read from the design.
 
 `node test/lore-places.test.js` checks all of that against the lore, line by line, and that the JSON is current. The
 gazetteer's `aka:` and `at:` notes add no names: the test checks each is the atlas's own words.
@@ -217,7 +219,8 @@ Salt Trace's fen stages (Long Wade, the Ferry Stump, the White Trees at 18) are 
 
 ## 8. Decisions for the owner
 
-All **[PROPOSED]**; the same list is in `ROADMAP.md` as LP1 to LP11.
+All approved as O18 (2026-11-24); the same list is in `ROADMAP.md` as LP1 to LP11. Where one asked a question: LP3 keep
+the 133; LP6 leave the kind empty; LP7 add atlas entries for the ledge and the bothy; LP8 two places.
 
 - **LP1** The three layers: lore untouched, game sheets in `docs/game/`, generated data in `docs/data/` (checked in)
   and `js/data/` once loaded.

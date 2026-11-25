@@ -877,7 +877,7 @@ The nineteen Flash-scope phases below were built as one file and one test each. 
 | 23 | **Built, wired through the active window.** Windup/active/recovery, stamina at start, formation 1.7 m, clang 16, lodge 1.2, stagger .8 | `js/combat23.js`, `js/game.js`, `js/bloom24.js`, `test/combat23.test.js`, `test/wires19-23.test.js` | Sourced: commitment-melee shape, 1.7 m formation and 16 m clang. `[PROPOSED]`: every cut/thrust/heavy second and stamina cost, 1.2 s lodge and 0.8 s stagger; the code exposes `PROPOSED` and `SOURCES`. The attack wrapper classifies the blow, refuses under cost, takes the full cost at the start, and holds the engine's cooldown for the whole clock; a blow the engine or a card refuses before swinging spends no stamina and opens no clock. The remainder is charged from the fatigue the inner swing actually spent, so sync19's co-op swing, which marks the clock without taking the engine's one fatigue, still pays the full cost. The copied engine's `attack` now starts the swing and leaves target resolution in `G.attack.pendingHit`; `resolveAttack` is called at the windup-to-active boundary, so a blow cannot land during windup or recovery, and a step across the whole clock still resolves once. Bloom24 puts its own hit on the same pending clock. This is the copied-engine edit the rule allows only when there is no other way, and it is recorded here. The co-op partner's own attack, the optional floating damage numbers/crit stop and the Phase 19 wall clang still resolve on their own paths. No poise, durability, thrown-only gate or beast adoption. Browser: a hound went 100 to 96 only at the active frame, and the vulnerable bloom went 55 to 48 there; windup and recovery left both unchanged. |
 | 24 | **Built, wired into play.** 55 health, 1.2 m/3 s wound cloud, 2.4 m/8 s burst, fire within 2 m of the cloud's edge at ten times the rate, six cloud-life multipliers, prologue invulnerable (owner ruling) | `js/bloom24.js`, `test/bloom24.test.js` | Sourced: 55, the cloud sizes/times, fire's 2 m, and cloud life 1.6 calm / 1.3 miasma / 1.0 ash / 0.9 hoar / 0.6 sleet / 0.4 cinder. The prologue bloom is invulnerable by the owner's 2026-11-23 ruling. The wire takes the live state from `BLOOM4.state()`; a melee swing in its arc calls `BLOOM24.hit`, so the prologue blocks without a wound or cloud. A vulnerable state (for a later bloom) takes weapon damage, leaves the cloud where it was hit, bursts it at zero, decays it by the weather life, lets a lit lantern within 2 m of its edge burn it, and gives a player inside a `LUNGS20` spore dose with the mask applied. A new bloom state resets clean and invulnerable. The three hit/cloud lines are [PROPOSED]. No cloud billboard, health/sight/stamina choking, save, sound or teal light. Browser: not run here; the fake-G test covers the invulnerable block, vulnerable wound/burst, cloud life/fire and exposure. |
 | 25 | **Built, pure.** Loudest noise, shared sightings, worse bar, one fuel pool, 1.7 m formation, shared dread | `js/coop25.js`, `test/coop25.test.js` | No new proposed numbers. No `net19`/`partner19` wire, third/fourth player or panel/Account sync. Browser: two loopback clients share noise, sight, bar, fuel and bloom without a contract change. |
-| 26 | **Built, pure.** Five nodes/six roads, shortest path, food/fuel cost, refusal, 30-day month | `js/chart26.js`, `test/chart26.test.js` | Road days, supply costs, 30-day month and the six-day Wexhaven route are `[PROPOSED]`. No MAP panel, calendar, weather fronts, Reckoner, objection or save. Browser: chart opens and walks, refusal works, day/node/stores reload. |
+| 26 | **Built, pure.** The walk south on the atlas's legs (rebuilt 2026-11-24, O18 LP5): seven places, six roads, 315 miles and 28 days; shortest path, food/fuel for the company, refusal, 30-day month | `js/chart26.js`, `test/chart26.test.js` | Miles, days and the Chart legs' food and fuel are the atlas's and the zone plan's, and the test reads them back from the lore; a walked seam's fuel (one a traveller a day, no hearth recorded) is `[PROPOSED]`. The other Chart legs (C3 to C6, C9, the sea) are not on it yet. No MAP panel, calendar, weather fronts, Reckoner, objection or save. Browser: chart opens and walks, refusal works, day/node/stores reload. |
 | 27 | **Built, wired at the bothy hearth.** REST at the lit bothy fire opens the hearth: four or eight hours, a food/oil store, the named dead, the Account promises and the company roster | `js/hearth27.js`, `test/hearth27.test.js` | One wound per 3 days and one frost per 2 are `[PROPOSED]`; so is the panel's connective wording. The engine's rest supplies the clock, health and fatigue; the phase's `mend` runs on a body copy. Wounds and frost have no source in the copied engine yet, so those two fields stay ready for a future source and are not visible in play. The state saves in `G.flags.la_hearth27`; the store moves smoked eel and oil between the pack and the bothy; naming an unnamed company dead updates FOLK; promises are read from the Account. No lime/burn/leave, recruit, dependants or body-fruit. Node and browser: rest, naming, store, the promise/roster state and the fall-through to the engine's rest off the hearth. |
 | 28 | **Built, pure.** Morale/memory, help/rob/spare/threaten/kill/leave, trust/fear, meeting again, Account line | `js/people28.js`, `test/people28.test.js` | Morale 0-10, start 5 and action deltas are `[PROPOSED]`. No encounter, dialogue, yield/bargain/run/return, dependant or save; dialogue remains gated. Browser: a reaver yields, is spared, remembers and is met again. |
 | 29 | **Built, wired in play.** One per-player warmth pool, 0-100; four stages; visible sleet and night, shelter and the bothy's lit hearth; no run or attack at zero | `js/chill29.js`, `test/chill29.test.js` | Sourced: every working takes warmth (the fen's chill), marks renew at the hearth, and the bothy's `la_hearth` is lit. Accepted 2026-11-23: the -0.08/-0.30/-0.12/+1.00 rates, 50/25/1/0 stages, 2.5 m fire radius, bar at x=40 and all four stage words; non-lethal at zero. The wire reads `G.map.entities` for a lit `la_hearth` or campfire, `WEATHER6.sleetAt` for sleet and the game's clock for night; it holds indoors, saves in `G.flags.la_chill`, resets through both `PANEL10` paths and registers Options > The chill. It wraps `needsRecovery` and holds `p.fat=0` at zero; the workings and marks stay pure and untouched, and no future-workings API is exposed. The in-game credits omit this file at the owner's request. No fire-lighting, fuel, NPC or co-op warmth. The saved state is the warmth alone; the stage is derived, and a stage word is said on the crossing that changes it. The cold is non-lethal: at zero the player keeps walking, and health is untouched. Node/fake-G: 35 checks. Browser: stood in the bothy at 40 warmth, the bar drew at x=40..42, save/restore kept only `warmth:37`, both card paths reset to 100, and the lit hearth raised warmth (the fake-G test holds the pool indoors away from it); no script errors (the console's 404s were the base game's optional portraits and music, not `chill29.js`); still `138_3d_the_chill.png`. |
@@ -981,7 +981,7 @@ now starts with the torch.
 
 Ruled 2026-11-23 ("she will give it to you. I approve of the rest"):
 
-- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line, [PROPOSED]: *"Take the
+- **P-T1** Marget Sayle gives you her lantern, the first time you speak to her. Her line (approved, O18): *"Take the
   lantern. A torch shows you to everything on that shelf."* (the bestiary: a shuttered lantern draws fewer than an
   open torch).
 - **P-T2** Its price, for when a trader exists: 10 measures (a targe is 6; lanterns are only mended, never made).
@@ -1046,7 +1046,7 @@ The beats, and what each one does now:
 
 ### Added
 
-- **The prologue's end** [PROPOSED]: after the title, a card with the run's numbers, then Walk on. Its words: *The
+- **The prologue's end** (approved, O18): after the title, a card with the run's numbers, then Walk on. Its words: *The
   ledge is behind you.* / *Marget Sayle is on your arm. The Bell Road goes south from here.* / *On the road: 1 day.* /
   *The lantern: 9 of 18 minutes of oil, and 2 flasks in the pack.* (or *No lantern.*) / *The torch: 4 of 4 minutes of
   pitch.* (or *The torch is spent.*) / *Who lived: ...* / *Written in the roll: ...* (or *Nobody was written in the
@@ -1054,8 +1054,8 @@ The beats, and what each one does now:
   count from the day you began (`G.flags.la_day0`); who lived reads the company roll (Phase 12), the carter's own state
   (Phase 13) and whether Marget is out. Shown once (`G.flags.la_prologue_end`). Off, the title ends the prologue as
   Phase 15 left it; the card is a page, not a picture, so the frame is the same on and off (tested by hash).
-- **[PROPOSED] P39-1** The Account's key is X (A walks).
-- **[PROPOSED] P39-2** E while carrying acts on a door, the bar or another person; on her or on nothing it lets go.
+- **P39-1** (approved, O18) The Account's key is X (A walks).
+- **P39-2** (approved, O18) E while carrying acts on a door, the bar or another person; on her or on nothing it lets go.
 
 ### Not done, and what needs a person
 
@@ -1064,7 +1064,8 @@ The beats, and what each one does now:
   post at the ramp's foot, so it hears the carry and follows you up the ramp. In the test's run it never reached us; in
   the clip's run, where we stopped half way up for a still, it clawed once (90 to 58). When the title comes it is a
   step behind you, and the world is held while the title and the card are up. Whether that is the dread wanted, or
-  whether the bloom should give up at the top, is a ruling for the owner; nothing here changes it.
+  whether the bloom should give up at the top, was a ruling for the owner. Ruled 2026-11-24 (O18): it keeps the chase,
+  as built.
 - Feel, timing and sound: whether the two-second look reads as a look, whether the walk and the carry's pace feel
   right, whether the bar's sound and the knock land, how long the title should hold. Software rendering cannot show any
   of that.
@@ -1173,8 +1174,8 @@ takes the standard zone size (ZP16); its own extent inside the zone stays unset.
   about 10 miles, 1 day (C5); Port Sable to Sephar, about 1,000 miles, 10 days (S3b); Saint-Aumere to Halsing, about
   120 miles, 15 days (S4).
 
-**Not done, and not checked:** no zone is built and no code changed; `js/chart26.js` still has its five nodes and
-six short roads, and would be rebuilt from these legs in a later phase if they are approved. Feel (whether one thing
+**Not done, and not checked:** no zone is built and no code changed; `js/chart26.js` then still had its five nodes and
+six short roads (rebuilt on the walk south's legs on 2026-11-24, O18 LP5). Feel (whether one thing
 every 85 cells reads dense or cluttered, how a seam's half-second load sits with the dread) needs a person at the
 controls once a zone exists. The Round's four landfalls are outlines: their ways cover a small part of their ground.
 Names were checked against `docs/worldbuilding/` and `js/` for clashes on 2026-11-24 ("Lime Pit" clashed with Withy
@@ -1195,11 +1196,13 @@ fact re-read at its file and line, every name in the roster, bestiary or atlas (
 no prophecy, no answer to the three shut questions. Three pieces of engine work (a scene runner, a zone-map builder,
 a MAP panel) would then wire the pure phases 21, 22, 25, 26, 28, 30, 31 and 33 to 37.
 
-**Built:** the places slice. All **133** of the gazetteer's places parse: 67 from their own entry, 33 from a shared
-heading, 3 from a region file, 25 named in bold inside an entry, 5 mentioned in passing. 42 get an atlas kind, 37 a
-position in miles, 82 a zone position, 43 named people and 60 named beasts. The test re-reads every source line.
+**Built:** the places slice. All **134** of the gazetteer's places parse (its 133, with the Bloom Quarters as two
+under O18): 69 from their own entry, 32 from a shared heading, 3 from a region file, 25 named in bold inside an
+entry, 5 mentioned in passing. 44 get an atlas kind, 37 a position in miles, 82 a zone position, 44 named people and
+62 named beasts. The test re-reads every source line.
 
-Everything below is **[PROPOSED]** and waits for the owner.
+Everything below was **[PROPOSED]** here and is **approved** (O18, 2026-11-24). Where an item asked a question, the
+ruling is: LP3 keep the 133; LP6 leave the kind empty; LP7 add atlas entries for the ledge and the bothy; LP8 two places.
 
 - **LP1** Three layers: lore untouched; game sheets in `docs/game/`; generated data in `docs/data/`, and in
   `js/data/*.js` (plain scripts, cached by `sw.js`) once the game loads a kind. The page never fetches JSON.
@@ -1223,7 +1226,12 @@ Everything below is **[PROPOSED]** and waits for the owner.
 
 **Not done, and not checked:** no other kind, no game sheet, no loader, no wiring. People and beasts are found by
 matching the roster's names and the bestiary's words, so a person named only by a role is missed. The Salt Trace's
-fen stages are prose and are not read. The places JSON uses the zone plan, which is itself [PROPOSED] under O15.
+fen stages are prose and are not read. The places JSON uses the zone plan, approved as O16.
+
+**Follow-up from O18, done.** `js/chart26.js` is the walk south on the atlas's legs (LP5; see Phase 26 above). The
+ledge and Marget Sayle's bothy have atlas entries (LP7), at the end of `atlas/4-the-citadels.md`, written only from
+lines already canon, each source listed; the pipeline now reads them there. The Bloom Quarters are two places, Port Sable's Bloom Quarter and Marlstow's lower town (LP8), so the list has
+134.
 
 ## Old phase table (kept for history)
 
