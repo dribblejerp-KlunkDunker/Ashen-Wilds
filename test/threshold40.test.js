@@ -105,6 +105,8 @@ check(!src.split('\n').some((l) => /\S.*[;{)]\s*\/\/ /.test(l) && !/['"`].*\/\/.
     await H.begin(s.page);
     await H.autopilot(s.page);
     const ev = (fn, arg) => s.page.evaluate(fn, arg);
+    // Phase 42 makes the way down lead to one open map; this test is of Phase 40's two maps, so that switch is off
+    await ev(() => { GFX.laOpenZone = false; });
     // a walker that stops when the map changes
     await ev(() => {
       window.__W40 = (x, y, ms) => {
@@ -127,7 +129,7 @@ check(!src.split('\n').some((l) => /\S.*[;{)]\s*\/\/ /.test(l) && !/['"`].*\/\/.
       const m = G.maps.la_ledge;
       return { maps: Object.keys(G.maps).sort(), ms: Math.round(ms), gap: [m.get(85, 58), m.get(86, 58)], drop: [m.floorCells[59 * m.w + 85], m.floorCells[59 * m.w + 86]], row: LEDGE1.SWITCHES.some((r) => r[0] === 'laThresholds'), err: THRESH40.state().err };
     });
-    check(a1.maps.join() === 'la_bothy,la_ledge,la_z1_2_0,la_z1_2_1', 'the game has its four maps: ' + a1.maps.join(', '));
+    check(a1.maps.join() === 'la_bothy,la_ledge,la_z1,la_z1_2_0,la_z1_2_1', 'the game has its maps (and Phase 42\'s open one): ' + a1.maps.join(', '));
     console.log('   building every map takes ' + a1.ms + ' ms here (software, two slow cores)');
     check(a1.gap[0] === null && a1.gap[1] === null && a1.drop[0] === 2 && a1.drop[1] === 2, 'two of the ledge\'s south boulders are gone, and the drop below them holds');
     check(a1.row, 'Options has the switch "Ways between maps"');

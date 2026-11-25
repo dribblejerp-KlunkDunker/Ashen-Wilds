@@ -127,6 +127,14 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
   seconds and a second a frame before). It is how the highland edge will become one open country, with no
   walls between its squares.
 
+- **One open country** (Phase 42). Below the ledge the highland edge is one map now, the whole zone, a
+  mile across: the ledge path runs down from the crag to the Greystair fork and on, with no band of rock
+  and no cut between. Only the zone's own edge is rock, and the upper road south ends in a notch there.
+  Its ground is made a piece at a time while the prologue plays. Off in Options, it is the two maps of
+  Phase 40, as before.
+
+  ![Open country where the band stood](docs/screenshots/191_after_open_country_at_the_seam.png)
+
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
   code here.
 
@@ -155,6 +163,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/prologue39.js` | Phase 39: the prologue's end card after the title, with the run's numbers; `test/prologue39.test.js` plays the prologue through |
 | `js/threshold40.js` | Phase 40: the highland edge's first two maps, the cut between them, the gap down from the ledge; who comes with you |
 | `js/stream41.js` | Phase 41: streaming big maps in chunks (with changes in `js/r3d21.js`); `test/stream41.test.js` |
+| `js/open42.js` | Phase 42: the highland edge as one open map (`la_z1`), made a piece at a time; `test/open42.test.js` |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
@@ -166,7 +175,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`, `thresholdshots.js`, `streamshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`, `thresholdshots.js`, `streamshots.js`, `openshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -198,6 +207,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/prologue39.test.js --no-browser
     node test/threshold40.test.js --no-browser
     node test/stream41.test.js --no-browser
+    node test/open42.test.js --no-browser
     node test/lore-places.test.js --no-browser      # the lore pipeline: places
     node tools/pwa/precache.js --check
     node tools/icons.js --check
@@ -219,6 +229,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/prologue39.test.js   # the whole prologue, played
     NODE_PATH=$(npm root -g) node test/threshold40.test.js  # down from the ledge, through the cut and back
     NODE_PATH=$(npm root -g) node test/stream41.test.js     # big maps in chunks
+    NODE_PATH=$(npm root -g) node test/open42.test.js       # the highland edge as one open map
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
