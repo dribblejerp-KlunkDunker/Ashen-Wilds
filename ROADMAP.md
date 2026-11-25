@@ -1398,6 +1398,62 @@ near a cell's edge and looking along it, the frost tile's far texture can show a
 Phase 40's stills too, streamed or not, torch lit or not); worth a look in the renderer's ground shader. Feel, how far
 you want to see across open country, and whether the making ever shows as a hitch on a real machine need a person.
 
+## Phase 43 - the places of the highland edge
+
+`js/places43.js` · `test/places43.test.js` · `tools/placeshots.js` (stills 200 to 212) · switch: Options > "Places of the
+highland edge"
+
+O15 asks for something to see, find or fight about every 30 to 60 seconds of walking, and the zone plan (O16) puts 56
+places on Z1's grid. Phase 42 made Z1 one open map with only its ground and ways; this phase puts all 56 on it.
+
+- **Each where the plan puts it.** The table is the plan's own (the test reads it back from `atlas/10-zones.md`: number,
+  name, point, kind). Each place has one recipe, built from what the game already draws: rock and dry stone, turf, slag,
+  frost, scorch, ember and bloom ground, embers and corpse-caps that give light, and steam from the warm ground. Six
+  small things are painted here, in code: a body under its cloak, bones, a straw skep, a pair of boots, bright scraps,
+  early flowers. A place stands at its point, or beside its way when the point is on one (never more than 24 cells off,
+  always three clear of the way), so no way is blocked; every place and every point of every way can be walked to
+  (tested by a flood over the whole map).
+- **Named and found.** Every thing at a place carries the place's name, the plan's (without its brackets), so that is
+  what you read when you look at it. Coming within 14 cells of a place the first time says its name and marks it found
+  (`G.flags.la_found`, saved). The ledge and the bothy, their own maps (Z-R3), are found by being in them. The map (M)
+  of the open country rings the places found and names them.
+- **Gates.** The four ways that leave the zone northward end between two gateposts, and say, in Phase 40's words, that
+  the country beyond is not built yet. Coldbarrow's north gate is shut in a wall across the upper road (the town is a
+  great complex, its own maps behind the gate, Z-R3).
+- **The hunts are signs only.** Of what the plan says hunts here, only the walking bloom is in the game. The hunts'
+  places (the ogre's slope, the ork packs, the quarry-trolls, the goblins) show their signs: bones, trampled ground, split
+  boulders, scraps.
+- **The switch off:** the open map is Phase 42's, cell for cell, with none of the places' things left (tested); on
+  again, they stand again. A save keeps what you found and none of the places' things (about 33 KB of JSON with them).
+
+How: `PLACES43` wraps `update` (putting the places up once the open map is made, the finding, the steam), `loadMap` (up
+before you arrive), `snapshotGame` (the places' things left out) and `renderMap` (the rings). Nothing in the copied engine
+changed. `test/open42.test.js` turns this phase's switch off, as it tests Phase 42's bare map.
+
+Measured here (software rendering): putting up all 56 places takes 5 to 10 ms; they are 284 cells of stone, about 1,500
+of ground and 132 things; a frame at the Greystair fork with them up is about 2.5 ms. Along every way, something stands within 70 cells at least every 16 cells walked (the rule
+asks for 156).
+
+**Invented, for a ruling:**
+
+- **[PROPOSED] P43-1** What each place is built of, place by place (`RECIPES` in `js/places43.js`). Where the plan
+  describes a place (the new small sites, the wayside finds) the recipe follows it; where it gives only a name (the
+  Greystair fork's standing stone, the Hewers' Cross as a stone shaft on a cross-shaped plinth, the tenth tower of the
+  carrying line as a dry-stone tower about six high, a view as a flat stone to stand at) the shape is mine.
+- **[PROPOSED] P43-2** Finding: a place's name said when you first come within 14 cells, and the found places ringed and
+  named on the map (M).
+- **[PROPOSED] P43-3** The six painted things: a body under its cloak, bones, a straw skep, boots, bright scraps, early
+  flowers.
+- **[PROPOSED] P43-4** Coldbarrow's north gate as a wooden gate, shut, in a dry-stone wall 120 cells long across the upper
+  road at the gate's point; the gates north as two gateposts at the way's end.
+- **[PROPOSED] P43-5** The switch's name and words, "Places of the highland edge".
+
+**Not done, and not checked:** the beasts of the hunts (the ogre, ork packs, quarry-trolls, goblins: modelled bodies,
+each its own phase); anything to take, use or open at a place (the cairn's cache, the miner's brass tag, the carrier's
+heat-stones, Marget's peat); the shapes are the engine's blocks, square-sided, and a stone cross reads as a stepped
+pillar; Coldbarrow itself; the Chart booking when you leave the zone (Z-R5). How the places read in motion, in fog and
+at night, and whether 30 to 60 seconds between them feels right walking, need a person.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
