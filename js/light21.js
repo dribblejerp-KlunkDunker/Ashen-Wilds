@@ -1010,8 +1010,11 @@ void main() {
   let sigT = 0;
   function mapResources(gl, F) {
     const m = F.map; if (!m) return;
-    if (hgt.map !== m || !hgt.ok) { buildHeights(gl, m); hgt.sig = heightSig(m); sigT = F.now; }
-    else if (F.now - sigT > 0.5) { sigT = F.now; const s = heightSig(m); if (s !== hgt.sig) { hgt.sig = s; buildHeights(gl, m); } }
+    // Phase 41: a streamed map (js/r3d21.js, js/stream41.js) counts its own changes (m._r3dVer); hashing all its cells
+    // twice a second is what a big map cannot afford
+    const sigOf = (mm) => (mm._r3dStream ? 'v' + (mm._r3dVer | 0) : heightSig(mm));
+    if (hgt.map !== m || !hgt.ok) { buildHeights(gl, m); hgt.sig = sigOf(m); sigT = F.now; }
+    else if (F.now - sigT > 0.5) { sigT = F.now; const s = sigOf(m); if (s !== hgt.sig) { hgt.sig = s; buildHeights(gl, m); } }
     const key = m.outdoor ? m.id + '|' + (typeof GFX !== 'undefined' && GFX.panoramas ? 1 : 0) : '';
     if (key !== pano.key) { pano.key = key; if (m.outdoor) buildPano(gl, m); else { pano.ok = false; pano.n = 0; } }
   }

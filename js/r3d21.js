@@ -457,6 +457,7 @@ vec4 r3dLandmarks(float az, float te) {
     world.layers = new Map(); world.cap = 0; world.tex = null; world.srcs = new Map();
     atlas.reset();
     mesh.reset();
+    streamReset(true);
     targets.reset();
     // recompile every program (a restored context lost them all); CORE's own are made on the first context
     for (const P of programs) { const c = compileProgram(P.vs, P.fs, P.chunks); P.p = c.p; P.u = c.u; }
@@ -747,9 +748,11 @@ vec4 r3dLandmarks(float az, float te) {
   // neighbour's ground or cap) to its top, in the wall texture above its own base and its side texture below; a rise in
   // open ground is a riser in the higher cell's side texture; caps on blocks; ground per cell (slopes bilinear);
   // ceilings at ceilZ indoors; door cells are ground with their leaves in the dynamic mesh.
-  function buildMesh(m) {
-    const t0 = now();
-    const B = new Builder();
+  // Phase 41 (streaming): the builder fills any rectangle of cells [X0, X1) x [Y0, Y1) into B. The whole map is the
+  // rectangle (0, 0, W, H) with `whole` set (the flat maps' apron and the extensions); a streamed map builds one chunk at
+  // a time with whole unset and its extensions once, apart. For the whole map the vertices come out in the same order,
+  // with the same values, as before this phase.
+  function fillStatic(m, B, X0, Y0, X1, Y1, whole) {
     const relief = !!m.relief;
     const W = m.w, H = m.h, grid = m.cells;
     const floorDef = m.floor || 't_flag';
@@ -771,8 +774,8 @@ vec4 r3dLandmarks(float az, float te) {
     // slope normals: each corner's gradient is the mean of the bilinear gradients of the open slope cells that share it,
     // and a sub-quad vertex blends its cell's four corners, so the shading runs on across cell edges (taken from inside
     // each cell alone, a steep slope shaded as a stack of bands, one per row of cells)
-    const SM = m.smooth, VV = m.verts, W1 = W + 1, cg = (relief && SM && VV) ? new Float32Array(W1 * (H + 1) * 2) : null;
-    if (cg) for (let vy = 0; vy <= H; vy++) for (let vx = 0; vx <= W; vx++) {
+    const SM = m.smooth, VV = m.verts, W1 = W + 1, LW1 = X1 - X0 + 1, cg = (relief && SM && VV) ? new Float32Array(LW1 * (Y1 - Y0 + 1) * 2) : null;
+    if (cg) for (let vy = Y0; vy <= Y1; vy++) for (let vx = X0; vx <= X1; vx++) {
       let gx = 0, gy = 0, n = 0;
       for (let k = 0; k < 4; k++) {
         const cx2 = vx - 1 + (k & 1), cy2 = vy - 1 + (k >> 1);
@@ -780,10 +783,10 @@ vec4 r3dLandmarks(float az, float te) {
         const v0 = cy2 * W1 + cx2, fx = vx - cx2, fy = vy - cy2;
         gx += VV[v0 + fy * W1 + 1] - VV[v0 + fy * W1]; gy += VV[v0 + W1 + fx] - VV[v0 + fx]; n++;
       }
-      const o = (vy * W1 + vx) * 2; cg[o] = n ? gx / n : 0; cg[o + 1] = n ? gy / n : 0;
+      const o = ((vy - Y0) * LW1 + vx - X0) * 2; cg[o] = n ? gx / n : 0; cg[o + 1] = n ? gy / n : 0;
     }
     // ---- ground and caps
-    for (let cy = 0; cy < H; cy++) for (let cx = 0; cx < W; cx++) {
+    for (let cy = Y0; cy < Y1; cy++) for (let cx = X0; cx < X1; cx++) {
       const ci = cy * W + cx, c = grid[ci];
       if (isBlock(c)) {
         if (!relief) continue;   // flat maps: the eye (0.5) is always below a block's top
@@ -799,7 +802,7 @@ vec4 r3dLandmarks(float az, float te) {
       const name = texOfFloor(cx, cy), L = tex(name), mat = matOf(name);
       if (relief && m.smooth && m.smooth[ci]) {
         // a slope: 2x2 sub-quads on the bilinear surface, normals blended from the shared corner gradients
-        const idx = [], o00 = (cy * W1 + cx) * 2, o10 = o00 + 2, o01 = o00 + W1 * 2, o11 = o01 + 2;
+        const idx = [], o00 = ((cy - Y0) * LW1 + cx - X0) * 2, o10 = o00 + 2, o01 = o00 + LW1 * 2, o11 = o01 + 2;
         for (let j = 0; j <= 2; j++) for (let i = 0; i <= 2; i++) {
           const fx = i / 2, fy = j / 2, z = cellGround(m, cx, cy, fx, fy);
           const gx = (cg[o00] * (1 - fx) + cg[o10] * fx) * (1 - fy) + (cg[o01] * (1 - fx) + cg[o11] * fx) * fy;
@@ -816,7 +819,7 @@ vec4 r3dLandmarks(float az, float te) {
       }
     }
     // ---- flat maps: the CPU's floor runs on past the map's edge to the horizon; an apron does the same
-    if (!relief) {
+    if (!relief && whole) {
       const L = tex(Engine.textures[floorDef] ? floorDef : 't_flag'), R = 160;
       const rects = [[-R, -R, W + R, 0], [-R, H, W + R, H + R], [-R, 0, 0, H], [W, 0, W + R, H]];
       for (const [x0, y0, x1, y1] of rects) {
@@ -882,7 +885,7 @@ vec4 r3dLandmarks(float az, float te) {
     // the fractional coordinates of an edge's two endpoints inside cell A (for its own height function)
     const edgeF = (dirI) => dirI === 0 ? [1, 0, 1, 1] : dirI === 1 ? [0, 0, 0, 1] : dirI === 2 ? [0, 1, 1, 1] : [0, 0, 1, 0];
     const edgeFN = (dirI) => dirI === 0 ? [0, 0, 0, 1] : dirI === 1 ? [1, 0, 1, 1] : dirI === 2 ? [0, 0, 1, 0] : [0, 1, 1, 1];
-    for (let cy = 0; cy < H; cy++) for (let cx = 0; cx < W; cx++) {
+    for (let cy = Y0; cy < Y1; cy++) for (let cx = X0; cx < X1; cx++) {
       const ci = cy * W + cx, c = grid[ci], blk = isBlock(c);
       if (!blk && !relief) continue;                    // flat maps: only blocks have faces
       for (let k = 0; k < 4; k++) {
@@ -910,7 +913,7 @@ vec4 r3dLandmarks(float az, float te) {
       }
     }
     // ---- door cells: lintels up to a tall room's ceiling and the cap the CPU lays over a shut door (relief maps)
-    for (let cy = 0; cy < H; cy++) for (let cx = 0; cx < W; cx++) {
+    for (let cy = Y0; cy < Y1; cy++) for (let cx = X0; cx < X1; cx++) {
       const ci = cy * W + cx, c = grid[ci];
       if (!c || !c.door || !relief) continue;
       const base = cellGround(m, cx, cy, 0.5, 0.5), or = doorOrient(m, cx, cy);
@@ -931,7 +934,7 @@ vec4 r3dLandmarks(float az, float te) {
     if (m.ceil && Engine.textures[m.ceil]) {
       const cz = m.ceilZ || 1;
       const cl = m.ceilCells, ctl = m.ceilTextures;
-      for (let cy = 0; cy < H; cy++) for (let cx = 0; cx < W; cx++) {
+      for (let cy = Y0; cy < Y1; cy++) for (let cx = X0; cx < X1; cx++) {
         const ci = cy * W + cx, c = grid[ci];
         if (isBlock(c) && blockTop(c, cx, cy, 0.5, 0.5) >= cz - 1e-4 && c.top == null) continue;
         let name = m.ceil;
@@ -943,7 +946,20 @@ vec4 r3dLandmarks(float az, float te) {
       }
     }
     // ---- extensions (js/eaves78.js: roofs, gables, windows): more triangles into the same mesh, same vertex rules
+    if (whole) tris += fillExt(m, B);
+    return tris;
+  }
+  function fillExt(m, B) {
+    let tris = 0;
+    const tex = (name) => { const L = worldTex(name); return L < 0 ? worldTex('t_stone') : L; };
     for (const fn of meshExt) { try { tris += fn(m, { B, tex, MAT, ZK }) | 0; } catch (e) { warnOnce('meshExt', e); } }
+    return tris;
+  }
+  function buildMesh(m) {
+    const t0 = now();
+    const B = new Builder();
+    const relief = !!m.relief;
+    const tris = fillStatic(m, B, 0, 0, m.w, m.h, true);
     // ---- upload
     if (!mesh.vao) { mesh.vao = gl.createVertexArray(); mesh.vbo = gl.createBuffer(); mesh.ibo = gl.createBuffer(); }
     gl.bindVertexArray(mesh.vao);
@@ -1117,7 +1133,127 @@ vec4 r3dLandmarks(float az, float te) {
     }
     return false;
   }
+  // ---- Phase 41: streaming. A map of more than STREAM.MIN cells (with the switch "Stream large maps" on, GFX.laStream)
+  // is built in chunks of STREAM.CH cells a side, and only the chunks within the fog's reach of the eye (plus a margin)
+  // are built, kept and drawn: the cost of a frame and of the GPU's memory no longer grows with the map. The map's own
+  // setters (js/stream41.js wraps GameMap's) list what they change in m._r3dDirty; one built chunk a frame is re-hashed
+  // as well, so a write that went round the setters is found within a second or so. The extensions (roofs, the burning
+  // ground) are one mesh of their own, built once per map and again when anything changes. Smaller maps, and every map
+  // with the switch off, are built whole as before, to the byte.
+  const STREAM = { CH: 64, MIN: 65536, NEAR: 72, BUDGET: 6, map: null, chunks: new Map(), ext: null, extDirty: false, refs: [], rr: 0, info: null, built: 0, freed: 0, rebuilt: 0 };
+  const streamOn = (m) => !!m && m.w * m.h > STREAM.MIN && !(typeof GFX !== 'undefined' && GFX.laStream === false);
+  const streamRadius = (m) => Math.max(96, ((m && m.fogDist) || 12) + 48);
+  function freeGeo(o) { if (o && o.vao && gl) { gl.deleteVertexArray(o.vao); gl.deleteBuffer(o.vbo); gl.deleteBuffer(o.ibo); } if (o) { o.vao = null; o.count = 0; } }
+  function uploadGeo(o, B) {
+    if (!o.vao) { o.vao = gl.createVertexArray(); o.vbo = gl.createBuffer(); o.ibo = gl.createBuffer(); }
+    gl.bindVertexArray(o.vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, o.vbo); gl.bufferData(gl.ARRAY_BUFFER, B.v.subarray(0, B.nv * VSTRIDE), gl.STATIC_DRAW);
+    vertexLayout();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.ibo); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, B.i.subarray(0, B.ni), gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
+    o.count = B.ni; o.verts = B.nv;
+  }
+  function streamReset(lost) {
+    for (const k of STREAM.chunks.values()) { if (lost) k.vao = null; else freeGeo(k); }
+    STREAM.chunks.clear();
+    if (STREAM.ext) { if (lost) STREAM.ext.vao = null; else freeGeo(STREAM.ext); }
+    STREAM.ext = null; STREAM.map = null; STREAM.refs = []; STREAM.info = null;
+  }
+  // a hash of a rectangle of the map: its cells and every per-cell array the mesh reads (one cell wider than the chunk,
+  // since a face or a slope's shading reads its neighbours)
+  function rectSig(m, x0, y0, x1, y1) {
+    x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(m.w, x1); y1 = Math.min(m.h, y1);
+    let h = 0x9e3779b9 | 0; const g = m.cells, W = m.w, W1 = W + 1;
+    const dec = Array.isArray(m.decals) ? m.decals : null, decO = !dec && m.decals ? m.decals : null;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+      const i = y * W + x, c = g[i]; let v = 0;
+      if (c) v = (hs(c.tex) ^ (c.top != null ? ((c.top * 4096) | 0) * 31 : 7) ^ (c.door ? 0x55 : 0) ^ hs(c.capTex) * 3) | 0;
+      if (m.lvls) v ^= ((m.lvls[i] * 4096) | 0) * 5;
+      if (m.smooth) v ^= m.smooth[i] * 7;
+      if (m.floorCells) v ^= m.floorCells[i] * 11;
+      if (m.ceilCells) v ^= m.ceilCells[i] * 13;
+      if (m.sideTex) v ^= hs(m.sideTex[i]) * 17;
+      if (dec) v ^= hs(dec[i]) * 19; else if (decO && decO[i]) v ^= hs(decO[i]) * 19;
+      h = Math.imul(h ^ v, 0x01000193) + i | 0;
+    }
+    if (m.verts) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) h = Math.imul(h ^ ((m.verts[y * W1 + x] * 4096) | 0), 0x01000193) | 0;
+    return h;
+  }
+  function chunkRect(m, k) { const C = STREAM.CH, x0 = k.cx * C, y0 = k.cy * C; return [x0, y0, Math.min(m.w, x0 + C), Math.min(m.h, y0 + C)]; }
+  function buildChunk(m, k) {
+    const t0 = now(), B = new Builder(), [x0, y0, x1, y1] = chunkRect(m, k);
+    k.tris = fillStatic(m, B, x0, y0, x1, y1, false);
+    uploadGeo(k, B);
+    k.sig = rectSig(m, x0 - 1, y0 - 1, x1 + 1, y1 + 1); k.dirty = false; k.ms = now() - t0;
+    STREAM.built++; stats.meshBuilds++;
+    return k.ms;
+  }
+  function ensureStream(m) {
+    const S = STREAM, C = S.CH;
+    const r = refs(m);
+    let reset = S.map !== m || mesh.dirty;
+    if (!reset) for (let i = 0; i < r.length; i++) if (r[i] !== S.refs[i]) { reset = true; break; }
+    const first = mesh.map !== m;
+    if (reset) {
+      streamReset(false);
+      if (typeof Engine.scanRelief === 'function') { try { Engine.scanRelief(m); } catch (e) { /* keep */ } }
+      S.map = m; S.refs = r; m._r3dStream = true; m._r3dDirty = []; mesh.dirty = false; mesh.map = m; S.extDirty = true;
+    }
+    // what the map's setters changed (one cell round it too: a face or a slope reads its neighbours)
+    const D = m._r3dDirty;
+    if (D && D.length) {
+      for (const [x0, y0, x1, y1] of D) {
+        for (let cy = Math.max(0, Math.floor((y0 - 1) / C)); cy <= Math.floor((y1 + 1) / C); cy++) for (let cx = Math.max(0, Math.floor((x0 - 1) / C)); cx <= Math.floor((x1 + 1) / C); cx++) {
+          const k = S.chunks.get(cx + ',' + cy); if (k) k.dirty = true;
+        }
+      }
+      D.length = 0; S.extDirty = true;
+    }
+    // one built chunk a frame is hashed again: a write that went round the setters
+    const keys = [...S.chunks.keys()];
+    if (keys.length) {
+      S.rr = (S.rr + 1) % keys.length;
+      const k = S.chunks.get(keys[S.rr]), [x0, y0, x1, y1] = chunkRect(m, k);
+      if (!k.dirty && rectSig(m, x0 - 1, y0 - 1, x1 + 1, y1 + 1) !== k.sig) { k.dirty = true; S.extDirty = true; m._r3dVer = (m._r3dVer | 0) + 1; }
+    }
+    // the chunks the eye needs: every one whose square comes within the radius; nearest first
+    const R = streamRadius(m), ex = F.cam.x, ey = F.cam.y, need = [];
+    const cx0 = Math.max(0, Math.floor((ex - R) / C)), cx1 = Math.min(Math.ceil(m.w / C) - 1, Math.floor((ex + R) / C));
+    const cy0 = Math.max(0, Math.floor((ey - R) / C)), cy1 = Math.min(Math.ceil(m.h / C) - 1, Math.floor((ey + R) / C));
+    for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+      const dx = Math.max(cx * C - ex, 0, ex - (cx + 1) * C), dy = Math.max(cy * C - ey, 0, ey - (cy + 1) * C), d = Math.hypot(dx, dy);
+      if (d <= R) need.push({ cx, cy, d });
+    }
+    need.sort((a, b) => a.d - b.d);
+    let spent = 0;
+    for (const n of need) {
+      const key = n.cx + ',' + n.cy; let k = S.chunks.get(key);
+      if (k && !k.dirty) continue;
+      // near the eye, at once (a map just entered, a rebuilt wall beside you); further out, a few milliseconds a frame
+      if (n.d > S.NEAR && spent > S.BUDGET) continue;
+      if (!k) { k = { cx: n.cx, cy: n.cy, vao: null, count: 0 }; S.chunks.set(key, k); } else S.rebuilt++;
+      spent += buildChunk(m, k);
+    }
+    // the chunks left far behind are let go
+    for (const [key, k] of S.chunks) {
+      const dx = Math.max(k.cx * C - ex, 0, ex - (k.cx + 1) * C), dy = Math.max(k.cy * C - ey, 0, ey - (k.cy + 1) * C);
+      if (Math.hypot(dx, dy) > R + C) { freeGeo(k); S.chunks.delete(key); S.freed++; }
+    }
+    if (!S.ext || S.extDirty) {
+      const B = new Builder(); S.ext = S.ext || { vao: null, count: 0 }; S.ext.tris = fillExt(m, B);
+      if (B.ni) uploadGeo(S.ext, B); else { freeGeo(S.ext); S.ext.count = 0; }
+      S.extDirty = false;
+    }
+    let verts = S.ext.verts || 0, tris = S.ext.tris || 0;
+    for (const k of S.chunks.values()) { verts += k.verts || 0; tris += k.tris || 0; }
+    stats.tris = tris;
+    S.info = { map: m.id, verts, tris, ms: Math.round(spent * 10) / 10, relief: !!m.relief, streamed: true, chunks: S.chunks.size, need: need.length, radius: R };
+    mesh.info = S.info; stats.lastMesh = S.info;
+    if (first) emit('mapchange', m, F);
+  }
   function ensureMesh(m) {
+    if (streamOn(m)) { if (!mesh.streamed) { mesh.streamed = true; mesh.dirty = true; } ensureStream(m); return true; }
+    if (mesh.streamed) { mesh.streamed = false; streamReset(false); mesh.dirty = true; if (m) m._r3dStream = false; }
     if (!needRebuild(m)) return false;
     if (typeof Engine.scanRelief === 'function') { try { Engine.scanRelief(m); } catch (e) { /* keep */ } }
     const first = mesh.map !== m;
@@ -1318,7 +1454,10 @@ void main() {
   }
 
   function drawWorld(prog) {
-    gl.bindVertexArray(mesh.vao); gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_INT, 0); stats.draws++;
+    if (mesh.streamed) {
+      for (const k of STREAM.chunks.values()) if (k.vao && k.count) { gl.bindVertexArray(k.vao); gl.drawElements(gl.TRIANGLES, k.count, gl.UNSIGNED_INT, 0); stats.draws++; }
+      if (STREAM.ext && STREAM.ext.vao && STREAM.ext.count) { gl.bindVertexArray(STREAM.ext.vao); gl.drawElements(gl.TRIANGLES, STREAM.ext.count, gl.UNSIGNED_INT, 0); stats.draws++; }
+    } else { gl.bindVertexArray(mesh.vao); gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_INT, 0); stats.draws++; }
     if (mesh.dcount) { gl.bindVertexArray(mesh.dvao); gl.drawElements(gl.TRIANGLES, mesh.dcount, gl.UNSIGNED_INT, 0); stats.draws++; }
     gl.bindVertexArray(null);
   }
@@ -1437,25 +1576,31 @@ void main() {
     }
   }
   // the point lights: positions and colours (UBO) and a per-cell bitmask of which lights reach each cell (their wall masks)
-  let lvisBuf = new Uint32Array(0), lvisW = 0, lvisH = 0;
+  let lvisBuf = new Uint32Array(0), lvisW = 0, lvisH = 0, lvisBox = null;
   function frameLights(env, m) {
     const Ls = env.ptLights || [];
     const n = Math.min(MAX_LIGHTS, Ls.length);
     const b = uboLBuf; b.fill(0);
     if (lvisW !== m.w || lvisH !== m.h || !T.lvis) {
       if (T.lvis) gl.deleteTexture(T.lvis);
-      lvisW = m.w; lvisH = m.h; lvisBuf = new Uint32Array(m.w * m.h);
+      lvisW = m.w; lvisH = m.h; lvisBuf = new Uint32Array(m.w * m.h); lvisBox = null;
       gl.activeTexture(gl.TEXTURE2);   // the light map's own unit: an integer texture left on another unit breaks sampler2D draws there
       T.lvis = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, T.lvis);
       gl.texStorage2D(gl.TEXTURE_2D, 1, gl.R32UI, m.w, m.h);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     }
-    lvisBuf.fill(0);
+    // Phase 41: on a streamed map only the cells the lights touched last frame are cleared, and only the box of those and
+    // this frame's is sent; the texture is the map's size, but the work is the lights' (the whole map, every frame, before)
+    const part = !!mesh.streamed;
+    if (part) { const P = lvisBox; if (P) for (let y = P[1]; y <= P[3]; y++) lvisBuf.fill(0, y * m.w + P[0], y * m.w + P[2] + 1); }
+    else lvisBuf.fill(0);
+    let bx0 = m.w, by0 = m.h, bx1 = -1, by1 = -1;
     for (let k = 0; k < n; k++) {
       const L = Ls[k];
       b[k * 4] = L.x; b[k * 4 + 1] = L.y; b[k * 4 + 2] = L.r * L.r;
       b[MAX_LIGHTS * 4 + k * 4] = (L.cr || 0) / 255; b[MAX_LIGHTS * 4 + k * 4 + 1] = (L.cg || 0) / 255; b[MAX_LIGHTS * 4 + k * 4 + 2] = (L.cb || 0) / 255;
       const bit = (1 << k) >>> 0;
+      if (part) { const R0 = L.vis ? 0 : Math.ceil(L.r) + 1, ax = L.vis ? L.vox : (L.x | 0) - R0, ay = L.vis ? L.voy : (L.y | 0) - R0, bx = L.vis ? L.vox + L.vd - 1 : (L.x | 0) + R0, by = L.vis ? L.voy + L.vd - 1 : (L.y | 0) + R0; if (ax < bx0) bx0 = ax; if (ay < by0) by0 = ay; if (bx > bx1) bx1 = bx; if (by > by1) by1 = by; }
       if (L.vis) {
         for (let j = 0; j < L.vd; j++) { const ty = L.voy + j; if (ty < 0 || ty >= m.h) continue; for (let i = 0; i < L.vd; i++) { const tx = L.vox + i; if (tx < 0 || tx >= m.w) continue; if (L.vis[j * L.vd + i] === 1) lvisBuf[ty * m.w + tx] |= bit; } }
       } else {
@@ -1463,7 +1608,17 @@ void main() {
         for (let ty = Math.max(0, (L.y | 0) - R); ty <= Math.min(m.h - 1, (L.y | 0) + R); ty++) for (let tx = Math.max(0, (L.x | 0) - R); tx <= Math.min(m.w - 1, (L.x | 0) + R); tx++) lvisBuf[ty * m.w + tx] |= bit;
       }
     }
-    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, T.lvis); gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, m.w, m.h, gl.RED_INTEGER, gl.UNSIGNED_INT, lvisBuf);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, T.lvis);
+    if (part) {
+      const box = bx1 >= 0 ? [Math.max(0, bx0), Math.max(0, by0), Math.min(m.w - 1, bx1), Math.min(m.h - 1, by1)] : null, P = lvisBox;
+      const U = box && P ? [Math.min(box[0], P[0]), Math.min(box[1], P[1]), Math.max(box[2], P[2]), Math.max(box[3], P[3])] : (box || P);
+      if (U && U[2] >= U[0] && U[3] >= U[1]) {
+        gl.pixelStorei(gl.UNPACK_ROW_LENGTH, m.w); gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, U[0]); gl.pixelStorei(gl.UNPACK_SKIP_ROWS, U[1]);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, U[0], U[1], U[2] - U[0] + 1, U[3] - U[1] + 1, gl.RED_INTEGER, gl.UNSIGNED_INT, lvisBuf);
+        gl.pixelStorei(gl.UNPACK_ROW_LENGTH, 0); gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0); gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
+      }
+      lvisBox = box;
+    } else { gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, m.w, m.h, gl.RED_INTEGER, gl.UNSIGNED_INT, lvisBuf); lvisBox = null; }
     gl.bindBuffer(gl.UNIFORM_BUFFER, uboL); gl.bufferSubData(gl.UNIFORM_BUFFER, 0, b); gl.bindBuffer(gl.UNIFORM_BUFFER, null);
     return n;
   }
@@ -1491,7 +1646,9 @@ void main() {
     const U = F.up; U[0] = -stt * cd; U[1] = -stt * sd; U[2] = ct;
     F.fwdH[0] = cd; F.fwdH[1] = sd;
     const m = F.map;
-    const n = 0.02, far = Math.max(48, (m ? Math.hypot(m.w, m.h) : 64) * 1.25, (env ? env.fogDist : 12) * 2 + 4);
+    // Phase 41: a streamed map draws nothing past its radius, so the far plane need not reach across the whole map
+    const diag = (m ? Math.hypot(m.w, m.h) : 64) * 1.25, reach = streamOn(m) ? Math.min(diag, streamRadius(m) * 1.6) : diag;
+    const n = 0.02, far = Math.max(48, reach, (env ? env.fogDist : 12) * 2 + 4);
     F.near = n; F.far = far;
     const ax = FX / 160, ay = FX / 75, sy = bob / 75, A = (far + n) / (far - n), Bz = -2 * far * n / (far - n);
     const re = R[0] * E[0] + R[1] * E[1] + R[2] * E[2], ue = U[0] * E[0] + U[1] * E[1] + U[2] * E[2], fe = Fw[0] * E[0] + Fw[1] * E[1] + Fw[2] * E[2];
@@ -2316,7 +2473,7 @@ void main() {
     // hooks
     on, off,
     // tools and tests
-    netStep, netFeed, net: NET, cpuHooks, measure, dynamicTris: () => mesh.dcount / 3, mesh: () => mesh.info, vframe: () => VCAM, reliefDepth, vdepth, buildMesh: () => { mesh.dirty = true; },
+    netStep, netFeed, net: NET, cpuHooks, measure, dynamicTris: () => mesh.dcount / 3, mesh: () => mesh.info, stream: () => ({ on: !!mesh.streamed, CH: STREAM.CH, MIN: STREAM.MIN, chunks: STREAM.chunks.size, built: STREAM.built, rebuilt: STREAM.rebuilt, freed: STREAM.freed, info: STREAM.info, keys: [...STREAM.chunks.keys()] }), streamOn, vframe: () => VCAM, reliefDepth, vdepth, buildMesh: () => { mesh.dirty = true; },
     readPixels() {
       if (!gl || !canvas) return null;
       const w = canvas.width, h = canvas.height, out = new Uint8Array(w * h * 4);

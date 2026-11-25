@@ -1,0 +1,1323 @@
+{
+ "when": "2026-11-24T22:14:42.474Z",
+ "frames": 20,
+ "renderer": "headless Chromium, SwiftShader (software)",
+ "rows": [
+  {
+   "size": 96,
+   "cells": 9216,
+   "step": "done",
+   "gameLoadMs": 5610,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 647.9,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_96",
+    "genMs": 18.5,
+    "places": 1,
+    "lights": 1,
+    "npcs": 1,
+    "blocks": 12,
+    "scattered": 39,
+    "entities": 44
+   },
+   "load": {
+    "loadMapMs": 1.8000000000465661,
+    "firstFrameMs": 72.10000000009313,
+    "mesh": {
+     "map": "la_limits_96",
+     "verts": 82557,
+     "tris": 72166,
+     "ms": 58,
+     "relief": true
+    },
+    "stream": {
+     "on": false,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 0,
+     "built": 0,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": null,
+     "keys": []
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 14.08548355102539,
+    "withMapMB": 14.152698516845703,
+    "mapMB": 0.0672149658203125,
+    "backingMapMB": 0.22400474548339844,
+    "rssBaseMB": 988.08203125,
+    "rssWithMapMB": 995.953125,
+    "rssMapMB": 7.87109375
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 0.19999999995343387,
+      "render": 2.25,
+      "renderP95": 4.899999999906868,
+      "r3dCpu": 1.650000000023283,
+      "meshRebuilds": 0,
+      "all": [
+       2,
+       5,
+       4,
+       1,
+       4,
+       4,
+       2,
+       2,
+       2,
+       2,
+       4,
+       5,
+       3,
+       1,
+       2,
+       2,
+       2,
+       2,
+       3,
+       2
+      ],
+      "warm": 0,
+      "stream": null
+     },
+     {
+      "update": 0.19999999995343387,
+      "render": 1.6999999999534339,
+      "renderP95": 8.5,
+      "r3dCpu": 1.0999999998603016,
+      "meshRebuilds": 0,
+      "all": [
+       1,
+       2,
+       1,
+       2,
+       3,
+       2,
+       2,
+       3,
+       1,
+       2,
+       2,
+       2,
+       1,
+       4,
+       1,
+       9,
+       1,
+       5,
+       1,
+       7
+      ],
+      "warm": 0,
+      "stream": null
+     }
+    ],
+    "cellSigMs": 0.09999999986030161,
+    "arrSigMs": 0.19999999995343387,
+    "lightMapMs": 0,
+    "lightMapMB": 0.03515625
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 6.300000000046566,
+     "jsonBytes": 9762,
+     "mapBytes": 1727,
+     "codeBytes": 2722
+    },
+    "explored": {
+     "snapMs": 0.6999999999534339,
+     "jsonBytes": 9963,
+     "mapBytes": 1927,
+     "codeBytes": 2938
+    }
+   },
+   "errors": [],
+   "wallMs": 16158
+  },
+  {
+   "size": 160,
+   "cells": 25600,
+   "step": "done",
+   "gameLoadMs": 4938,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 351.1,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_160",
+    "genMs": 18.199999999953434,
+    "places": 1,
+    "lights": 1,
+    "npcs": 1,
+    "blocks": 12,
+    "scattered": 124,
+    "entities": 129
+   },
+   "load": {
+    "loadMapMs": 8.400000000139698,
+    "firstFrameMs": 142.79999999981374,
+    "mesh": {
+     "map": "la_limits_160",
+     "verts": 229757,
+     "tris": 202214,
+     "ms": 119.1,
+     "relief": true
+    },
+    "stream": {
+     "on": false,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 0,
+     "built": 0,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": null,
+     "keys": []
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 13.94210433959961,
+    "withMapMB": 14.067108154296875,
+    "mapMB": 0.12500381469726562,
+    "backingMapMB": 0.45809078216552734,
+    "rssBaseMB": 1001.2109375,
+    "rssWithMapMB": 1019.39453125,
+    "rssMapMB": 18.18359375
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 0.19999999995343387,
+      "render": 2.199999999953434,
+      "renderP95": 5.5,
+      "r3dCpu": 1.599999999976717,
+      "meshRebuilds": 0,
+      "all": [
+       6,
+       4,
+       4,
+       2,
+       2,
+       2,
+       4,
+       4,
+       1,
+       2,
+       3,
+       2,
+       3,
+       4,
+       2,
+       2,
+       2,
+       2,
+       4,
+       2
+      ],
+      "warm": 0,
+      "stream": null
+     },
+     {
+      "update": 0.19999999995343387,
+      "render": 1.599999999976717,
+      "renderP95": 9.699999999953434,
+      "r3dCpu": 1.0999999998603016,
+      "meshRebuilds": 0,
+      "all": [
+       2,
+       5,
+       1,
+       2,
+       4,
+       4,
+       1,
+       2,
+       1,
+       2,
+       2,
+       2,
+       2,
+       3,
+       1,
+       3,
+       2,
+       10,
+       2,
+       1
+      ],
+      "warm": 0,
+      "stream": null
+     }
+    ],
+    "cellSigMs": 0.19999999995343387,
+    "arrSigMs": 0.20000000018626451,
+    "lightMapMs": 0.10000000009313226,
+    "lightMapMB": 0.09765625
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 5.900000000139698,
+     "jsonBytes": 12909,
+     "mapBytes": 4871,
+     "codeBytes": 3254
+    },
+    "explored": {
+     "snapMs": 1.5,
+     "jsonBytes": 13080,
+     "mapBytes": 5043,
+     "codeBytes": 3470
+    }
+   },
+   "errors": [],
+   "wallMs": 18729
+  },
+  {
+   "size": 256,
+   "cells": 65536,
+   "step": "done",
+   "gameLoadMs": 5005,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 314.7,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_256",
+    "genMs": 39.10000000009313,
+    "places": 4,
+    "lights": 9,
+    "npcs": 2,
+    "blocks": 30,
+    "scattered": 341,
+    "entities": 364
+   },
+   "load": {
+    "loadMapMs": 10.100000000093132,
+    "firstFrameMs": 295.29999999981374,
+    "mesh": {
+     "map": "la_limits_256",
+     "verts": 588872,
+     "tris": 520144,
+     "ms": 255.3,
+     "relief": true
+    },
+    "stream": {
+     "on": false,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 0,
+     "built": 0,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": null,
+     "keys": []
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 13.764732360839844,
+    "withMapMB": 14.422653198242188,
+    "mapMB": 0.6579208374023438,
+    "backingMapMB": 0.9840269088745117,
+    "rssBaseMB": 990.7421875,
+    "rssWithMapMB": 1050.53125,
+    "rssMapMB": 59.7890625
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 0.30000000004656613,
+      "render": 2.300000000046566,
+      "renderP95": 8.299999999813735,
+      "r3dCpu": 1.6999999999534339,
+      "meshRebuilds": 0,
+      "all": [
+       6,
+       2,
+       2,
+       2,
+       2,
+       3,
+       4,
+       2,
+       3,
+       8,
+       2,
+       2,
+       2,
+       4,
+       2,
+       2,
+       2,
+       2,
+       2,
+       5
+      ],
+      "warm": 0,
+      "stream": null
+     },
+     {
+      "update": 0.30000000004656613,
+      "render": 2.549999999930151,
+      "renderP95": 10,
+      "r3dCpu": 1.6000000000931323,
+      "meshRebuilds": 0,
+      "all": [
+       5,
+       5,
+       2,
+       2,
+       2,
+       2,
+       2,
+       3,
+       4,
+       2,
+       3,
+       2,
+       2,
+       5,
+       4,
+       2,
+       10,
+       2,
+       6,
+       6
+      ],
+      "warm": 0,
+      "stream": null
+     }
+    ],
+    "cellSigMs": 2,
+    "arrSigMs": 0.5,
+    "lightMapMs": 0.19999999995343387,
+    "lightMapMB": 0.25
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 5.199999999953434,
+     "jsonBytes": 21698,
+     "mapBytes": 13661,
+     "codeBytes": 4670
+    },
+    "explored": {
+     "snapMs": 1.3000000000465661,
+     "jsonBytes": 22434,
+     "mapBytes": 14397,
+     "codeBytes": 5554
+    }
+   },
+   "errors": [],
+   "wallMs": 22008
+  },
+  {
+   "size": 384,
+   "cells": 147456,
+   "step": "done",
+   "gameLoadMs": 5707,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 287.5,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_384",
+    "genMs": 58.199999999953434,
+    "places": 9,
+    "lights": 24,
+    "npcs": 3,
+    "blocks": 54,
+    "scattered": 822,
+    "entities": 876
+   },
+   "load": {
+    "loadMapMs": 8.299999999813735,
+    "firstFrameMs": 249.4000000001397,
+    "mesh": {
+     "map": "la_limits_384",
+     "verts": 442508,
+     "tris": 393244,
+     "ms": 209.8,
+     "relief": true,
+     "streamed": true,
+     "chunks": 12,
+     "need": 32,
+     "radius": 168
+    },
+    "stream": {
+     "on": true,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 12,
+     "built": 12,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": {
+      "map": "la_limits_384",
+      "verts": 442508,
+      "tris": 393244,
+      "ms": 209.8,
+      "relief": true,
+      "streamed": true,
+      "chunks": 12,
+      "need": 32,
+      "radius": 168
+     },
+     "keys": [
+      "3,3",
+      "3,2",
+      "2,3",
+      "2,2",
+      "4,3",
+      "3,4",
+      "4,2",
+      "2,4",
+      "3,1",
+      "1,3",
+      "2,1",
+      "1,2"
+     ]
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 14.094463348388672,
+    "withMapMB": 15.729621887207031,
+    "mapMB": 1.6351585388183594,
+    "backingMapMB": 7.498461723327637,
+    "rssBaseMB": 996.640625,
+    "rssWithMapMB": 1054.1015625,
+    "rssMapMB": 57.4609375
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 0.4500000000698492,
+      "render": 3.5,
+      "renderP95": 9,
+      "r3dCpu": 2.5,
+      "meshRebuilds": 0,
+      "all": [
+       4,
+       6,
+       3,
+       2,
+       2,
+       2,
+       2,
+       5,
+       5,
+       3,
+       2,
+       3,
+       4,
+       4,
+       7,
+       9,
+       2,
+       6,
+       5,
+       5
+      ],
+      "warm": 13,
+      "stream": {
+       "chunks": 32,
+       "verts": 1178848,
+       "tris": 1044452
+      }
+     },
+     {
+      "update": 0.30000000004656613,
+      "render": 2.599999999976717,
+      "renderP95": 6.900000000139698,
+      "r3dCpu": 1.849999999976717,
+      "meshRebuilds": 0,
+      "all": [
+       6,
+       3,
+       3,
+       2,
+       4,
+       3,
+       3,
+       2,
+       2,
+       5,
+       2,
+       2,
+       3,
+       2,
+       2,
+       3,
+       6,
+       5,
+       2,
+       7
+      ],
+      "warm": 0,
+      "stream": {
+       "chunks": 29,
+       "verts": 1068390,
+       "tris": 946628
+      }
+     }
+    ],
+    "cellSigMs": 3.199999999953434,
+    "arrSigMs": 1.1999999999534339,
+    "lightMapMs": 0.39999999990686774,
+    "lightMapMB": 0.5625
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 8.400000000139698,
+     "jsonBytes": 40886,
+     "mapBytes": 32849,
+     "codeBytes": 7554
+    },
+    "explored": {
+     "snapMs": 2.300000000046566,
+     "jsonBytes": 42630,
+     "mapBytes": 34593,
+     "codeBytes": 9238
+    }
+   },
+   "errors": [],
+   "wallMs": 29212
+  },
+  {
+   "size": 512,
+   "cells": 262144,
+   "step": "done",
+   "gameLoadMs": 4892,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 295.6,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_512",
+    "genMs": 86.69999999995343,
+    "places": 16,
+    "lights": 41,
+    "npcs": 6,
+    "blocks": 102,
+    "scattered": 1514,
+    "entities": 1609
+   },
+   "load": {
+    "loadMapMs": 20.5,
+    "firstFrameMs": 309.69999999995343,
+    "mesh": {
+     "map": "la_limits_512",
+     "verts": 442476,
+     "tris": 393172,
+     "ms": 221.1,
+     "relief": true,
+     "streamed": true,
+     "chunks": 12,
+     "need": 32,
+     "radius": 168
+    },
+    "stream": {
+     "on": true,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 12,
+     "built": 12,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": {
+      "map": "la_limits_512",
+      "verts": 442476,
+      "tris": 393172,
+      "ms": 221.1,
+      "relief": true,
+      "streamed": true,
+      "chunks": 12,
+      "need": 32,
+      "radius": 168
+     },
+     "keys": [
+      "4,4",
+      "4,3",
+      "3,4",
+      "3,3",
+      "5,4",
+      "4,5",
+      "5,3",
+      "3,5",
+      "4,2",
+      "2,4",
+      "3,2",
+      "2,3"
+     ]
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 13.775123596191406,
+    "withMapMB": 15.479660034179688,
+    "mapMB": 1.7045364379882812,
+    "backingMapMB": 10.918227195739746,
+    "rssBaseMB": 1009.59765625,
+    "rssWithMapMB": 1061.73828125,
+    "rssMapMB": 52.140625
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 0.8000000000465661,
+      "render": 3.699999999953434,
+      "renderP95": 15.5,
+      "r3dCpu": 2.7499999998835847,
+      "meshRebuilds": 0,
+      "all": [
+       6,
+       16,
+       4,
+       7,
+       10,
+       7,
+       4,
+       4,
+       4,
+       3,
+       4,
+       3,
+       3,
+       4,
+       2,
+       4,
+       4,
+       3,
+       3,
+       3
+      ],
+      "warm": 13,
+      "stream": {
+       "chunks": 32,
+       "verts": 1179900,
+       "tris": 1048548
+      }
+     },
+     {
+      "update": 0.39999999990686774,
+      "render": 3.2499999998835847,
+      "renderP95": 18.399999999906868,
+      "r3dCpu": 1.7000000000698492,
+      "meshRebuilds": 3,
+      "all": [
+       18,
+       10,
+       9,
+       3,
+       2,
+       2,
+       3,
+       3,
+       2,
+       3,
+       2,
+       2,
+       7,
+       12,
+       2,
+       7,
+       11,
+       13,
+       10,
+       2
+      ],
+      "warm": 0,
+      "stream": {
+       "chunks": 33,
+       "verts": 1216134,
+       "tris": 1078740
+      }
+     }
+    ],
+    "cellSigMs": 3.300000000046566,
+    "arrSigMs": 2.1000000000931323,
+    "lightMapMs": 0.7999999998137355,
+    "lightMapMB": 1
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 6.599999999860302,
+     "jsonBytes": 68415,
+     "mapBytes": 60376,
+     "codeBytes": 11470
+    },
+    "explored": {
+     "snapMs": 1.6999999999534339,
+     "jsonBytes": 71298,
+     "mapBytes": 63260,
+     "codeBytes": 14878
+    }
+   },
+   "errors": [],
+   "wallMs": 25910
+  },
+  {
+   "size": 768,
+   "cells": 589824,
+   "step": "done",
+   "gameLoadMs": 3775,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 254.2,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_768",
+    "genMs": 153.9000000001397,
+    "places": 49,
+    "lights": 129,
+    "npcs": 17,
+    "blocks": 300,
+    "scattered": 3415,
+    "entities": 3708
+   },
+   "load": {
+    "loadMapMs": 16.5,
+    "firstFrameMs": 190.89999999990687,
+    "mesh": {
+     "map": "la_limits_768",
+     "verts": 442377,
+     "tris": 393182,
+     "ms": 136.3,
+     "relief": true,
+     "streamed": true,
+     "chunks": 12,
+     "need": 32,
+     "radius": 168
+    },
+    "stream": {
+     "on": true,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 12,
+     "built": 12,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": {
+      "map": "la_limits_768",
+      "verts": 442377,
+      "tris": 393182,
+      "ms": 136.3,
+      "relief": true,
+      "streamed": true,
+      "chunks": 12,
+      "need": 32,
+      "radius": 168
+     },
+     "keys": [
+      "6,6",
+      "6,5",
+      "5,6",
+      "5,5",
+      "7,6",
+      "6,7",
+      "7,5",
+      "5,7",
+      "6,4",
+      "4,6",
+      "5,4",
+      "4,5"
+     ]
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 14.344837188720703,
+    "withMapMB": 16.753158569335938,
+    "mapMB": 2.4083213806152344,
+    "backingMapMB": 15.302802085876465,
+    "rssBaseMB": 1004.28125,
+    "rssWithMapMB": 1062.2734375,
+    "rssMapMB": 57.9921875
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 1,
+      "render": 5.150000000023283,
+      "renderP95": 15.5,
+      "r3dCpu": 3.650000000023283,
+      "meshRebuilds": 0,
+      "all": [
+       10,
+       16,
+       14,
+       4,
+       8,
+       4,
+       5,
+       3,
+       4,
+       5,
+       7,
+       6,
+       6,
+       4,
+       3,
+       4,
+       5,
+       7,
+       6,
+       6
+      ],
+      "warm": 13,
+      "stream": {
+       "chunks": 32,
+       "verts": 1179889,
+       "tris": 1048518
+      }
+     },
+     {
+      "update": 1.0500000000465661,
+      "render": 6.350000000093132,
+      "renderP95": 31.600000000093132,
+      "r3dCpu": 4.549999999930151,
+      "meshRebuilds": 7,
+      "all": [
+       32,
+       16,
+       19,
+       19,
+       12,
+       13,
+       31,
+       10,
+       5,
+       6,
+       5,
+       5,
+       7,
+       5,
+       15,
+       5,
+       4,
+       4,
+       4,
+       4
+      ],
+      "warm": 6,
+      "stream": {
+       "chunks": 39,
+       "verts": 1437444,
+       "tris": 1275880
+      }
+     }
+    ],
+    "cellSigMs": 0.9000000001396984,
+    "arrSigMs": 4.5,
+    "lightMapMs": 4.899999999906868,
+    "lightMapMB": 2.25
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 10.800000000046566,
+     "jsonBytes": 147529,
+     "mapBytes": 139491,
+     "codeBytes": 22614
+    },
+    "explored": {
+     "snapMs": 5.100000000093132,
+     "jsonBytes": 156905,
+     "mapBytes": 148867,
+     "codeBytes": 31950
+    }
+   },
+   "errors": [],
+   "wallMs": 27172
+  },
+  {
+   "size": 1024,
+   "cells": 1048576,
+   "step": "done",
+   "gameLoadMs": 4913,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 438.2,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_1024",
+    "genMs": 268,
+    "places": 81,
+    "lights": 216,
+    "npcs": 27,
+    "blocks": 486,
+    "scattered": 6058,
+    "entities": 6544
+   },
+   "load": {
+    "loadMapMs": 29,
+    "firstFrameMs": 292.0999999998603,
+    "mesh": {
+     "map": "la_limits_1024",
+     "verts": 442525,
+     "tris": 393214,
+     "ms": 183.2,
+     "relief": true,
+     "streamed": true,
+     "chunks": 12,
+     "need": 32,
+     "radius": 168
+    },
+    "stream": {
+     "on": true,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 12,
+     "built": 12,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": {
+      "map": "la_limits_1024",
+      "verts": 442525,
+      "tris": 393214,
+      "ms": 183.2,
+      "relief": true,
+      "streamed": true,
+      "chunks": 12,
+      "need": 32,
+      "radius": 168
+     },
+     "keys": [
+      "8,8",
+      "8,7",
+      "7,8",
+      "7,7",
+      "9,8",
+      "8,9",
+      "9,7",
+      "7,9",
+      "8,6",
+      "6,8",
+      "7,6",
+      "6,7"
+     ]
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 13.913326263427734,
+    "withMapMB": 19.338897705078125,
+    "mapMB": 5.425571441650391,
+    "backingMapMB": 20.957237243652344,
+    "rssBaseMB": 993.4921875,
+    "rssWithMapMB": 1072.859375,
+    "rssMapMB": 79.3671875
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 1.1999999999534339,
+      "render": 7.349999999976717,
+      "renderP95": 13.399999999906868,
+      "r3dCpu": 4.299999999930151,
+      "meshRebuilds": 0,
+      "all": [
+       10,
+       5,
+       9,
+       6,
+       11,
+       8,
+       9,
+       11,
+       8,
+       8,
+       13,
+       7,
+       6,
+       9,
+       6,
+       6,
+       5,
+       6,
+       5,
+       5
+      ],
+      "warm": 13,
+      "stream": {
+       "chunks": 32,
+       "verts": 1179897,
+       "tris": 1048522
+      }
+     },
+     {
+      "update": 1.4500000000698492,
+      "render": 6.400000000023283,
+      "renderP95": 20.199999999953434,
+      "r3dCpu": 4.299999999930151,
+      "meshRebuilds": 5,
+      "all": [
+       20,
+       15,
+       20,
+       17,
+       18,
+       7,
+       7,
+       6,
+       5,
+       6,
+       5,
+       6,
+       6,
+       6,
+       7,
+       5,
+       7,
+       6,
+       5,
+       6
+      ],
+      "warm": 11,
+      "stream": {
+       "chunks": 37,
+       "verts": 1364218,
+       "tris": 1212324
+      }
+     }
+    ],
+    "cellSigMs": 13.899999999906868,
+    "arrSigMs": 10.400000000139698,
+    "lightMapMs": 2.7000000001862645,
+    "lightMapMB": 4
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 12.400000000139698,
+     "jsonBytes": 254788,
+     "mapBytes": 246747,
+     "codeBytes": 37258
+    },
+    "explored": {
+     "snapMs": 6.300000000046566,
+     "jsonBytes": 270557,
+     "mapBytes": 262515,
+     "codeBytes": 50170
+    }
+   },
+   "errors": [],
+   "wallMs": 31470
+  },
+  {
+   "size": 1600,
+   "cells": 2560000,
+   "step": "done",
+   "gameLoadMs": 4534,
+   "ledgeMesh": {
+    "map": "la_ledge",
+    "verts": 85008,
+    "tris": 71974,
+    "ms": 297,
+    "relief": true
+   },
+   "build": {
+    "id": "la_limits_1600",
+    "genMs": 589.5,
+    "places": 196,
+    "lights": 521,
+    "npcs": 66,
+    "blocks": 1182,
+    "scattered": 14826,
+    "entities": 16001
+   },
+   "load": {
+    "loadMapMs": 51.199999999953434,
+    "firstFrameMs": 322.39999999990687,
+    "mesh": {
+     "map": "la_limits_1600",
+     "verts": 331868,
+     "tris": 294860,
+     "ms": 116.1,
+     "relief": true,
+     "streamed": true,
+     "chunks": 9,
+     "need": 37,
+     "radius": 168
+    },
+    "stream": {
+     "on": true,
+     "CH": 64,
+     "MIN": 65536,
+     "chunks": 9,
+     "built": 9,
+     "rebuilt": 0,
+     "freed": 0,
+     "info": {
+      "map": "la_limits_1600",
+      "verts": 331868,
+      "tris": 294860,
+      "ms": 116.1,
+      "relief": true,
+      "streamed": true,
+      "chunks": 9,
+      "need": 37,
+      "radius": 168
+     },
+     "keys": [
+      "12,12",
+      "13,12",
+      "12,13",
+      "12,11",
+      "11,12",
+      "13,13",
+      "13,11",
+      "11,13",
+      "11,11"
+     ]
+    },
+    "r3dActive": true,
+    "software": true,
+    "renderer": "ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)"
+   },
+   "heap": {
+    "baseMB": 13.901866912841797,
+    "withMapMB": 26.498123168945312,
+    "mapMB": 12.596256256103516,
+    "backingMapMB": 43.139892578125,
+    "rssBaseMB": 1004.109375,
+    "rssWithMapMB": 1097.6640625,
+    "rssMapMB": 93.5546875
+   },
+   "frames": {
+    "views": [
+     {
+      "update": 1.599999999976717,
+      "render": 7.749999999883585,
+      "renderP95": 13.900000000139698,
+      "r3dCpu": 4.550000000046566,
+      "meshRebuilds": 0,
+      "all": [
+       7,
+       8,
+       7,
+       8,
+       9,
+       8,
+       7,
+       9,
+       8,
+       8,
+       7,
+       10,
+       8,
+       8,
+       14,
+       7,
+       7,
+       12,
+       7,
+       10
+      ],
+      "warm": 21,
+      "stream": {
+       "chunks": 37,
+       "verts": 1364404,
+       "tris": 1212452
+      }
+     },
+     {
+      "update": 1.6999999999534339,
+      "render": 8.050000000046566,
+      "renderP95": 10.800000000046566,
+      "r3dCpu": 4.5,
+      "meshRebuilds": 0,
+      "all": [
+       11,
+       8,
+       9,
+       8,
+       8,
+       8,
+       8,
+       8,
+       10,
+       8,
+       6,
+       9,
+       8,
+       7,
+       8,
+       6,
+       9,
+       8,
+       9,
+       8
+      ],
+      "warm": 22,
+      "stream": {
+       "chunks": 33,
+       "verts": 1216753,
+       "tris": 1081286
+      }
+     }
+    ],
+    "cellSigMs": 32.5,
+    "arrSigMs": 23.5,
+    "lightMapMs": 6.199999999953434,
+    "lightMapMB": 9.765625
+   },
+   "save": {
+    "fresh": {
+     "snapMs": 20.300000000046566,
+     "jsonBytes": 623663,
+     "mapBytes": 615620,
+     "codeBytes": 85850
+    },
+    "explored": {
+     "snapMs": 19.600000000093132,
+     "jsonBytes": 661687,
+     "mapBytes": 653644,
+     "codeBytes": 119394
+    }
+   },
+   "errors": [],
+   "wallMs": 33881
+  }
+ ]
+}

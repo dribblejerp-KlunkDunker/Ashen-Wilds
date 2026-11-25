@@ -139,6 +139,37 @@ can be joined into one map with the seams removed. The zone sizes and squeeze ra
 its maps. So chunked streaming is no longer a later nicety: it is how a zone is to be built, and the connected maps are
 the stand-in until it lands.
 
+## After Phase 41: streaming
+
+Phase 41 (`js/stream41.js`, and the renderer itself, `js/r3d21.js`) builds a map of more than 65,536 cells in chunks of
+64 x 64 and keeps and draws only those within the fog's reach (fog distance + 48 cells); a change rebuilds the chunks it
+touches; the light map is sent only where the lights are; the sun's heights follow a count of changes. The same tool,
+the same machine (`docs/engine-limits-41.json`):
+
+| Map | Streamed | First frame (ms) | Chunks kept | Triangles kept | Frame, middle (ms) | Frame, across (ms) | Worst frame, 95th (ms) | Chromium memory for the map (MB) |
+|---|---|---|---|---|---|---|---|---|
+| 96 x 96 | no | 72 | - | 72,166 | 2.3 | 1.7 | 9 | 8 |
+| 160 x 160 | no | 143 | - | 202,214 | 2.2 | 1.6 | 10 | 18 |
+| 256 x 256 | no | 295 | - | 520,144 | 2.3 | 2.5 | 10 | 60 |
+| 384 x 384 | yes | 249 | 32 | 1,044,452 | 3.5 | 2.6 | 9 | 57 |
+| 512 x 512 | yes | 310 | 32 | 1,048,548 | 3.7 | 3.2 | 18 | 52 |
+| 768 x 768 | yes | 191 | 32 | 1,048,518 | 5.2 | 6.4 | 32 | 58 |
+| 1024 x 1024 | yes | 292 | 32 | 1,048,522 | 7.3 | 6.4 | 20 | 79 |
+| 1600 x 1600 | yes | 322 | 37 | 1,212,452 | 7.7 | 8.1 | 14 | 94 |
+
+Before it, the 1600 x 1600 map took 5.2 s to enter, kept 20.5 million triangles (1.3 GB of buffers), and drew a frame
+in about 950 ms. Now it takes a third of a second, keeps about 1.2 million triangles whatever the map's size, and draws
+a frame in about 8 ms here. A 300 x 300 map streamed is the very same triangles, to the bit, as built whole (tested).
+
+What still grows with a map is its **entities**, not its cells: the test maps have one thing every 120 cells, 16,001 on
+the square mile, and the sprites, their animation and the gathering of lights walk all of them every frame (about 4 ms
+of the 8 here, by a CPU profile). A zone's entities can be culled by distance the same way, when a zone has that many.
+The "Change check", "Array check" and "Light map upload" columns of the first table are the old code's per-frame work,
+timed alone; on a streamed map the renderer no longer does any of it.
+
+Still not measured: a real GPU. About a million triangles near the eye is a full 384 map's worth: fine on a desktop
+card, worth measuring on a phone. A coarser mesh for distant chunks would halve it.
+
 ## Re-running
 
 The tool takes about 5 minutes for all eight sizes on this box (most of it opening the game eight times). Re-run it

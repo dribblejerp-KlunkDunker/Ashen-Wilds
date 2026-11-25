@@ -55,6 +55,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/torch38.test.js --no-browser
     node test/prologue39.test.js --no-browser
     node test/threshold40.test.js --no-browser
+    node test/stream41.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node test/lore-places.test.js --no-browser   # the lore pipeline: the atlas's places into docs/data/places.json
@@ -78,6 +79,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node test/torch38.test.js
     NODE_PATH=$(npm root -g) node test/prologue39.test.js  # the whole prologue, played with a player's inputs
     NODE_PATH=$(npm root -g) node test/threshold40.test.js # down from the ledge, through the cut and back
+    NODE_PATH=$(npm root -g) node test/stream41.test.js    # big maps in chunks: the same triangles, changes found
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -89,6 +91,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node tools/torchshots.js docs/screenshots    # the torch, the found lantern: stills and a clip
     NODE_PATH=$(npm root -g) node tools/prologueshots.js docs/screenshots # the prologue played through: stills 151-163, clip 150
     NODE_PATH=$(npm root -g) node tools/thresholdshots.js docs/screenshots # the ways between maps: stills 170-179
+    NODE_PATH=$(npm root -g) node tools/streamshots.js docs/screenshots   # streaming: stills 180-182
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
@@ -110,7 +113,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
 
     index.html            loads every script in order; the last one wins when two wrap the same function
     js/engine.js          the classic raycaster (320 x 200 canvas, 150-row view); the reference renderer
-    js/r3d21.js           the WebGL2 renderer: one static mesh per map, passes, R3D.extendMesh(fn)
+    js/r3d21.js           the WebGL2 renderer: one static mesh per map (in 64-cell chunks past 65,536 cells, Phase 41), passes, R3D.extendMesh(fn)
     js/maps.js            GameMap: cells, blocks, doors, ground heights, entities
     js/game.js            state (G), walking, collision (solidAt), noise, dialogue, saves
     js/light21.js         sky by hour, sun, bloom          js/weather.js      weather states
@@ -160,6 +163,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/torch38.js        Phase 38: start with a torch (the left hand's light, by LANTERN7.setSource); Marget gives you her horn lantern
     js/prologue39.js     Phase 39: the prologue played through; its end card after the title (days, oil, pitch, who lived)
     js/threshold40.js    Phase 40: walking from one map into the next; Z1's first two maps, the band and the cut, the ledge's gap
+    js/stream41.js       Phase 41: streaming; GameMap's setters mark what they change (the chunks themselves are in js/r3d21.js)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
     tools/lore/           the lore pipeline (docs/pipeline.md): lib.js, places.js -> docs/data/places.json; nothing loads it yet
 
@@ -252,6 +256,11 @@ Useful facts, all checked in this repository:
   (`G.flags.la_marget_map`) and the carter (`CARTER13.cross`, his state's `map`). The bloom follows through `BLOOM4.DOORS`:
   a map may have several; it follows you through the one you last left by and goes home through the one marked `home`.
   The account, cards, company, kit and carry phases act on any map with `_la`, not only the ledge and the bothy.
+- A map of more than 65,536 cells is streamed (Phase 41): 64 x 64 chunks within its fog distance + 48 cells of the eye,
+  `R3D.stream()` to see them. Change a map through its setters (`set`, `block`, `setFloor`, `syncSlopes`, `setSide`): they
+  mark the chunks to rebuild. A write straight into `m.cells` or an array is found too, but up to a second later.
+  `R3D.mesh()` on a streamed map gives the chunks kept, not the whole map. A mesh extension (`R3D.extendMesh`) is built
+  as one mesh of its own on a streamed map: keep it small, or it is rebuilt with every change.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
