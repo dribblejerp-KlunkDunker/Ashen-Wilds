@@ -13,8 +13,8 @@ Shattered Octave* (same owner, commit `f2b3990`, branch `phase-75-pixel-folk`) w
 out (decision D14). That repository is read-only for this work: read it, never change it.
 
 Two places exist: the prologue's ledge (`la_ledge`) and Marget Sayle's bothy (`la_bothy`); below the ledge, the highland
-edge (Z1) is one open map, `la_z1` (`js/open42.js`), with ground and ways and nothing else yet (with the switch "One open
-country" off, it is Phase 40's two maps, `la_z1_2_0` and `la_z1_2_1`, `js/threshold40.js`, with rock between them). One
+edge (Z1) is one open map, `la_z1` (`js/open42.js`), its ground and ways and the zone plan's 56 places, built of stone and
+ground with no one in them yet (`js/places43.js`; with the switch "One open country" off, it is Phase 40's two maps, `la_z1_2_0` and `la_z1_2_1`, `js/threshold40.js`, with rock between them). One
 thing hunts: the walking bloom on the shelf (`js/bloom4.js`). The bothy's door has a bar (`js/door5.js`).
 Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You start with a torch; a lantern is found or bought (`js/lantern7.js`, `js/torch38.js`). The bothy is built the highland way (`js/building8.js`). Dread rises and the picture closes in (`js/dread9.js`). Begin asks who walks north, and the panel speaks this game (`js/panel10.js`). The prologue plays through from Begin to its end card (`js/prologue39.js`, `test/prologue39.test.js`).
 
@@ -58,6 +58,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     node test/threshold40.test.js --no-browser
     node test/stream41.test.js --no-browser
     node test/open42.test.js --no-browser
+    node test/places43.test.js --no-browser
     node test/touchlink36.test.js --no-browser       # the phone link, not Act III
     node test/wires19-23.test.js --no-browser    # phases 19-23 against fake G, update and HUD
     node test/lore-places.test.js --no-browser   # the lore pipeline: the atlas's places into docs/data/places.json
@@ -83,6 +84,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node test/threshold40.test.js # down from the ledge, through the cut and back
     NODE_PATH=$(npm root -g) node test/stream41.test.js    # big maps in chunks: the same triangles, changes found
     NODE_PATH=$(npm root -g) node test/open42.test.js      # Z1 as one open map: Phase 40's ground, no bands, walked through
+    NODE_PATH=$(npm root -g) node test/places43.test.js    # Z1's 56 places: none on a way, all reachable, found, saved, switched
     NODE_PATH=$(npm root -g) node tools/shots.js . docs/screenshots
     NODE_PATH=$(npm root -g) node tools/sunshots.js docs/screenshots      # the sun's day
     NODE_PATH=$(npm root -g) node tools/beastshots.js docs/screenshots    # the look test (tools/look/)
@@ -96,6 +98,7 @@ Ash falls and sleet comes in spells, stopped by roofs (`js/weather6.js`). You st
     NODE_PATH=$(npm root -g) node tools/thresholdshots.js docs/screenshots # the ways between maps: stills 170-179
     NODE_PATH=$(npm root -g) node tools/streamshots.js docs/screenshots   # streaming: stills 180-182
     NODE_PATH=$(npm root -g) node tools/openshots.js docs/screenshots     # one open country: stills 190-197
+    NODE_PATH=$(npm root -g) node tools/placeshots.js docs/screenshots    # the places of the highland edge: stills 200-212
     NODE_PATH=$(npm root -g) node tools/buildshots.js docs/screenshots    # the highland building: stills and a clip
     NODE_PATH=$(npm root -g) node tools/dreadshots.js docs/screenshots    # dread: stills and a clip
     NODE_PATH=$(npm root -g) node tools/panelshots.js docs/screenshots    # creation, the HUD and the panels
@@ -169,6 +172,7 @@ or the 3D renderer stays off. `test/harness.js` does both.
     js/threshold40.js    Phase 40: walking from one map into the next; Z1's first two maps, the band and the cut, the ledge's gap
     js/stream41.js       Phase 41: streaming; GameMap's setters mark what they change (the chunks themselves are in js/r3d21.js)
     js/open42.js         Phase 42: Z1 as one open map, la_z1 (1,536 square, zone coordinates), made a piece at a time
+    js/places43.js       Phase 43: Z1's 56 places (PLACES43.PLACES, one recipe each), found as you come to them (G.flags.la_found)
     tools/look/           look tests the page never loads (the quarry-troll, until it goes into the game)
     tools/lore/           the lore pipeline (docs/pipeline.md): lib.js, places.js -> docs/data/places.json; nothing loads it yet
 
@@ -270,6 +274,10 @@ Useful facts, all checked in this repository:
   built, for the switch "One open country" off). It is made in idle time from Begin (`OPEN42.ready(m)`; `OPEN42.finish(m)`
   makes the rest at once, as `loadMap` does). A threshold may carry `when()`; Walk on takes the first way down from the
   ledge whose `when()` passes. A map that big gets its own map (M) drawing, a cell to a pixel.
+- Z1's places (Phase 43) are put up on `la_z1` once it is made, and taken down with their switch, through the map's setters,
+  with a record of every cell, floor and thing changed (`PLACES43.state().rec`). Their things carry `la43` (the place's
+  number) and the place's name as `label`. Do not mark a map's own things `transient`: `js/anim.js` strips those at every
+  change of map. A save leaves out the places' things (they are put up again on load) and keeps `G.flags.la_found`.
 - The bothy is tiny (cells 1 to 5 by 1 to 4) and crowded: a test that walks a player round the bloom inside will
   pin them against the table. Test indoor behaviour with a still player, or start them clear of the furniture.
 
@@ -317,6 +325,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
 - **O19:** a zone is to be one open world: the rock bands between Phase 40's maps stand only until the renderer streams a
   zone in chunks (E2), and then go. Phase 40's other proposals are approved.
+- **O20:** the proposals of Phases 41 to 43 are approved: streaming's numbers and switch, the open map's name and its
+  outer edge of rock, the 56 places as built, finding within 14 cells, the six painted things, Coldbarrow's shut gate.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git

@@ -72,6 +72,8 @@ check(!src.split('\n').some((l) => /\S.*[;{)]\s*\/\/ /.test(l) && !/['"`].*\/\/.
     await H.begin(s.page);
     await H.autopilot(s.page);
     const ev = (fn, arg) => s.page.evaluate(fn, arg);
+    // Phase 43 puts the zone's places on the open map; this test is of Phase 42's bare map, so that switch is off
+    await ev(() => { GFX.laPlaces = false; if (typeof PLACES43 !== 'undefined') PLACES43.sync(); });
     await ev(() => {
       window.__W42 = (x, y, ms) => {
         const c = Engine.cam, from = G.mapId, norm = (a) => Math.atan2(Math.sin(a), Math.cos(a));
