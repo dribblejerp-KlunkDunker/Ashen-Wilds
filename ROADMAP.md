@@ -1454,6 +1454,54 @@ heat-stones, Marget's peat); the shapes are the engine's blocks, square-sided, a
 pillar; Coldbarrow itself; the Chart booking when you leave the zone (Z-R5). How the places read in motion, in fog and
 at night, and whether 30 to 60 seconds between them feels right walking, need a person.
 
+## Phase 44 - the blind quarry-troll
+
+`js/troll44.js` · `test/troll44.test.js` · `tools/trollshots.js` (stills 220 to 225) · switch: Options > "The
+quarry-trolls"
+
+The first beast of the highland edge's hunts. The zone plan puts two of its grounds in Z1 (places 26 and 37); the
+bestiary, the Old Quarry chapter and the Rook's Stair supplement say how it hunts; the look test (tools/look/beasts.js,
+approved under O9) is its body.
+
+- **One troll keeps each ground** on the open map, sitting still near the plan's point, where its place's boulders stand
+  (with room round it to turn). At rest it is sunk over its fists with its head under its hump, an outcrop.
+- **It hunts by sound alone** (`think`, pure, tested step by step in Node). It hears by the company's hearing table
+  (Phase 19: a walk 6, a sprint 14, a blade on stone 16), half as far through stone, and nothing at all from someone
+  standing still, even at arm's length. It hears you, the carter walking, and a thrown stone where it lands (the engine's
+  distractions now reach it). Of two sounds it goes to the one it hears best.
+- **It goes to where the sound was, not to you.** There it plants its feet and raises both fists for a second, then
+  brings them down: anyone within two cells of the spot is struck. A louder sound while it walks turns it; once its
+  fists are up nothing does, so whoever steps out of the ring in that second is not hit (tested, played with the keys).
+  Then it listens six seconds, forgets, and walks home. Its blows leave rings of shattered stone, and dust.
+- **Its body** is the look test's sculpt, 17,970 vertices, built once and moved by 14 bones on the graphics card, with the
+  same ink outline and banded light as the walking bloom: knuckle-walking, the head turning to listen, the fists raised
+  and the blow. It is made 2.6 m hunched beside the bloom's 1.78. With "Modelled bodies" off, and in the classic
+  renderer, it is a flat painting.
+- **Words.** Near its ground the first time, the Old Quarry's own line (items-and-texts.md): "Rings of shattered stone.
+  Something pounds here. Stand still and be stone." Looked at resting, "An outcrop, grey with lime dust."; hunting, "The
+  blind quarry-troll. It is going to where the sound was."; heard: "The outcrop moves. It has heard you."; the warning:
+  "It plants its feet and lifts its fists."
+- **The switch off:** no troll on the highland edge, nothing of it left (tested). Its state is not saved; a load or a
+  wake puts it back at home, still.
+
+Measured here (software rendering): drawing both trolls takes 0.2 to 4 ms of a frame; a troll more than the fog's reach
+away is not drawn. Nothing in the copied engine changed.
+
+**Invented, for a ruling:**
+
+- **[PROPOSED] P44-1** The blow: 60 on the cards' 100 scale (the supplement's 2d8 + 3 is a table's number), struck
+  within two cells of the spot, a second after the fists go up. It is not hurt by anything yet: Tier IV, "leave".
+- **[PROPOSED] P44-2** Its pace, 2.4 cells a second (the bestiary's 2.2 to 3.2, at the low end), and that it hears
+  nothing from someone standing still (the company's table gives standing 3 m; the bestiary says it cannot find a still
+  person even at arm's length).
+- **[PROPOSED] P44-3** Its words above (all but the quarry's own line), and the outcrop it looks like at rest.
+- **[PROPOSED] P44-4** The switch's name and words, "The quarry-trolls".
+
+**Not done, and not checked:** striking it (the bestiary: struck, it knows where you are and thrashes around itself);
+what it carries; the weathers' part (deaf and resting in a cinder-squall, deadliest in a Dead Calm: the weather phases
+do not yet reach it); the carter is heard but not struck; its sounds. Feel: whether a second is the right warning and
+two cells the right ring, and how it reads moving in fog, need a person at the controls.
+
 ## Old phase table (kept for history)
 
 | Phase | Feature | The brief's line it answers |
