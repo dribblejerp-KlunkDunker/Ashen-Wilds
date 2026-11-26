@@ -144,6 +144,14 @@ the coal sun, ash and embers, burning ground, the sun's day, modelled bodies, as
 
   ![The Warm Shieling](docs/screenshots/204_the_warm_shieling.png)
 
+- **The blind quarry-troll** (Phase 44). On the quarry-troll ground and the high ground of the highland
+  edge, something sits still like an outcrop. It cannot see. Walk near and it hears you, lumbers to where
+  the sound was, plants its feet, raises both fists and brings them down on that spot. Stand still and it
+  cannot find you, even at arm's length; step out of the ring while its fists are up and it strikes the
+  empty ground. A thrown stone draws it. It leaves rings of shattered stone. Modelled from the look test.
+
+  ![Its fists up over the spot](docs/screenshots/222_troll_fists_up_over_the_spot.png)
+
 - **No picture this repository did not make.** Every tile, person, thing, hand and icon is drawn by
   code here.
 
@@ -174,6 +182,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/stream41.js` | Phase 41: streaming big maps in chunks (with changes in `js/r3d21.js`); `test/stream41.test.js` |
 | `js/open42.js` | Phase 42: the highland edge as one open map (`la_z1`), made a piece at a time; `test/open42.test.js` |
 | `js/places43.js` | Phase 43: the highland edge's 56 places, found as you come to them; `test/places43.test.js` |
+| `js/troll44.js` | Phase 44: the blind quarry-troll, which hunts by sound alone; `test/troll44.test.js` |
 | `js/building8.js` | Phase 8: the highland edge's way of building: the bothy's turf roof, smoke hole, window and stone |
 | `js/dread9.js` | Phase 9: dread, a value you never see, and the picture closing in as it rises |
 | `js/panel10.js` | Phase 10: who walks north, and this game's panel words, HUD and credits |
@@ -185,7 +194,7 @@ lists all of it. `CREDITS.md` says where every file came from.
 | `js/` (the rest) | The engine: the map, two renderers, light, weather, roofs, painted people, co-op |
 | `sw.js`, `tools/pwa/precache.js` | Offline play, and the tool that rebuilds and checks its file list |
 | `test/` | One test file per phase, and the shared browser harness |
-| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`, `thresholdshots.js`, `streamshots.js`, `openshots.js`, `placeshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
+| `tools/shots.js` | Writes the stills in `docs/screenshots/` (and `sunshots.js`, `beastshots.js`, `bloomshots.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js`, `buildshots.js`, `dreadshots.js`, `panelshots.js`, `prologueshots.js`, `thresholdshots.js`, `streamshots.js`, `openshots.js`, `placeshots.js`, `trollshots.js`; `bloomgifs.js`, `doorshots.js`, `weathershots.js`, `lanternshots.js` and `buildshots.js` write the clips) |
 | `tools/icons.js`, `tools/portraits.js` | Write the app icons and the dialogue portraits from the game's own art |
 | `.github/workflows/` | The checks on every pull request, and publishing from `main` |
 | `docs/worldbuilding/` | The world bible: the story folder. Start with `CANON.md` |
@@ -219,6 +228,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     node test/stream41.test.js --no-browser
     node test/open42.test.js --no-browser
     node test/places43.test.js --no-browser
+    node test/troll44.test.js --no-browser
     node test/lore-places.test.js --no-browser      # the lore pipeline: places
     node tools/pwa/precache.js --check
     node tools/icons.js --check
@@ -242,6 +252,7 @@ lists all of it. `CREDITS.md` says where every file came from.
     NODE_PATH=$(npm root -g) node test/stream41.test.js     # big maps in chunks
     NODE_PATH=$(npm root -g) node test/open42.test.js       # the highland edge as one open map
     NODE_PATH=$(npm root -g) node test/places43.test.js     # the highland edge's places
+    NODE_PATH=$(npm root -g) node test/troll44.test.js      # the blind quarry-troll
 
 A passing run says the land is the shape it should be, the cliff holds, the way down can be walked,
 the door opens, the people answer, the walking bloom lets a walker by and comes for a runner, the
