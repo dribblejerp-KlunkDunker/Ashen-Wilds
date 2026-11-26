@@ -103,7 +103,8 @@ check(/quest = function/.test(src) && /Follow me\./.test(src) && /Hold here\./.t
       return out;
     });
     check(r.body, 'the ledge\'s carter is the companion body, not scenery');
-    check(r.follow.mode === 'follow' && r.follow.d >= 1.2 && r.follow.d <= 2.2, 'he follows at 1.2 to 2 cells: ' + r.follow.d.toFixed(2));
+    // he stops at exactly CARTER13.STOP (1.2), which a step can land on a hair under in floating point (CI saw 1.1999...)
+    check(r.follow.mode === 'follow' && r.follow.d >= 1.2 - 1e-6 && r.follow.d <= 2.2, 'he follows at 1.2 to 2 cells: ' + r.follow.d.toFixed(2));
     check(r.choices.join() === 'Follow me.,Hold here.', 'E opens the two orders, and no third');
     check(r.hold === 'hold', 'Hold changes his mode');
     check(r.held < 0.01, 'and he stays put while you walk');
