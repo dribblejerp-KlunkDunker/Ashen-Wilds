@@ -325,6 +325,8 @@ Read `docs/worldbuilding/CANON.md` before writing any lore or in-game text.
   E while carrying, the bloom's chase during the carry as built, and the lore pipeline's LP1 to LP11.
 - **O19:** a zone is to be one open world: the rock bands between Phase 40's maps stand only until the renderer streams a
   zone in chunks (E2), and then go. Phase 40's other proposals are approved.
+- **O20:** the proposals of Phases 41 to 43 are approved: streaming's numbers and switch, the open map's name and its
+  outer edge of rock, the 56 places as built, finding within 14 cells, the six painted things, Coldbarrow's shut gate.
 - No prophecy. Who made the Vaults, what the orks fled and why the Unnamed rise stay unsettled.
 
 ## Git
